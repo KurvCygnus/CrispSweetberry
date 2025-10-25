@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/template_torch",
   "textures": {
-    "all": "crispsweetberry:block/temporary_torch"
+    "torch": "crispsweetberry:block/temporary_torch"
   }
 }

@@ -14,8 +14,8 @@ public class Blocks {
             new Block(BlockBehaviour.Properties.of().noLootTable()));
     
     public static Holder<Block> PAPER_BOX = BLOCK_REGISTER.register("paper_box", (resourceLocation) ->
-        new Block(BlockBehaviour.Properties.of()));
+        new Block(BlockBehaviour.Properties.of().destroyTime(0.1F)));
     
     public static Holder<Block> KILN = BLOCK_REGISTER.register("kiln", (resourceLocation) ->
-        new Block(BlockBehaviour.Properties.of()));
+        new Block(BlockBehaviour.Properties.of().destroyTime(2.75F).requiresCorrectToolForDrops()));
 }
