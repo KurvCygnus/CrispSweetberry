@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "minecraft:map"
+    },
+    {
+      "item": "minecraft:writeable_book"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "crispsweetberry:throwable_torch"
+  }
+}

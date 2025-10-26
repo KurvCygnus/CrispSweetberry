@@ -20,6 +20,8 @@ public class CreativeTabs {
                     output.accept(Items.TEMPORARY_TORCH.value());
                     output.accept(new ItemStack(Blocks.KILN.value()));
                     output.accept(new ItemStack(Blocks.PAPER_BOX.value()));
+                    output.accept(Items.TRANSMOG_WAND.value());
+                    output.accept(Items.ECHO_DISC.value());
                 })).build();
     });
 }
