@@ -6,8 +6,6 @@ import kurvmod.crispsweetberry.item.custom.TransmogWandItem;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.MapItem;
-import net.minecraft.world.item.SwordItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import static net.minecraft.world.item.Rarity.RARE;
