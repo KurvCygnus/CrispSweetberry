@@ -2,6 +2,7 @@ package kurvmod.crispsweetberry.item;
 
 import kurvmod.crispsweetberry.blocks.Blocks;
 import kurvmod.crispsweetberry.CrispSweetberry;
+import kurvmod.crispsweetberry.item.custom.ThrowableTorchItem;
 import kurvmod.crispsweetberry.item.custom.TransmogWandItem;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.BlockItem;
@@ -13,8 +14,8 @@ import static net.minecraft.world.item.Rarity.RARE;
 public class Items {
     public static final DeferredRegister<Item> ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
 
-    public static Holder<Item> TEMPORARY_TORCH = ITEM_REGISTER.register("throwable_torch", resourceLocation ->
-            new BlockItem(Blocks.TEMPORARY_TORCH.value(), new Item.Properties()));
+    public static Holder<Item> THROWABLE_TORCH = ITEM_REGISTER.register("throwable_torch", resourceLocation ->
+            new ThrowableTorchItem(new Item.Properties()));
     
     public static Holder<Item> PAPER_BOX = ITEM_REGISTER.register("paper_box", resourceLocation ->
         new BlockItem(Blocks.PAPER_BOX.value(), new Item.Properties()));
@@ -43,4 +44,8 @@ public class Items {
 //    public static Holder<Item> ADVENTURERS_ATLAS = ITEM_REGISTER.register("adventurers_atlas", resourceLocation ->
 //        new MapItem(new Item.Properties().
 //            stacksTo(1)));
+    
+    public static Holder<Item> GREEDY_CRYSTAL = ITEM_REGISTER.register("greedy_crystal", resourceLocation ->
+        new Item(new Item.Properties().
+            rarity(RARE)));
 }

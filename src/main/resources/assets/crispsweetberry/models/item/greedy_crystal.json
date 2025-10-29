@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures":{
-    "layer0": "crispsweetberry:item/echo_disc"
+    "layer0": "crispsweetberry:item/greedy_crystal"
   }
 }

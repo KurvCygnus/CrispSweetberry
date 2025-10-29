@@ -16,12 +16,13 @@ public class CreativeTabs {
 
     public static Holder<CreativeModeTab> FSB_TAB = TAB_REGISTER.register("crispsweetberry_tab", () -> {
         return CreativeModeTab.builder().title(Component.translatable("crispsweetberry.tabtitle")).withTabsBefore(CreativeModeTabs.COMBAT).
-                icon(() -> new ItemStack(Blocks.TEMPORARY_TORCH.value())).displayItems(((parameters, output) -> {
-                    output.accept(Items.TEMPORARY_TORCH.value());
+                icon(() -> new ItemStack(net.minecraft.world.item.Items.SWEET_BERRIES)).displayItems(((parameters, output) -> {
+                    output.accept(Items.THROWABLE_TORCH.value());
                     output.accept(new ItemStack(Blocks.KILN.value()));
                     output.accept(new ItemStack(Blocks.PAPER_BOX.value()));
                     output.accept(Items.TRANSMOG_WAND.value());
                     output.accept(Items.ECHO_DISC.value());
+                    output.accept(Items.GREEDY_CRYSTAL.value());
                 })).build();
     });
 }

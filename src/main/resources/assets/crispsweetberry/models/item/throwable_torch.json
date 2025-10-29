@@ -1,3 +1,6 @@
 {
-  "parent": "crispsweetberry:block/temporary_torch"
+  "parent": "minecraft:item/generated",
+  "textures":{
+    "layer0": "crispsweetberry:item/throwable_torch"
+  }
 }
