@@ -19,8 +19,11 @@ public class ThrowableTorchItem extends SnowballItem implements ProjectileItem
     
     public ThrowableTorchItem(Properties properties) { super(properties); }
     
+    
+    
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand)
+    {
         ItemStack itemstack = player.getItemInHand(hand);
         level.playSound(
             null,

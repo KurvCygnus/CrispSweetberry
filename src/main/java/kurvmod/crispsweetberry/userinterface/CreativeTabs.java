@@ -23,6 +23,7 @@ public class CreativeTabs {
                     output.accept(Items.TRANSMOG_WAND.value());
                     output.accept(Items.ECHO_DISC.value());
                     output.accept(Items.GREEDY_CRYSTAL.value());
+                    output.accept(Items.HONEY_BERRY.value());
                 })).build();
     });
 }

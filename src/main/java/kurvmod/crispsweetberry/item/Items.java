@@ -5,6 +5,7 @@ import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.item.custom.ThrowableTorchItem;
 import kurvmod.crispsweetberry.item.custom.TransmogWandItem;
 import net.minecraft.core.Holder;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -16,6 +17,14 @@ public class Items {
 
     public static Holder<Item> THROWABLE_TORCH = ITEM_REGISTER.register("throwable_torch", resourceLocation ->
             new ThrowableTorchItem(new Item.Properties()));
+    
+    public static Holder<Item> HONEY_BERRY = ITEM_REGISTER.register("crisp_sweetberry", resourceLocation ->
+        new Item(new Item.Properties().
+            food(new FoodProperties.Builder().
+                alwaysEdible().
+                nutrition(1).saturationModifier(8.0f).
+                //effect().
+                build())));
     
     public static Holder<Item> PAPER_BOX = ITEM_REGISTER.register("paper_box", resourceLocation ->
         new BlockItem(Blocks.PAPER_BOX.value(), new Item.Properties()));

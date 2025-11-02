@@ -1,6 +1,7 @@
 package kurvmod.crispsweetberry.blocks;
 
 import kurvmod.crispsweetberry.CrispSweetberry;
+import kurvmod.crispsweetberry.blocks.custom.PaperBoxBlock;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -21,7 +22,7 @@ public class Blocks {
     );
     
     public static Holder<Block> PAPER_BOX = BLOCK_REGISTER.register("paper_box", resourceLocation ->
-        new Block(BlockBehaviour.Properties.of().
+        new PaperBoxBlock(BlockBehaviour.Properties.of().
             destroyTime(0.1F).
             explosionResistance(0.1F).
             sound(SoundType.SCAFFOLDING))
