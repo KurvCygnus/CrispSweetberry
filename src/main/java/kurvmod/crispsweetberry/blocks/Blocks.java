@@ -2,7 +2,9 @@ package kurvmod.crispsweetberry.blocks;
 
 import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.blocks.custom.PaperBoxBlock;
+import kurvmod.crispsweetberry.blocks.custom.TemporaryTorchBlock;
 import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -13,20 +15,20 @@ public class Blocks {
 
     //aka throwable torch, I changed is since still called that name doesn't make any sense.
     public static Holder<Block> TEMPORARY_TORCH = BLOCK_REGISTER.register("temporary_torch", resourceLocation ->
-            new Block(BlockBehaviour.Properties.of().
+            new TemporaryTorchBlock(ParticleTypes.SMALL_FLAME, BlockBehaviour.Properties.of().
                 noLootTable().
                 sound(SoundType.WOOD).
-                noCollission().
                 ignitedByLava().
                 lightLevel(state -> 12).
+                noCollission().
                 instabreak())
     );
     
-    //TODO: Adjust this mess's blockstates, keeping north and east only.
     public static Holder<Block> PAPER_BOX = BLOCK_REGISTER.register("paper_box", resourceLocation ->
         new PaperBoxBlock(BlockBehaviour.Properties.of().
             destroyTime(0.1F).
             explosionResistance(0.1F).
+            ignitedByLava().
             sound(SoundType.SCAFFOLDING))
     );
     

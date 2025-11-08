@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.*;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 public class ThrowableTorchItem extends Item implements ProjectileItem
 {
@@ -19,7 +20,7 @@ public class ThrowableTorchItem extends Item implements ProjectileItem
     public ThrowableTorchItem(Properties properties) { super(properties); }
     
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         level.playSound(
             null,
@@ -45,8 +46,5 @@ public class ThrowableTorchItem extends Item implements ProjectileItem
     }
     
     @Override
-    public Projectile asProjectile(Level level, Position pos, ItemStack stack, Direction direction)
-    {
-        return null;
-    }
+    public Projectile asProjectile(Level level, Position pos, ItemStack stack, Direction direction) { return null; }
 }
