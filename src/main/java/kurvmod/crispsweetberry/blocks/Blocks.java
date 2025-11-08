@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class Blocks {
-    public static DeferredRegister<Block> BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
+    public static final DeferredRegister<Block> BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
 
     //aka throwable torch, I changed is since still called that name doesn't make any sense.
     public static Holder<Block> TEMPORARY_TORCH = BLOCK_REGISTER.register("temporary_torch", resourceLocation ->
@@ -18,9 +18,11 @@ public class Blocks {
                 sound(SoundType.WOOD).
                 noCollission().
                 ignitedByLava().
-                lightLevel(state -> 8))
+                lightLevel(state -> 12).
+                instabreak())
     );
     
+    //TODO: Adjust this mess's blockstates, keeping north and east only.
     public static Holder<Block> PAPER_BOX = BLOCK_REGISTER.register("paper_box", resourceLocation ->
         new PaperBoxBlock(BlockBehaviour.Properties.of().
             destroyTime(0.1F).

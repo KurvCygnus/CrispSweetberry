@@ -2,6 +2,9 @@
   "variants": {
     "": {
       "model": "crispsweetberry:block/temporary_torch"
+    },
+    "full_bright": {
+      "model": "crispsweetberry:block/temporary_torch"
     }
   }
 }

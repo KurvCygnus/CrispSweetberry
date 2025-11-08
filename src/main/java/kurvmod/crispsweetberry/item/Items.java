@@ -21,7 +21,6 @@ public class Items {
     public static Holder<Item> HONEY_BERRY = ITEM_REGISTER.register("crisp_sweetberry", resourceLocation ->
         new Item(new Item.Properties().
             food(new FoodProperties.Builder().
-                alwaysEdible().
                 nutrition(1).saturationModifier(8.0f).
                 //effect().
                 build())));
