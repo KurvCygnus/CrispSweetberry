@@ -24,20 +24,36 @@ import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 
 //TODO: 完成火把在不同的流体中的反应, 完成判定放置火把是否成功, 如果放置失败则播放投掷火把的粒子效果, 以及对应的Blockstate的代码.
+/**
+ * The entity version of the item throwable torch.
+ */
 public class ThrownTorch extends ThrowableItemProjectile
 {
+    /**
+     * As the name implies, it is used for recording fire tier,
+     * which will be used to calculate both the maximum length of the fire ticks and fire ticks that will be added to mobs.
+     */
     FIRE_TIER tier = FIRE_TIER.NORMAL;
+    
     SimpleParticleType longerParticle = ParticleTypes.SMALL_FLAME;
     
+    /**
+     * The construct method for entity registry.
+     */
     public ThrownTorch(EntityType<? extends ThrownTorch> entityType, Level level) {super(entityType, level);}
     
+    /**
+     * The construct method for item usage.
+     */
     public ThrownTorch(Level level, LivingEntity shooter) {super(Entities.THROWN_TORCH.value(), shooter, level);}
     
+    /**
+     * What? You asked me what is this used for? IDK.
+     */
     public ThrownTorch(Level level, double x, double y, double z) {super(Entities.THROWN_TORCH.value(), x, y, z, level);}
     
     @Override
     protected @NotNull Item getDefaultItem() {return Items.THROWABLE_TORCH.value();}
-    
     
     @Override
     public void tick()
@@ -62,9 +78,12 @@ public class ThrownTorch extends ThrowableItemProjectile
     @Override
     protected void onHitEntity(@NotNull EntityHitResult result)
     {
-        super.onHitEntity(result);
         Entity entity = result.getEntity();
+        super.onHitEntity(result);
+        
+        //Check whether the hit entity resists fire.
         int hitDamage = (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ? 0 : 1;
+        
         if(hitDamage == 1 && entity.getRemainingFireTicks() <= 100 * tier.ordinal())
             entity.setRemainingFireTicks(entity.getRemainingFireTicks() + 30 * tier.ordinal());//Bro got some fireXD
         entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitDamage);
@@ -81,9 +100,6 @@ public class ThrownTorch extends ThrowableItemProjectile
         }
     }
     
-    /**
-     * Called when this EntityFireball hits a block or entity.
-     */
     @Override
     protected void onHit(@NotNull HitResult result)
     {
@@ -116,15 +132,25 @@ public class ThrownTorch extends ThrowableItemProjectile
     private void checkAndSwitchTier(FIRE_TIER goalTier, ParticleOptions particle, SoundEvent sound, SimpleParticleType newParticle)
     {
         if(tier == goalTier)
-            return;
+            return;//Terminates these codes if tier is as same as goalTier,
+                   // you won't be glad to see tons of particles and hear a mess of sound, aren't cha?
         tier = goalTier;
         playSound(sound, SoundSource.AMBIENT, 1);
         displayParticle(1, particle);
         longerParticle = newParticle;
     }
     
+    /**
+     * The function to play sound with fewer args, the reason why it's here is simply because my laziness.
+     * @param sound The sound that needs to be played.
+     * @param soundSource The type of sound.
+     * @param volume I believe you can understand this.
+     */
     private void playSound(SoundEvent sound, SoundSource soundSource, float volume)
         { this.level().playSound(null, getOnPos(), sound, soundSource, volume, 1.0F); }
     
+    /**
+     * The enum for recording tier.
+     */
     enum FIRE_TIER { GONE, NORMAL, WILD }
 }
