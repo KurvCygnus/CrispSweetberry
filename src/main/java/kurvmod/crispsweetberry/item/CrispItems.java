@@ -1,6 +1,6 @@
 package kurvmod.crispsweetberry.item;
 
-import kurvmod.crispsweetberry.blocks.Blocks;
+import kurvmod.crispsweetberry.blocks.CrispBlocks;
 import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.item.custom.ThrowableTorchItem;
 import kurvmod.crispsweetberry.item.custom.TransmogWandItem;
@@ -12,7 +12,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import static net.minecraft.world.item.Rarity.RARE;
 
-public class Items {
+public class CrispItems
+{
     public static final DeferredRegister<Item> ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
 
     public static Holder<Item> THROWABLE_TORCH = ITEM_REGISTER.register("throwable_torch", resourceLocation ->
@@ -26,10 +27,10 @@ public class Items {
                 build())));
     
     public static Holder<Item> PAPER_BOX = ITEM_REGISTER.register("paper_box", resourceLocation ->
-        new BlockItem(Blocks.PAPER_BOX.value(), new Item.Properties()));
+        new BlockItem(CrispBlocks.PAPER_BOX.value(), new Item.Properties()));
     
     public static Holder<Item> KILN = ITEM_REGISTER.register("kiln", resourceLocation ->
-        new BlockItem(Blocks.KILN.value(), new Item.Properties()));
+        new BlockItem(CrispBlocks.KILN.value(), new Item.Properties()));
     
     public static Holder<Item> TRANSMOG_WAND = ITEM_REGISTER.register("transmog_wand", resourceLocation ->
         new TransmogWandItem(new Item.Properties().

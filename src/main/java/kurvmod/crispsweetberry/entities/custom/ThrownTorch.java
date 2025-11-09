@@ -1,8 +1,8 @@
 package kurvmod.crispsweetberry.entities.custom;
 
-import kurvmod.crispsweetberry.blocks.Blocks;
-import kurvmod.crispsweetberry.entities.Entities;
-import kurvmod.crispsweetberry.item.Items;
+import kurvmod.crispsweetberry.blocks.CrispBlocks;
+import kurvmod.crispsweetberry.entities.CrispEntities;
+import kurvmod.crispsweetberry.item.CrispItems;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -23,7 +23,11 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 
-//TODO: 完成火把在不同的流体中的反应, 完成判定放置火把是否成功, 如果放置失败则播放投掷火把的粒子效果, 以及对应的Blockstate的代码.
+//TODO:
+// 1.完成火把在不同的流体中的反应
+// 2.完成判定放置火把是否成功
+// 3.如果放置失败则播放投掷火把的粒子效果
+// 4.以及对应的Blockstate的代码
 /**
  * The entity version of the item throwable torch.
  */
@@ -40,20 +44,20 @@ public class ThrownTorch extends ThrowableItemProjectile
     /**
      * The construct method for entity registry.
      */
-    public ThrownTorch(EntityType<? extends ThrownTorch> entityType, Level level) {super(entityType, level);}
+    public ThrownTorch(EntityType<? extends ThrownTorch> entityType, Level level) { super(entityType, level); }
     
     /**
      * The construct method for item usage.
      */
-    public ThrownTorch(Level level, LivingEntity shooter) {super(Entities.THROWN_TORCH.value(), shooter, level);}
+    public ThrownTorch(Level level, LivingEntity shooter) { super(CrispEntities.THROWN_TORCH.value(), shooter, level); }
     
     /**
      * What? You asked me what is this used for? IDK.
      */
-    public ThrownTorch(Level level, double x, double y, double z) {super(Entities.THROWN_TORCH.value(), x, y, z, level);}
+    public ThrownTorch(Level level, double x, double y, double z) { super(CrispEntities.THROWN_TORCH.value(), x, y, z, level); }
     
     @Override
-    protected @NotNull Item getDefaultItem() {return Items.THROWABLE_TORCH.value();}
+    protected @NotNull Item getDefaultItem() {return CrispItems.THROWABLE_TORCH.value();}
     
     @Override
     public void tick()
@@ -62,6 +66,7 @@ public class ThrownTorch extends ThrowableItemProjectile
         
         if(this.level().isClientSide)
         {
+            //TODO 1
             //Of course do these torches have interactions with different liquids.
             if(this.isInLava())
                 checkAndSwitchTier(FIRE_TIER.WILD, ParticleTypes.LAVA, SoundEvents.LAVA_EXTINGUISH, ParticleTypes.FLAME);
@@ -81,8 +86,8 @@ public class ThrownTorch extends ThrowableItemProjectile
         Entity entity = result.getEntity();
         super.onHitEntity(result);
         
-        //Check whether the hit entity resists fire.
-        int hitDamage = (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ? 0 : 1;
+        //Check whether the target resists fire.
+        int hitDamage = (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin || tier == FIRE_TIER.GONE) ? 0 : 1;
         
         if(hitDamage == 1 && entity.getRemainingFireTicks() <= 100 * tier.ordinal())
             entity.setRemainingFireTicks(entity.getRemainingFireTicks() + 30 * tier.ordinal());//Bro got some fireXD
@@ -95,7 +100,8 @@ public class ThrownTorch extends ThrowableItemProjectile
         super.onHitBlock(result);
         if(!this.level().isClientSide)
         {
-            this.level().setBlockAndUpdate(getOnPos(), Blocks.TEMPORARY_TORCH.value().defaultBlockState());
+            //TODO 2, 3
+            this.level().setBlockAndUpdate(getOnPos(), CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState());
             playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.5F);
         }
     }
@@ -132,7 +138,7 @@ public class ThrownTorch extends ThrowableItemProjectile
     private void checkAndSwitchTier(FIRE_TIER goalTier, ParticleOptions particle, SoundEvent sound, SimpleParticleType newParticle)
     {
         if(tier == goalTier)
-            return;//Terminates these codes if tier is as same as goalTier,
+            return;//Terminates these codes if the tier is as same as goalTier,
                    // you won't be glad to see tons of particles and hear a mess of sound, aren't cha?
         tier = goalTier;
         playSound(sound, SoundSource.AMBIENT, 1);
@@ -141,7 +147,7 @@ public class ThrownTorch extends ThrowableItemProjectile
     }
     
     /**
-     * The function to play sound with fewer args, the reason why it's here is simply because my laziness.
+     * The function to play sound with fewer args, the reason why it's here is simply because I'm lazy.
      * @param sound The sound that needs to be played.
      * @param soundSource The type of sound.
      * @param volume I believe you can understand this.

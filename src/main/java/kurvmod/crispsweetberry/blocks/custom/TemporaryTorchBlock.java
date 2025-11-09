@@ -12,10 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class TemporaryTorchBlock extends TorchBlock
 {
+    //private int burnPhase = 0;
+    
     public TemporaryTorchBlock(SimpleParticleType flameParticle, Properties properties) { super(flameParticle, properties); }
     
     @Override
-    public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context) {
-        return Block.box(7.0D, 0.0D, 7.0D, 9.0D, 10.0D, 9.0D);
-    }
+    public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
+        { return Block.box(7.0D, 0.0D, 7.0D, 9.0D, 10.0D, 9.0D); }
 }

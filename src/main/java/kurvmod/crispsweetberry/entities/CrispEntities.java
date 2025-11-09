@@ -8,7 +8,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-public class Entities
+public class CrispEntities
 {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPE_REGISTER =
         DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.MOD_ID);

@@ -10,7 +10,8 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-public class Blocks {
+public class CrispBlocks
+{
     public static final DeferredRegister<Block> BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
 
     //aka throwable torch, I changed is since still called that name doesn't make any sense.
