@@ -72,13 +72,12 @@ public class ThrownTorch extends ThrowableItemProjectile
     @Override
     protected @NotNull Item getDefaultItem() { return CrispItems.THROWABLE_TORCH.value(); }
     
-    // ThrownTorch.java - 替换现有的 tick() 方法
-    
     @Override
     public void tick()
     {
         super.tick();
         
+        //Holy sh*t, I think I should spare some time to learn client and server stuff, seriously.
         if(!this.level().isClientSide)
         {
             if(this.isInLava())
@@ -86,15 +85,13 @@ public class ThrownTorch extends ThrowableItemProjectile
             else if(this.isInWater())
                 changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
         }
-        
-        if(this.level().isClientSide)
+        else
         {
-            int currentTier = this.getEntityData().get(DATA_TIER_ID);
             boolean noSmoke = false;
             
-            if(currentTier == TIER_WILD)
+            if(this.getEntityData().get(DATA_TIER_ID) == TIER_WILD)
                 longerParticle = ParticleTypes.FLAME;
-            else if (currentTier == TIER_GONE)
+            else if(this.getEntityData().get(DATA_TIER_ID) == TIER_GONE)
             {
                 longerParticle = ParticleTypes.DRIPPING_WATER;
                 noSmoke = true;
