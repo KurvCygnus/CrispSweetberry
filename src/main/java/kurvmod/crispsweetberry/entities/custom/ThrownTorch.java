@@ -6,6 +6,9 @@ import kurvmod.crispsweetberry.item.CrispItems;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -18,26 +21,36 @@ import net.minecraft.world.entity.monster.Zoglin;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 
 //TODO:
-// 1.完成火把在不同的流体中的反应
-// 2.完成判定放置火把是否成功
-// 3.如果放置失败则播放投掷火把的粒子效果
-// 4.以及对应的Blockstate的代码
+// 1.如果放置失败则播放投掷火把的粒子效果
+// 2.以及对应的Blockstate的代码
+
 /**
  * The entity version of the item throwable torch.
  */
 public class ThrownTorch extends ThrowableItemProjectile
 {
+    private static final int TIER_GONE = 0,
+                             TIER_NORM = 1,
+                             TIER_WILD = 2;
+    
     /**
-     * As the name implies, it is used for recording fire tier,
-     * which will be used to calculate both the maximum length of the fire ticks and fire ticks that will be added to mobs.
+     * The accessor which storages the data of *tier*.
      */
-    FIRE_TIER tier = FIRE_TIER.NORMAL;
+    private static final EntityDataAccessor<Integer> DATA_TIER_ID = SynchedEntityData.defineId(ThrownTorch.class, EntityDataSerializers.INT);
+    
+    @Override
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder)
+    {
+        super.defineSynchedData(builder);
+        builder.define(DATA_TIER_ID, TIER_NORM);
+    }
     
     SimpleParticleType longerParticle = ParticleTypes.SMALL_FLAME;
     
@@ -57,26 +70,41 @@ public class ThrownTorch extends ThrowableItemProjectile
     public ThrownTorch(Level level, double x, double y, double z) { super(CrispEntities.THROWN_TORCH.value(), x, y, z, level); }
     
     @Override
-    protected @NotNull Item getDefaultItem() {return CrispItems.THROWABLE_TORCH.value();}
+    protected @NotNull Item getDefaultItem() { return CrispItems.THROWABLE_TORCH.value(); }
+    
+    // ThrownTorch.java - 替换现有的 tick() 方法
     
     @Override
     public void tick()
     {
         super.tick();
         
+        if(!this.level().isClientSide)
+        {
+            if(this.isInLava())
+                changeTier(TIER_WILD, SoundEvents.LAVA_EXTINGUISH);
+            else if(this.isInWater())
+                changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
+        }
+        
         if(this.level().isClientSide)
         {
-            //TODO 1
-            //Of course do these torches have interactions with different liquids.
-            if(this.isInLava())
-                checkAndSwitchTier(FIRE_TIER.WILD, ParticleTypes.LAVA, SoundEvents.LAVA_EXTINGUISH, ParticleTypes.FLAME);
+            int currentTier = this.getEntityData().get(DATA_TIER_ID);
+            boolean noSmoke = false;
             
-            if(this.isInWater())
-                checkAndSwitchTier(FIRE_TIER.GONE, ParticleTypes.SMOKE, SoundEvents.FIRE_EXTINGUISH, ParticleTypes.DRIPPING_WATER);
+            if(currentTier == TIER_WILD)
+                longerParticle = ParticleTypes.FLAME;
+            else if (currentTier == TIER_GONE)
+            {
+                longerParticle = ParticleTypes.DRIPPING_WATER;
+                noSmoke = true;
+            }
             else
-                displayParticle(3, ParticleTypes.SMOKE);
-            
+                longerParticle = ParticleTypes.SMALL_FLAME;
             displayParticle(5, longerParticle);
+            
+            if(!noSmoke)
+                displayParticle(3, ParticleTypes.SMOKE);
         }
     }
     
@@ -87,10 +115,11 @@ public class ThrownTorch extends ThrowableItemProjectile
         super.onHitEntity(result);
         
         //Check whether the target resists fire.
-        int hitDamage = (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin || tier == FIRE_TIER.GONE) ? 0 : 1;
+        int hitDamage = (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ? 0 : 1;
         
-        if(hitDamage == 1 && entity.getRemainingFireTicks() <= 100 * tier.ordinal())
-            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + 30 * tier.ordinal());//Bro got some fireXD
+        if(this.getEntityData().get(DATA_TIER_ID) != TIER_GONE && hitDamage == 1 &&
+            entity.getRemainingFireTicks() <= 100 * this.getEntityData().get(DATA_TIER_ID))
+            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + 30 * this.getEntityData().get(DATA_TIER_ID));//Bro got some fire XD
         entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitDamage);
     }
     
@@ -101,8 +130,19 @@ public class ThrownTorch extends ThrowableItemProjectile
         if(!this.level().isClientSide)
         {
             //TODO 2, 3
-            this.level().setBlockAndUpdate(getOnPos(), CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState());
-            playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.5F);
+            BlockState targetState = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
+            
+            //Checks whether the position the torch lands fits its placement condition.
+            //Condition 1: The torch can't be WILD tier, the torch can't hold the heat of lava, ya know.
+            //Condition 2: The position can hold a torch block.
+            //Condition 3: The position cannot be in liquid, it doesn't make any sense.
+            if(this.getEntityData().get(DATA_TIER_ID) != TIER_WILD && targetState.canSurvive(level(), getOnPos()) && !this.isInLiquid())
+            {
+                this.level().setBlockAndUpdate(getOnPos(), targetState);
+                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+            }
+            else
+                playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS);
         }
     }
     
@@ -135,28 +175,24 @@ public class ThrownTorch extends ThrowableItemProjectile
         }
     }
     
-    private void checkAndSwitchTier(FIRE_TIER goalTier, ParticleOptions particle, SoundEvent sound, SimpleParticleType newParticle)
+    
+    private void changeTier(int goalTier, SoundEvent sound)
     {
-        if(tier == goalTier)
-            return;//Terminates these codes if the tier is as same as goalTier,
-                   // you won't be glad to see tons of particles and hear a mess of sound, aren't cha?
-        tier = goalTier;
-        playSound(sound, SoundSource.AMBIENT, 1);
-        displayParticle(1, particle);
-        longerParticle = newParticle;
+        if(this.getEntityData().get(DATA_TIER_ID) == goalTier)
+            return;
+        
+        this.getEntityData().set(DATA_TIER_ID, goalTier);
+        playSound(sound, SoundSource.AMBIENT);
     }
     
     /**
      * The function to play sound with fewer args, the reason why it's here is simply because I'm lazy.
-     * @param sound The sound that needs to be played.
+     *
+     * @param sound       The sound that needs to be played.
      * @param soundSource The type of sound.
-     * @param volume I believe you can understand this.
      */
-    private void playSound(SoundEvent sound, SoundSource soundSource, float volume)
-        { this.level().playSound(null, getOnPos(), sound, soundSource, volume, 1.0F); }
+    private void playSound(SoundEvent sound, SoundSource soundSource)
+        { this.level().playSound(null, getOnPos(), sound, soundSource, 1.5F, 1.0F); }
     
-    /**
-     * The enum for recording tier.
-     */
-    enum FIRE_TIER { GONE, NORMAL, WILD }
+
 }

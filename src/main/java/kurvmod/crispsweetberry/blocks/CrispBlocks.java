@@ -1,6 +1,7 @@
 package kurvmod.crispsweetberry.blocks;
 
 import kurvmod.crispsweetberry.CrispSweetberry;
+import kurvmod.crispsweetberry.blocks.custom.KilnBlock;
 import kurvmod.crispsweetberry.blocks.custom.PaperBoxBlock;
 import kurvmod.crispsweetberry.blocks.custom.TemporaryTorchBlock;
 import net.minecraft.core.Holder;
@@ -10,11 +11,18 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+//TODO
+// 1.完成投掷火把的墙形态
+// 2.完成投掷火把
+// 3.完成窑炉
+// 4.没想好
 public class CrispBlocks
 {
     public static final DeferredRegister<Block> BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
-
-    //aka throwable torch, I changed is since still called that name doesn't make any sense.
+    
+    /**
+     * The block form of item throwable torch. Its entity form is thrown torch.
+     */
     public static Holder<Block> TEMPORARY_TORCH = BLOCK_REGISTER.register("temporary_torch", resourceLocation ->
             new TemporaryTorchBlock(ParticleTypes.SMALL_FLAME, BlockBehaviour.Properties.of().
                 noLootTable().
@@ -34,7 +42,7 @@ public class CrispBlocks
     );
     
     public static Holder<Block> KILN = BLOCK_REGISTER.register("kiln", resourceLocation ->
-        new Block(BlockBehaviour.Properties.of().
+        new KilnBlock(BlockBehaviour.Properties.of().
             destroyTime(2.75F).
             requiresCorrectToolForDrops().
             explosionResistance(1.5F).

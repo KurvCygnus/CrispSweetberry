@@ -15,16 +15,14 @@ public class CrispCreativeTabs
 {
     public static final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CrispSweetberry.MOD_ID);
 
-    public static Holder<CreativeModeTab> FSB_TAB = TAB_REGISTER.register("crispsweetberry_tab", () -> {
-        return CreativeModeTab.builder().title(Component.translatable("crispsweetberry.tabtitle")).withTabsBefore(CreativeModeTabs.COMBAT).
-                icon(() -> new ItemStack(net.minecraft.world.item.Items.SWEET_BERRIES)).displayItems(((parameters, output) -> {
-                    output.accept(CrispItems.THROWABLE_TORCH.value());
-                    output.accept(new ItemStack(CrispBlocks.KILN.value()));
-                    output.accept(new ItemStack(CrispBlocks.PAPER_BOX.value()));
-                    output.accept(CrispItems.TRANSMOG_WAND.value());
-                    output.accept(CrispItems.ECHO_DISC.value());
-                    output.accept(CrispItems.GREEDY_CRYSTAL.value());
-                    output.accept(CrispItems.HONEY_BERRY.value());
-                })).build();
-    });
+    public static Holder<CreativeModeTab> FSB_TAB = TAB_REGISTER.register("crispsweetberry_tab", () -> CreativeModeTab.builder().title(Component.translatable("crispsweetberry.tabtitle")).withTabsBefore(CreativeModeTabs.COMBAT).
+            icon(() -> new ItemStack(net.minecraft.world.item.Items.SWEET_BERRIES)).displayItems(((parameters, output) -> {
+                output.accept(CrispItems.THROWABLE_TORCH.value());
+                output.accept(new ItemStack(CrispBlocks.KILN.value()));
+                output.accept(new ItemStack(CrispBlocks.PAPER_BOX.value()));
+                output.accept(CrispItems.TRANSMOG_WAND.value());
+                output.accept(CrispItems.ECHO_DISC.value());
+                output.accept(CrispItems.GREEDY_CRYSTAL.value());
+                output.accept(CrispItems.HONEY_BERRY.value());
+            })).build());
 }

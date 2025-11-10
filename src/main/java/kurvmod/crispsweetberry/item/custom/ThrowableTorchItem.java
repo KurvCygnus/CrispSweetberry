@@ -46,5 +46,6 @@ public class ThrowableTorchItem extends Item implements ProjectileItem
     }
     
     @Override
-    public Projectile asProjectile(Level level, Position pos, ItemStack stack, Direction direction) { return null; }
+    public @NotNull Projectile asProjectile(@NotNull Level level, @NotNull Position pos, @NotNull ItemStack stack, @NotNull Direction direction)
+        { return null; }
 }
