@@ -4,6 +4,7 @@ import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.blocks.custom.KilnBlock;
 import kurvmod.crispsweetberry.blocks.custom.PaperBoxBlock;
 import kurvmod.crispsweetberry.blocks.custom.TemporaryTorchBlock;
+import kurvmod.crispsweetberry.blocks.custom.TemporaryWallTorchBlock;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.Block;
@@ -11,11 +12,6 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-//TODO
-// 1.完成投掷火把的墙形态
-// 2.完成投掷火把
-// 3.完成窑炉
-// 4.没想好
 public class CrispBlocks
 {
     public static final DeferredRegister<Block> BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
@@ -31,6 +27,16 @@ public class CrispBlocks
                 lightLevel(state -> 12).
                 noCollission().
                 instabreak())
+    );
+    
+    public static Holder<Block> TEMPORARY_WALL_TORCH = BLOCK_REGISTER.register("temporary_wall_torch", resourceLocation ->
+        new TemporaryWallTorchBlock(ParticleTypes.SMALL_FLAME, BlockBehaviour.Properties.of().
+            noLootTable().
+            sound(SoundType.WOOD).
+            ignitedByLava().
+            lightLevel(state -> 12).
+            noCollission().
+            instabreak())
     );
     
     public static Holder<Block> PAPER_BOX = BLOCK_REGISTER.register("paper_box", resourceLocation ->

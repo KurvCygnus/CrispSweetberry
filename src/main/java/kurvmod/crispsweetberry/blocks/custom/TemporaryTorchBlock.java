@@ -12,8 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class TemporaryTorchBlock extends TorchBlock
 {
-    //private int burnPhase = 0;
-    
     public TemporaryTorchBlock(SimpleParticleType flameParticle, Properties properties) { super(flameParticle, properties); }
     
     @Override

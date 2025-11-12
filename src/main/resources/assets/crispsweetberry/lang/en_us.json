@@ -1,5 +1,6 @@
 {
-  "block.crispsweetberry.temporary_torch": "Throwed Torch",
+  "block.crispsweetberry.temporary_torch": "Thrown Torch",
+  "block.crispsweetberry.temporary_wall_torch": "Thrown Torch",
   "block.crispsweetberry.paper_box": "Paper Box",
   "block.crispsweetberry.kiln": "Kiln",
   "item.crispsweetberry.throwable_torch": "Throwable Torch",

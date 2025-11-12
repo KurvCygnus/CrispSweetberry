@@ -18,7 +18,7 @@ public class CrispSweetberry
 {
     public static final String MOD_ID = "crispsweetberry";
 
-    public CrispSweetberry(IEventBus eventBus, ModContainer modContainer)
+    public CrispSweetberry(IEventBus eventBus/*, ModContainer modContainer*/)
     {
         CrispBlocks.BLOCK_REGISTER.register(eventBus);
         CrispItems.ITEM_REGISTER.register(eventBus);

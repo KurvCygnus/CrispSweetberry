@@ -1,7 +1,7 @@
 package kurvmod.crispsweetberry.item;
 
-import kurvmod.crispsweetberry.blocks.CrispBlocks;
 import kurvmod.crispsweetberry.CrispSweetberry;
+import kurvmod.crispsweetberry.blocks.CrispBlocks;
 import kurvmod.crispsweetberry.item.custom.ThrowableTorchItem;
 import kurvmod.crispsweetberry.item.custom.TransmogWandItem;
 import net.minecraft.core.Holder;
@@ -20,11 +20,17 @@ public class CrispItems
             new ThrowableTorchItem(new Item.Properties()));
     
     public static Holder<Item> HONEY_BERRY = ITEM_REGISTER.register("crisp_sweetberry", resourceLocation ->
-        new Item(new Item.Properties().
-            food(new FoodProperties.Builder().
-                nutrition(1).saturationModifier(8.0f).
-                //effect().
-                build())));
+        new Item(
+            new Item.Properties().
+                food(
+                    new FoodProperties.Builder().
+                    nutrition(1).saturationModifier(8.0f).
+                    //TODO
+                    // effect().
+                    build()
+                )
+            )
+        );
     
     public static Holder<Item> PAPER_BOX = ITEM_REGISTER.register("paper_box", resourceLocation ->
         new BlockItem(CrispBlocks.PAPER_BOX.value(), new Item.Properties()));
@@ -33,18 +39,23 @@ public class CrispItems
         new BlockItem(CrispBlocks.KILN.value(), new Item.Properties()));
     
     public static Holder<Item> TRANSMOG_WAND = ITEM_REGISTER.register("transmog_wand", resourceLocation ->
-        new TransmogWandItem(new Item.Properties().
+        new TransmogWandItem(
+            new Item.Properties().
             durability(64).
             stacksTo(1).
             setNoRepair().
-            rarity(RARE)));
+            rarity(RARE)
+        )
+    );
     
     public static Holder<Item> ECHO_DISC = ITEM_REGISTER.register("echo_disc", resourceLocation ->
         new Item(new Item.Properties().
             stacksTo(16).
-            rarity(RARE)));
+            rarity(RARE)
+        )
+    );
     
-    //TODO:I'll finish these commented stuffs when I could.
+    //TODO: I'll finish these commented stuffs when I could.
 //    public static Holder<Item> SCYTHE = ITEM_REGISTER.register("scythe", resourceLocation ->
 //        new Item(new Item.Properties().
 //            rarity(RARE).
@@ -56,5 +67,7 @@ public class CrispItems
     
     public static Holder<Item> GREEDY_CRYSTAL = ITEM_REGISTER.register("greedy_crystal", resourceLocation ->
         new Item(new Item.Properties().
-            rarity(RARE)));
+            rarity(RARE)
+        )
+    );
 }

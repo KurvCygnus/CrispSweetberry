@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "crispsweetberry:block/temporary_wall_torch"
+    },
+    "facing=north": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 270
+    },
+    "facing=south": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 180
+    }
+  }
+}

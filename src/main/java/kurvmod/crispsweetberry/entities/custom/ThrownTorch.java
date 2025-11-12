@@ -1,8 +1,11 @@
 package kurvmod.crispsweetberry.entities.custom;
 
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
+import kurvmod.crispsweetberry.blocks.custom.TemporaryWallTorchBlock;
 import kurvmod.crispsweetberry.entities.CrispEntities;
 import kurvmod.crispsweetberry.item.CrispItems;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -27,9 +30,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 
-//TODO:
-// 1.如果放置失败则播放投掷火把的粒子效果
-// 2.以及对应的Blockstate的代码
+//TODO: 如果放置失败则播放投掷火把的粒子效果
 
 /**
  * The entity version of the item throwable torch.
@@ -78,6 +79,7 @@ public class ThrownTorch extends ThrowableItemProjectile
         super.tick();
         
         //Holy sh*t, I think I should spare some time to learn client and server stuff, seriously.
+        //Serverside content
         if(!this.level().isClientSide)
         {
             if(this.isInLava())
@@ -85,19 +87,25 @@ public class ThrownTorch extends ThrowableItemProjectile
             else if(this.isInWater())
                 changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
         }
-        else
+        else//Clientside content
         {
             boolean noSmoke = false;
             
-            if(this.getEntityData().get(DATA_TIER_ID) == TIER_WILD)
-                longerParticle = ParticleTypes.FLAME;
-            else if(this.getEntityData().get(DATA_TIER_ID) == TIER_GONE)
+            switch(this.getEntityData().get(DATA_TIER_ID))
             {
-                longerParticle = ParticleTypes.DRIPPING_WATER;
-                noSmoke = true;
+                case TIER_GONE:
+                    longerParticle = ParticleTypes.DRIPPING_WATER;
+                    noSmoke = true;
+                    break;
+                    
+                case TIER_NORM:
+                    longerParticle = ParticleTypes.SMALL_FLAME;
+                    displayParticle(5, ParticleTypes.SMOKE);
+                    break;
+                    
+                case TIER_WILD:
+                    longerParticle = ParticleTypes.FLAME;
             }
-            else
-                longerParticle = ParticleTypes.SMALL_FLAME;
             displayParticle(5, longerParticle);
             
             if(!noSmoke)
@@ -126,20 +134,42 @@ public class ThrownTorch extends ThrowableItemProjectile
         super.onHitBlock(result);
         if(!this.level().isClientSide)
         {
-            //TODO 2, 3
-            BlockState targetState = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
+            BlockPos hitPos = result.getBlockPos();
+            Direction hitSide = result.getDirection();
             
-            //Checks whether the position the torch lands fits its placement condition.
-            //Condition 1: The torch can't be WILD tier, the torch can't hold the heat of lava, ya know.
-            //Condition 2: The position can hold a torch block.
-            //Condition 3: The position cannot be in liquid, it doesn't make any sense.
-            if(this.getEntityData().get(DATA_TIER_ID) != TIER_WILD && targetState.canSurvive(level(), getOnPos()) && !this.isInLiquid())
+            if(this.getEntityData().get(DATA_TIER_ID) == TIER_WILD || this.isInLiquid())
             {
-                this.level().setBlockAndUpdate(getOnPos(), targetState);
-                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+                playSound(SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS);
+                this.level().broadcastEntityEvent(this, (byte) 3);
+                return;
             }
-            else
-                playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS);
+            
+            BlockState stateToPlace = null;
+            BlockPos placementPos = null;
+            
+            if(hitSide == Direction.UP)
+            {
+                placementPos = hitPos.above();
+                stateToPlace = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
+            }
+            else if(hitSide != Direction.DOWN)
+            {
+                placementPos = hitPos.relative(hitSide);
+                
+                stateToPlace = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState()
+                      .setValue(TemporaryWallTorchBlock.FACING, hitSide);
+                System.out.println(stateToPlace);
+            }
+            
+            if(stateToPlace != null && stateToPlace.canSurvive(this.level(), placementPos))
+            {
+                this.level().setBlockAndUpdate(placementPos, stateToPlace);
+                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+                return;
+            }
+            
+            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS);
+            this.level().broadcastEntityEvent(this, (byte) 3);
         }
     }
     
@@ -190,6 +220,4 @@ public class ThrownTorch extends ThrowableItemProjectile
      */
     private void playSound(SoundEvent sound, SoundSource soundSource)
         { this.level().playSound(null, getOnPos(), sound, soundSource, 1.5F, 1.0F); }
-    
-
 }

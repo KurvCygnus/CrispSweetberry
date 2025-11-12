@@ -18,5 +18,6 @@ public class CrispEntities
             .sized(0.25F, 0.25F)
             .updateInterval(10)
             .noSummon()
-            .build("thrown_torch"));
+            .build("thrown_torch")
+    );
 }
