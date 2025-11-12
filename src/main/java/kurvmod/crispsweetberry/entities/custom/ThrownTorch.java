@@ -37,9 +37,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ThrownTorch extends ThrowableItemProjectile
 {
+    /**
+     * ThrownTorch's all int constants here.
+     */
     private static final int TIER_GONE = 0,
                              TIER_NORM = 1,
-                             TIER_WILD = 2;
+                             TIER_WILD = 2,
+                             NO_FREQUENCY = 1,
+                             LONGER_PARTICLE_FREQUENCY = 5,
+                             SHORTER_PARTICLE_FREQUENCY = 3,
+                             HIT_RESULT_DO_DAMAGE = 1,
+                             HIT_RESULT_NO_DAMAGE = 0,
+                             HIT_STD_EXTEND_FIRE_TICKS = 30,
+                             HIT_STD_MAX_TICKS = 100;
     
     /**
      * The accessor which storages the data of *tier*.
@@ -100,16 +110,16 @@ public class ThrownTorch extends ThrowableItemProjectile
                     
                 case TIER_NORM:
                     longerParticle = ParticleTypes.SMALL_FLAME;
-                    displayParticle(5, ParticleTypes.SMOKE);
+                    displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
                     break;
                     
                 case TIER_WILD:
                     longerParticle = ParticleTypes.FLAME;
             }
-            displayParticle(5, longerParticle);
+            displayParticle(LONGER_PARTICLE_FREQUENCY, longerParticle);
             
             if(!noSmoke)
-                displayParticle(3, ParticleTypes.SMOKE);
+                displayParticle(SHORTER_PARTICLE_FREQUENCY, ParticleTypes.SMOKE);
         }
     }
     
@@ -120,12 +130,13 @@ public class ThrownTorch extends ThrowableItemProjectile
         super.onHitEntity(result);
         
         //Check whether the target resists fire.
-        int hitDamage = (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ? 0 : 1;
+        int hitResult = (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ?
+            HIT_RESULT_NO_DAMAGE : HIT_RESULT_DO_DAMAGE;
         
-        if(this.getEntityData().get(DATA_TIER_ID) != TIER_GONE && hitDamage == 1 &&
-            entity.getRemainingFireTicks() <= 100 * this.getEntityData().get(DATA_TIER_ID))
-            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + 30 * this.getEntityData().get(DATA_TIER_ID));//Bro got some fire XD
-        entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitDamage);
+        if(this.getEntityData().get(DATA_TIER_ID) != TIER_GONE && hitResult == HIT_RESULT_DO_DAMAGE &&
+            entity.getRemainingFireTicks() <= HIT_STD_MAX_TICKS * this.getEntityData().get(DATA_TIER_ID))//Bro got some fire XD
+            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + HIT_STD_EXTEND_FIRE_TICKS * this.getEntityData().get(DATA_TIER_ID));
+        entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitResult);
     }
     
     @Override
@@ -139,8 +150,9 @@ public class ThrownTorch extends ThrowableItemProjectile
             
             if(this.getEntityData().get(DATA_TIER_ID) == TIER_WILD || this.isInLiquid())
             {
-                playSound(SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS);
+                playSound(SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 1.0F);
                 this.level().broadcastEntityEvent(this, (byte) 3);
+                displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
                 return;
             }
             
@@ -164,11 +176,11 @@ public class ThrownTorch extends ThrowableItemProjectile
             if(stateToPlace != null && stateToPlace.canSurvive(this.level(), placementPos))
             {
                 this.level().setBlockAndUpdate(placementPos, stateToPlace);
-                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.5F);
                 return;
             }
             
-            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS);
+            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, 1.5F);
             this.level().broadcastEntityEvent(this, (byte) 3);
         }
     }
@@ -209,7 +221,7 @@ public class ThrownTorch extends ThrowableItemProjectile
             return;
         
         this.getEntityData().set(DATA_TIER_ID, goalTier);
-        playSound(sound, SoundSource.AMBIENT);
+        playSound(sound, SoundSource.AMBIENT, 1.5F);
     }
     
     /**
@@ -218,6 +230,6 @@ public class ThrownTorch extends ThrowableItemProjectile
      * @param sound       The sound that needs to be played.
      * @param soundSource The type of sound.
      */
-    private void playSound(SoundEvent sound, SoundSource soundSource)
-        { this.level().playSound(null, getOnPos(), sound, soundSource, 1.5F, 1.0F); }
+    private void playSound(SoundEvent sound, SoundSource soundSource, float volume)
+    {this.level().playSound(null, getOnPos(), sound, soundSource, volume, 1.0F);}
 }

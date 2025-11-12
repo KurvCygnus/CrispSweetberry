@@ -25,15 +25,11 @@ public class ThrowableTorchItem extends Item implements ProjectileItem
      */
     public ThrowableTorchItem(Properties properties) { super(properties); }
     
-    public int getUseDuration(@NotNull ItemStack stack) { return 1; }
-    
-    @Override
-    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) { return UseAnim.SPEAR; }
-    
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         player.startUsingItem(hand);
+        player.swing(hand);
         level.playSound(
             null,
             player.getX(),
