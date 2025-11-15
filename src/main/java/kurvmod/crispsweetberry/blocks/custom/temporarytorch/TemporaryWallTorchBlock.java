@@ -5,8 +5,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WallTorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import org.jetbrains.annotations.NotNull;
 
 public class TemporaryWallTorchBlock extends WallTorchBlock implements TemporaryTorchInterface
@@ -14,8 +16,14 @@ public class TemporaryWallTorchBlock extends WallTorchBlock implements Temporary
     public TemporaryWallTorchBlock()
     {
         super(TORCH_PARTICLE, TORCH_PROPERTIES);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-        this.registerDefaultState(this.stateDefinition.any().setValue(LIGHT_PROPERTY, LIGHT_STATE.FULL_BRIGHT));
+        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, LIGHT_STATE.FULL_BRIGHT));
+    }
+    
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
+    {
+        super.createBlockStateDefinition(builder);
+        builder.add(LIGHT_PROPERTY);
     }
     
     @Override

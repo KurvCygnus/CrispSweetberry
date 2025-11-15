@@ -1,6 +1,7 @@
 package kurvmod.crispsweetberry.entities.custom;
 
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
+import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryTorchInterface;
 import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryWallTorchBlock;
 import kurvmod.crispsweetberry.entities.CrispEntities;
 import kurvmod.crispsweetberry.items.CrispItems;
@@ -30,7 +31,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 
-//TODO: 如果放置失败则播放投掷火把的粒子效果, 飞行的动态光源
+//TODO: 如果放置失败则播放投掷火把的粒子效果, 飞行的动态光源, 接触水后的火把直接为dark
 
 /**
  * The entity version of the item throwable torch.
@@ -50,6 +51,8 @@ public class ThrownTorch extends ThrowableItemProjectile
                              HIT_RESULT_NO_DAMAGE = 0,
                              HIT_STD_EXTEND_FIRE_TICKS = 30,
                              HIT_STD_MAX_TICKS = 100;
+    
+    private boolean shouldLight = true;
     
     /**
      * The accessor which storages the data of *tier*.
@@ -93,9 +96,15 @@ public class ThrownTorch extends ThrowableItemProjectile
         if(!this.level().isClientSide)
         {
             if(this.isInLava())
+            {
                 changeTier(TIER_WILD, SoundEvents.LAVA_EXTINGUISH);
+                shouldLight = true;
+            }
             else if(this.isInWater())
+            {
                 changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
+                shouldLight = false;
+            }
         }
         else//Clientside content
         {
@@ -159,18 +168,28 @@ public class ThrownTorch extends ThrowableItemProjectile
             BlockState stateToPlace = null;
             BlockPos placementPos = null;
             
-            if(hitSide == Direction.UP)
+            switch(hitSide)
             {
-                placementPos = hitPos.above();
-                stateToPlace = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
-            }
-            else if(hitSide != Direction.DOWN)
-            {
-                placementPos = hitPos.relative(hitSide);
-                
-                stateToPlace = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState()
-                      .setValue(TemporaryWallTorchBlock.FACING, hitSide);
-                System.out.println(stateToPlace);
+                case Direction.UP:
+                    placementPos = hitPos.above();
+                    stateToPlace = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
+                    if(!shouldLight)
+                        stateToPlace = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState().
+                            setValue(TemporaryTorchInterface.LIGHT_PROPERTY, TemporaryTorchInterface.LIGHT_STATE.DARK);
+                    break;
+                    
+                case Direction.DOWN:
+                    break;
+                    
+                default:
+                    placementPos = hitPos.relative(hitSide);
+
+                    stateToPlace = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState()
+                          .setValue(TemporaryWallTorchBlock.FACING, hitSide);
+                    if(!shouldLight)
+                        stateToPlace = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState()
+                            .setValue(TemporaryWallTorchBlock.FACING, hitSide).
+                            setValue(TemporaryTorchInterface.LIGHT_PROPERTY, TemporaryTorchInterface.LIGHT_STATE.DARK);
             }
             
             if(stateToPlace != null && stateToPlace.canSurvive(this.level(), placementPos))

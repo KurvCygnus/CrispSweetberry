@@ -22,13 +22,12 @@ public class PaperBoxBlock extends HorizontalDirectionalBlock
     
     public PaperBoxBlock()
     {
-        super(BlockBehaviour.Properties.of().
+        this(BlockBehaviour.Properties.of().
             destroyTime(0.1F).
             explosionResistance(0.1F).
             ignitedByLava().
             sound(SoundType.SCAFFOLDING)
         );
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
     
     @Override

@@ -1,6 +1,7 @@
 package kurvmod.crispsweetberry.blocks.custom.temporarytorch;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
@@ -8,16 +9,26 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 public class TemporaryTorchBlock extends TorchBlock implements TemporaryTorchInterface
 {
+    private int tick = 0;
+    
     public TemporaryTorchBlock()
     {
         super(TORCH_PARTICLE, TORCH_PROPERTIES);
-        this.registerDefaultState(this.stateDefinition.any().setValue(LIGHT_PROPERTY, LIGHT_STATE.FULL_BRIGHT));
+        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, LIGHT_STATE.FULL_BRIGHT));
+    }
+    
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
+    {
+        super.createBlockStateDefinition(builder);
+        builder.add(LIGHT_PROPERTY);
     }
     
     @Override

@@ -1,4 +1,5 @@
 {
+  "_comments": "Currently, only the full_bright states(for ANY direction) ain't placeholders.",
   "variants": {
     "facing=east,torchstate=dark": {
       "model": "crispsweetberry:block/temporary_wall_torch"
