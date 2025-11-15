@@ -3,7 +3,16 @@
     "": {
       "model": "crispsweetberry:block/temporary_torch"
     },
-    "full_bright": {
+    "torchstate=dark": {
+      "model": ""
+    },
+    "torchstate=dim": {
+      "model": ""
+    },
+    "torchstate=bright": {
+      "model": ""
+    },
+    "torchstate=full_bright": {
       "model": "crispsweetberry:block/temporary_torch"
     }
   }

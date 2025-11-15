@@ -3,8 +3,8 @@ package kurvmod.crispsweetberry.blocks;
 import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.blocks.custom.KilnBlock;
 import kurvmod.crispsweetberry.blocks.custom.PaperBoxBlock;
-import kurvmod.crispsweetberry.blocks.custom.TemporaryTorchBlock;
-import kurvmod.crispsweetberry.blocks.custom.TemporaryWallTorchBlock;
+import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryTorchBlock;
+import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryWallTorchBlock;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.Block;
@@ -20,39 +20,12 @@ public class CrispBlocks
      * The block form of item throwable torch. Its entity form is thrown torch.
      */
     public static Holder<Block> TEMPORARY_TORCH = BLOCK_REGISTER.register("temporary_torch", resourceLocation ->
-            new TemporaryTorchBlock(ParticleTypes.SMALL_FLAME, BlockBehaviour.Properties.of().
-                noLootTable().
-                sound(SoundType.WOOD).
-                ignitedByLava().
-                lightLevel(state -> 12).
-                noCollission().
-                instabreak())
-    );
+            new TemporaryTorchBlock());
     
     public static Holder<Block> TEMPORARY_WALL_TORCH = BLOCK_REGISTER.register("temporary_wall_torch", resourceLocation ->
-        new TemporaryWallTorchBlock(ParticleTypes.SMALL_FLAME, BlockBehaviour.Properties.of().
-            noLootTable().
-            sound(SoundType.WOOD).
-            ignitedByLava().
-            lightLevel(state -> 12).
-            noCollission().
-            instabreak())
-    );
+        new TemporaryWallTorchBlock());
     
-    public static Holder<Block> PAPER_BOX = BLOCK_REGISTER.register("paper_box", resourceLocation ->
-        new PaperBoxBlock(BlockBehaviour.Properties.of().
-            destroyTime(0.1F).
-            explosionResistance(0.1F).
-            ignitedByLava().
-            sound(SoundType.SCAFFOLDING))
-    );
+    public static Holder<Block> PAPER_BOX = BLOCK_REGISTER.register("paper_box", resourceLocation -> new PaperBoxBlock());
     
-    public static Holder<Block> KILN = BLOCK_REGISTER.register("kiln", resourceLocation ->
-        new KilnBlock(BlockBehaviour.Properties.of().
-            destroyTime(2.75F).
-            requiresCorrectToolForDrops().
-            explosionResistance(1.5F).
-            sound(SoundType.STONE).
-            lightLevel(state -> 10))
-    );
+    public static Holder<Block> KILN = BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
 }

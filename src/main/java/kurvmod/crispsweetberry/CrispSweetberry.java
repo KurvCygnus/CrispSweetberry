@@ -3,10 +3,9 @@ package kurvmod.crispsweetberry;
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
 import kurvmod.crispsweetberry.client.CrispClientEvents;
 import kurvmod.crispsweetberry.entities.CrispEntities;
-import kurvmod.crispsweetberry.item.CrispItems;
+import kurvmod.crispsweetberry.items.CrispItems;
 import kurvmod.crispsweetberry.userinterface.CrispCreativeTabs;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 
@@ -18,6 +17,15 @@ public class CrispSweetberry
 {
     public static final String MOD_ID = "crispsweetberry";
 
+    /*
+               ___________
+             /|           |\
+            | |  O    O  | |
+            | |___________| |
+             \_O_O_O_O_O_/
+             Eventbus =O
+     */
+    
     public CrispSweetberry(IEventBus eventBus/*, ModContainer modContainer*/)
     {
         CrispBlocks.BLOCK_REGISTER.register(eventBus);

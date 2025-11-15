@@ -1,4 +1,4 @@
-package kurvmod.crispsweetberry.item.custom;
+package kurvmod.crispsweetberry.items.custom;
 
 import kurvmod.crispsweetberry.entities.custom.ThrownTorch;
 import net.minecraft.core.Direction;
@@ -13,7 +13,6 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileItem;
-import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +25,7 @@ public class ThrowableTorchItem extends Item implements ProjectileItem
     public ThrowableTorchItem(Properties properties) { super(properties); }
     
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         player.startUsingItem(hand);
         player.swing(hand);

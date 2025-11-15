@@ -5,6 +5,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 
@@ -15,6 +17,17 @@ public class PaperBoxBlock extends HorizontalDirectionalBlock
     public PaperBoxBlock(Properties properties)
     {
         super(properties);
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+    
+    public PaperBoxBlock()
+    {
+        super(BlockBehaviour.Properties.of().
+            destroyTime(0.1F).
+            explosionResistance(0.1F).
+            ignitedByLava().
+            sound(SoundType.SCAFFOLDING)
+        );
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
     

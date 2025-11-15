@@ -1,9 +1,9 @@
-package kurvmod.crispsweetberry.item;
+package kurvmod.crispsweetberry.items;
 
 import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
-import kurvmod.crispsweetberry.item.custom.ThrowableTorchItem;
-import kurvmod.crispsweetberry.item.custom.TransmogWandItem;
+import kurvmod.crispsweetberry.items.custom.ThrowableTorchItem;
+import kurvmod.crispsweetberry.items.custom.TransmogWandItem;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;

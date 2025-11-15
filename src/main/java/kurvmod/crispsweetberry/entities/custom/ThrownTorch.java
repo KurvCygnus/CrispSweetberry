@@ -1,9 +1,9 @@
 package kurvmod.crispsweetberry.entities.custom;
 
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
-import kurvmod.crispsweetberry.blocks.custom.TemporaryWallTorchBlock;
+import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryWallTorchBlock;
 import kurvmod.crispsweetberry.entities.CrispEntities;
-import kurvmod.crispsweetberry.item.CrispItems;
+import kurvmod.crispsweetberry.items.CrispItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
@@ -30,7 +30,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 
-//TODO: 如果放置失败则播放投掷火把的粒子效果
+//TODO: 如果放置失败则播放投掷火把的粒子效果, 飞行的动态光源
 
 /**
  * The entity version of the item throwable torch.
@@ -200,16 +200,16 @@ public class ThrownTorch extends ThrowableItemProjectile
     {
         if(this.tickCount % frequency == 0)
         {
-            double speed = 0.03D;
+            final double PARTICLE_SPEED = (this.random.nextDouble() * 2.0D - 1.0D) * 0.03D;
             
             this.level().addParticle(
                 particle,
                 this.getX(),
                 this.getY(),
                 this.getZ(),
-                (this.random.nextDouble() * 2.0D - 1.0D) * speed,
-                (this.random.nextDouble() * 2.0D - 1.0D) * speed,
-                (this.random.nextDouble() * 2.0D - 1.0D) * speed
+                PARTICLE_SPEED,
+                PARTICLE_SPEED,
+                PARTICLE_SPEED
             );
         }
     }

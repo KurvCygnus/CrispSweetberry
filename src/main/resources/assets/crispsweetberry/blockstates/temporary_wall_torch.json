@@ -1,17 +1,62 @@
 {
   "variants": {
-    "facing=east": {
+    "facing=east,torchstate=dark": {
       "model": "crispsweetberry:block/temporary_wall_torch"
     },
-    "facing=north": {
+    "facing=east,torchstate=dim": {
+      "model": "crispsweetberry:block/temporary_wall_torch"
+    },
+    "facing=east,torchstate=bright": {
+      "model": "crispsweetberry:block/temporary_wall_torch"
+    },
+    "facing=east,torchstate=full_bright": {
+      "model": "crispsweetberry:block/temporary_wall_torch"
+    },
+    "facing=north,torchstate=dark": {
       "model": "crispsweetberry:block/temporary_wall_torch",
       "y": 270
     },
-    "facing=south": {
+    "facing=north,torchstate=dim": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 270
+    },
+    "facing=north,torchstate=bright": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 270
+    },
+    "facing=north,torchstate=full_bright": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 270
+    },
+    "facing=south,torchstate=dark": {
       "model": "crispsweetberry:block/temporary_wall_torch",
       "y": 90
     },
-    "facing=west": {
+    "facing=south,torchstate=dim": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 90
+    },
+    "facing=south,torchstate=bright": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 90
+    },
+    "facing=south,torchstate=full_bright": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 90
+    },
+    "facing=west,torchstate=dark": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 180
+    },
+    "facing=west,torchstate=dim": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 180
+    },
+    "facing=west,torchstate=bright": {
+      "model": "crispsweetberry:block/temporary_wall_torch",
+      "y": 180
+    },
+    "facing=west,torchstate=full_bright": {
       "model": "crispsweetberry:block/temporary_wall_torch",
       "y": 180
     }

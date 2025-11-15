@@ -1,12 +1,16 @@
 # TODOS
 
-*OMG IT IS LITERALLY AN ABSURD WORK AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH*
+***OMG IT IS LITERALLY AN ABSURD WORK AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH***
+
+*HMM, I think I need to relook at my design doc to write this =O*
 
 ---
 
-## 1. **Finish Throwable Torch:**
+## First release content: Titleless
+
+### 1. **Throwable Torch**
 - [x] Fix the wall torch **placement bug**
-- [ ] Write a **tick function** for torch blocks
+- [ ] Write a **tick function** for torch blocks → ***I'M HERE CURRENTLY, FUNC BASE OK :)***
 - [ ] Make a **fictional interface** for two torch classes.
 - [ ] Improve the tick function, making it able to **adjust the light strength**
 - [ ] Polish the **sprites**.
@@ -14,7 +18,7 @@
 
 ---
 
-## 2. **Complete Kiln**
+### 2. **Kiln**
 - [x] Write basic **JSON configs**, **loot_table** and **recipe**
 - [ ] Draw phototype sprite, including **fire animations**, dye variants not required
 - [ ] Inherit **AbstractFurnaceBlock** and **finish everything**, exclude GUI and function stuff
@@ -26,7 +30,7 @@
 
 ---
 
-## 3. **Crisp Sweetberry**
+### 3. **Crisp Sweetberry**
 - [x] Write basic **JSON configs** and **recipe**
 - [ ] **Sprite phototype**
 - [ ] **Design unique buffs**
@@ -38,11 +42,22 @@
 
 ---
 
-## 4. **Greedy Crystal**
+### 4. **Greedy Crystal**
 - [ ] Write basic **JSON configs** and **loot_table**
 - [ ] **Phototype sprite**
 - [ ] **Polish**, maybe I will make it **animated**
-- [ ] **DONE**
+- [ ] **EZ CLAP DONE**
 
 ---
 
+### 5. **Spyglass**
+- [ ] LEARN ADDING **CUSTOM KEYBINDS**
+- [ ] Make the **quick spyglass zoom** keybind
+- [ ] **LEARN MIXINS**
+- [ ] Make the **zoom adjust function**
+- [ ] The **rests**? That's another story **after the 1st release**.
+- [ ] **GOOD JOB XD**
+
+---
+
+*Still writing, UwU*

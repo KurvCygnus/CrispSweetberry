@@ -1,4 +1,4 @@
-package kurvmod.crispsweetberry.item.custom;
+package kurvmod.crispsweetberry.items.custom;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;

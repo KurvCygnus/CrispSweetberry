@@ -2,7 +2,7 @@ package kurvmod.crispsweetberry.userinterface;
 
 import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
-import kurvmod.crispsweetberry.item.CrispItems;
+import kurvmod.crispsweetberry.items.CrispItems;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
