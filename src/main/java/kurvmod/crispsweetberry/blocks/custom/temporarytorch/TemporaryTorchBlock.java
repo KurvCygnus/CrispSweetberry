@@ -1,7 +1,6 @@
 package kurvmod.crispsweetberry.blocks.custom.temporarytorch;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
@@ -16,8 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class TemporaryTorchBlock extends TorchBlock implements TemporaryTorchInterface
 {
-    private int tick = 0;
-    
     public TemporaryTorchBlock()
     {
         super(TORCH_PARTICLE, TORCH_PROPERTIES);

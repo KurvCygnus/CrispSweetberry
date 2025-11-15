@@ -1,7 +1,6 @@
 package kurvmod.crispsweetberry.blocks.custom.temporarytorch;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
