@@ -19,9 +19,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface TemporaryTorchInterface
 {
-    int MAX_BRIGHTNESS_STATE = 3,//The actual brightness = brightness_state * brightness_conversion_constant
-        MIN_BRIGHTNESS_STATE = 0,//The max is 12 = 3 * 4, for example.
-        PROPERTY_INDEX_TO_NEXT_STD = 1,
+    int PROPERTY_INDEX_TO_NEXT_STD = 1,
         BRIGHTNESS_CONVERSION_CONSTANT = 4,
         PHASE_PERIOD_TICK = 400;
     
@@ -36,10 +34,10 @@ public interface TemporaryTorchInterface
         public LIGHT_STATE getNextState() { return LIGHT_STATE.values()[this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD]; }
         
         @Override
-        public @NotNull String getSerializedName() { return "torchstate"; }
+        public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
     }
     
-    EnumProperty<LIGHT_STATE> LIGHT_PROPERTY = EnumProperty.create("light", LIGHT_STATE.class);
+    EnumProperty<LIGHT_STATE> LIGHT_PROPERTY = EnumProperty.create("torchstate", LIGHT_STATE.class);
     
     SimpleParticleType TORCH_PARTICLE = ParticleTypes.SMALL_FLAME;
     BlockBehaviour.Properties TORCH_PROPERTIES = BlockBehaviour.Properties.of().

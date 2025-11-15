@@ -6,10 +6,7 @@ import kurvmod.crispsweetberry.blocks.custom.PaperBoxBlock;
 import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryTorchBlock;
 import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryWallTorchBlock;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CrispBlocks
