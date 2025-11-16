@@ -10,9 +10,10 @@
 
 ### 1. **Throwable Torch**
 - [x] Fix the wall torch **placement bug**
-- [ ] Write a **tick function** for torch blocks → ***I'M HERE CURRENTLY, FUNC BASE OK :)***
-- [ ] Make a **fictional interface** for two torch classes.
-- [ ] Improve the tick function, making it able to **adjust the light strength**
+- [x] Write a **tick function** for torch blocks
+- [x] Make a **fictional interface** for two torch classes.
+- [x] Improve the tick function, making it able to **adjust the light strength**
+- OHHHHHHHHHHHHHHHHHHHHHHH YES, I'M GETTING CLOSER TO FINISH IT =O
 - [ ] Polish the **sprites**.
 - [ ] **Good job XD**
 
