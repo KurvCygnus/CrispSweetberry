@@ -1,6 +1,7 @@
 package kurvmod.crispsweetberry.blocks.custom.temporarytorch;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.server.level.ServerLevel;
@@ -16,18 +17,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.NotNull;
 
+import static net.minecraft.world.level.block.WallTorchBlock.FACING;
+
 /**
  * The interface used for both two temporary torches.<br>
- * Both std torch and the wall one just have the same
+ * Both <b>standard torch and the wall one just have the same behavior</b>.
  */
 public interface TemporaryTorchInterface
 {
     /**
-     * The <b>constants</b> for both <b>enum property and tick period</b>.
+     * The <b>constants</b> for both <b>enum property and tick period</b>, and <b>particles</b>.
      */
     int PROPERTY_INDEX_TO_NEXT_STD = 1,
         BRIGHTNESS_CONVERSION_CONSTANT = 4,
         PHASE_PERIOD_TICK = 400;
+    
+    double TORCH_PARTICLE_SPEED = 0.0,
+           HORIZONTAL_WALL_TORCH_ADD_VALUE = 0.27,
+           VERTICAL_WALL_TORCH_ADD_VALUE = 0.22,
+           HORIZONTAL_TORCH_ADD_VALUE = 0.5,
+           VERTICAL_TORCH_ADD_VALUE = 0.7;
     
     /**
      * The <b>enum property</b> that controls the <b>life cycle and brightness</b> of temporary torches.
@@ -51,7 +60,7 @@ public interface TemporaryTorchInterface
         public LIGHT_STATE getNextState()
         {
             //Do bounder check at the same time.
-            return this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD > 0 ?
+            return this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD > LIGHT_STATE.DARK.ordinal() ?
                 LIGHT_STATE.values()[this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD] : LIGHT_STATE.DARK;
         }
         
@@ -87,7 +96,7 @@ public interface TemporaryTorchInterface
      * <b>The use of super method is in actual implementation of two torch classes</b>.<br>
      * Compare to the default one, it mainly <b>adds scheduleTick to use tick method</b>.
      */
-    default void onPlace(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
+    default void onPlace(@NotNull Level world, @NotNull BlockPos pos)
         { world.scheduleTick(pos, (Block) this, PHASE_PERIOD_TICK); }
     
     /**
@@ -97,7 +106,7 @@ public interface TemporaryTorchInterface
      */
     default void tick(@NotNull BlockState oldState, @NotNull ServerLevel world, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
-        double HORIZONAL_PARTICLE_SPEED = 0.0D,
+        double HORIZONTAL_PARTICLE_SPEED = TORCH_PARTICLE_SPEED,
                VERTICAL_PARTICLE_SPEED = (random.nextDouble() * 2.0D - 1.0D) * 0.03D;
         
         LIGHT_STATE oldLightState = oldState.getValue(LIGHT_PROPERTY);
@@ -110,24 +119,39 @@ public interface TemporaryTorchInterface
         if(!world.isClientSide)
         {
             world.setBlockAndUpdate(pos, newState);
-            world.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
-            world.addParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY(), pos.getZ(),
-                HORIZONAL_PARTICLE_SPEED, VERTICAL_PARTICLE_SPEED, HORIZONAL_PARTICLE_SPEED);
+            world.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.2F, 1.0F);
         }
+        else
+            world.addParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY(), pos.getZ(),
+                HORIZONTAL_PARTICLE_SPEED, VERTICAL_PARTICLE_SPEED, HORIZONTAL_PARTICLE_SPEED);
         
+        //Wait for the next state change.
         world.scheduleTick(pos, (Block) this, PHASE_PERIOD_TICK);
     }
     
-    default void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random, SimpleParticleType particle)
+    /**
+     * The method that <b>displays the particle effect on the torch</b>.<br>
+     * The main difference from the super method is,<br>
+     * <b>when the torch burns out, it won't display *any* particle anymore</b>.
+     */
+    default void animateTick(BlockState state, Level level, BlockPos pos, boolean isWallTorch)
     {
-        double d0 = (double)pos.getX() + 0.5,
-            d1 = (double)pos.getY() + 0.7,
-            d2 = (double)pos.getZ() + 0.5;
+        double d0 = (double)pos.getX() + HORIZONTAL_TORCH_ADD_VALUE,
+            d1 = (double)pos.getY() + VERTICAL_TORCH_ADD_VALUE,
+            d2 = (double)pos.getZ() + HORIZONTAL_TORCH_ADD_VALUE;
+        
+        if(isWallTorch)
+        {
+            Direction direction = state.getValue(FACING).getOpposite();
+            d0 = (d0 + HORIZONTAL_WALL_TORCH_ADD_VALUE) * (double)direction.getStepX();
+            d1 += VERTICAL_WALL_TORCH_ADD_VALUE;
+            d2 = (d2 + HORIZONTAL_WALL_TORCH_ADD_VALUE) * (double)direction.getStepZ();
+        }
         
         if(state.getValue(LIGHT_PROPERTY) != LIGHT_STATE.DARK)
         {
-            level.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0, 0.0, 0.0);
-            level.addParticle(particle, d0, d1, d2, 0.0, 0.0, 0.0);
+            level.addParticle(ParticleTypes.SMOKE, d0, d1, d2, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED);
+            level.addParticle(TORCH_PARTICLE, d0, d1, d2, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED);
         }
     }
 }

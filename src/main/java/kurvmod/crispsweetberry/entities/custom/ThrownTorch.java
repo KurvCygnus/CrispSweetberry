@@ -25,6 +25,7 @@ import net.minecraft.world.entity.monster.Zoglin;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -148,60 +149,84 @@ public class ThrownTorch extends ThrowableItemProjectile
         entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitResult);
     }
     
-    @Override
     protected void onHitBlock(@NotNull BlockHitResult result)
     {
         super.onHitBlock(result);
         if(!this.level().isClientSide)
         {
-            BlockPos hitPos = result.getBlockPos();
-            Direction hitSide = result.getDirection();
-            
-            if(this.getEntityData().get(DATA_TIER_ID) == TIER_WILD || this.isInLiquid())
-            {
-                playSound(SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 1.0F);
-                this.level().broadcastEntityEvent(this, (byte) 3);
-                displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
+            if(tryHandleSpecialCase())
                 return;
-            }
             
-            BlockState stateToPlace = null;
-            BlockPos placementPos = null;
+            BlockPos placementPos = getPlacementPos(result);
+            BlockState stateToPlace = getPlacementState(result, placementPos);
             
-            switch(hitSide)
-            {
-                case Direction.UP:
-                    placementPos = hitPos.above();
-                    stateToPlace = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
-                    if(!shouldLight)
-                        stateToPlace = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState().
-                            setValue(TemporaryTorchInterface.LIGHT_PROPERTY, TemporaryTorchInterface.LIGHT_STATE.DARK);
-                    break;
-                    
-                case Direction.DOWN:
-                    break;
-                    
-                default:
-                    placementPos = hitPos.relative(hitSide);
-
-                    stateToPlace = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState()
-                          .setValue(TemporaryWallTorchBlock.FACING, hitSide);
-                    if(!shouldLight)
-                        stateToPlace = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState()
-                            .setValue(TemporaryWallTorchBlock.FACING, hitSide).
-                            setValue(TemporaryTorchInterface.LIGHT_PROPERTY, TemporaryTorchInterface.LIGHT_STATE.DARK);
-            }
-            
-            if(stateToPlace != null && stateToPlace.canSurvive(this.level(), placementPos))
-            {
-                this.level().setBlockAndUpdate(placementPos, stateToPlace);
+            if (stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
                 playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.5F);
-                return;
-            }
-            
-            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, 1.5F);
-            this.level().broadcastEntityEvent(this, (byte) 3);
+            else
+                handlePlacementFailure();
         }
+    }
+    
+    private boolean tryHandleSpecialCase()
+    {
+        if (this.getEntityData().get(DATA_TIER_ID) == TIER_WILD || this.isInLiquid())
+        {
+            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, 1.0F);
+            this.level().broadcastEntityEvent(this, (byte) 3);
+            displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
+            return true;
+        }
+        return false;
+    }
+    
+    private BlockPos getPlacementPos(BlockHitResult result)
+    {
+        BlockPos hitPos = result.getBlockPos();
+        Direction hitSide = result.getDirection();
+        
+        return switch(hitSide)
+        {
+            case Direction.UP -> hitPos.above();
+            case Direction.DOWN -> null;
+            default -> hitPos.relative(hitSide);
+        };
+    }
+    
+    private BlockState getPlacementState(BlockHitResult result, BlockPos placementPos)
+    {
+        if(placementPos == null)
+            return null;
+        
+        Direction hitSide = result.getDirection();
+        BlockState baseState = null;
+        
+        if(hitSide == Direction.UP)
+            baseState = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
+        else if(hitSide != Direction.DOWN)
+            baseState = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState()
+                .setValue(TemporaryWallTorchBlock.FACING, hitSide);
+        
+        if (baseState != null && !shouldLight)
+            baseState = baseState.setValue(TemporaryTorchInterface.LIGHT_PROPERTY, TemporaryTorchInterface.LIGHT_STATE.DARK);
+        
+        return baseState;
+    }
+    
+    private boolean tryPlaceTorch(BlockState state, BlockPos pos)
+    {
+        BlockState blockOnPos = this.level().getBlockState(pos);
+        if (state.canSurvive(this.level(), pos) && blockOnPos != Blocks.WATER.defaultBlockState() && blockOnPos != Blocks.LAVA.defaultBlockState())
+        {
+            this.level().setBlockAndUpdate(pos, state);
+            return true;
+        }
+        return false;
+    }
+    
+    private void handlePlacementFailure()
+    {
+        playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, 1.5F);
+        this.level().broadcastEntityEvent(this, (byte) 3);
     }
     
     @Override

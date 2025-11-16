@@ -27,9 +27,13 @@ public class TemporaryWallTorchBlock extends WallTorchBlock implements Temporary
     
     @Override
     public void onPlace(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
-        { TemporaryTorchInterface.super.onPlace(state, world, pos, oldState, isMoving); }
+        { TemporaryTorchInterface.super.onPlace(world, pos); }
     
     @Override
     public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
         { TemporaryTorchInterface.super.tick(oldState, level, pos, random); }
+    
+    @Override
+    public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
+        { TemporaryTorchInterface.super.animateTick(state, level, pos, true); }
 }
