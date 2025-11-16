@@ -59,7 +59,7 @@ public interface TemporaryTorchInterface
          */
         public LIGHT_STATE getNextState()
         {
-            //Do bounder check at the same time.
+            //Do boundary check at the same time.
             return this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD > LIGHT_STATE.DARK.ordinal() ?
                 LIGHT_STATE.values()[this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD] : LIGHT_STATE.DARK;
         }
