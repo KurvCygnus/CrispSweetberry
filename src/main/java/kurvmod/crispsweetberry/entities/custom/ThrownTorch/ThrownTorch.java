@@ -27,6 +27,7 @@ import net.minecraft.world.entity.monster.Zoglin;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -258,7 +259,7 @@ public class ThrownTorch extends ThrowableItemProjectile
             II. Check whether the block can be replaced(Prevent block replacement that doesn't make sense)
           Only when both of these conditions are met, then the torch can be successfully placed.
         */
-        if(state.canSurvive(this.level(), pos) && canBeActuallyPlaced(state))
+        if(state.canSurvive(this.level(), pos) && canBeActuallyPlaced(pos))
         {
             this.level().setBlockAndUpdate(pos, state);
             return true;
@@ -361,13 +362,18 @@ public class ThrownTorch extends ThrowableItemProjectile
         playSound(sound, SoundSource.AMBIENT, LOUD_SOUND_VOLUME);
     }
     
-    private boolean canBeActuallyPlaced(BlockState state)
+    private boolean canBeActuallyPlaced(BlockPos pos)
     {
-        if(state.is(CrispBlocks.TEMPORARY_TORCH) || state.is(CrispBlocks.TEMPORARY_WALL_TORCH))
-            if(state.getValue(TemporaryTorchInterface.LIGHT_PROPERTY) == TemporaryTorchInterface.LIGHT_STATE.DARK)
-                return true;
+        Block posBlock = this.level().getBlockState(pos).getBlock();
+        BlockState posBlockState = this.level().getBlockState(pos);
         
-        return state.is(Blocks.AIR) || state.is(BlockTags.REPLACEABLE);
+        if(posBlock == CrispBlocks.TEMPORARY_TORCH.value() || posBlock == CrispBlocks.TEMPORARY_WALL_TORCH.value())
+            if(posBlockState.getValue(TemporaryTorchInterface.LIGHT_PROPERTY) == TemporaryTorchInterface.LIGHT_STATE.DARK)
+            {
+                displayDestroyParticle();
+                return true;
+            }
+        return posBlock == Blocks.AIR || posBlockState.is(BlockTags.REPLACEABLE);
     }
     
     /**
