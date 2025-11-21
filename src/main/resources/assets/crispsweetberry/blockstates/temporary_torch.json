@@ -1,14 +1,13 @@
 {
-  "_comments": "Currently, only the full_bright state isn't a placeholder.",
   "variants": {
     "torchstate=dark": {
-      "model": "crispsweetberry:block/temporary_torch"
+      "model": "crispsweetberry:block/temporary_torch_dark"
     },
     "torchstate=dim": {
-      "model": "crispsweetberry:block/temporary_torch"
+      "model": "crispsweetberry:block/temporary_torch_dim"
     },
     "torchstate=bright": {
-      "model": "crispsweetberry:block/temporary_torch"
+      "model": "crispsweetberry:block/temporary_torch_bright"
     },
     "torchstate=full_bright": {
       "model": "crispsweetberry:block/temporary_torch"

@@ -1,7 +1,7 @@
 package kurvmod.crispsweetberry.client;
 
 import kurvmod.crispsweetberry.entities.CrispEntities;
-import net.minecraft.client.renderer.entity.ThrownItemRenderer;
+import kurvmod.crispsweetberry.entityrenderers.ThrownTorchRenderer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
@@ -11,6 +11,6 @@ public class CrispClientEvents
     
     private void registerRenderEvents(EntityRenderersEvent.RegisterRenderers event)
     {
-        event.registerEntityRenderer(CrispEntities.THROWN_TORCH.get(), ThrownItemRenderer::new);
+        event.registerEntityRenderer(CrispEntities.THROWN_TORCH.get(), ThrownTorchRenderer::new);
     }
 }

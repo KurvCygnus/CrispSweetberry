@@ -14,17 +14,19 @@ import static net.minecraft.world.item.Rarity.RARE;
 
 public class CrispItems
 {
-    public static final DeferredRegister<Item> ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
+    private CrispItems() {}
+    
+    public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
 
-    public static Holder<Item> THROWABLE_TORCH = ITEM_REGISTER.register("throwable_torch", resourceLocation ->
+    public static Holder<Item> THROWABLE_TORCH = CRISP_ITEM_REGISTER.register("throwable_torch", resourceLocation ->
             new ThrowableTorchItem(new Item.Properties()));
     
-    public static Holder<Item> HONEY_BERRY = ITEM_REGISTER.register("crisp_sweetberry", resourceLocation ->
+    public static Holder<Item> HONEY_BERRY = CRISP_ITEM_REGISTER.register("crisp_sweetberry", resourceLocation ->
         new Item(
             new Item.Properties().
                 food(
                     new FoodProperties.Builder().
-                    nutrition(1).saturationModifier(8.0f).
+                    nutrition(1).saturationModifier(8.0F).
                     //TODO
                     // effect().
                     build()
@@ -32,13 +34,13 @@ public class CrispItems
             )
         );
     
-    public static Holder<Item> PAPER_BOX = ITEM_REGISTER.register("paper_box", resourceLocation ->
+    public static Holder<Item> PAPER_BOX = CRISP_ITEM_REGISTER.register("paper_box", resourceLocation ->
         new BlockItem(CrispBlocks.PAPER_BOX.value(), new Item.Properties()));
     
-    public static Holder<Item> KILN = ITEM_REGISTER.register("kiln", resourceLocation ->
+    public static Holder<Item> KILN = CRISP_ITEM_REGISTER.register("kiln", resourceLocation ->
         new BlockItem(CrispBlocks.KILN.value(), new Item.Properties()));
     
-    public static Holder<Item> TRANSMOG_WAND = ITEM_REGISTER.register("transmog_wand", resourceLocation ->
+    public static Holder<Item> TRANSMOG_WAND = CRISP_ITEM_REGISTER.register("transmog_wand", resourceLocation ->
         new TransmogWandItem(
             new Item.Properties().
             durability(64).
@@ -48,7 +50,7 @@ public class CrispItems
         )
     );
     
-    public static Holder<Item> ECHO_DISC = ITEM_REGISTER.register("echo_disc", resourceLocation ->
+    public static Holder<Item> ECHO_DISC = CRISP_ITEM_REGISTER.register("echo_disc", resourceLocation ->
         new Item(new Item.Properties().
             stacksTo(16).
             rarity(RARE)
@@ -56,16 +58,16 @@ public class CrispItems
     );
     
     //TODO: I'll finish these commented stuffs when I could.
-//    public static Holder<Item> SCYTHE = ITEM_REGISTER.register("scythe", resourceLocation ->
+//    public static Holder<Item> SCYTHE = CRISP_ITEM_REGISTER.register("scythe", resourceLocation ->
 //        new Item(new Item.Properties().
 //            rarity(RARE).
 //            durability(84)));
     
-//    public static Holder<Item> ADVENTURERS_ATLAS = ITEM_REGISTER.register("adventurers_atlas", resourceLocation ->
+//    public static Holder<Item> ADVENTURERS_ATLAS = CRISP_ITEM_REGISTER.register("adventurers_atlas", resourceLocation ->
 //        new MapItem(new Item.Properties().
 //            stacksTo(1)));
     
-    public static Holder<Item> GREEDY_CRYSTAL = ITEM_REGISTER.register("greedy_crystal", resourceLocation ->
+    public static Holder<Item> GREEDY_CRYSTAL = CRISP_ITEM_REGISTER.register("greedy_crystal", resourceLocation ->
         new Item(new Item.Properties().
             rarity(RARE)
         )

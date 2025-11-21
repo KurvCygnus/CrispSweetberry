@@ -12,14 +12,23 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+//TODO: U R THE NEXT
+//WIP
 public class KilnBlock extends AbstractFurnaceBlock
 {
     public static final MapCodec<KilnBlock> CODEC = simpleCodec(KilnBlock::new);
     
+    /**
+     * A <b>placeholder construct method, it has to be implemented for its superclass demands</b>.
+     */
     public KilnBlock(Properties properties) { super(properties); }
     
+    /**
+     * This is the actual construct method for <b>block registry</b>.
+     */
     public KilnBlock()
     {
+        //PLACEHOLDER, sort of
         super(BlockBehaviour.Properties.of().
             destroyTime(2.75F).
             requiresCorrectToolForDrops().
@@ -30,15 +39,12 @@ public class KilnBlock extends AbstractFurnaceBlock
     }
     
     @Override
-    protected @NotNull MapCodec<? extends AbstractFurnaceBlock> codec()
-    {
-        return CODEC;
-    }
+    protected @NotNull MapCodec<? extends AbstractFurnaceBlock> codec() { return CODEC; }
     
     @Override
     protected void openContainer(Level level, BlockPos pos, Player player)
     {
-    
+        //TODO
     }
     
     @Override

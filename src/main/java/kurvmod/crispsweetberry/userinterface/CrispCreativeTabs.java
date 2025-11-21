@@ -13,9 +13,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CrispCreativeTabs
 {
-    public static final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CrispSweetberry.MOD_ID);
+    private CrispCreativeTabs() {}
+    
+    public static final DeferredRegister<CreativeModeTab> CRISP_TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CrispSweetberry.MOD_ID);
 
-    public static Holder<CreativeModeTab> FSB_TAB = TAB_REGISTER.register("crispsweetberry_tab", () -> CreativeModeTab.builder().title(Component.translatable("crispsweetberry.tabtitle")).withTabsBefore(CreativeModeTabs.COMBAT).
+    public static Holder<CreativeModeTab> FSB_TAB = CRISP_TAB_REGISTER.register("crispsweetberry_tab", () -> CreativeModeTab.builder().title(Component.translatable("crispsweetberry.tabtitle")).withTabsBefore(CreativeModeTabs.COMBAT).
             icon(() -> new ItemStack(net.minecraft.world.item.Items.SWEET_BERRIES)).displayItems(((parameters, output) -> {
                 output.accept(CrispItems.THROWABLE_TORCH.value());
                 output.accept(new ItemStack(CrispBlocks.KILN.value()));

@@ -9,17 +9,22 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import org.jetbrains.annotations.NotNull;
 
+//TODO: Maybe for months later
+//WIP
 public class PaperBoxBlock extends HorizontalDirectionalBlock
 {
     public static final MapCodec<PaperBoxBlock> CODEC = simpleCodec(PaperBoxBlock::new);
     
-    public PaperBoxBlock(Properties properties)
-    {
-        super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-    }
+    /**
+     * A <b>placeholder construct method, as its superclass demands to implement it</b>.
+     */
+    public PaperBoxBlock(Properties properties) { super(properties); }
     
+    /**
+     * This is the actual construct method for <b>block registry</b>.
+     */
     public PaperBoxBlock()
     {
         this(BlockBehaviour.Properties.of().
@@ -28,6 +33,7 @@ public class PaperBoxBlock extends HorizontalDirectionalBlock
             ignitedByLava().
             sound(SoundType.SCAFFOLDING)
         );
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
     
     @Override
@@ -37,5 +43,5 @@ public class PaperBoxBlock extends HorizontalDirectionalBlock
     public BlockState getStateForPlacement(BlockPlaceContext context) { return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
     
     @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() { return CODEC; }
+    protected @NotNull MapCodec<? extends HorizontalDirectionalBlock> codec() { return CODEC; }
 }

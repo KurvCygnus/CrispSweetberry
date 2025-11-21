@@ -9,54 +9,62 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Set;
+
+import static kurvmod.crispsweetberry.util.CrispConstants.*;
 import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
+//PROTOTYPE OK: No issues, but there may still have some.
 /**
- * The interface used for both two temporary torches.<br>
- * Both <b>standard torch and the wall one just have the same behavior</b>.
+ * The interface used for both <b>two temporary torches</b>,<br>
+ * which lies the common behavior of the both <b>standard torch and the wall one</b>.
  */
 public interface TemporaryTorchInterface
 {
-    /**
-     * The <b>constants</b> for both <b>enum property and tick period</b>, and <b>particles</b>.
-     */
+    //Constants
     int PROPERTY_INDEX_TO_NEXT_STD = 1,
-        BRIGHTNESS_CONVERSION_CONSTANT = 4,
-        PHASE_PERIOD_TICK = 400;
+        BRIGHTNESS_CONVERSION_CONSTANT = 4,//4 brightness per stage.
+        STATE_PERIOD_TICK = 400;//Equals 20 seconds.
     
-    double TORCH_PARTICLE_SPEED = 0.0,
-           HORIZONTAL_WALL_TORCH_ADD_VALUE = 0.27,
-           VERTICAL_WALL_TORCH_ADD_VALUE = 0.22,
-           HORIZONTAL_TORCH_ADD_VALUE = 0.5,
-           VERTICAL_TORCH_ADD_VALUE = 0.7;
+    double HORIZONTAL_WALL_TORCH_OFFSET_VALUE = 0.27,
+           VERTICAL_WALL_TORCH_OFFSET_VALUE = 0.22,
+           HORIZONTAL_TORCH_OFFSET_VALUE = 0.5,
+           VERTICAL_TORCH_OFFSET_VALUE = 0.7;
+    
+    float TORCH_BURNING_OUT_VOL = 0.2F;
     
     /**
      * The <b>enum property</b> that controls the <b>life cycle and brightness</b> of temporary torches.
      */
     enum LIGHT_STATE implements StringRepresentable
     {
-        DARK, DIM, BRIGHT, FULL_BRIGHT;
+        DARK, DIM, BRIGHT, FULL_BRIGHT;//DARK coordinates burned out, but to put the state name more simple,
+                                       //I deprecated the later name.
         
         /**
-         * As this method's name suggests,
-         * it is the <b>formula</b> to <b>convert enum to actual brightness value</b>.<br><br>
+         * The <b>formula</b> to <b>convert enum to actual brightness value</b>.<br><br>
          * <b>e.g.</b><br>
          * <b>FULL_BRIGHT</b> ->
-         * <b>3</b>(FULL_BRIGHT.ordinal()) * <b>4</b>(BRIGHTNESS_CONVERSION_CONSTANT) = <b>12</b>
+         * <b>3</b>(FULL_BRIGHT.ordinal()) <b>× 4</b>(BRIGHTNESS_CONVERSION_CONSTANT) <b> = 12</b>
          */
         public int toBrightness() { return this.ordinal() * BRIGHTNESS_CONVERSION_CONSTANT; }
         
-        /**
-         * The method which returns the <b>next state</b> in order.
-         */
         public LIGHT_STATE getNextState()
         {
             //Do boundary check at the same time.
@@ -72,17 +80,13 @@ public interface TemporaryTorchInterface
         public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
     }
     
-    /**
-     * The <b>declaration</b> of the <b>above enum property</b>.<br>
-     * The arg <b>"name"</b> equals to <b>state's namespace</b>.
-     */
+    //Create a unique namespace of the LIGHT_STATE.
     EnumProperty<LIGHT_STATE> LIGHT_PROPERTY = EnumProperty.create("torchstate", LIGHT_STATE.class);
     
-    /**
-     * The <b>constants</b> for <b>torches particle and default properties</b>.<br>
-     * Due to the context, the properties have to be here.
-     */
-    SimpleParticleType TORCH_PARTICLE = ParticleTypes.SMALL_FLAME;
+    //Constants
+    SimpleParticleType TORCH_PARTICLE = ParticleTypes.SMALL_FLAME,
+        SUB_PARTICLE = ParticleTypes.SMOKE;
+    
     BlockBehaviour.Properties TORCH_PROPERTIES = BlockBehaviour.Properties.of().
         lightLevel(state -> state.getValue(LIGHT_PROPERTY).toBrightness()).
         noLootTable().
@@ -93,21 +97,20 @@ public interface TemporaryTorchInterface
     
     /**
      * The method which designs to <b>override the default method of the class Block</b>.<br>
-     * <b>The use of super method is in actual implementation of two torch classes</b>.<br>
-     * Compare to the default one, it mainly <b>adds scheduleTick to use tick method</b>.
+     * <b>The useItemOn of super method is in actual implementation of two torch classes</b>.<br>
+     * Compare to the default one, it mainly <b>adds scheduleTick to useItemOn tick method</b>.
      */
     default void onPlace(@NotNull Level world, @NotNull BlockPos pos)
-        { world.scheduleTick(pos, (Block) this, PHASE_PERIOD_TICK); }
+        { world.scheduleTick(pos, (Block) this, STATE_PERIOD_TICK); }
     
     /**
      * The tick method itself.<br>
-     * Since it is universal, the implementers only need to use this method.<br>
+     * Since it is universal, the implementers only need to useItemOn this method.<br>
      * <b>Using interface super method is a must in implementers because of the access priority</b>.
      */
     default void tick(@NotNull BlockState oldState, @NotNull ServerLevel world, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
-        double HORIZONTAL_PARTICLE_SPEED = TORCH_PARTICLE_SPEED,
-               VERTICAL_PARTICLE_SPEED = (random.nextDouble() * 2.0D - 1.0D) * 0.03D;
+        final double VERTICAL_PARTICLE_SPEED = (random.nextDouble() * 2.0D - 1.0D) * 0.03D;
         
         LIGHT_STATE oldLightState = oldState.getValue(LIGHT_PROPERTY);
         BlockState newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());
@@ -119,14 +122,15 @@ public interface TemporaryTorchInterface
         if(!world.isClientSide)
         {
             world.setBlockAndUpdate(pos, newState);
-            world.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.2F, 1.0F);
+            //I originally set the volume to 1.0F, and just ending up feeling my ear is close to explosion UwU.
+            world.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, NORMAL_SOUND_PITCH);
         }
         else
-            world.addParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY(), pos.getZ(),
-                HORIZONTAL_PARTICLE_SPEED, VERTICAL_PARTICLE_SPEED, HORIZONTAL_PARTICLE_SPEED);
+            world.addParticle(SUB_PARTICLE, pos.getX(), pos.getY(), pos.getZ(),
+                PROJECTILE_X_NO_SPEED, VERTICAL_PARTICLE_SPEED, PROJECTILE_Z_NO_SPEED);
         
         //Wait for the next state change.
-        world.scheduleTick(pos, (Block) this, PHASE_PERIOD_TICK);
+        world.scheduleTick(pos, (Block) this, STATE_PERIOD_TICK);
     }
     
     /**
@@ -136,22 +140,68 @@ public interface TemporaryTorchInterface
      */
     default void animateTick(BlockState state, Level level, BlockPos pos, boolean isWallTorch)
     {
-        double d0 = (double)pos.getX() + HORIZONTAL_TORCH_ADD_VALUE,
-            d1 = (double)pos.getY() + VERTICAL_TORCH_ADD_VALUE,
-            d2 = (double)pos.getZ() + HORIZONTAL_TORCH_ADD_VALUE;
+        //Dark state means the torch has already burned out, so of course wo should directly terminate this when the state is DARK.
+        if(state.getValue(LIGHT_PROPERTY) == LIGHT_STATE.DARK)
+            return;
         
-        if(isWallTorch)
+        double X_POS = (double)pos.getX() + HORIZONTAL_TORCH_OFFSET_VALUE,
+            Y_POS = (double)pos.getY() + VERTICAL_TORCH_OFFSET_VALUE,
+            Z_POS = (double)pos.getZ() + HORIZONTAL_TORCH_OFFSET_VALUE;
+        
+        if(isWallTorch)//Wall torch's particle position is different from standard one, o' course.
         {
             Direction direction = state.getValue(FACING).getOpposite();
-            d0 = (d0 + HORIZONTAL_WALL_TORCH_ADD_VALUE) * (double)direction.getStepX();
-            d1 += VERTICAL_WALL_TORCH_ADD_VALUE;
-            d2 = (d2 + HORIZONTAL_WALL_TORCH_ADD_VALUE) * (double)direction.getStepZ();
+            X_POS = (X_POS + HORIZONTAL_WALL_TORCH_OFFSET_VALUE) * (double)direction.getStepX();
+            Y_POS += VERTICAL_WALL_TORCH_OFFSET_VALUE;
+            Z_POS = (Z_POS + HORIZONTAL_WALL_TORCH_OFFSET_VALUE) * (double)direction.getStepZ();
         }
         
-        if(state.getValue(LIGHT_PROPERTY) != LIGHT_STATE.DARK)
+        level.addParticle(TORCH_PARTICLE, X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
+        level.addParticle(SUB_PARTICLE, X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
+    }
+    
+    /**
+     * The method which holds <b>special interactions with flint and steel</b>,
+     * <b>fire charge</b>, both of which can <b>relight campfire in vanilla</b>.
+     * The process:<br><pre>
+     * I. Check <b>whether the item in its player's hand meets the condition</b>
+     * II. Check <b>whether the torch can be relighted</b>
+     * III. If the conditions above are passed, <b>set the torch's blockstate to FULL_BRIGHT</b>, and <b>recall scheduleTick</b>
+     * IV. <b>Modify the item</b></pre>
+     */
+    default ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult)
+    {
+        Item itemInHand = stack.getItem();
+        Set<Item> interactableItems = Set.of(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
+        
+        //Process I and II
+        if(!interactableItems.contains(itemInHand) || state.getValue(LIGHT_PROPERTY).ordinal() > LIGHT_STATE.DIM.ordinal())
+            return ItemInteractionResult.FAIL;
+        
+        if(!level.isClientSide)
         {
-            level.addParticle(ParticleTypes.SMOKE, d0, d1, d2, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED);
-            level.addParticle(TORCH_PARTICLE, d0, d1, d2, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED, TORCH_PARTICLE_SPEED);
+            //Process III(Serverside only)
+            level.setBlockAndUpdate(pos, state.setValue(LIGHT_PROPERTY, LIGHT_STATE.FULL_BRIGHT));
+            level.scheduleTick(pos, (Block) this, STATE_PERIOD_TICK);
+            
+            //Process IV
+            if(itemInHand == Items.FLINT_AND_STEEL)
+            {
+                //For flint 'n steel, of course we should damage its durability.
+                final float FLINT_AND_STEEL_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
+                
+                level.playSound(null, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS,
+                    NORMAL_SOUND_VOLUME, FLINT_AND_STEEL_PITCH);
+                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+            }
+            else//Fire Charge case
+            {
+                //For fire charge, o' course it should be consumed upon using.
+                level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, NORMAL_SOUND_PITCH);
+                stack.consume(1, player);
+            }
         }
+        
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 }
