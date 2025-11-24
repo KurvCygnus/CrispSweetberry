@@ -1,7 +1,7 @@
 package kurvmod.crispsweetberry.client;
 
 import kurvmod.crispsweetberry.entities.CrispEntities;
-import kurvmod.crispsweetberry.entityrenderers.ThrownTorchRenderer;
+import kurvmod.crispsweetberry.entities.custom.throwntorch.ThrownTorchRenderer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 

@@ -1,57 +1,20 @@
 package kurvmod.crispsweetberry.blocks.custom.temporarytorch;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WallTorchBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.NotNull;
+import kurvmod.crispsweetberry.blocks.custom.abstractbase.AbstractTemporaryWallTorchBlock;
+import net.minecraft.core.particles.SimpleParticleType;
 
 /**
- * The ThrowableTorch's <b>Wall Block</b> version.<br>
- * <b>Most methods have been encapsulated into the TemporaryTorchInterface<b>.
+ * The standard wall block version of throwable torch.
+ * @see kurvmod.crispsweetberry.blocks.custom.abstractbase.AbstractTemporaryWallTorchBlock Abstract customization base detail
+ * @see kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch Fuction base detail
  */
-public class TemporaryWallTorchBlock extends WallTorchBlock implements TemporaryTorchInterface
+public class TemporaryWallTorchBlock extends AbstractTemporaryWallTorchBlock
 {
-    /**
-     * The construct method for <b>block registry</b>.
-     */
-    public TemporaryWallTorchBlock()
-    {
-        super(TORCH_PARTICLE, TORCH_PROPERTIES);
-        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, LIGHT_STATE.FULL_BRIGHT));
-    }
-    
-    //This creates the LIGHT_STATE blockstate.
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
-    {
-        super.createBlockStateDefinition(builder);
-        builder.add(LIGHT_PROPERTY);
-    }
+    public TemporaryWallTorchBlock(SimpleParticleType torchParticle) { super(torchParticle, DEFAULT_BRIGHTNESS_FORMULA); }
     
     @Override
-    public void onPlace(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
-        { TemporaryTorchInterface.super.onPlace(world, pos); }
+    public SimpleParticleType getSubTorchParticleType() { return TEMP_TORCH_DEFAULT_SUB_PARTICLE; }
     
     @Override
-    public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
-        { TemporaryTorchInterface.super.tick(oldState, level, pos, random); }
-    
-    @Override
-    public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
-        { TemporaryTorchInterface.super.animateTick(state, level, pos, true); }
-    
-    @Override
-    public @NotNull ItemInteractionResult useItemOn
-        (@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
-        { return TemporaryTorchInterface.super.useItemOn(stack, state, level, pos, player, hand, hitResult); }
+    public int getStateLength() { return DEFAULT_STATE_PERIOD_TICK; }
 }

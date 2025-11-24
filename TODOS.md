@@ -19,11 +19,18 @@
 - [x] ~~Improve the tick function, making it able to **adjust the light strength**~~
 - [x] ~~Add **interactions with flint 'n steel and fire charge**.~~
 - [x] ~~Make ThrownTorch's sprite change with its state.~~
-- [ ] Make smooth ThrownTorch animations.
+- [x] ~~Make smooth ThrownTorch animations.~~
+- [ ] Abstractize **Thrown Torch**.
+- [ ] Add new **redstone variant**.
+- [ ] **Implement its function**.
+- [ ] Add new **soul variant**.
+- [ ] Implement **fire that resists water**.
+- [ ] **Glowstick implementation**.
 - [ ] Polish the **sprites**.
 - [ ] **Good job XD**
 - [ ] [Post-Release Content] **Add dynamic light to Throwable Torch**.
 - [ ] [Post-Release Content] **Add dark state throwable torches in vanilla structure**.
+- [ ] [Post-Release Content] **Add directional sprites to these god-damn torches**.
 
 </p>
 </details>
