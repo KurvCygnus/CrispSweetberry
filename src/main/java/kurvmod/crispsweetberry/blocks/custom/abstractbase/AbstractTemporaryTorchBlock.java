@@ -1,6 +1,5 @@
 package kurvmod.crispsweetberry.blocks.custom.abstractbase;
 
-import kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch;
 import kurvmod.crispsweetberry.util.CrispEnums;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -29,14 +28,14 @@ import java.util.function.ToIntFunction;
  */
 public abstract class AbstractTemporaryTorchBlock extends TorchBlock implements ITemporaryTorch
 {
-    //Property
+    //Variables
     private final SimpleParticleType torchParticle;
     
     /**
      * The <b>construct method</b> for <b>block registry</b>.
-     * @param torchParticle The particle will be used in animatedTick func.
+     * @param torchParticle The particle will be used in <b><u>{@code animatedTick()}</u></b> func.
      * @param brightnessFormula If you don't want to customize this, <b>use <u>{@code DEFAULT_BRIGHTNESS_FORMULA}</u></b>.
-     * @see kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch Formula Source
+     * @see ITemporaryTorch Formula Source
      */
     protected AbstractTemporaryTorchBlock(SimpleParticleType torchParticle, ToIntFunction<BlockState> brightnessFormula)
     {
@@ -54,19 +53,21 @@ public abstract class AbstractTemporaryTorchBlock extends TorchBlock implements 
     }
     
     /**
-     * The getter method which <b>passes particle to Interface to use</b>.
-     * @return The particle <b>declared in construct method</b>.
+     * {@inheritDoc}
+     * @return {@inheritDoc}
      */
-    public final SimpleParticleType getTorchParticleType() { return torchParticle; }
+    public final SimpleParticleType getTorchParticle() { return this.torchParticle; }
     
     //Abstracts
-    public abstract SimpleParticleType getSubTorchParticleType();
+    public abstract SimpleParticleType getSubTorchParticle();
     
     /**
-     * Getter method for <b>each state's life period</b>, <b>if you don't want to customize this, just return <u>{@code DEFAULT_STATE_PERIOD_TICK}</u></b>.
-     * @see kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch Constant Source
+     * {@inheritDoc}
+     * @see ITemporaryTorch Constant Source
      */
     public abstract int getStateLength();
+    
+    public abstract boolean getReLitProperty();
     
     //Interface functions
     @Override
@@ -74,14 +75,14 @@ public abstract class AbstractTemporaryTorchBlock extends TorchBlock implements 
         { ITemporaryTorch.super.onPlace(state, level, pos, oldState, isMoving); }
     
     @Override
-    public void tick(@NotNull BlockState oldState, @NotNull ServerLevel world, @NotNull BlockPos pos, @NotNull RandomSource random)
-        { ITemporaryTorch.super.tick(oldState, world, pos, random); }
+    public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
+        { ITemporaryTorch.super.tick(oldState, level, pos, random); }
     
     /**
      * {@inheritDoc}
      * <br>
      * <b>Note</b>: Always passes <b><u>{@code isWallTorch}</b></u> as <b><u>{@code false}</b></u> to the <b>interface implementation</b>.
-     * @see kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch Func Source
+     * @see ITemporaryTorch Func Source
      */
     @Override
     public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)

@@ -1,6 +1,5 @@
 package kurvmod.crispsweetberry.blocks.custom.abstractbase;
 
-import kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch;
 import kurvmod.crispsweetberry.util.CrispEnums;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -31,9 +30,10 @@ public abstract class AbstractTemporaryWallTorchBlock extends WallTorchBlock imp
     
     /**
      * The <b>construct method</b> for <b>block registry</b>.
-     * @param torchParticle The particle will be used in animatedTick func.
+     *
+     * @param torchParticle     The particle will be used in <b><u>{@code animatedTick()}</b></u> func.
      * @param brightnessFormula If you don't want to customize this, <b>use <u>{@code DEFAULT_BRIGHTNESS_FORMULA}</u></b>.
-     * @see kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch Formula Source
+     * @see ITemporaryTorch Formula Source
      */
     public AbstractTemporaryWallTorchBlock(SimpleParticleType torchParticle, ToIntFunction<BlockState> brightnessFormula)
     {
@@ -51,20 +51,22 @@ public abstract class AbstractTemporaryWallTorchBlock extends WallTorchBlock imp
     }
     
     /**
-     * The getter method which <b>passes particle to Interface to use</b>.
-     * @return The particle <b>declared in construct method</b>.
+     * {@inheritDoc}
+     * @return {@inheritDoc}
      */
     @Override
-    public SimpleParticleType getTorchParticleType() { return this.torchParticle; }
+    public final SimpleParticleType getTorchParticle() { return this.torchParticle; }
     
     //Abstracts
-    public abstract SimpleParticleType getSubTorchParticleType();
+    public abstract SimpleParticleType getSubTorchParticle();
     
     /**
-     * Getter method for each state's time, <b>if you don't want to customize this, just return <u>{@code DEFAULT_STATE_PERIOD_TICK}</u></b>.
-     * @see kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch Constant Source
+     * {@inheritDoc}
+     * @see ITemporaryTorch Constant Source
      */
     public abstract int getStateLength();
+    
+    public abstract boolean getReLitProperty();
     
     //Interface functions
     @Override
@@ -72,28 +74,27 @@ public abstract class AbstractTemporaryWallTorchBlock extends WallTorchBlock imp
     { ITemporaryTorch.super.onPlace(state, level, pos, oldState, isMoving); }
     
     @Override
-    public void tick(@NotNull BlockState oldState, @NotNull ServerLevel world, @NotNull BlockPos pos, @NotNull RandomSource random)
-        { ITemporaryTorch.super.tick(oldState, world, pos, random); }
+    public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
+    { ITemporaryTorch.super.tick(oldState, level, pos, random); }
     
     /**
      * {@inheritDoc}
      * <br>
      * <b>Note</b>: Always passes <b><u>{@code isWallTorch}</b></u> as <b><u>{@code true}</b></u> to the <b>interface implementation</b>.
-     * @see kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch Func Source
+     *
+     * @see ITemporaryTorch Func Source
      */
     @Override
     public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
-        { ITemporaryTorch.super.animateTick(state, level, pos, true); }
+    { ITemporaryTorch.super.animateTick(state, level, pos, true); }
     
     @Override
-    public @NotNull ItemInteractionResult useItemOn
-        (@NotNull ItemStack stack,
-         @NotNull BlockState state,
-         @NotNull Level level,
-         @NotNull BlockPos pos,
-         @NotNull Player player,
-         @NotNull InteractionHand hand,
-         @NotNull BlockHitResult hitResult) {
+    public @NotNull ItemInteractionResult useItemOn(
+        @NotNull ItemStack stack, @NotNull BlockState state,
+        @NotNull Level level, @NotNull BlockPos pos,
+        @NotNull Player player, @NotNull InteractionHand hand,
+        @NotNull BlockHitResult hitResult
+    ) {
         return ITemporaryTorch.super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 }

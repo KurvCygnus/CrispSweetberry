@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The <b>entity version</b> of the item <b>throwable torch</b>.
  */
-public class ThrownTorchEntity extends AbstractThrownTorchEntity
+public final class ThrownTorchEntity extends AbstractThrownTorchEntity
 {
     
     public ThrownTorchEntity(EntityType<? extends AbstractThrownTorchEntity> entityType, Level level) { super(entityType, level); }

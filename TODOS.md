@@ -20,8 +20,8 @@
 - [x] ~~Add **interactions with flint 'n steel and fire charge**.~~
 - [x] ~~Make ThrownTorch's sprite change with its state.~~
 - [x] ~~Make smooth ThrownTorch animations.~~
-- [ ] Abstractize **Thrown Torch**.
-- [ ] Add new **redstone variant**.
+- [x] Abstractize **Thrown Torch**.
+- [x] Add new **redstone variant**.
 - [ ] **Implement its function**.
 - [ ] Add new **soul variant**.
 - [ ] Implement **fire that resists water**.
@@ -35,7 +35,7 @@
 </p>
 </details>
 
-*OMG, this will probably be currently the hardest thing I'll do in the future TwT*
+####*OMG, this will probably be currently the hardest thing I'll do in the future TwT*
 
 <details><summary><strong>2. Kiln</strong></summary>
 <p>

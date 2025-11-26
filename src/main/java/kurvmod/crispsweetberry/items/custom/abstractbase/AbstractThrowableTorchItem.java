@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_SHOOT_Z_POS;
 import static kurvmod.crispsweetberry.util.CrispConstants.QUIET_SOUND_VOLUME;
 
-//TODO: Complete AbstractThrownTorchEntity, and edit<T extends ThrowableItemProjectile> -> <T extends AbstractThrowNTorchEntity>
 public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEntity> extends Item implements ProjectileItem
 {
     //Constants

@@ -1,4 +1,4 @@
-package kurvmod.crispsweetberry.blocks.custom.temporarytorch;
+package kurvmod.crispsweetberry.blocks.custom.abstractbase;
 
 import kurvmod.crispsweetberry.util.CrispEnums;
 import net.minecraft.core.BlockPos;
@@ -49,8 +49,8 @@ public interface ITemporaryTorch
     
     float TORCH_BURNING_OUT_VOL = 0.2F;
     
-    SimpleParticleType TEMP_TORCH_DEFAULT_PARTICLE = ParticleTypes.SMALL_FLAME;
-    SimpleParticleType TEMP_TORCH_DEFAULT_SUB_PARTICLE = ParticleTypes.SMOKE;
+    SimpleParticleType DEFAULT_TEMP_TORCH_PARTICLE = ParticleTypes.FLAME;
+    SimpleParticleType DEFAULT_TEMP_TORCH_SUB_PARTICLE = ParticleTypes.SMOKE;
     
     BlockBehaviour.Properties TEMP_TORCH_BASIC_PROPERTIES = BlockBehaviour.Properties.of().
         noLootTable().
@@ -66,9 +66,18 @@ public interface ITemporaryTorch
     ToIntFunction<BlockState> DEFAULT_BRIGHTNESS_FORMULA = bs -> bs.getValue(LIGHT_PROPERTY).toBrightness();
     
     //Abstracts
-    SimpleParticleType getTorchParticleType();
-    SimpleParticleType getSubTorchParticleType();
+    /**
+     * The getter method which <b>passes particle to Interface to use</b>.
+     * @return The particle <b>declared in construct method</b>.
+     */
+    SimpleParticleType getTorchParticle();
+    SimpleParticleType getSubTorchParticle();
     
+    boolean getReLitProperty();
+    
+    /**
+     * Getter method for <b>each state's life period</b>, <b>if you don't want to customize this, just return <u>{@code DEFAULT_STATE_PERIOD_TICK}</u></b>.
+     */
     int getStateLength();
     
     //Default methods
@@ -89,7 +98,7 @@ public interface ITemporaryTorch
      * Since it is universal, the implementers only need to useItemOn this method.<br>
      * <b>Using interface super method is a must in implementers because of the access priority</b>.
      */
-    default void tick(@NotNull BlockState oldState, @NotNull ServerLevel world, @NotNull BlockPos pos, @NotNull RandomSource random)
+    default void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
         final double VERTICAL_PARTICLE_SPEED = (random.nextDouble() * 2.0D - 1.0D) * 0.03D;
         
@@ -100,18 +109,18 @@ public interface ITemporaryTorch
         if(oldLightState == CrispEnums.LIGHT_STATE.DARK)
             return;
         
-        if(!world.isClientSide)
+        if(!level.isClientSide)
         {
-            world.setBlockAndUpdate(pos, newState);
+            level.setBlockAndUpdate(pos, newState);
             //I originally set the volume to 1.0F, and just ending up feeling my ear is close to explosion UwU.
-            world.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, NORMAL_SOUND_PITCH);
+            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, NORMAL_SOUND_PITCH);
         }
         else
-            world.addParticle(getSubTorchParticleType(), pos.getX(), pos.getY(), pos.getZ(),
+            level.addParticle(getSubTorchParticle(), pos.getX(), pos.getY(), pos.getZ(),
                 PROJECTILE_X_NO_SPEED, VERTICAL_PARTICLE_SPEED, PROJECTILE_Z_NO_SPEED);
         
         //Wait for the next state change.
-        world.scheduleTick(pos, (Block) this, getStateLength());
+        level.scheduleTick(pos, (Block) this, getStateLength());
     }
     
     /**
@@ -140,8 +149,9 @@ public interface ITemporaryTorch
         
         if(level.isClientSide)
         {
-            level.addParticle(getTorchParticleType(), X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
-            level.addParticle(getSubTorchParticleType(), X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
+            if(state.getValue(LIGHT_PROPERTY).ordinal() > CrispEnums.LIGHT_STATE.DIM.ordinal())
+                level.addParticle(getTorchParticle(), X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
+            level.addParticle(getSubTorchParticle(), X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
         }
     }
     
@@ -160,7 +170,7 @@ public interface ITemporaryTorch
         final Set<Item> interactableItems = Set.of(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
         
         //Process I and II
-        if(!interactableItems.contains(itemInHand) || state.getValue(LIGHT_PROPERTY).ordinal() > CrispEnums.LIGHT_STATE.DIM.ordinal())
+        if(!getReLitProperty() || !interactableItems.contains(itemInHand) || state.getValue(LIGHT_PROPERTY).ordinal() > CrispEnums.LIGHT_STATE.DIM.ordinal())
             return ItemInteractionResult.FAIL;
         
         if(!level.isClientSide)

@@ -1,7 +1,7 @@
 package kurvmod.crispsweetberry.entities.custom.abstractbase;
 
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
-import kurvmod.crispsweetberry.blocks.custom.temporarytorch.ITemporaryTorch;
+import kurvmod.crispsweetberry.blocks.custom.abstractbase.ITemporaryTorch;
 import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryWallTorchBlock;
 import kurvmod.crispsweetberry.items.CrispItems;
 import kurvmod.crispsweetberry.util.CrispEnums;
@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static kurvmod.crispsweetberry.util.CrispConstants.*;
-import static kurvmod.crispsweetberry.util.CrispConstants.ENTITY_DESTROY_EVENT_ID;
 import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_X_NO_SPEED;
 import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_Y_NO_SPEED;
 import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_Z_NO_SPEED;
@@ -65,6 +64,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     protected static final int HIT_RESULT_NO_DAMAGE = 0;
     protected static final int HIT_STD_EXTEND_FIRE_TICKS = 30;
     protected static final int HIT_STD_MAX_TICKS = 100;
+    protected static final int LEVEL_BLOCK_DESTROY_EVENT_ID = 2001;
+    public static final int ENTITY_DESTROY_EVENT_ID = 3;
     
     protected static final double OFFSET_CALCULATE_CONSTANT = 0.5;
     
@@ -154,7 +155,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         {
             displayParticle(LONGER_PARTICLE_FREQUENCY, longerParticleStateList.get(getTier()));
             
-            if(!(getTier() == TIER_GONE) && !noSmokeWhenBurnedOut)
+            if(!(getTier() == TIER_GONE && noSmokeWhenBurnedOut))
                 displayParticle(SHORTER_PARTICLE_FREQUENCY, ParticleTypes.SMOKE);
         }
     }
@@ -164,7 +165,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      * The process:<br><pre>
      *  I. Get the target, and execute super method.
      *  II. Check <b>whether the target is a fire-resistance mob and the flag <u>{@code shouldCheckFireResistMob}</u> is true</b>, and decide <b>whether the torch deals damage</b>
-     *  III. If the torch's fire tier isn't <b>GONE</b>, and flag <b><u>{@code shouldLitMob}</u> is true</b>
+     *  III. If the torch's fire tier isn't <b>{@code GONE}</b>, and flag <b><u>{@code shouldLitMob}</u> is true</b>
      *  <b>make target burn</b>, or <b>extend the burning time</b>
      *  (The maximum burning length is decided by torch's current fire tier)</pre>
      */
@@ -372,7 +373,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         if(posBlock == CrispBlocks.TEMPORARY_TORCH.value() || posBlock == CrispBlocks.TEMPORARY_WALL_TORCH.value())
             if(posBlockState.getValue(ITemporaryTorch.LIGHT_PROPERTY) == CrispEnums.LIGHT_STATE.DARK)
             {
-                displayDestroyParticle();
+                this.level().levelEvent(LEVEL_BLOCK_DESTROY_EVENT_ID, pos, Block.getId(posBlockState));
                 return true;
             }
         return posBlock == Blocks.AIR || posBlockState.is(BlockTags.REPLACEABLE);

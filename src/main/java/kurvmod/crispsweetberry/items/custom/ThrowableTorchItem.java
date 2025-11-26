@@ -7,9 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-//PROTOTYPE OK
-//WIP
-public class ThrowableTorchItem extends AbstractThrowableTorchItem<ThrownTorchEntity>
+public final class ThrowableTorchItem extends AbstractThrowableTorchItem<ThrownTorchEntity>
 {
     public ThrowableTorchItem(Properties properties) { super(properties); }
     
