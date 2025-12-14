@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -16,13 +15,20 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 //WIP
-//TODO
+//PROTOTYPE
 //DOC
+//TODO: 方位性贴图实现
+/**
+ * The <b>base renderer</b> of <b>thrown torches</b>.
+ * @param <T> The thrown torch that it renders.
+ * @since CSB 1.0 release
+ * @author Kurv
+ */
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchEntity> extends EntityRenderer<T>
 {
     //Constants
-    protected static final String TEXTURE_PATH = "textures/entity/";
+    protected static final String BASE_TEXTURE_PATH = "textures/entity/";
     protected static final String TEXTURE_SUFFIX = ".png";
     
     protected static final float STANDARD_TORCH_SCALE = 0.5F;
@@ -47,15 +53,11 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     
     public AbstractThrownTorchRenderer(EntityRendererProvider.Context context) { super(context); }
     
-    @Override//PLACEHOLDER
-    public boolean shouldRender(@NotNull T livingEntity, @NotNull Frustum camera, double camX, double camY, double camZ)
-        { return super.shouldRender(livingEntity, camera, camX, camY, camZ); }
-    
     @Override
     public void render(@NotNull T entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight)
     {
         poseStack.pushPose();
-        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());//Makes entity always face the observer.
+        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());//* Makes entity always face the observer.
         poseStack.mulPose(Axis.YP.rotationDegrees(ROTATION_DEGREES));//Fix the sprite mirror issue.
         poseStack.scale(TORCH_SCALE, TORCH_SCALE, TORCH_SCALE);
         
@@ -71,6 +73,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 1, 0, 0);
         
         poseStack.popPose();
+        
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
     
@@ -93,9 +96,9 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull T entity)
     {
-        final int TEXTURE_ANIMATION_INDEX = entity.externalTickCount / ANIMATION_DURATION_TICKS % ANIMATION_FRAMES_IN_TOTAL + TEXTURE_INDEX_CORRECTION_STD;
+        final int TEXTURE_ANIMATION_INDEX = entity.tickCount / ANIMATION_DURATION_TICKS % ANIMATION_FRAMES_IN_TOTAL + TEXTURE_INDEX_CORRECTION_STD;
         
-        String finalTexturePath = TEXTURE_PATH + TEXTURE_NAME;
+        String finalTexturePath = BASE_TEXTURE_PATH + TEXTURE_NAME;
         
         if(HAS_STATE_VARIATION && entity.getTier() == AbstractThrownTorchEntity.TIER_GONE)
             finalTexturePath += "_" + ALT_TEXTURE_STATE_NAME;

@@ -8,7 +8,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-public class CrispEntities
+public final class CrispEntities
 {
     private CrispEntities() {}
     

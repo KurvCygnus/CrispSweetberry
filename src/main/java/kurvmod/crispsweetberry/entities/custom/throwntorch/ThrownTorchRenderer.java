@@ -4,6 +4,11 @@ import kurvmod.crispsweetberry.CrispSweetberry;
 import kurvmod.crispsweetberry.entities.custom.abstractbase.AbstractThrownTorchRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 
+/**
+ * The <b>renderer of thrown torch</b>.
+ * @since CSB 1.0 release
+ * @author Kurv
+ */
 public final class ThrownTorchRenderer extends AbstractThrownTorchRenderer<ThrownTorchEntity>
 {
     public ThrownTorchRenderer(EntityRendererProvider.Context context) { super(context); }

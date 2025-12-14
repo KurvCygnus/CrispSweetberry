@@ -1,6 +1,6 @@
 package kurvmod.crispsweetberry.blocks.custom.abstractbase;
 
-import kurvmod.crispsweetberry.util.CrispEnums;
+import kurvmod.crispsweetberry.entities.custom.abstractbase.AbstractThrownTorchEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -28,14 +28,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.function.ToIntFunction;
 
-import static kurvmod.crispsweetberry.util.CrispConstants.*;
+import static kurvmod.crispsweetberry.utils.CrispConstants.ProjectileConstants.*;
+import static kurvmod.crispsweetberry.utils.CrispConstants.SoundConstants;
 import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
-//PROTOTYPE: No issues, but there may still have some.
+//PROTOTYPE
 
 /**
  * The interface used for both <b>two temporary torches</b>,<br>
  * which lies the common behavior of the both <b>standard torch and the wall one</b>.
+ * @since CSB 1.0 release
+ * @author Kurv
  */
 public interface ITemporaryTorch
 {
@@ -59,8 +62,8 @@ public interface ITemporaryTorch
         noCollission().
         instabreak();
     
-    //Properties - Create a unique namespace of the LIGHT_STATE.
-    EnumProperty<CrispEnums.LIGHT_STATE> LIGHT_PROPERTY = EnumProperty.create("torchstate", CrispEnums.LIGHT_STATE.class);
+    //Properties - Create a unique namespace of the LightState.
+    EnumProperty<AbstractThrownTorchEntity.LightState> LIGHT_PROPERTY = EnumProperty.create("torchstate", AbstractThrownTorchEntity.LightState.class);
     
     //Constant, due to property declaration issue, it can only be here.
     ToIntFunction<BlockState> DEFAULT_BRIGHTNESS_FORMULA = bs -> bs.getValue(LIGHT_PROPERTY).toBrightness();
@@ -80,10 +83,10 @@ public interface ITemporaryTorch
      */
     int getStateLength();
     
-    //Default methods
+    //Defaults
     /**
      * The method which designs to <b>override the default method of the class Block</b>.<br>
-     * <b>The useItemOn of super method is in actual implementation of two torch classes</b>.<br>
+     * <b>The {@code useItemOn()} of super method is in actual implementation of two torch classes</b>.<br>
      * Compare to the default one, it mainly <b>adds scheduleTick to useItemOn tick method</b>.
      */
     default void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
@@ -102,22 +105,22 @@ public interface ITemporaryTorch
     {
         final double VERTICAL_PARTICLE_SPEED = (random.nextDouble() * 2.0D - 1.0D) * 0.03D;
         
-        CrispEnums.LIGHT_STATE oldLightState = oldState.getValue(LIGHT_PROPERTY);
+        AbstractThrownTorchEntity.LightState oldLightState = oldState.getValue(LIGHT_PROPERTY);
         BlockState newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());
         
-        //Terminates this method if the state is already dark.
-        if(oldLightState == CrispEnums.LIGHT_STATE.DARK)
+        //* Terminates this method if the state is already dark.
+        if(oldLightState == AbstractThrownTorchEntity.LightState.DARK)
             return;
         
         if(!level.isClientSide)
         {
             level.setBlockAndUpdate(pos, newState);
             //I originally set the volume to 1.0F, and just ending up feeling my ear is close to explosion UwU.
-            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, NORMAL_SOUND_PITCH);
+            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, SoundConstants.NORMAL_SOUND_PITCH);
         }
         else
             level.addParticle(getSubTorchParticle(), pos.getX(), pos.getY(), pos.getZ(),
-                PROJECTILE_X_NO_SPEED, VERTICAL_PARTICLE_SPEED, PROJECTILE_Z_NO_SPEED);
+                X_NO_SPEED, VERTICAL_PARTICLE_SPEED, Z_NO_SPEED);
         
         //Wait for the next state change.
         level.scheduleTick(pos, (Block) this, getStateLength());
@@ -130,15 +133,15 @@ public interface ITemporaryTorch
      */
     default void animateTick(BlockState state, Level level, BlockPos pos, boolean isWallTorch)
     {
-        //Dark state means the torch has already burned out, so of course wo should directly terminate this when the state is DARK.
-        if(state.getValue(LIGHT_PROPERTY) == CrispEnums.LIGHT_STATE.DARK)
+        //* Dark state means the torch has already burned out, so of course wo should directly terminate this when the state is DARK.
+        if(state.getValue(LIGHT_PROPERTY) == AbstractThrownTorchEntity.LightState.DARK)
             return;
         
         double X_POS = (double)pos.getX() + HORIZONTAL_TORCH_OFFSET_VALUE;
         double Y_POS = (double)pos.getY() + VERTICAL_TORCH_OFFSET_VALUE;
         double Z_POS = (double)pos.getZ() + HORIZONTAL_TORCH_OFFSET_VALUE;
         
-        if(isWallTorch)//Wall torch's particle position is different from standard one, o' course.
+        if(isWallTorch)//* Wall torch's particle position is different from standard one, of course.
         {
             Direction direction = state.getValue(FACING).getOpposite();
             
@@ -149,9 +152,9 @@ public interface ITemporaryTorch
         
         if(level.isClientSide)
         {
-            if(state.getValue(LIGHT_PROPERTY).ordinal() > CrispEnums.LIGHT_STATE.DIM.ordinal())
-                level.addParticle(getTorchParticle(), X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
-            level.addParticle(getSubTorchParticle(), X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
+            if(state.getValue(LIGHT_PROPERTY).ordinal() > AbstractThrownTorchEntity.LightState.DIM.ordinal())
+                level.addParticle(getTorchParticle(), X_POS, Y_POS, Z_POS, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
+            level.addParticle(getSubTorchParticle(), X_POS, Y_POS, Z_POS, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
         }
     }
     
@@ -169,30 +172,30 @@ public interface ITemporaryTorch
         Item itemInHand = stack.getItem();
         final Set<Item> interactableItems = Set.of(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
         
-        //Process I and II
-        if(!getReLitProperty() || !interactableItems.contains(itemInHand) || state.getValue(LIGHT_PROPERTY).ordinal() > CrispEnums.LIGHT_STATE.DIM.ordinal())
+        //* Process I and II
+        if(!getReLitProperty() || !interactableItems.contains(itemInHand) || state.getValue(LIGHT_PROPERTY).ordinal() > AbstractThrownTorchEntity.LightState.DIM.ordinal())
             return ItemInteractionResult.FAIL;
         
         if(!level.isClientSide)
         {
-            //Process III(Serverside only)
-            level.setBlockAndUpdate(pos, state.setValue(LIGHT_PROPERTY, CrispEnums.LIGHT_STATE.FULL_BRIGHT));
+            //* Process III(Serverside only)
+            level.setBlockAndUpdate(pos, state.setValue(LIGHT_PROPERTY, AbstractThrownTorchEntity.LightState.FULL_BRIGHT));
             level.scheduleTick(pos, (Block) this, getStateLength());
             
-            //Process IV
+            //* Process IV
             if(itemInHand == Items.FLINT_AND_STEEL)
             {
-                //For flint 'n steel, of course we should damage its durability.
+                // For flint 'n steel, of course we should damage its durability.
                 final float FLINT_AND_STEEL_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
                 
                 level.playSound(null, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS,
-                    NORMAL_SOUND_VOLUME, FLINT_AND_STEEL_PITCH);
+                    SoundConstants.NORMAL_SOUND_VOLUME, FLINT_AND_STEEL_PITCH);
                 stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
             }
             else//Fire Charge case
             {
                 //For fire charge, of course it should be consumed upon using.
-                level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, NORMAL_SOUND_PITCH);
+                level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, SoundConstants.NORMAL_SOUND_VOLUME, SoundConstants.NORMAL_SOUND_PITCH);
                 stack.consume(1, player);
             }
         }

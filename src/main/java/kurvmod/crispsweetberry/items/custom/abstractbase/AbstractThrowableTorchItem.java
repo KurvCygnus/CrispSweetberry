@@ -1,6 +1,7 @@
 package kurvmod.crispsweetberry.items.custom.abstractbase;
 
 import kurvmod.crispsweetberry.entities.custom.abstractbase.AbstractThrownTorchEntity;
+import kurvmod.crispsweetberry.utils.CrispConstants;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.sounds.SoundEvent;
@@ -18,9 +19,14 @@ import net.minecraft.world.item.ProjectileItem;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_SHOOT_Z_POS;
-import static kurvmod.crispsweetberry.util.CrispConstants.QUIET_SOUND_VOLUME;
+import static kurvmod.crispsweetberry.utils.CrispConstants.ProjectileConstants.PROJECTILE_SHOOT_Z_POS;
 
+/**
+ * The <b>base</b> of <b>all throwable torches</b>.
+ * @param <T> The <b>torch entity it bounds to</b>.
+ * @since CSB 1.0 release
+ * @author Kurv
+ */
 public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEntity> extends Item implements ProjectileItem
 {
     //Constants
@@ -90,18 +96,17 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
         ItemStack itemstack = player.getItemInHand(hand);
         final float THROW_SOUND_PITCH = 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F);
         
-        //Process I
+        //* Process I
         player.startUsingItem(hand);
-        player.swing(hand, true);//Para "updateSelf"
-        // forces animation to play when the last one hasn't ended, which makes sure anim plays normally.
+        player.swing(hand, true);//Para "updateSelf" forces animation to play when the last one hasn't ended, which makes sure anim plays normally.
         
-        //Process II
+        //* Process II
         level.playSound(
             null, player.getX(), player.getY(), player.getZ(),
-            throwSound, SoundSource.NEUTRAL, QUIET_SOUND_VOLUME, THROW_SOUND_PITCH
+            throwSound, SoundSource.NEUTRAL, CrispConstants.SoundConstants.QUIET_SOUND_VOLUME, THROW_SOUND_PITCH
         );
         
-        if(!level.isClientSide)//Process III, which is on serverside
+        if(!level.isClientSide)//* Process III, which is on serverside
         {
             T projectile = this.createProjectile(player, level);
             projectile.setItem(itemstack);
@@ -110,7 +115,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
             level.addFreshEntity(projectile);
         }
         
-        //Process IV
+        //* Process IV
         player.awardStat(Stats.ITEM_USED.get(this));
         player.getCooldowns().addCooldown(this, throwCooldown);
         itemstack.consume(1, player);

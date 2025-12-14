@@ -1,10 +1,11 @@
 package kurvmod.crispsweetberry.entities.custom.abstractbase;
 
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
+import kurvmod.crispsweetberry.blocks.custom.abstractbase.AbstractTemporaryTorchBlock;
+import kurvmod.crispsweetberry.blocks.custom.abstractbase.AbstractTemporaryWallTorchBlock;
 import kurvmod.crispsweetberry.blocks.custom.abstractbase.ITemporaryTorch;
 import kurvmod.crispsweetberry.blocks.custom.temporarytorch.TemporaryWallTorchBlock;
 import kurvmod.crispsweetberry.items.CrispItems;
-import kurvmod.crispsweetberry.util.CrispEnums;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -18,6 +19,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,24 +40,22 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import static kurvmod.crispsweetberry.util.CrispConstants.*;
-import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_X_NO_SPEED;
-import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_Y_NO_SPEED;
-import static kurvmod.crispsweetberry.util.CrispConstants.PROJECTILE_Z_NO_SPEED;
+import static kurvmod.crispsweetberry.utils.CrispConstants.ProjectileConstants.*;
+import static kurvmod.crispsweetberry.utils.CrispConstants.SoundConstants;
 
 //PROTOTYPE
-//TODO
-//DOC
-
 /**
  * The abstract class for all thrown torch entities.
+ * @since CSB 1.0 release
+ * @author Kurv
  */
 public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
 {
-    //Constants
     public static final int TIER_GONE = 0;//The tier for water contraction, named "GONE" as the fire is *gone*.
     public static final int TIER_NORM = 1;//The tier for standard case, the torch will be this tier as long as nothing special happens.
     public static final int TIER_WILD = 2;//The tier for lava contraction, named "WILD" since the fire will go wild as it torches lava.
+    protected static final int PROPERTY_INDEX_TO_NEXT_STD = 1;
+    protected static final int BRIGHTNESS_CONVERSION_CONSTANT = 4;//4 brightness per stage.
     protected static final int LONGER_PARTICLE_STATES = 3;
     protected static final int DEFAULT_LONGER_PARTICLE_FREQUENCY = 5;
     protected static final int DEFAULT_SHORTER_PARTICLE_FREQUENCY = 3;
@@ -71,6 +71,36 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected static final SimpleParticleType[] DEFAULT_LONGER_PARTICLE_STATE_LIST = { ParticleTypes.DRIPPING_WATER, ParticleTypes.SMALL_FLAME, ParticleTypes.FLAME };
     
+    /**
+     * The <b>enum property</b> that controls the <b>life cycle and brightness</b> of temporary torches.
+     */
+    public enum LightState implements StringRepresentable
+    {
+        DARK, DIM, BRIGHT, FULL_BRIGHT;//DARK coordinates burned out, but to put the state name more simple, the later one got deprecated.
+        
+        /**
+         * The <b>formula</b> to <b>convert enum to actual brightness value</b>.<br><br>
+         * <b>e.g.</b><br>
+         * <b>FULL_BRIGHT</b> ->
+         * <b>3</b>(FULL_BRIGHT.ordinal()) <b>× 4</b>(BRIGHTNESS_CONVERSION_CONSTANT) <b> = 12</b>
+         */
+        public int toBrightness() { return this.ordinal() * BRIGHTNESS_CONVERSION_CONSTANT; }
+        
+        public LightState getNextState()
+        {
+            //Do boundary check at the same time.
+            return this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD > LightState.DARK.ordinal() ?
+                LightState.values()[this.ordinal() - PROPERTY_INDEX_TO_NEXT_STD] : LightState.DARK;
+        }
+        
+        /**
+         * The <b>essential method</b> for <b>registering the state names correctly</b>.
+         * @return The names of <b>corresponded states</b>.
+         */
+        @Override
+        public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
+    }
+    
     //Data Synchronizer
     public static final EntityDataAccessor<Integer> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.INT);
     
@@ -79,7 +109,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected final int LONGER_PARTICLE_FREQUENCY = getLongerParticleFrequency();
     protected final int SHORTER_PARTICLE_FREQUENCY = getShorterParticleFrequency();
-    public int externalTickCount;
+    
     
     protected final boolean shouldCheckLiquids = getShouldCheckLiquidsFlag();
     protected final boolean noSmokeWhenBurnedOut = getNoSmokeWhenBurnedOutFlag();
@@ -93,6 +123,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         super.defineSynchedData(builder);
         builder.define(FIRE_TIER_ID, TIER_NORM);
     }
+    
+    
     
     /**
      * Getter method for <b>torch's coordinated item</b>,<br><br>
@@ -120,7 +152,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         { super(childrenClazzValue, x, y, z, level); }
     
     /**
-     * The construct method for <b>dispenser's usage, or, player's usage</b>.<br><br>
+     * The construct method for <b>dispenser's usage.<br><br>
      * <i><b>WARNING</b>:
      * You should <b>replace <u>{@code childrenClazzValue}</u> with <u>{@code YourEntityRegistryClass.YourCustomThrownTorch.value()}</u></b>,
      * then <b>remove {@code EntityType} in function's paras</b>,
@@ -141,16 +173,15 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     @Override
     public void tick()
     {
-        //Process I
+        //* Process I
         super.tick();
-        this.externalTickCount = tickCount;
         
-        //Process II
+        //* Process II
         //Serverside content, which processes data.
         if(!this.level().isClientSide && shouldCheckLiquids)
             checkLiquids();
         
-        //Process III
+        //* Process III
         else//Clientside content, which mainly renderers stuff.
         {
             displayParticle(LONGER_PARTICLE_FREQUENCY, longerParticleStateList.get(getTier()));
@@ -172,23 +203,23 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     @Override
     protected void onHitEntity(@NotNull EntityHitResult result)
     {
-        //Process I
+        //* Process I
         Entity entity = result.getEntity();
         super.onHitEntity(result);
         
         boolean shouldExtendBurnTicks = entity.getRemainingFireTicks() <= HIT_STD_MAX_TICKS * getTier();
         
-        //Process II
+        //* Process II
         int hitResult = shouldCheckFireResistMob ?
             1 : (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ?
             HIT_RESULT_NO_DAMAGE : HIT_RESULT_DO_DAMAGE;//TODO: 做自定义Fire-Resistant Mob标签
         
-        //Process III
+        //* Process III
         if(getTier() != TIER_GONE && hitResult == HIT_RESULT_DO_DAMAGE &&
             shouldExtendBurnTicks && shouldLitMob)
-            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + HIT_STD_EXTEND_FIRE_TICKS * getTier());//Bro got some fire XD
+            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + HIT_STD_EXTEND_FIRE_TICKS * getTier());//OH↑ MY↓ GOD→, I'm fired!!!(＃°Д°)
         
-        //Yes, although the damage might be zero, we still need to do damage to make knockbacks, it's how vanilla works.
+        //* Yes, although the damage might be zero, we still need to do damage to make knockbacks, it's how vanilla works.
         entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitResult);
     }
     
@@ -204,21 +235,21 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      */
     protected void onHitBlock(@NotNull BlockHitResult result)
     {
-        //Process I
+        //* Process I
         super.onHitBlock(result);
         if(!this.level().isClientSide)
         {
-            //Process II(Only on serverside)
+            //* Process II(Only on serverside)
             if(!tryHandleSpecialCase())
                 return;
             
-            //Process III
+            //* Process III
             BlockPos placementPos = getPlacementPos(result);
             BlockState stateToPlace = getPlacementState(result, placementPos);
             
-            //Process IV, V
+            //* Process IV, V
             if(stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
-                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, LOUD_SOUND_VOLUME);
+                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
             else
                 handlePlacementFailure();
         }
@@ -231,32 +262,30 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     protected void onHit(@NotNull HitResult result)
     {
         super.onHit(result);
+        
         if(!this.level().isClientSide)
             this.discard();
     }
     
     /**
-     * The method overrides the super one in order to <b>make {@code displayDestroyParticle()} work</b>.
+     * The method which overrides the super method in order to <b>make {@code displayDestroyParticle()} work</b>.
      */
     @Override
     public final void handleEntityEvent(byte id)
     {
-        if(id == ENTITY_DESTROY_EVENT_ID)
+        if(id == ENTITY_DESTROY_EVENT_ID && this.level().isClientSide)
         {
-            if(this.level().isClientSide)
+            for(int loopTime = 0; loopTime < 5; ++loopTime)
             {
-                for(int loopTime = 0; loopTime < 5; ++loopTime)
-                {
-                    double offsetX = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
-                    double offsetY = this.random.nextDouble() * OFFSET_CALCULATE_CONSTANT;
-                    double offsetZ = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
-                    
-                    this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, CrispItems.THROWABLE_TORCH.value().getDefaultInstance()),
-                        this.getX() + offsetX,
-                        this.getY() + offsetY,
-                        this.getZ() + offsetZ,
-                        PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
-                }
+                double offsetX = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
+                double offsetY = this.random.nextDouble() * OFFSET_CALCULATE_CONSTANT;
+                double offsetZ = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
+                
+                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, CrispItems.THROWABLE_TORCH.value().getDefaultInstance()),
+                    this.getX() + offsetX,
+                    this.getY() + offsetY,
+                    this.getZ() + offsetZ,
+                    X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
             }
         }
         else
@@ -274,7 +303,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     {
         if(getTier() == TIER_WILD || this.isInLiquid())
         {
-            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, NORMAL_SOUND_VOLUME);
+            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.NORMAL_SOUND_VOLUME);
             displayDestroyParticle();
             displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
             
@@ -317,7 +346,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
             baseState = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
         
         if (baseState != null && getTier() == TIER_GONE)
-            baseState = baseState.setValue(ITemporaryTorch.LIGHT_PROPERTY, CrispEnums.LIGHT_STATE.DARK);
+            baseState = baseState.setValue(ITemporaryTorch.LIGHT_PROPERTY, LightState.DARK);
         
         return baseState;
     }
@@ -328,18 +357,16 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     protected boolean tryPlaceTorch(BlockState state, BlockPos pos)
     {
         /*
-          Conditions explanation:
-            I. Check whether the position can support the torch
-            II. Check whether the block can be replaced(Prevent block replacement that doesn't make sense)
-          Only when both of these conditions are met, then the torch can be successfully placed.
+         * Conditions explanation:
+         *   I. Check whether the position can support the torch
+         *   II. Check whether the block can be replaced(Prevent block replacement that doesn't make sense)
+         * Only when both of these conditions are met, then the torch can be successfully placed.
         */
-        if(state.canSurvive(this.level(), pos) && canBeActuallyPlaced(pos))
-        {
-            this.level().setBlockAndUpdate(pos, state);
-            return true;
-        }
+        if(!(state.canSurvive(this.level(), pos) && canBeActuallyPlaced(pos)))
+            return false;
         
-        return false;
+        this.level().setBlockAndUpdate(pos, state);
+        return true;
     }
     
     /**
@@ -347,7 +374,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      */
     private void handlePlacementFailure()
     {
-        playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, LOUD_SOUND_VOLUME);
+        playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+        
         displayDestroyParticle();
     }
     
@@ -370,12 +398,20 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         Block posBlock = this.level().getBlockState(pos).getBlock();
         BlockState posBlockState = this.level().getBlockState(pos);
         
-        if(posBlock == CrispBlocks.TEMPORARY_TORCH.value() || posBlock == CrispBlocks.TEMPORARY_WALL_TORCH.value())
-            if(posBlockState.getValue(ITemporaryTorch.LIGHT_PROPERTY) == CrispEnums.LIGHT_STATE.DARK)
+        /*
+         *  This checks whether the target block inherits Temporary Torches,
+         *  and whether they should be replaced by checking its state.
+         *  If it inherits and its state is too dark, it of course can be replaced.
+         */
+        if(posBlock instanceof AbstractTemporaryTorchBlock || posBlock instanceof AbstractTemporaryWallTorchBlock)
+            if(posBlockState.getValue(ITemporaryTorch.LIGHT_PROPERTY).ordinal() <= LightState.DIM.ordinal())
             {
                 this.level().levelEvent(LEVEL_BLOCK_DESTROY_EVENT_ID, pos, Block.getId(posBlockState));
                 return true;
             }
+        
+        //* If the block isn't a child of Temporary Torches, then check whether the block can be replaced by vanilla tags.
+        //   (Of course air can be)
         return posBlock == Blocks.AIR || posBlockState.is(BlockTags.REPLACEABLE);
     }
     
@@ -391,6 +427,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      */
     private void displayParticle(int frequency, ParticleOptions particle)
     {
+        //Checks whether the current tick matches the frequency.
         if(this.tickCount % frequency != 0)
             return;
         
@@ -429,17 +466,17 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     private void changeTier(int goalTier, SoundEvent sound)
     {
         if(getTier() == goalTier)
-            return;//Directly terminates this method if the tier doesn't have to.
+            return;//* Directly terminates this method if the tier doesn't have to change.
         
         this.getEntityData().set(FIRE_TIER_ID, goalTier);
-        playSound(sound, SoundSource.AMBIENT, LOUD_SOUND_VOLUME);
+        playSound(sound, SoundSource.AMBIENT, SoundConstants.LOUD_SOUND_VOLUME);
     }
     
     /**
      * This method is a simplified version of the original one, which plays sound at normal pitch.
      */
-    private void playSound(SoundEvent sound, SoundSource soundSource, float volume)
-        { this.level().playSound(null, getOnPos(), sound, soundSource, volume, NORMAL_SOUND_PITCH); }
+    protected final void playSound(SoundEvent sound, SoundSource soundSource, float volume)
+        { this.level().playSound(null, getOnPos(), sound, soundSource, volume, SoundConstants.NORMAL_SOUND_PITCH); }
     
     //Abstracts
     /**
@@ -447,10 +484,10 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      */
     protected abstract SimpleParticleType[] getLongerParticleStateList();
     
-    protected abstract int getLongerParticleFrequency();//Return DEFAULT_LONGER_PARTICLE_FREQUENCY if you don't need customization.
-    protected abstract int getShorterParticleFrequency();//Return DEFAULT_SHORTER_PARTICLE_FREQUENCY if you don't need customization.
+    protected abstract int getLongerParticleFrequency();//* Return DEFAULT_LONGER_PARTICLE_FREQUENCY if you don't need customization.
+    protected abstract int getShorterParticleFrequency();//* Return DEFAULT_SHORTER_PARTICLE_FREQUENCY if you don't need customization.
     
-    //Return true if you don't need customizations for these elements.
+    //* Return true if you don't need customizations for these elements.
     protected abstract boolean getShouldCheckLiquidsFlag();
     protected abstract boolean getNoSmokeWhenBurnedOutFlag();
     protected abstract boolean getShouldCheckFireResistMobFlag();

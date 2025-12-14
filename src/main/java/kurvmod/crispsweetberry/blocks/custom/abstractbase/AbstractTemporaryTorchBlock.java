@@ -1,6 +1,6 @@
 package kurvmod.crispsweetberry.blocks.custom.abstractbase;
 
-import kurvmod.crispsweetberry.util.CrispEnums;
+import kurvmod.crispsweetberry.entities.custom.abstractbase.AbstractThrownTorchEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.server.level.ServerLevel;
@@ -19,12 +19,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.ToIntFunction;
 
-//WIP
-//PROTOTYPE OK
+//PROTOTYPE
 
 /**
  * The <b>abstract class</b> for <b>temporary torch variants</b>.
  * Most functions are the same, so they are all in {@code ITemporaryTorch}.
+ * @since CSB 1.0 release
+ * @author Kurv
  */
 public abstract class AbstractTemporaryTorchBlock extends TorchBlock implements ITemporaryTorch
 {
@@ -41,10 +42,9 @@ public abstract class AbstractTemporaryTorchBlock extends TorchBlock implements 
     {
         super(torchParticle, TEMP_TORCH_BASIC_PROPERTIES.lightLevel(brightnessFormula));
         this.torchParticle = torchParticle;
-        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, CrispEnums.LIGHT_STATE.FULL_BRIGHT));
+        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, AbstractThrownTorchEntity.LightState.FULL_BRIGHT));
     }
     
-    //This creates the LIGHT_STATE blockstate.
     @Override
     protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
     {

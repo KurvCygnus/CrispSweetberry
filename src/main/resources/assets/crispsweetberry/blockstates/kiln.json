@@ -1,7 +1,8 @@
 {
   "variants": {
-    "": {
-      "model": "crispsweetberry:block/kiln"
-    }
+    "facing=north": { "model": "crispsweetberry:block/kiln" },
+    "facing=south": { "model": "crispsweetberry:block/kiln", "y": 180 },
+    "facing=west": { "model": "crispsweetberry:block/kiln", "y": 270 },
+    "facing=east": { "model": "crispsweetberry:block/kiln", "y": 90 }
   }
 }

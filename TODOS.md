@@ -11,6 +11,9 @@
 ## First release content: Titleless
 
 <details><summary><strong>1. Throwable Torch</strong></summary>
+
+*Temporarily set aside.*
+
 <p>
 
 - [x] ~~Fix the wall torch **placement bug**~~
@@ -20,8 +23,8 @@
 - [x] ~~Add **interactions with flint 'n steel and fire charge**.~~
 - [x] ~~Make ThrownTorch's sprite change with its state.~~
 - [x] ~~Make smooth ThrownTorch animations.~~
-- [x] Abstractize **Thrown Torch**.
-- [x] Add new **redstone variant**.
+- [x] ~~Abstractize **Thrown Torch**.~~
+- [x] ~~Add new **redstone variant**.~~
 - [ ] **Implement its function**.
 - [ ] Add new **soul variant**.
 - [ ] Implement **fire that resists water**.
@@ -35,17 +38,20 @@
 </p>
 </details>
 
-####*OMG, this will probably be currently the hardest thing I'll do in the future TwT*
+#### *OMG, this will probably be currently the hardest thing I'll do in the future TwT*
 
 <details><summary><strong>2. Kiln</strong></summary>
 <p>
 
 - [x] ~~Write basic **JSON configs**, **loot_table** and **recipe**~~
 - [ ] Draw phototype sprite, including **fire animations**, dye variants not required
-- [ ] Inherit **AbstractFurnaceBlock** and **finish everything**, exclude GUI and function stuff
-- [ ] **Finish function**
-- [ ] **Complete GUI**
-- [ ] Make a **vanilla-style, unique GUI interface**, leaving it in an **optional resource pack**
+- [x] ~~Finish block class, bound it with its block entity~~
+- [x] ~~Finish block entity, then bound it with furnace stuff to test~~
+- [ ] Finish its recipeType
+- [ ] Finish its menu
+- [ ] Finish event listener
+- [ ] Finish cached recipe
+- [ ] GUI artwork
 - [ ] **Sprite polishment**, adding **dye variants**
 - [ ] **GOOD JOB XD**
 

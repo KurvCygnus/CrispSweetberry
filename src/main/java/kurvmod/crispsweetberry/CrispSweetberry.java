@@ -1,45 +1,48 @@
 package kurvmod.crispsweetberry;
 
 import com.mojang.logging.LogUtils;
+import kurvmod.crispsweetberry.blockentities.CrispBlockEntities;
 import kurvmod.crispsweetberry.blocks.CrispBlocks;
-import kurvmod.crispsweetberry.client.CrispClientEvents;
 import kurvmod.crispsweetberry.entities.CrispEntities;
 import kurvmod.crispsweetberry.items.CrispItems;
-import kurvmod.crispsweetberry.userinterface.CrispCreativeTabs;
+import kurvmod.crispsweetberry.ui.CrispCreativeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
-//OPTIMIZE NEEDED: It's only a matter of time that I have to rewrite a universal register manager.
-//PROTOTYPE OK
-/**
- * <b>The main class of the mod, which functions as the main registry handler, for now.
- */
 @Mod(CrispSweetberry.MOD_ID)
-public class CrispSweetberry
+public final class CrispSweetberry
 {
     public static final String MOD_ID = "crispsweetberry";
-    
     public static final Logger LOGGER = LogUtils.getLogger();
     
     /*
-               ___________
-             /|           |\
-            | |  O    O  | |
-            | |___________| |
-             \_O_O_O_O_O_/
-             Eventbus =O
+     *         ___________
+     *       /|           |\
+     *      | |  O    O  | |
+     *      | |___________| |
+     *       \_O_O_O_O_O_/
+     *       Eventbus =O
+     *       OMG this is stupid LOL
      */
     
     public CrispSweetberry(IEventBus eventBus/*, ModContainer modContainer*/)
     {
         CrispBlocks.CRISP_BLOCK_REGISTER.register(eventBus);
+        LOGGER.info("Registering Blocks...");
+        
+        CrispBlockEntities.CRISP_BLOCK_ENTITY_REGISTER.register(eventBus);
+        LOGGER.info("Registering Block Entities...");
+        
         CrispItems.CRISP_ITEM_REGISTER.register(eventBus);
+        LOGGER.info("Registering Items...");
+        
         CrispCreativeTabs.CRISP_TAB_REGISTER.register(eventBus);
+        LOGGER.info("Registering Creative Tab...");
+        
         CrispEntities.CRISP_ENTITY_TYPE_REGISTER.register(eventBus);
-        if(FMLEnvironment.dist.isClient())
-            new CrispClientEvents(eventBus);
-        LOGGER.info("CrispSweetberry Loaded!");
+        LOGGER.info("Registering Entities...");
+        
+        LOGGER.info("CrispSweetberry loaded!");
     }
 }

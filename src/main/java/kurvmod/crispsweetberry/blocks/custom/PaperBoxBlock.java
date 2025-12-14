@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import org.jetbrains.annotations.NotNull;
 
 //TODO: Maybe for months later
+//PLACEHOLDER
+//DOC
 //WIP
 public class PaperBoxBlock extends HorizontalDirectionalBlock
 {

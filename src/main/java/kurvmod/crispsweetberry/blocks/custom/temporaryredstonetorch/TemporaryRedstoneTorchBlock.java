@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvmod.crispsweetberry.util.CrispConstants.*;
+import static kurvmod.crispsweetberry.utils.CrispConstants.ProjectileConstants.*;
 
 //TODO: onHit系列的Override, 信号传递得完善
 //WIP
@@ -24,6 +24,8 @@ import static kurvmod.crispsweetberry.util.CrispConstants.*;
 /**
  * The standard block class of throwable redstone torch.
  * @see kurvmod.crispsweetberry.blocks.custom.abstractbase.AbstractTemporaryTorchBlock Super class
+ * @since CSB 1.0 release
+ * @author Kurv
  */
 public final class TemporaryRedstoneTorchBlock extends AbstractTemporaryTorchBlock
 {
@@ -105,7 +107,7 @@ public final class TemporaryRedstoneTorchBlock extends AbstractTemporaryTorchBlo
      * @see net.minecraft.world.level.block.RedstoneTorchBlock Func Code Source
      */
     @Override
-    public void animateTick(BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
+    public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
         if(!state.getValue(LIT))
             return;
@@ -113,6 +115,6 @@ public final class TemporaryRedstoneTorchBlock extends AbstractTemporaryTorchBlo
         double X_POS = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
         double Y_POS = (double)pos.getY() + 0.7 + (random.nextDouble() - 0.5) * 0.2;
         double Z_POS = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
-        level.addParticle(DustParticleOptions.REDSTONE, X_POS, Y_POS, Z_POS, PROJECTILE_X_NO_SPEED, PROJECTILE_Y_NO_SPEED, PROJECTILE_Z_NO_SPEED);
+        level.addParticle(DustParticleOptions.REDSTONE, X_POS, Y_POS, Z_POS, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
     }
 }

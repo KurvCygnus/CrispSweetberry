@@ -2,7 +2,7 @@ package kurvmod.crispsweetberry.blocks.custom.temporarytorch;
 
 import kurvmod.crispsweetberry.blocks.custom.abstractbase.AbstractTemporaryTorchBlock;
 import kurvmod.crispsweetberry.blocks.custom.abstractbase.ITemporaryTorch;
-import kurvmod.crispsweetberry.util.CrispEnums;
+import kurvmod.crispsweetberry.entities.custom.abstractbase.AbstractThrownTorchEntity;
 import net.minecraft.core.particles.SimpleParticleType;
 
 /**
@@ -15,7 +15,7 @@ public final class TemporaryTorchBlock extends AbstractTemporaryTorchBlock
     public TemporaryTorchBlock(SimpleParticleType torchParticle)
     {
         super(torchParticle, DEFAULT_BRIGHTNESS_FORMULA);
-        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, CrispEnums.LIGHT_STATE.FULL_BRIGHT));
+        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, AbstractThrownTorchEntity.LightState.FULL_BRIGHT));
     }
     
     @Override

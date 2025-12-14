@@ -10,10 +10,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-//PROTOTYPE OK: Now I need to write a custom render handler to make custom and state-based animations.
-//TODO: The guy above me had said my words, sh*t
 /**
  * The <b>entity version</b> of the item <b>throwable torch</b>.
+ * @since CSB 1.0 release
+ * @author Kurv
  */
 public final class ThrownTorchEntity extends AbstractThrownTorchEntity
 {
