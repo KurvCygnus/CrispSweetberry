@@ -11,8 +11,11 @@
   "item.crispsweetberry.adventurers_atlas": "addventur buk",
   "item.crispsweetberry.greedy_crystal": "GIMME ALL DA TINGS!!!",
   "item.crispsweetberry.crisp_sweetberry": "tazty frut",
-  "crispsweetberry.tabtitle": "TA2TY FRUT",
-  "container.kiln": "IN DA BIG WARM BOKZ",
-  "crisp_spyglass_zoom": "I C U KWIKE uwu",
-  "crisp_in_game_keymappings": "TAZTY FRUT IN GAYM BUTTONZ"
+  
+  "crispsweetberry.creativetab.tabtitle": "TA2TY FRUT",
+  "crispsweetberry.container.kiln": "IN DA BIG WARM BOKZ",
+  "crispsweetberry.keybind.spyglass_zoom": "I C U KWIKE uwu",
+  "crispsweetberry.menu.control.title": "TAZTY FRUT IN GAYM BUTTONZ",
+  "crispsweetberry.ui.widget.kiln_info_cooldown": "DA BIG BOKZ IZ TRYIN' 2 BEE NOT OP",
+  "crispsweetberry.ui.widget.kiln_tip_blast": "BIG BOKZ KIN'T TAK THIZ!!!"
 }

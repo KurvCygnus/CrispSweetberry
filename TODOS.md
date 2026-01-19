@@ -31,9 +31,9 @@
 - [ ] **Glowstick implementation**.
 - [ ] Polish the **sprites**.
 - [ ] **Good job XD**
-- [ ] [Post-Release Content] **Add dynamic light to Throwable Torch**.
-- [ ] [Post-Release Content] **Add dark state throwable torches in vanilla structure**.
-- [ ] [Post-Release Content] **Add directional sprites to these god-damn torches**.
+- [ ] \[Post-Release Content\] **Add dynamic light to Throwable Torch**.
+- [ ] \[Post-Release Content\] **Add dark state throwable torches in vanilla structure**.
+- [ ] \[Post-Release Content\] **Add directional sprites to these god-damn torches**.
 
 </p>
 </details>
@@ -47,10 +47,10 @@
 - [ ] Draw phototype sprite, including **fire animations**, dye variants not required
 - [x] ~~Finish block class, bound it with its block entity~~
 - [x] ~~Finish block entity, then bound it with furnace stuff to test~~
-- [ ] Finish its recipeType
+- [x] Finish its recipeType
 - [ ] Finish its menu
-- [ ] Finish event listener
-- [ ] Finish cached recipe
+- [x] Finish event listener
+- [x] Finish cached recipe
 - [ ] GUI artwork
 - [ ] **Sprite polishment**, adding **dye variants**
 - [ ] **GOOD JOB XD**
@@ -87,8 +87,8 @@
 <details><summary><strong>5. Spyglass</strong></summary>
 <p>
 
-- [ ] LEARN ADDING **CUSTOM KEYBINDS**
-- [ ] Make the **quick spyglass zoom** keybind
+- [x] LEARN ADDING **CUSTOM KEYBINDS**
+- [x] Make the **quick spyglass zoom** keybind
 - [ ] **LEARN MIXINS**
 - [ ] Make the **zoom adjust function**
 - [ ] The **rests**? That's another story **after the 1st release**.

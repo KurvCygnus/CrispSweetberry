@@ -1,0 +1,212 @@
+package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
+
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.ProgressTrend;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.ResultType;
+import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
+import kurvcygnus.crispsweetberry.utils.CrispCommonUtils;
+import kurvcygnus.crispsweetberry.utils.constants.UIConstants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import org.jetbrains.annotations.NotNull;
+
+import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.*;
+import static kurvcygnus.crispsweetberry.utils.constants.UIConstants.NO_OFFSET;
+
+/**
+ * This the actual user interface for kiln.
+ *
+ * @author Kurv
+ * @see KilnMenu Menu(The gate between client and server)
+ * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity BlockEntity
+ * @see kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock Block
+ * @since CSB Release 1.0
+ */
+public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
+{
+    private static final int BG_WIDTH = 176;
+    private static final int BG_HEIGHT = 166;
+    
+    public static final int CAMPFIRE_X_POS = 47;
+    public static final int CAMPFIRE_Y_POS = 62;
+    public static final int CAMPFIRE_WIDTH = 17;
+    public static final int CAMPFIRE_HEIGHT = 16;
+    
+    private static final int ARROW_X_POS = 79;
+    private static final int ARROW_Y_POS = 34;
+    private static final int ARROW_WIDTH = 24;
+    private static final int ARROW_HEIGHT = 17;
+    
+    private static final int TIP_X_POS = 67;
+    private static final int TIP_Y_POS = 56;
+    private static final int TIP_WIDTH = 50;
+    private static final int TIP_HEIGHT = 50;
+    
+    //! About namespaces: please use "static" to decrease performance penalty.
+    //? TODO: 将贴图迁移到贴图管理器中
+    private static final ResourceLocation BACKGROUND_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/background.png");
+    private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/lit_campfire.png");
+    private static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/progress_arrow.png");
+    private static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/balance_decrease_arrow.png");
+    private static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/balance_increase_arrow.png");
+    private static final ResourceLocation TIP_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/tip_arrow.png");
+    
+    private final KilnInfoWidget widget = new KilnInfoWidget(TIP_X_POS, TIP_Y_POS, TIP_WIDTH, TIP_HEIGHT);
+    
+    public KilnScreen(KilnMenu menu, Inventory playerInventory, Component title) { super(menu, playerInventory, title); }
+    
+    @Override
+    public void init()
+    {
+        this.imageWidth = BG_WIDTH;
+        this.imageHeight = BG_HEIGHT;
+        super.init();
+        this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
+        
+        this.addRenderableWidget(widget);
+    }
+    
+    @Override
+    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+    {
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        
+        final double progress = KilnContainerData.toStandardProgress(menu.data.get(VISUAL_PROGRESS_INDEX));
+        final ResultType type = ResultType.toEnum(menu.data.get(RESULT_TYPE_INDEX));
+        final ProgressTrend trend = ProgressTrend.toEnum(menu.data.get(PROGRESS_TREND_INDEX));
+        final boolean isIgnited = KilnContainerData.toStandardIgnitionState(menu.data.get(IGNITION_STATE_INDEX));
+
+        if(isIgnited)
+            guiGraphics.blit(LIT_CAMPFIRE_TEXTURE,
+                this.leftPos + CAMPFIRE_X_POS, this.topPos + CAMPFIRE_Y_POS,
+                NO_OFFSET, NO_OFFSET,
+                CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT,
+                CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT
+            );
+        
+        if(progress > 0D)//! Strictly, the layered arrow texture doesn't belong to background.
+        {
+            final ResourceLocation layeredArrowTexture;
+            final Tooltip widgetTipText;
+            
+            switch(type)
+            {
+                case BALANCING ->
+                {
+                    layeredArrowTexture = trend == ProgressTrend.DECREASE ? BALANCE_DECREASE_ARROW_TEXTURE : BALANCE_INCREASE_ARROW_TEXTURE;
+                    widgetTipText = trend == ProgressTrend.DECREASE ? KilnInfoWidget.COOLDOWN_TIP : KilnInfoWidget.EMPTY_TIP;
+                }
+                case BLAST_TIP ->
+                {
+                    layeredArrowTexture = TIP_ARROW_TEXTURE;
+                    widgetTipText = KilnInfoWidget.BLAST_TIP;
+                }
+                default ->
+                {
+                    layeredArrowTexture = PROGRESS_ARROW_TEXTURE;
+                    widgetTipText = KilnInfoWidget.EMPTY_TIP;
+                }
+            }
+            
+            if(this.widget.getTooltip() != widgetTipText)
+                this.widget.setTooltip(widgetTipText);
+            
+            final int clippedWidth = (int) (ARROW_WIDTH * progress);
+            
+            blitArrow(guiGraphics, layeredArrowTexture, clippedWidth);
+        }
+        else if(this.widget.getTooltip() != KilnInfoWidget.EMPTY_TIP)
+            this.widget.setTooltip(KilnInfoWidget.EMPTY_TIP);
+        
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+    
+    @Override
+    protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY)
+        { guiGraphics.blit(BACKGROUND_TEXTURE, this.leftPos, this.topPos, NO_OFFSET, NO_OFFSET, BG_WIDTH, BG_HEIGHT, BG_WIDTH, BG_HEIGHT); }
+    
+    /**
+     * This wrapper method is used to reduce the complexity of
+     * <u>{@link GuiGraphics#blitSprite(ResourceLocation, int, int, int, int, int, int, int, int) blitSprite()}</u>.<br><br>
+     * <h2><u>{@link GuiGraphics#blitSprite(ResourceLocation, int, int, int, int, int, int, int, int) blitSprite()}</u> Parameter explanation:</h2><ul><h2>
+     * <li>{@code uPosition} The horizontal start position of texture clipping.</li>
+     * <li>{@code vPosition} The vertical start position of texture clipping.</li>
+     * <li>{@code uWidth} The length of horizontal texture clipping.</li>
+     * <li>{@code uHeight} The length of vertical texture clipping.</li>
+     * </ul></h2><br>
+     * <i>Can't understand these paras? If is that so, it would be better to learn basic computer graphic knowledge first,
+     * <b>that's more important than this</b>.</i><br>
+     * Just go <a href="https://en.wikipedia.org/wiki/Computer_graphics_(disambiguation)">here</a> if you really can't understand.
+     */
+    private void blitArrow(@NotNull GuiGraphics gui, @NotNull ResourceLocation texture, int progressWidth)
+    {
+        gui.blit(texture,
+            this.leftPos + ARROW_X_POS, this.topPos + ARROW_Y_POS,
+            NO_OFFSET, NO_OFFSET,
+            progressWidth, ARROW_HEIGHT,
+            ARROW_WIDTH, ARROW_HEIGHT
+        );
+    }
+    
+    /**
+     * The widget to inform players the limitation of kiln.
+     *
+     * @author Kurv
+     * @since CSB Release 1.0
+     */
+    private static final class KilnInfoWidget extends AbstractWidget
+    {
+        static final Tooltip COOLDOWN_TIP = Tooltip.create(Component.translatable("crispsweetberry.ui.widget.kiln_info_cooldown"));
+        static final Tooltip BLAST_TIP = Tooltip.create(Component.translatable("crispsweetberry.ui.widget.kiln_tip_blast"));
+        static final Tooltip EMPTY_TIP = Tooltip.create(Component.empty());
+        
+        private static final int HIGHLIGHT_COLOR = 0x80FFFFFF;
+        
+        public KilnInfoWidget(int x, int y, int width, int height)
+        {
+            super(x, y, width, height, Component.literal("?"));
+            this.setTooltip(EMPTY_TIP);
+        }
+        
+        @Override
+        protected void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
+        {
+            if(this.getTooltip() == EMPTY_TIP)//* No necessary, then no render.
+                return;
+            
+            final int centerX = this.getX() + this.width / 2;
+            final int centerY = this.getY() + (this.height - 8) / 2;
+            
+            guiGraphics.drawCenteredString(
+                Minecraft.getInstance().font,
+                this.getMessage(),
+                centerX,
+                centerY,
+                UIConstants.GRAY_COLOR
+            );
+            
+            if(this.isHovered)
+            {
+                guiGraphics.drawCenteredString(
+                    Minecraft.getInstance().font,
+                    this.getMessage(),
+                    centerX,
+                    centerY,
+                    UIConstants.GOLD_COLOR
+                );
+                
+                guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, HIGHLIGHT_COLOR);
+            }
+        }
+        
+        @Override
+        protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput)
+            { this.defaultButtonNarrationText(narrationElementOutput); }
+    }
+}

@@ -11,8 +11,11 @@
   "item.crispsweetberry.adventurers_atlas": "冒险者手记",
   "item.crispsweetberry.greedy_crystal": "贪婪结晶",
   "item.crispsweetberry.crisp_sweetberry": "澄蜜浆果",
-  "crispsweetberry.tabtitle": "澄莓物语",
-  "container.kiln": "窑炉",
-  "crisp_spyglass_zoom": "望远镜快速使用",
-  "crisp_in_game_keymappings": "澄莓物语-游戏按键"
+  
+  "crispsweetberry.creativetab.tabtitle": "澄莓物语",
+  "crispsweetberry.container.kiln": "窑炉",
+  "crispsweetberry.keybind.spyglass_zoom": "望远镜快速使用",
+  "crispsweetberry.menu.control.title": "澄莓物语-游戏按键",
+  "crispsweetberry.ui.widget.kiln_info_cooldown": "总输入热量改变. 正在重分配热量...",
+  "crispsweetberry.ui.widget.kiln_tip_blast": "部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料."
 }

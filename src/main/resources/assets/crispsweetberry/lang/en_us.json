@@ -11,8 +11,11 @@
   "item.crispsweetberry.adventurers_atlas": "Adventurer's Atlas",
   "item.crispsweetberry.greedy_crystal": "Greedy Crystal",
   "item.crispsweetberry.crisp_sweetberry": "Crisp Sweetberry",
-  "crispsweetberry.tabtitle": "Crisp Sweetberry",
-  "container.kiln": "Kiln",
-  "crisp_spyglass_zoom": "Spyglass Quick Zoom",
-  "crisp_in_game_keymappings": "Crisp Sweetberry-In Game Keymappings"
+  
+  "crispsweetberry.creativetab.tabtitle": "Crisp Sweetberry",
+  "crispsweetberry.container.kiln": "Kiln",
+  "crispsweetberry.keybind.spyglass_zoom": "Spyglass Quick Zoom",
+  "crispsweetberry.menu.control.title": "Crisp Sweetberry-In Game Keymappings",
+  "crispsweetberry.ui.widget.kiln_info_cooldown": "Total heat changed. Rebalancing heat distribution...",
+  "crispsweetberry.ui.widget.kiln_tip_blast": "Some materials are blasting recipe.\nKiln can't process such items that requires high heat."
 }

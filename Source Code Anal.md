@@ -88,7 +88,7 @@ public abstract class EntityRenderer<T extends Entity>
         else
         {
             AABB entityHitBox = livingEntity.getBoundingBoxForCulling().inflate(0.5);//检测实体的aabb(碰撞箱边界, 很抽象的缩写)
-            if(entityHitBox.hasNaN() || entityHitBox.getSize() == 0.0)
+            if(entityHitBox.hasNaN() || entityHitBox.getSize() == 0.0)//如果AABB出现了"灵异"问题, 那么重新创建一个
                 entityHitBox = new AABB(
                     livingEntity.getX() - 2.0,
                     livingEntity.getY() - 2.0,
@@ -141,7 +141,7 @@ public abstract class EntityRenderer<T extends Entity>
         // Neo: Post the RenderNameTagEvent and conditionally wrap #renderNameTag based on the result.
         //Dev的注释翻译: 把事件 "RenderNameTagEvent" 推送到客户端事件上, 根据结果的具体的情况打包#renderNameTag(很可能是我的世界原版的命名式二进制标签NBT)
         //妈的, 你们他妈的就不能维护下文档? NeoForge都有至少一年半了吧, 文档到现在都还不全, Stack Overflow也没有多少, 勾史😅😅
-        //注: 在实际开发最好不要在局部变量外采用var.
+        //注: 在实际开发最好不要在局部变量外采用var, 不然有会有各种隐患的
         var nameTagEvent = new net.neoforged.neoforge.client.event.RenderNameTagEvent(
             p_entity, p_entity.getDisplayName(), this, 
             poseStack, bufferSource, packedLight, partialTick
@@ -279,7 +279,7 @@ public abstract class EntityRenderer<T extends Entity>
             {
                 boolean flag = !entity.isDiscrete();//检测实体是否为离散的(?) CLARIFY: md, 看了下源代码, 什么可爱离散, 就是检测玩家潜行了没有, ojng你可真可爱啊
                 int i = "deadmau5".equals(displayName.getString()) ? -10 : 0;
-                //CLARIFY: 查了一下, 彩蛋设定, 如果玩家被命名为"deadmau5", 它的NameTag会被抬高10px
+                //CLARIFY: 查了一下, 彩蛋设定, 如果玩家被命名为"deadmau5", 它的NameTag会被抬高10px, 因为这个玩家有一对大→耳↑朵↓
                 poseStack.pushPose();
                 poseStack.translate(vec3.x, vec3.y + 0.5, vec3.z);//使坐标向上偏移0.5
                 poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());//使渲染对象(NameTag)始终面向玩家
