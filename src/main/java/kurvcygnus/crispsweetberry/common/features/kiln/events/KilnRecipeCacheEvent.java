@@ -16,6 +16,7 @@ import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -101,63 +102,72 @@ public final class KilnRecipeCacheEvent
      * An encapsulated method for <b>getting recipes for smoker and blast furnace<b>.
      */
     private static <R extends AbstractCookingRecipe> void streamRecipes
-    (HashMap<Item, NonNullList<R>> targetMap, RecipeManager manager, RecipeType<R> recipeType)
-    {
-        manager.getAllRecipesFor(recipeType).forEach(recipeHolder ->
+        (HashMap<Item, NonNullList<R>> targetMap, RecipeManager manager, RecipeType<R> recipeType)
             {
-                R recipe = recipeHolder.value();
-                
-                for(Ingredient ingredient: recipe.getIngredients())
-                {
-                    logger.debug("Start hooking ingredient {} for {} stream", ingredient.toString(), recipeType);
-                    for(ItemStack stack: ingredient.getItems())
+                manager.getAllRecipesFor(recipeType).forEach(recipeHolder ->
                     {
-                        Item item = stack.getItem();
+                        R recipe = recipeHolder.value();
                         
-                        targetMap.computeIfAbsent(item, i -> NonNullList.create()).
-                            add(recipe);
-                        
-                        logger.debug("Streamed recipe {} in the temp Hashmap of {}", item, recipeType);
+                        for(Ingredient ingredient: recipe.getIngredients())
+                        {
+                            logger.debug("Start hooking ingredient {} for {} stream", ingredient.toString(), recipeType);
+                            for(ItemStack stack: ingredient.getItems())
+                            {
+                                Item item = stack.getItem();
+                                
+                                targetMap.computeIfAbsent(item, i -> NonNullList.create()).
+                                    add(recipe);
+                                
+                                logger.debug("Streamed recipe {} in the temp Hashmap of {}", item, recipeType);
+                            }
+                        }
                     }
-                }
+                );
             }
-        );
-    }
     
     /**
      * An encapsulated method for <b>filtering, and converting recipes to <u>{@link KilnRecipe}</u></b>.
      */
     private static <R extends AbstractCookingRecipe> void filterRecipes(HashMap<Item, NonNullList<KilnRecipe>> targetMap,
         HashMap<Item, NonNullList<R>> convertMap, RegistryAccess access)
-    {
-        convertMap.forEach((item, list) ->
-            list.forEach(recipe ->
-                {
-                    for(Ingredient ingredient: recipe.getIngredients())
-                    {
-                        logger.debug("Start converting ingredient {} to KilnRecipe", ingredient.toString());
-                        
-                        KilnRecipe convertedRecipe = new KilnRecipe(
-                            ingredient,
-                            recipe.getResultItem(access),
-                            calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),
-                            recipe.getExperience()
-                        );
-                        
-                        targetMap.computeIfAbsent(item, i -> NonNullList.create()).
-                            add(convertedRecipe);
-                        
-                        logger.debug("Finished converting ingredient {} to KilnRecipe", ingredient);
-                    }
-                }
-            )
-        );
-    }
+            {
+                convertMap.forEach((item, list) ->
+                    list.forEach(recipe ->
+                        {
+                            for(Ingredient ingredient: recipe.getIngredients())
+                            {
+                                logger.debug("Start converting ingredient {} to KilnRecipe", Arrays.toString(ingredient.getItems()));
+                                
+                                KilnRecipe convertedRecipe = new KilnRecipe(
+                                    ingredient,
+                                    recipe.getResultItem(access),
+                                    calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),
+                                    recipe.getExperience()
+                                );
+                                
+                                targetMap.computeIfAbsent(item, i -> NonNullList.create()).
+                                    add(convertedRecipe);
+                                
+                                logger.debug("Finished converting ingredient {} to KilnRecipe", Arrays.toString(ingredient.getItems()));
+                            }
+                        }
+                    )
+                );
+            }
     
     private static double calculateProcessFactor(int cookingTime, boolean isSmokingRecipe)
-        { return Math.max(0.05D, (double) cookingTime / MiscConstants.FURNACE_SMELTING_TIME) * (isSmokingRecipe ? 1.25D: 1D); }
-    //!                     ↑ Maybe some mod will introduce short cooking time recipes into the game,
-    //!                       so we should make sure at least processFactor is always bigger than 0D.
+    {
+        //* Both Smoking and Smelting Recipe are hard-coded in vanilla Minecraft. 
+        final int standardTime = isSmokingRecipe ? MiscConstants.SMOKER_SMOKING_TIME : MiscConstants.FURNACE_SMELTING_TIME;
+        
+        //!                               Maybe some mod will introduce short cooking time recipes into the game,
+        //!                             ↓ so we should make sure at least processFactor is always bigger than 0D.
+        final double factor = Math.max(0.05D, (double) cookingTime / standardTime) * (isSmokingRecipe ? 1.25D : 1D);
+        logger.debug("[FACTOR_CAL_END] Type: {}, Time: {}, Factor: {}", 
+            isSmokingRecipe ? "Smoking": "Smelting", cookingTime, factor);
+        
+        return factor;
+    }
     
     public static HashMap<Item, NonNullList<KilnRecipe>> getKilnCachedRecipes() { return KILN_CACHED_RECIPES; }
     

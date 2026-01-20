@@ -5,4 +5,4 @@ public record CalculationResult(
         double currentVisualProgress, 
         ResultType resultType,
         ProgressTrend trend
-        ) {}
+    ) {}

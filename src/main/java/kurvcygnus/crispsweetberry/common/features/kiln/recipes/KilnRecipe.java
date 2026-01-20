@@ -130,6 +130,9 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
     
     //  region
     //* Helpers & Getters
+    @Override
+    public String toString() { return String.format("Ingredient: %s, Result: %s, Factor: %f; ", ingredient, result, processFactor); }
+    
     /**
      * @apiNote This is used for recipe validation.
      * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator#calculateRates Usage  

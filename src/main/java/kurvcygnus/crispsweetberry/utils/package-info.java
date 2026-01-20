@@ -1,0 +1,9 @@
+/**
+ * This package contains useful, reusable and reliable classes, methods and constants.<br>
+ * Which means <b>the content inside shouldn't rely on any state, context</b>.<br>
+ * Only <b>constants can be related to context meaning, and the range should be at Vanilla, out of range is NOT allowed</b>.<br>
+ * <i>If you found any method or constant is not universal and have context, it belongs to its user, not here</i>.
+ * @implNote DO NOT add {@link javax.annotation.ParametersAreNonnullByDefault @ParametersAreNonnullByDefault} in package-infos,
+ * this will lead to potential issues, errors, and footguns.
+ */
+package kurvcygnus.crispsweetberry.utils;
