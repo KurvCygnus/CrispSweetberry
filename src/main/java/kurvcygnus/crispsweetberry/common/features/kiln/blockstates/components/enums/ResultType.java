@@ -1,7 +1,7 @@
-package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
+package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums;
 
 public enum ResultType
-{ 
+{
     CONTINUE,
     BALANCING,
     SKIP,

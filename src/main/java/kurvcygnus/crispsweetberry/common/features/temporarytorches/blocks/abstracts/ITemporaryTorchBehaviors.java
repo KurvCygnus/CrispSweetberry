@@ -1,7 +1,7 @@
 package kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.abstracts;
 
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.entities.abstracts.AbstractThrownTorchEntity;
-import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.function.ToIntFunction;
 
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*;
 import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
 /**
@@ -38,7 +38,7 @@ import static net.minecraft.world.level.block.WallTorchBlock.FACING;
  * It is already be implemented in <b><u>{@link AbstractTemporaryTorchBlock}</u></b> and <b><u>{@link AbstractTemporaryWallTorchBlock}</u></b>.
  * All you have to do is {@code extends} these abstract classes.
  * @since CSB 1.0 release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 public interface ITemporaryTorchBehaviors
 {

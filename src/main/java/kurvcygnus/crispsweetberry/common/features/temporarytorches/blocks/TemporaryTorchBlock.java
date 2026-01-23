@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
  * @see ITemporaryTorchBehaviors Common Function Implementation Details
  * @see ThrownTorchEntity Projectile Part
  * @see ThrowableTorchItem Item Part
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  */
 public final class TemporaryTorchBlock extends AbstractTemporaryTorchBlock
 {

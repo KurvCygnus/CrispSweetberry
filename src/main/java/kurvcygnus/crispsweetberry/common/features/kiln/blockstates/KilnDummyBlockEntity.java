@@ -14,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
  * <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu#KilnMenu(int, Inventory, KilnBlockEntity) Server Constructor}</u>.
  * @see KilnBlockEntity Normal Block Entity
  * @see kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu Menu
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  */
 public final class KilnDummyBlockEntity extends KilnBlockEntity
 {

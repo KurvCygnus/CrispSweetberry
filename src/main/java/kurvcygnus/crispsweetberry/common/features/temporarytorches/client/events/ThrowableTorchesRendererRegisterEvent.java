@@ -13,8 +13,8 @@ import static kurvcygnus.crispsweetberry.CrispSweetberry.LOGGER;
 
 /**
  * The class that <b>handles custom entity's renderer registration</b>.
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID, value = Dist.CLIENT)
 public final class ThrowableTorchesRendererRegisterEvent

@@ -1,20 +1,22 @@
-package kurvcygnus.crispsweetberry.utils;
+package kurvcygnus.crispsweetberry.utils.ui;
 
-import kurvcygnus.crispsweetberry.utils.collects.CrispIntRanger;
-import kurvcygnus.crispsweetberry.utils.functions.IQuadMoveStackPredicate;
-import kurvcygnus.crispsweetberry.utils.functions.IQuadSlotSupplier;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants;
+import kurvcygnus.crispsweetberry.utils.ui.functions.IQuadMoveStackPredicate;
+import kurvcygnus.crispsweetberry.utils.ui.functions.IQuadSlotSupplier;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
-import static kurvcygnus.crispsweetberry.utils.constants.SlotConstants.CORRECTION_INDEX;
-import static kurvcygnus.crispsweetberry.utils.constants.SlotConstants.SLOT_GAP;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants.CORRECTION_INDEX;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants.SLOT_GAP;
 
 /**
- * @since CSB Release 1.0
+ * @since 1.0 Release
  */
 public final class CrispUIUtils
 {
@@ -27,11 +29,15 @@ public final class CrispUIUtils
      * throw <u>{@link IllegalArgumentException}</u>.
      */
     public static <C extends Container> void addGridSlots(@NotNull C container, int startIndex, int startX, int startY, int rows, int cols,
-        @NotNull IQuadSlotSupplier<C, ? extends Slot> slotFactory, @NotNull Consumer<Slot> consumer)
+        @NotNull IQuadSlotSupplier<C, ? extends Slot> slotFactory, @NotNull Consumer<Slot> consumer) throws IllegalArgumentException
             {
+                Objects.requireNonNull(container, "Container cannot be null!");
+                Objects.requireNonNull(slotFactory, "SlotFactory cannot be null!");
+                Objects.requireNonNull(consumer, "Consumer cannot be null!");
+                
                 if(rows <= 0 || cols <= 0)
                     throw new IllegalArgumentException(String.format(
-                        "Variable \"rows\" and \"cols\" must be a positive integer! Current value: rows: %d, cols: %d",
+                        "Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: %d, cols: %d",
                             rows, cols)
                     );
                 
@@ -48,15 +54,21 @@ public final class CrispUIUtils
     
     /**
      * A utility method to make {@code #moveItemStackTo()} in the <u>{@link net.minecraft.world.inventory.AbstractContainerMenu containers}</u> more simple.
-     * @apiNote The original method's implementation logic uses <i>closedOpen</i> style, and this utility has fixed it to standard <i>closed</i> style. 
+     * @apiNote <b>The original method's implementation logic uses <i>closedOpen</i> style, and this utility has fixed it to standard <i>closed</i> style</b>. 
      * <i>Don't forget about this!</i>
      * @implSpec <pre>{@code 
      *  moveStackByRanger(stack, ranger, flag, this::moveItemStackTo);
      * }</pre>
-     * @see kurvcygnus.crispsweetberry.utils.constants.SlotConstants Furnace Layout Index Reference
+     * @see SlotConstants Furnace Layout Index Reference
      * @see CrispIntRanger Ranger
      */
     public static boolean moveStackByRanger
         (@NotNull ItemStack interactStack, @NotNull CrispIntRanger ranger, boolean reverseDirection, @NotNull IQuadMoveStackPredicate predicate)
-            { return predicate.predicate(interactStack, ranger.getMin(), ranger.getMax() + CORRECTION_INDEX, reverseDirection); }
+            {
+                Objects.requireNonNull(interactStack, "ItemStack cannot be null!");
+                Objects.requireNonNull(ranger, "CrispIntRanger cannot be null!");
+                Objects.requireNonNull(predicate, "Predicate cannot be null!");
+                
+                return predicate.test(interactStack, ranger.getMin(), ranger.getMax() + CORRECTION_INDEX, reverseDirection);
+            }
 }

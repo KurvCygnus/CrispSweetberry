@@ -24,7 +24,7 @@ import org.joml.Matrix4f;
  * @see ThrownTorchRenderer Basic implementation
  * @see ThrowableTorchesRendererRegisterEvent Registry
  * @since CSB 1.0 release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchEntity> extends EntityRenderer<T>

@@ -8,7 +8,7 @@ import kurvcygnus.crispsweetberry.common.features.temporarytorches.client.render
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.items.abstracts.AbstractThrowableTorchItem;
 import kurvcygnus.crispsweetberry.common.registries.CrispBlocks;
 import kurvcygnus.crispsweetberry.common.registries.CrispItems;
-import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -43,13 +43,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*;
 
 /**
  * The basic of all thrown torch entities.
  * @see AbstractThrownTorchRenderer Renderer
  * @since CSB 1.0 release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
 {

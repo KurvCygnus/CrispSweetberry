@@ -4,7 +4,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
-import kurvcygnus.crispsweetberry.utils.constants.MiscConstants;
+import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.Item;
@@ -13,17 +13,17 @@ import net.minecraft.world.item.crafting.*;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import org.apache.commons.lang3.time.StopWatch;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 /**
  * The event which <b>fills the content with kiln recipes.</b>
  * @see KilnBlockEntity Usage
  * @since CSB 1.0 Release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
 public final class KilnRecipeCacheEvent
@@ -41,7 +41,10 @@ public final class KilnRecipeCacheEvent
     @SubscribeEvent
     public static void getKilnRecipes(final @NotNull ServerStartedEvent event)
     {
-        logger.info("Getting Kiln Recipes...");
+        StopWatch time = new StopWatch();
+        time.start();
+        
+        logger.info("[CACHE_START] Getting Kiln Recipes...");
         
         KILN_CACHED_RECIPES.clear();
         
@@ -50,39 +53,39 @@ public final class KilnRecipeCacheEvent
         HashMap<Item, NonNullList<SmokingRecipe>> tempSmokingRecipes = new HashMap<>();
         HashMap<Item, NonNullList<SmeltingRecipe>> tempKilnRecipes = new HashMap<>();
         
-        logger.debug("Getting Smoker Recipes...");
+        logger.info("[SMOKER_PHASE] Collecting Smoker Recipes...");
         streamRecipes(tempSmokingRecipes, manager, RecipeType.SMOKING);
+        logger.debug("[SMOKER_PHASE] Collection ended, {} entries in total, content: {}", tempSmokingRecipes.size(), tempSmokingRecipes);
         
-        logger.debug("Getting Blast Furnace(Banned) Recipes...");
+        logger.info("[BLAST_PHASE] Collecting Blast Furnace(Banned) Recipes...");
         streamRecipes(BANNED_RECIPES, manager, RecipeType.BLASTING);
+        logger.debug("[BLAST_PHASE] Collection ended, {} entries in total, content: {}", BANNED_RECIPES.size(), BANNED_RECIPES);
         
-        logger.debug("Starting filtering kiln recipes...");
-        manager.getAllRecipesFor(RecipeType.SMELTING).forEach(recipeHolder ->
+        logger.info("[INITIAL_FILTER] Starting filtering kiln recipes...");
+        for(RecipeHolder<SmeltingRecipe> recipeHolder: manager.getAllRecipesFor(RecipeType.SMELTING))
+        {
+            SmeltingRecipe recipe = recipeHolder.value();
+            
+            for(Ingredient ingredient: recipe.getIngredients())
             {
-                SmeltingRecipe recipe = recipeHolder.value();
-                
-                for(Ingredient ingredient: recipe.getIngredients())
+                for(ItemStack stack: ingredient.getItems())
                 {
-                    logger.debug("Start hooking ingredient {}", ingredient);
+                    Item item = stack.getItem();
                     
-                    for(ItemStack stack: ingredient.getItems())
+                    if(BANNED_RECIPES.containsKey(item))
                     {
-                        Item item = stack.getItem();
-                        
-                        if(BANNED_RECIPES.containsKey(item))
-                            continue;
-                        
-                        logger.debug("Filtered recipe {} for kiln", recipe);
-                        
-                        tempKilnRecipes.computeIfAbsent(item, i -> NonNullList.create()).
-                            add(recipe);
+                        logger.debug("[INITIAL_FILTER] Filtered item \"{}\", reason: Belongs to Banned Recipes", stack.getDisplayName());
+                        continue;
                     }
+                    
+                    logger.debug("[INITIAL_FILTER] Accepted item \"{}\" as smelting recipe", stack.getDisplayName());
+                    
+                    tempKilnRecipes.computeIfAbsent(item, i -> NonNullList.create()).
+                        add(recipe);
                 }
             }
-        );
-        logger.debug("Finished filtering kiln recipes. Start filtering unique mod recipes...");
-        
-        logger.debug("Finished filtering kiln recipes. Start conversion...");
+        }
+        logger.info("[FINAL_FILTER] Finished filtering kiln recipes. Start conversion...");
         
         HashMap<Item, NonNullList<KilnRecipe>> completedKilnRecipesCacheList = new HashMap<>();
         
@@ -91,53 +94,62 @@ public final class KilnRecipeCacheEvent
         //! This is NOT redundant. Some mod will add smoker-only recipes.
         filterRecipes(completedKilnRecipesCacheList, tempSmokingRecipes, event.getServer().registryAccess());
         
-        logger.debug("Conversion finished. Continue to put recipes into map...");
+        logger.debug("[RECIPE_CACHE] Conversion finished. Continue to put recipes into the map...");
         
         KILN_CACHED_RECIPES.putAll(completedKilnRecipesCacheList);
         
-        logger.info("Kiln recipe caching is finished!");
+        logger.info("[EVENT_FINISHED] Kiln recipe caching finished in {} ms!", time.getTime());
     }
     
     /**
      * An encapsulated method for <b>getting recipes for smoker and blast furnace<b>.
      */
     private static <R extends AbstractCookingRecipe> void streamRecipes
-        (HashMap<Item, NonNullList<R>> targetMap, RecipeManager manager, RecipeType<R> recipeType)
+        (HashMap<Item, NonNullList<R>> targetMap, @NotNull RecipeManager manager, RecipeType<R> recipeType)
             {
-                manager.getAllRecipesFor(recipeType).forEach(recipeHolder ->
+                for(RecipeHolder<R> recipeHolder: manager.getAllRecipesFor(recipeType))
+                {
+                    R recipe = recipeHolder.value();
+                    
+                    for(Ingredient ingredient: recipe.getIngredients())
                     {
-                        R recipe = recipeHolder.value();
-                        
-                        for(Ingredient ingredient: recipe.getIngredients())
+                        for(ItemStack stack: ingredient.getItems())
                         {
-                            logger.debug("Start hooking ingredient {} for {} stream", ingredient.toString(), recipeType);
-                            for(ItemStack stack: ingredient.getItems())
-                            {
-                                Item item = stack.getItem();
-                                
-                                targetMap.computeIfAbsent(item, i -> NonNullList.create()).
-                                    add(recipe);
-                                
-                                logger.debug("Streamed recipe {} in the temp Hashmap of {}", item, recipeType);
-                            }
+                            Item item = stack.getItem();
+                            
+                            targetMap.computeIfAbsent(item, i -> NonNullList.create()).
+                                add(recipe);
+                            
                         }
                     }
-                );
+                    
+                    logger.debug("[RECIPE_STREAM] Completed a round of recipe collection, Ingredients: {}, current stream recipe type: {}",
+                        recipe.getIngredients(), recipeType
+                    );
+                }
             }
     
     /**
      * An encapsulated method for <b>filtering, and converting recipes to <u>{@link KilnRecipe}</u></b>.
      */
-    private static <R extends AbstractCookingRecipe> void filterRecipes(HashMap<Item, NonNullList<KilnRecipe>> targetMap,
-        HashMap<Item, NonNullList<R>> convertMap, RegistryAccess access)
+    private static <R extends AbstractCookingRecipe> void filterRecipes
+        (HashMap<Item, NonNullList<KilnRecipe>> targetMap, @NotNull HashMap<Item, NonNullList<R>> convertMap, RegistryAccess access)
             {
                 convertMap.forEach((item, list) ->
-                    list.forEach(recipe ->
+                    {
+                        if(!list.isEmpty() && list.getFirst() instanceof SmokingRecipe)
+                        {
+                            if(targetMap.containsKey(item))
+                            {
+                                logger.debug("[FINAL_FILTER] Item {} found in cache, clearing old Smelting recipes to override with Smoking.", item);
+                                targetMap.get(item).clear();
+                            }
+                        }
+                        
+                        for(R recipe: list)
                         {
                             for(Ingredient ingredient: recipe.getIngredients())
                             {
-                                logger.debug("Start converting ingredient {} to KilnRecipe", Arrays.toString(ingredient.getItems()));
-                                
                                 KilnRecipe convertedRecipe = new KilnRecipe(
                                     ingredient,
                                     recipe.getResultItem(access),
@@ -147,11 +159,9 @@ public final class KilnRecipeCacheEvent
                                 
                                 targetMap.computeIfAbsent(item, i -> NonNullList.create()).
                                     add(convertedRecipe);
-                                
-                                logger.debug("Finished converting ingredient {} to KilnRecipe", Arrays.toString(ingredient.getItems()));
                             }
                         }
-                    )
+                    }
                 );
             }
     
@@ -163,7 +173,7 @@ public final class KilnRecipeCacheEvent
         //!                               Maybe some mod will introduce short cooking time recipes into the game,
         //!                             ↓ so we should make sure at least processFactor is always bigger than 0D.
         final double factor = Math.max(0.05D, (double) cookingTime / standardTime) * (isSmokingRecipe ? 1.25D : 1D);
-        logger.debug("[FACTOR_CAL_END] Type: {}, Time: {}, Factor: {}", 
+        logger.debug("[FINAL_FILTER] Type: {}, Time: {}, Factor: {}", 
             isSmokingRecipe ? "Smoking": "Smelting", cookingTime, factor);
         
         return factor;

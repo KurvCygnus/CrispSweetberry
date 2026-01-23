@@ -12,8 +12,8 @@ import static kurvcygnus.crispsweetberry.client.registries.CrispKeymap.SPYGLASS_
 
 /**
  * The class that <b>handles the registration of key binds</b>.
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  * @see kurvcygnus.crispsweetberry.client.registries.CrispKeymap Keybind Declaration
  */
 @EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)

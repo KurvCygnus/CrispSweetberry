@@ -3,8 +3,8 @@ package kurvcygnus.crispsweetberry.client.init;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.registries.CrispItems;
-import kurvcygnus.crispsweetberry.utils.annotations.BanFromTabRegistry;
-import kurvcygnus.crispsweetberry.utils.annotations.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.BanFromTabRegistry;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 /**
  * The executor of annotation <b><u>{@link RegisterToTab @RegisterToTab}</u></b>.<br>
  * <b>It automatically registers every item in {@code CrispItems.class} which presents {@link RegisterToTab @RegisterToTab} to designated tabs.</b>
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID, value = Dist.CLIENT)
 public final class CrispCreativeTabsRegistryEvent

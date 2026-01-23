@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.utils.collects;
+package kurvcygnus.crispsweetberry.utils.ui.collects;
 
 import com.google.common.collect.Range;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A simple range class for making range checks more readable.<br>
@@ -17,8 +18,8 @@ import java.util.List;
  * If you need to use it for other number types, you may try <u>{@link CrispRanger}</u>.
  * @apiNote It is recommended to <b>use this as a constant</b>, constantly creating instances like this only brings performance penalty.<br>
  * Also, {@code CrispIntRanger} is always immutable.
- * @author Kurv
- * @since CSB 1.0 Release
+ * @author Kurv Cygnus
+ * @since 1.0 Release
  */
 public final class CrispIntRanger
 {
@@ -42,23 +43,23 @@ public final class CrispIntRanger
         {
             this.min = max;
             this.max = min;
-            logger.warn("Swapped the value of min({})/max({}) to avoid abnormal behaviors.", min, max);
+            logger.warn("Swapped the value of min({})/max({}) to avoid abnormal behaviors.", max, min);
         }
         this.minClosed = minClosed;
         this.maxClosed = maxClosed;
     }
     
     @Contract("_, _ -> new")
-    public static CrispIntRanger closed(int min, int max) { return new CrispIntRanger(min, max, true, true); }
+    public static @NotNull CrispIntRanger closed(int min, int max) { return new CrispIntRanger(min, max, true, true); }
     
     @Contract("_, _ -> new")
-    public static CrispIntRanger open(int min, int max) { return new CrispIntRanger(min, max, false, false); }
+    public static @NotNull CrispIntRanger open(int min, int max) { return new CrispIntRanger(min, max, false, false); }
     
     @Contract("_, _ -> new")
-    public static CrispIntRanger openClosed(int min, int max) { return new CrispIntRanger(min, max, false, true); }
+    public static @NotNull CrispIntRanger openClosed(int min, int max) { return new CrispIntRanger(min, max, false, true); }
     
     @Contract("_, _ -> new")
-    public static CrispIntRanger closedOpen(int min, int max) { return new CrispIntRanger(min, max, true, false); }
+    public static @NotNull CrispIntRanger closedOpen(int min, int max) { return new CrispIntRanger(min, max, true, false); }
     
     /**
      * This method is used for searching which range does {@code index} located in.<br>
@@ -83,8 +84,14 @@ public final class CrispIntRanger
     public static int inRangers(int value, @NotNull List<CrispIntRanger> rangers)
     {
         for(int index = 0; index < rangers.size(); index++)
-            if(rangers.get(index).inRange(value))
+        {
+            CrispIntRanger ranger = rangers.get(index);
+            
+            Objects.requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
+            
+            if(ranger.inRange(value))
                 return index;
+        }
         
         return -1;
     }
@@ -95,11 +102,16 @@ public final class CrispIntRanger
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
     @CheckReturnValue
-    public static int inRangers(int value, @NotNull CrispIntRanger... rangers)
+    public static int inRangers(int value, CrispIntRanger @NotNull... rangers)
     {
         for(int index = 0; index < rangers.length; index++)
-            if(rangers[index].inRange(value))
+        {
+            CrispIntRanger ranger = rangers[index];
+            Objects.requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
+            
+            if(ranger.inRange(value))
                 return index;
+        }
         
         return -1;
     }

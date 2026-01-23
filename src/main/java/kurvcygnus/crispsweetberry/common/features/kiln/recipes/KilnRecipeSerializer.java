@@ -15,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
  * @see KilnRecipe Recipe Part
  * @see KilnRecipeType Type Declaration
  * @see KilnRecipeInput Recipe Input Part
- * @author Kurv
- * @since CSB Release 1.0
+ * @author Kurv Cygnus
+ * @since 1.0 Release
  */
 public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
 {

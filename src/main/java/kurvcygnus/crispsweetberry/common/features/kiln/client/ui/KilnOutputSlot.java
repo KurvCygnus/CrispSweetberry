@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Modified slot for Kiln Block.
  * @see KilnMenu Usage
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  */
 public final class KilnOutputSlot extends Slot
 {

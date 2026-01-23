@@ -17,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
  * @see KilnRecipeSerializer Serializer
  * @see KilnRecipeType Type Declaration
  * @see KilnRecipeInput Recipe Input Part
- * @author Kurv
- * @since CSB Release 1.0
+ * @author Kurv Cygnus
+ * @since 1.0 Release
  * 
  * @implNote Kiln WILL NOT support recipe unlock, or recipe book function.<br>
  * Reasons:<ul>
@@ -137,9 +137,9 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
      * @apiNote This is used for recipe validation.
      * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator#calculateRates Usage  
      */
-    public static boolean isEmptyRecipe(KilnRecipe recipe) { return recipe == null || recipe.state.equals(RecipeState.NULL); }
+    public static boolean isEmptyRecipe(@NotNull KilnRecipe recipe) { return recipe.state.equals(RecipeState.NULL); }
     
-    public static boolean isTipRecipe(KilnRecipe recipe) { return recipe.state.equals(RecipeState.TIP); }
+    public static boolean isTipRecipe(@NotNull KilnRecipe recipe) { return recipe.state.equals(RecipeState.TIP); }
     
     public Ingredient getIngredient() { return this.ingredient; }
     

@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * The <b>entity version</b> of the item <b>throwable torch</b>.
  * @see ThrownTorchRenderer Renderer
  * @since CSB 1.0 release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 public final class ThrownTorchEntity extends AbstractThrownTorchEntity
 {

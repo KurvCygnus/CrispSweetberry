@@ -1,18 +1,18 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.data;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.ProgressTrend;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.ResultType;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProgressTrend;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ResultType;
 import net.minecraft.world.inventory.ContainerData;
 
 /**
  * The modified ContainerData for Kiln Block.<br>
  * <b>{@code ContainerData}</b> plays an important role in <b>Client-Server Sync</b>.
  *
- * @author Kurv
+ * @author Kurv Cygnus
  * @see net.minecraft.world.inventory.ContainerData Source
  * @see KilnBlockEntity Usage
- * @since CSB Release 1.0
+ * @since 1.0 Release
  */
 public final class KilnContainerData implements ContainerData
 {

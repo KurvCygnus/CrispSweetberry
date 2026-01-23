@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*;
 
 //TODO: onHit系列的Override, 信号传递得完善
 //WIP
@@ -25,7 +25,7 @@ import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
  * The standard block class of throwable redstone torch.
  * @see AbstractTemporaryTorchBlock Super class
  * @since CSB 1.0 release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 public final class TemporaryRedstoneTorchBlock extends AbstractTemporaryTorchBlock
 {

@@ -6,9 +6,9 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEnti
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnDummyBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
-import kurvcygnus.crispsweetberry.utils.CrispUIUtils;
-import kurvcygnus.crispsweetberry.utils.collects.CrispIntRanger;
-import kurvcygnus.crispsweetberry.utils.constants.SlotConstants;
+import kurvcygnus.crispsweetberry.utils.ui.CrispUIUtils;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -20,19 +20,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
-import static kurvcygnus.crispsweetberry.utils.constants.SlotConstants.*;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants.*;
 
 /**
  * The <b>user interface part</b> of the Kiln Block.<br>
  * <b>{@code Menu}</b> is the gateway between <b>client and server interaction</b>.
  *
- * @author Kurv
+ * @author Kurv Cygnus
  * @see net.minecraft.world.inventory.AbstractContainerMenu Source
  * @see KilnBlock Holder of the menu
  * @see KilnBlockEntity Logical part
  * @see KilnContainerData Data Sync Part
  * @see KilnRecipeCacheEvent Recipe Initialization
- * @since CSB Release 1.0
+ * @since 1.0 Release
  */
 public final class KilnMenu extends AbstractContainerMenu
 {

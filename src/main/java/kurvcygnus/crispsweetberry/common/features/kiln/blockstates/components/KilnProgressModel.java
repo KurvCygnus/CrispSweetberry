@@ -1,7 +1,9 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import com.mojang.logging.LogUtils;
-import kurvcygnus.crispsweetberry.utils.constants.MiscConstants;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProgressTrend;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ResultType;
+import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.slf4j.Logger;
 
@@ -11,8 +13,8 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainer
 /**
  * This class keeps the synchronization, and connections between blockEntity and menu.
  * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity BlockEntity
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  */
 public final class KilnProgressModel
 {

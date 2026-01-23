@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.utils.constants;
+package kurvcygnus.crispsweetberry.utils.definitions;
 
 public final class SoundConstants
 {

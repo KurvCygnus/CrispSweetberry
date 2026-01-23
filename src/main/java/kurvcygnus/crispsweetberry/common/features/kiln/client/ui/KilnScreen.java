@@ -1,10 +1,10 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.ProgressTrend;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.ResultType;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProgressTrend;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ResultType;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.utils.CrispCommonUtils;
-import kurvcygnus.crispsweetberry.utils.constants.UIConstants;
+import kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -17,16 +17,16 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.*;
-import static kurvcygnus.crispsweetberry.utils.constants.UIConstants.NO_OFFSET;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants.NO_OFFSET;
 
 /**
  * This the actual user interface for kiln.
  *
- * @author Kurv
+ * @author Kurv Cygnus
  * @see KilnMenu Menu(The gate between client and server)
  * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity BlockEntity
  * @see kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock Block
- * @since CSB Release 1.0
+ * @since 1.0 Release
  */
 public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
 {
@@ -45,8 +45,8 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     
     private static final int TIP_X_POS = 67;
     private static final int TIP_Y_POS = 56;
-    private static final int TIP_WIDTH = 50;
-    private static final int TIP_HEIGHT = 50;
+    private static final int TIP_WIDTH = 10;
+    private static final int TIP_HEIGHT = 10;
     
     //! About namespaces: please use "static" to decrease performance penalty.
     //? TODO: 将贴图迁移到贴图管理器中
@@ -64,8 +64,11 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     @Override
     public void init()
     {
+        //! The value assignment of image's width and height should be ahead of `super.init()`.
+        //! You can see the reason in the source code of that method.
         this.imageWidth = BG_WIDTH;
         this.imageHeight = BG_HEIGHT;
+        
         super.init();
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
         
@@ -90,7 +93,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
                 CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT
             );
         
-        if(progress > 0D)//! Strictly, the layered arrow texture doesn't belong to background.
+        if(progress > 0D)//! Strictly, the layered arrow texture doesn't belong to background stuff.
         {
             final ResourceLocation layeredArrowTexture;
             final Tooltip widgetTipText;
@@ -99,8 +102,8 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
             {
                 case BALANCING ->
                 {
-                    layeredArrowTexture = trend == ProgressTrend.DECREASE ? BALANCE_DECREASE_ARROW_TEXTURE : BALANCE_INCREASE_ARROW_TEXTURE;
-                    widgetTipText = trend == ProgressTrend.DECREASE ? KilnInfoWidget.COOLDOWN_TIP : KilnInfoWidget.EMPTY_TIP;
+                    layeredArrowTexture = (trend == ProgressTrend.DECREASE) ? BALANCE_DECREASE_ARROW_TEXTURE : BALANCE_INCREASE_ARROW_TEXTURE;
+                    widgetTipText = (trend == ProgressTrend.DECREASE) ? KilnInfoWidget.COOLDOWN_TIP : KilnInfoWidget.EMPTY_TIP;
                 }
                 case BLAST_TIP ->
                 {
@@ -157,8 +160,8 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     /**
      * The widget to inform players the limitation of kiln.
      *
-     * @author Kurv
-     * @since CSB Release 1.0
+     * @author Kurv Cygnus
+     * @since 1.0 Release
      */
     private static final class KilnInfoWidget extends AbstractWidget
     {
@@ -206,7 +209,6 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         }
         
         @Override
-        protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput)
-            { this.defaultButtonNarrationText(narrationElementOutput); }
+        protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput) { this.defaultButtonNarrationText(narrationElementOutput); }
     }
 }

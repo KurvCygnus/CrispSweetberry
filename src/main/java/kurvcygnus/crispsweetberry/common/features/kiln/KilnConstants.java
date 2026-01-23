@@ -1,11 +1,11 @@
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
-import kurvcygnus.crispsweetberry.utils.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 
 /**
  * This class mainly maintains slots contants of Kiln.
- * @author Kurv 
- * @since CSB Release 1.0
+ * @author Kurv Cygnus
+ * @since 1.0 Release
  */
 public final class KilnConstants
 {

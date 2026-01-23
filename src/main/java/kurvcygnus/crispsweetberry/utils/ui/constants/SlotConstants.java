@@ -1,6 +1,7 @@
-package kurvcygnus.crispsweetberry.utils.constants;
+package kurvcygnus.crispsweetberry.utils.ui.constants;
 
-import kurvcygnus.crispsweetberry.utils.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.CrispUIUtils;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -9,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
  * despite <b>some constants are unused</b>, they should always exist.<br><br>
  * Also, this example constants class is only applied on <u>{@link net.minecraft.world.level.block.FurnaceBlock Furnace}</u>.
  * Custom slots should follow its own slots index.
+ * @since 1.0 Release
  */
 public final class SlotConstants
 {
@@ -19,7 +21,7 @@ public final class SlotConstants
     /**
      * <b>{@code GRID}</b> start indexes are used for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu Menu}</u> layout initialization,
      * they are mostly universal, which are different from other constants in this class.
-     * @see kurvcygnus.crispsweetberry.utils.CrispUIUtils#addGridSlots Recommended Usage 
+     * @see CrispUIUtils#addGridSlots Recommended Usage 
      */
     public static final int INVENTORY_SLOTS_GRID_START_INDEX = 9;
     public static final int INVENTORY_SLOTS_START_X_POS = 8;
@@ -30,7 +32,7 @@ public final class SlotConstants
     /**
      * <b>{@code GRID}</b> start indexes are used for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu Menu}</u> layout initialization,
      * they are mostly universal, which are different from other constants in this class.
-     * @see kurvcygnus.crispsweetberry.utils.CrispUIUtils#addGridSlots Recommended Usage
+     * @see CrispUIUtils#addGridSlots Recommended Usage
      */
     public static final int HOTBAR_SLOTS_GRID_START_INDEX = 0;
     public static final int HOTBAR_SLOTS_START_X_POS = 8;

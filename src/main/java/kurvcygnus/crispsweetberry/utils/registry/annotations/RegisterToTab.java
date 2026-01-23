@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.utils.annotations;
+package kurvcygnus.crispsweetberry.utils.registry.annotations;
 
 import kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent;
 import kurvcygnus.crispsweetberry.client.registries.CrispCreativeTabs;
@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
  * }</pre>
  * @see CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent)  Annotation Executor
  * @since CSB 1.0 Release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

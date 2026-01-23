@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.utils.annotations;
+package kurvcygnus.crispsweetberry.utils.registry.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,8 +13,8 @@ import java.lang.annotation.Target;
  *     public static final Holder<Item> Bar = ...
  * }</pre>
  * @see kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent#tabRegistryEvent Usage
- * @author Kurv
- * @since CSB Release 1.0
+ * @author Kurv Cygnus
+ * @since 1.0 Release
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

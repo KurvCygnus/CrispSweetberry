@@ -2,8 +2,8 @@ package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.items.ThrowableTorchItem;
-import kurvcygnus.crispsweetberry.utils.annotations.BanFromTabRegistry;
-import kurvcygnus.crispsweetberry.utils.annotations.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.BanFromTabRegistry;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;

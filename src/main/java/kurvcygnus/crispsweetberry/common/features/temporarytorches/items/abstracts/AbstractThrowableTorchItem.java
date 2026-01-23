@@ -2,7 +2,7 @@ package kurvcygnus.crispsweetberry.common.features.temporarytorches.items.abstra
 
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.entities.abstracts.AbstractThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.items.ThrowableTorchItem;
-import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.sounds.SoundEvent;
@@ -20,14 +20,14 @@ import net.minecraft.world.item.ProjectileItem;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.PROJECTILE_SHOOT_Z_POS;
+import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.PROJECTILE_SHOOT_Z_POS;
 
 /**
  * The <b>basic</b> of <b>all throwable torches</b>.
  * @param <T> The <b>torch entity it bounds to</b>.
  * @see ThrowableTorchItem Basic Implementation
  * @since CSB 1.0 release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEntity> extends Item implements ProjectileItem
 {

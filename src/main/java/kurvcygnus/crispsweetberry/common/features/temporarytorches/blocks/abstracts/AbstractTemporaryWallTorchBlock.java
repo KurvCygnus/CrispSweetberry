@@ -28,7 +28,7 @@ import java.util.function.ToIntFunction;
  * @see TemporaryWallTorchBlock Basic Implementation
  * @see TemporaryRedstoneWallTorchBlock Redstone variants
  * @since CSB 1.0 release
- * @author Kurv
+ * @author Kurv Cygnus
  */
 public abstract class AbstractTemporaryWallTorchBlock extends WallTorchBlock implements ITemporaryTorchBehaviors
 {

@@ -6,8 +6,8 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.registries.CrispBlockEntities;
-import kurvcygnus.crispsweetberry.utils.CrispVisualUtils;
-import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.misc.CrispVisualUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*;
 
 //? TODO: Dye variants, water causes LIT property change impl
 
@@ -43,8 +43,8 @@ import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
  * @see KilnContainerData Data Sync Part
  * @see KilnMenu Menu Part
  * @see KilnRecipeCacheEvent Recipe Initialization
- * @since CSB Release 1.0
- * @author Kurv
+ * @since 1.0 Release
+ * @author Kurv Cygnus
  */
 public final class KilnBlock extends BaseEntityBlock
 {
