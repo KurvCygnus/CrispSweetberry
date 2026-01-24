@@ -17,5 +17,8 @@
   "crispsweetberry.keybind.spyglass_zoom": "I C U KWIKE uwu",
   "crispsweetberry.menu.control.title": "TAZTY FRUT IN GAYM BUTTONZ",
   "crispsweetberry.ui.widget.kiln_info_cooldown": "DA BIG BOKZ IZ TRYIN' 2 BEE NOT OP",
-  "crispsweetberry.ui.widget.kiln_tip_blast": "BIG BOKZ KIN'T TAK THIZ!!!"
+  "crispsweetberry.ui.widget.kiln_tip_blast": "BIG BOKZ KIN'T TAK THIZ!!!",
+  
+  "crispsweetberry.config.debug.kiln_be": "[DAVZ] WARM BOZ: BlarkAntity Tezt Stuff",
+  "crispsweetberry.config.debug.kiln_cal": "[DAVZ] WARM BOZ: Kaqlaytor Tezt Stuff"
 }

@@ -22,7 +22,7 @@ import java.util.HashMap;
 /**
  * The event which <b>fills the content with kiln recipes.</b>
  * @see KilnBlockEntity Usage
- * @since CSB 1.0 Release
+ * @since 1.0 Release
  * @author Kurv Cygnus
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID)

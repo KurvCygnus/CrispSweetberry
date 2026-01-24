@@ -17,5 +17,8 @@
   "crispsweetberry.keybind.spyglass_zoom": "Spyglass Quick Zoom",
   "crispsweetberry.menu.control.title": "Crisp Sweetberry-In Game Keymappings",
   "crispsweetberry.ui.widget.kiln_info_cooldown": "Total heat changed. Rebalancing heat distribution...",
-  "crispsweetberry.ui.widget.kiln_tip_blast": "Some materials are blasting recipe.\nKiln can't process such items that requires high heat."
+  "crispsweetberry.ui.widget.kiln_tip_blast": "Some materials are blasting recipe.\nKiln can't process such items that requires high heat.",
+  
+  "crispsweetberry.config.debug.kiln_be": "[DEBUG ONLY] Kiln: BlockEntity Debug Log",
+  "crispsweetberry.config.debug.kiln_cal": "[DEBUG ONLY] Kiln: Calculator Debug Log"
 }

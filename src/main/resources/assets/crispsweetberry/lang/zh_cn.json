@@ -17,5 +17,8 @@
   "crispsweetberry.keybind.spyglass_zoom": "望远镜快速使用",
   "crispsweetberry.menu.control.title": "澄莓物语-游戏按键",
   "crispsweetberry.ui.widget.kiln_info_cooldown": "总输入热量改变. 正在重分配热量...",
-  "crispsweetberry.ui.widget.kiln_tip_blast": "部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料."
+  "crispsweetberry.ui.widget.kiln_tip_blast": "部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料.",
+  
+  "crispsweetberry.config.debug.kiln_be": "[调试] 窑炉: BlockEntity 调试日志",
+  "crispsweetberry.config.debug.kiln_cal": "[调试] 窑炉: Calculator 调试日志"
 }

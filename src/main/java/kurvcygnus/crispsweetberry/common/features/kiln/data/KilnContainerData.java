@@ -1,8 +1,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.data;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProgressTrend;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ResultType;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import net.minecraft.world.inventory.ContainerData;
 
 /**
@@ -17,9 +16,8 @@ import net.minecraft.world.inventory.ContainerData;
 public final class KilnContainerData implements ContainerData
 {
     public static final int VISUAL_PROGRESS_INDEX = 0;
-    public static final int RESULT_TYPE_INDEX = 1;
-    public static final int PROGRESS_TREND_INDEX = 2;
-    public static final int IGNITION_STATE_INDEX = 3;
+    public static final int PROGRESS_TREND_INDEX = 1;
+    public static final int IGNITION_STATE_INDEX = 2;
     
     public static final int TRUE = 0;
     public static final int FALSE = 1;
@@ -40,7 +38,6 @@ public final class KilnContainerData implements ContainerData
         return (int) switch(p_58431_)
         {
             case VISUAL_PROGRESS_INDEX -> kiln.model.getVisualProgress() * 10000;
-            case RESULT_TYPE_INDEX -> kiln.model.getResultTypeIndex();
             case PROGRESS_TREND_INDEX -> kiln.model.getProgressTrendIndex();
             case IGNITION_STATE_INDEX -> kiln.model.getIgnitionState();
             default -> throw new IllegalArgumentException("Illegal value for p_58431_: " + p_58431_);
@@ -60,8 +57,7 @@ public final class KilnContainerData implements ContainerData
         switch(p_58433_)
         {
             case VISUAL_PROGRESS_INDEX -> kiln.model.setVisualProgress((double) p_58434_ / 10000);
-            case RESULT_TYPE_INDEX -> kiln.model.setResultType(ResultType.toEnum(p_58434_));
-            case PROGRESS_TREND_INDEX -> kiln.model.setProgressTrend(ProgressTrend.toEnum(p_58434_));
+            case PROGRESS_TREND_INDEX -> kiln.model.setProgressTrend(VisualTrend.toEnum(p_58434_));
             case IGNITION_STATE_INDEX -> kiln.model.setIgnitionState(p_58434_);
             default -> throw new IllegalArgumentException("Illegal value for p_58433_: " + p_58433_);
         }
@@ -72,7 +68,7 @@ public final class KilnContainerData implements ContainerData
      * <i>Hard-coded for performance reasons, probably.</i>
      */
     @Override
-    public int getCount() { return 4; }
+    public int getCount() { return 3; }
     
     public static double toStandardProgress(int progress) { return (double) progress / 10000; }
     

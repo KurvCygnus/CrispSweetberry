@@ -14,6 +14,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -79,10 +80,10 @@ public final class KilnBlock extends BaseEntityBlock
     }
     
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, LIT); }
+    protected void createBlockStateDefinition(@NotNull StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, LIT); }
     
     @Override
-    public BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
+    public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
     {
         return this.defaultBlockState().
             setValue(FACING, context.getHorizontalDirection().getOpposite())//.
@@ -129,6 +130,22 @@ public final class KilnBlock extends BaseEntityBlock
                     return InteractionResult.CONSUME;
                 }
             }
+    
+    @Override
+    public void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving)
+    {
+        if(state.is(newState.getBlock()))
+            return;
+        
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        
+        if(blockEntity instanceof KilnBlockEntity kiln)
+        {
+            Containers.dropContents(level, pos, kiln);
+            level.updateNeighbourForOutputSignal(pos, this);
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
     
     @Override
     public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)

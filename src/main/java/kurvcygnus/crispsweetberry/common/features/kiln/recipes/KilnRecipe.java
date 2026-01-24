@@ -90,21 +90,21 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
      * <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity KilnBlockEntity}</u> 
      * to avoid the confusion of null recipe<i>(Boundary cases)</i> and no match recipe<i>(Makes sense)</i>.
      */
-    public static NonNullList<KilnRecipe> noRecipeList() { return NonNullList.withSize(1, new KilnRecipe(RecipeState.NULL)); }
+    public static @NotNull NonNullList<KilnRecipe> noRecipeList() { return NonNullList.withSize(1, new KilnRecipe(RecipeState.NULL)); }
     
     /**
      * @apiNote This static factory constructor method is specifically used for
      * <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity KilnBlockEntity}</u> 
      * to avoid the confusion of null recipe<i>(Boundary cases)</i> and no match recipe<i>(Makes sense)</i>.
      */
-    public static KilnRecipe noRecipe() { return new KilnRecipe(RecipeState.NULL); }
+    public static @NotNull KilnRecipe noRecipe() { return new KilnRecipe(RecipeState.NULL); }
     
     /**
      * @apiNote This static factory constructor method is specifically used for
      * <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity KilnBlockEntity}</u> 
      * to tip players the fact that blasting recipes can't be handled by kiln.
      */
-    public static KilnRecipe tipRecipe() { return new KilnRecipe(RecipeState.TIP); }
+    public static @NotNull KilnRecipe tipRecipe() { return new KilnRecipe(RecipeState.TIP); }
     //endregion
     
     //  region
@@ -137,6 +137,7 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
      * @apiNote This is used for recipe validation.
      * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator#calculateRates Usage  
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! We shouldn't reverse method, the name of inverted method will lead to confusion.
     public static boolean isEmptyRecipe(@NotNull KilnRecipe recipe) { return recipe.state.equals(RecipeState.NULL); }
     
     public static boolean isTipRecipe(@NotNull KilnRecipe recipe) { return recipe.state.equals(RecipeState.TIP); }

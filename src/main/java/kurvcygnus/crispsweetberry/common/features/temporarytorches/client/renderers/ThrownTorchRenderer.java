@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The <b>renderer of thrown torch</b>.
  * @see ThrownTorchEntity Render Target
- * @since CSB 1.0 release
+ * @since 1.0 Release
  * @author Kurv Cygnus
  */
 public final class ThrownTorchRenderer extends AbstractThrownTorchRenderer<ThrownTorchEntity>

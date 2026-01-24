@@ -1,9 +1,8 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProgressTrend;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ResultType;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
-import kurvcygnus.crispsweetberry.utils.CrispCommonUtils;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,19 +42,19 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     private static final int ARROW_WIDTH = 24;
     private static final int ARROW_HEIGHT = 17;
     
-    private static final int TIP_X_POS = 67;
-    private static final int TIP_Y_POS = 56;
-    private static final int TIP_WIDTH = 10;
-    private static final int TIP_HEIGHT = 10;
+    private static final int TIP_X_POS = 190;
+    private static final int TIP_Y_POS = 98;
+    private static final int TIP_WIDTH = 8;
+    private static final int TIP_HEIGHT = 8;
     
     //! About namespaces: please use "static" to decrease performance penalty.
     //? TODO: 将贴图迁移到贴图管理器中
-    private static final ResourceLocation BACKGROUND_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/background.png");
-    private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/lit_campfire.png");
-    private static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/progress_arrow.png");
-    private static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/balance_decrease_arrow.png");
-    private static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/balance_increase_arrow.png");
-    private static final ResourceLocation TIP_ARROW_TEXTURE = CrispCommonUtils.getModNamespacedLocation("textures/gui/kiln/tip_arrow.png");
+    private static final ResourceLocation BACKGROUND_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/background.png");
+    private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/lit_campfire.png");
+    private static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/progress_arrow.png");
+    private static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/balance_decrease_arrow.png");
+    private static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/balance_increase_arrow.png");
+    private static final ResourceLocation TIP_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/tip_arrow.png");
     
     private final KilnInfoWidget widget = new KilnInfoWidget(TIP_X_POS, TIP_Y_POS, TIP_WIDTH, TIP_HEIGHT);
     
@@ -81,8 +80,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         
         final double progress = KilnContainerData.toStandardProgress(menu.data.get(VISUAL_PROGRESS_INDEX));
-        final ResultType type = ResultType.toEnum(menu.data.get(RESULT_TYPE_INDEX));
-        final ProgressTrend trend = ProgressTrend.toEnum(menu.data.get(PROGRESS_TREND_INDEX));
+        final VisualTrend trend = VisualTrend.toEnum(menu.data.get(PROGRESS_TREND_INDEX));
         final boolean isIgnited = KilnContainerData.toStandardIgnitionState(menu.data.get(IGNITION_STATE_INDEX));
 
         if(isIgnited)
@@ -93,29 +91,29 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
                 CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT
             );
         
-        if(progress > 0D)//! Strictly, the layered arrow texture doesn't belong to background stuff.
+        //*                  ↓ We should always tip players about recipes that are banned. 
+        if(progress > 0D || trend == VisualTrend.TIP)//! Strictly, the layered arrow texture doesn't belong to background stuff.
         {
             final ResourceLocation layeredArrowTexture;
-            final Tooltip widgetTipText;
+            Tooltip widgetTipText = null;
             
-            switch(type)
+            switch(trend)
             {
-                case BALANCING ->
+                case BALANCE, BURST ->
                 {
-                    layeredArrowTexture = (trend == ProgressTrend.DECREASE) ? BALANCE_DECREASE_ARROW_TEXTURE : BALANCE_INCREASE_ARROW_TEXTURE;
-                    widgetTipText = (trend == ProgressTrend.DECREASE) ? KilnInfoWidget.COOLDOWN_TIP : KilnInfoWidget.EMPTY_TIP;
+                    layeredArrowTexture = trend == VisualTrend.BALANCE ? BALANCE_DECREASE_ARROW_TEXTURE : BALANCE_INCREASE_ARROW_TEXTURE;
+                    widgetTipText = KilnInfoWidget.COOLDOWN_TIP;
                 }
-                case BLAST_TIP ->
+                case TIP ->
                 {
                     layeredArrowTexture = TIP_ARROW_TEXTURE;
                     widgetTipText = KilnInfoWidget.BLAST_TIP;
                 }
-                default ->
-                {
-                    layeredArrowTexture = PROGRESS_ARROW_TEXTURE;
-                    widgetTipText = KilnInfoWidget.EMPTY_TIP;
-                }
+                default -> layeredArrowTexture = PROGRESS_ARROW_TEXTURE;
             }
+            
+            if(widgetTipText == null)
+                widgetTipText = KilnInfoWidget.EMPTY_TIP;
             
             if(this.widget.getTooltip() != widgetTipText)
                 this.widget.setTooltip(widgetTipText);

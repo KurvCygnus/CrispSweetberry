@@ -1,24 +1,28 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates;
 
 import com.mojang.logging.LogUtils;
+import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.CalculationResult;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.InputState;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.LogicalResult;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProcessionState;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ResultType;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.registries.CrispBlockEntities;
+import kurvcygnus.crispsweetberry.utils.misc.CrispLogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -40,16 +44,8 @@ import java.util.Arrays;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
 import static kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel.upgradeProgress;
+import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.TRUE;
 import static kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe.*;
-
-//? TODO: HOLY CRAP, A BUNCH OF BUGS, SHIT
-//? KICKED 1. Only when after a while of material put inside will the procession start 
-//? 2. Progress won't stop after content is cleaned, and the rate is positive
-//? KINDA KICKED, DISPLAY NORMAL, PROGRESS CAL NOT NORMAL 3. Can't see any visual change of arrow, or the appearance of widget
-//? 4. On Block Destroy has even no PROCESSION(Simple LOL)
-//? KICKED XD 5. Procession speed has no difference! Test with: Raw rabbit, raw chicken, raw beef ~ 3 Stack of sand
-
-//? TODO: Configurable detailed debug logs
 
 /**
  * The <b>container part</b> of <b>Kiln Block</b>, which is responsible for <b>containment, sync and logical</b> things.
@@ -82,6 +78,13 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         KILN_OUTPUT_SLOTS_RANGE.getMax()
     };
     
+    private static final String NBT_TAG_VISUAL_PROGRESS = "VisualProgress";
+    private static final String NBT_TAG_REAL_PROGRESS = "RealProgress";
+    private static final String NBT_TAG_EXPERIENCE = "Experience";
+    private static final String NBT_TAG_LIT = "Lit";
+    private static final String NBT_TAG_BALANCE_TICK = "balanceTick";
+    private static final String NBT_TAG_BALANCE_RATE = "balanceRate";
+    
     //*:=== Fields
     //*:== Slot Data
     private NonNullList<ItemStack> containerItems = NonNullList.withSize(KILN_DEFAULT_SIZE, ItemStack.EMPTY);
@@ -92,7 +95,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
      * both real and visual progress of the kiln, and the model itself has some private methods specifically for fixing values.
      */
     public final KilnProgressModel model = new KilnProgressModel();
-    private final KilnProgressCalculator progressCalculator = new KilnProgressCalculator();
+    private final KilnProgressCalculator calculator = new KilnProgressCalculator();
     
     private final ContainerData data = new KilnContainerData(this);
     
@@ -103,7 +106,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     private float experience = 0F;
     
     //*:== Logger
-    private static final Logger logger = LogUtils.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
     //endregion
     
     //  region
@@ -112,7 +115,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     //*:=== Hopper Support Essentials
     @Override
-    public int @NotNull [] getSlotsForFace(@NotNull Direction side) 
+    public int @NotNull [] getSlotsForFace(@NotNull Direction side)
     {
         if(side == Direction.DOWN)
             return OUTPUT_SLOTS;
@@ -153,27 +156,28 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     @Override
     protected void setItems(@NotNull NonNullList<ItemStack> items) { this.containerItems = items; }
     
+    /**
+     * @implNote Do not add flags like {@code slotChanged} to make <u>{@link #updateInputSlotsInfo()}</u> event-driven based. 
+     * Neither <u>{@link ItemStack#isSameItem ItemStack#isSameItem()}</u> nor <u>{@link ItemStack#isSameItemSameComponents ItemStack#isSameItemSameComponents()}</u>
+     * can fully cover boundary cases. Mixed other logics with them together mostly also won't settle these issues.
+     */
     @Override
     public void setItem(int index, @NotNull ItemStack stack)
     {
         ItemStack oldItemStack = containerItems.get(index);
-        final boolean slotChanged = stack.isEmpty() != oldItemStack.isEmpty() ||//! You may wonder: "Why we need to so many methods? Isn't 'isSameItem()' usable?"
-            stack.getCount() != oldItemStack.getCount() ||                      //! Answer's no. It behaves odd on cases that an item is being taken.
-            !ItemStack.isSameItemSameComponents(stack, oldItemStack);           //! So we need to use these methods to check.
         
-        
-        logger.debug("[INPUT_CHECK] Changed: {}, Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
-            slotChanged, index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
+        configDebug("[INPUT_CHECK] Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
+            index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
         );
         
         stack.limitSize(this.getMaxStackSize(stack));
         this.containerItems.set(index, stack);
         
-        if(level != null && !level.isClientSide && slotChanged)
+        if(level != null && !level.isClientSide)
         {
             if(KILN_INPUT_SLOTS_RANGE.inRange(index))
             {
-                logger.debug("[UPDATE_INFO] index: {} -> at input range -> go update input slots' information", index);
+                configDebug("[UPDATE_INFO] index: {} -> at input range -> go update input slots' information", index);
                 updateInputSlotsInfo();
             }
             
@@ -199,7 +203,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.getMin();
             ItemStack stackInSlot = containerItems.get(slotIndex);
             
-            logger.debug("[INPUT_CHECK] slotIndex: {}, cacheIndex: {}, content: {}",
+            configDebug("[INPUT_CHECK] slotIndex: {}, cacheIndex: {}, content: {}",
                 slotIndex, cacheIndex, stackInSlot.getDisplayName());
             
             if(stackInSlot.isEmpty())
@@ -207,7 +211,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             else if(canSmelt(stackInSlot))    
             {
                 if(inputState != InputState.VALID)
-                    logger.debug("[INPUT_STATE_CHANGED] {} -> VALID (at slot {}, stack: {})",
+                    configDebug("[INPUT_STATE_CHANGED] {} -> VALID (at slot {}, stack: {})",
                         inputState, slotIndex, stackInSlot.getDisplayName());
                 
                 inputState = InputState.VALID;
@@ -216,7 +220,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     getOrDefault(stackInSlot.getItem(), noRecipeList()).getFirst();
                 
                 recipeCache[cacheIndex] = (recipe != null && !isEmptyRecipe(recipe)) ? recipe : noRecipe();
-                logger.debug("[CACHE_WRITE] write cache[{}] from slot {} -> {}",
+                configDebug("[CACHE_WRITE] write cache[{}] from slot {} -> {}",
                     cacheIndex, slotIndex, recipe);
             }
             else if(isBanned(stackInSlot))
@@ -234,28 +238,28 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                 break;
             }
             
-            logger.debug("[CACHE_CONFIRM] new cache at index {}: [Ingredient: {}, Result: {}]",
+            configDebug("[CACHE_CONFIRM] new cache at index {}: [Ingredient: {}, Result: {}]",
                 slotIndex, recipeCache[cacheIndex].getIngredient(), recipeCache[cacheIndex].getResult());
         }
         
-        final ResultType predictedResultType;
+        final LogicalResult nonWorkingLogicalResult;
         
         switch(inputState)
         {
-            case HAS_TIP -> predictedResultType = ResultType.BLAST_TIP;
-            case VALID -> predictedResultType = ResultType.CONTINUE;
-            default -> predictedResultType = ResultType.SKIP;
+            case HAS_TIP -> nonWorkingLogicalResult = LogicalResult.BLAST_TIP;
+            case VALID -> nonWorkingLogicalResult = LogicalResult.CONTINUE;
+            default -> nonWorkingLogicalResult = LogicalResult.SKIP;
         }
         
-        logger.debug(
-            "[PULL_CACHE] \"Calculator#setRecipesAndResultType\" called. inputState = {}, recipes = {}, predictedResultType = {}",
+        configDebug(
+            "[PULL_CACHE] \"Calculator#setRecipesAndResultType\" called. inputState = {}, recipes = {}, nonWorkingLogicalResult = {}",
             inputState,
             Arrays.toString(recipeCache),
-            predictedResultType.name()
+            nonWorkingLogicalResult.name()
         );
         
         //* Sync recipes here to minimalize performance penalty instead of doing this in serverTick.
-        this.progressCalculator.setRecipesAndResultType(recipeCache, predictedResultType);
+        this.calculator.setRecipesAndResultType(recipeCache, nonWorkingLogicalResult);
     }
     
     /**
@@ -278,13 +282,17 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         
         ProcessionState currentState = blockEntity.deduceProcessState(isIgnited);
         
-        final CalculationResult result = blockEntity.progressCalculator.
+        final CalculationResult result = blockEntity.calculator.
             calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
         
-        blockEntity.model.synchronize(result.currentRealProgress(), result.currentVisualProgress(), result.resultType(), result.trend(), isIgnited);
+        blockEntity.model.synchronize(result.currentRealProgress(), result.currentVisualProgress(), result.trend(), isIgnited);
         
-        if(result.resultType() != ResultType.CONTINUE)
-            return;
+        switch(result.logicalResult())
+        {
+            case CONTINUE, BALANCING -> {}
+            case INVALID -> LOGGER.error("[UNEXPECTED_RESULT] Received unexpected result \"{}\"", result.logicalResult().name());
+            case SKIP -> { return; }
+        }
             
         final boolean isFinishedProcession = upgradeProgress(blockEntity.model);
         
@@ -302,7 +310,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     /**
      * @apiNote 
-     * State <u>{@link ResultType#BALANCING BALANCING}</u>
+     * State <u>{@link LogicalResult#BALANCING BALANCING}</u>
      * is strictly considered as a special variation of 
      * <u>{@link ProcessionState#WORKING WORKING}</u>, instead of being an independent state,
      * it's deduced, only being used in 
@@ -323,16 +331,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         ItemStack[] resultStacks = new ItemStack[3];
         
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
-        {
-            final int inputIndex = index + KILN_INPUT_SLOTS_RANGE.getMin();
-            
-            //! Despite inputs are already checked before this logic,
-            //! we still need to be defensive.
-            if(!blockEntity.canSmelt(blockEntity.containerItems.get(inputIndex)))
-                return false;
-            
             resultStacks[index] = blockEntity.recipeCache[index].getResultItem(level.registryAccess()).copy();
-        }
         
         //* Since the procession is complex, using emulation-then-apply strategy can sufficiently decrease the quantity of boundary cases.
         NonNullList<ItemStack> emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
@@ -360,7 +359,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         for(int slotIndex = 0; slotIndex < KILN_SLOT_COUNT_FOR_EACH_TYPE; slotIndex++)
         {
             int invalidAttempts = 0;//! Both result mismatch with slot content and unable to stack to output slots are counted as invalid attempts.
-            int emptyStackIndex = -1;
+            Integer emptyStackIndex = null;
             final ItemStack resultStack = resultStacks[slotIndex];
             
             for(int attemptSlotIndex = 0; attemptSlotIndex < 3; attemptSlotIndex++)
@@ -371,13 +370,13 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                 {
                     invalidAttempts++;
                     
-                    if(emptyStackIndex == -1 && emulatedOutputStack.isEmpty())
+                    if(emptyStackIndex == null && emulatedOutputStack.isEmpty())
                         emptyStackIndex = attemptSlotIndex;//! Only assigns the earliest matched index to emptyStackIndex to make sure the merge
                                                            //! behavior is same as vanilla.
                     
                     if(invalidAttempts >= 3)
                     {
-                        if(emptyStackIndex != -1)//! If no slot meets the condition, put this result item into the earliest empty slot.
+                        if(emptyStackIndex != null)//! If no slot meets the condition, put this result item into the earliest empty slot.
                         {
                             emulatedOutputSlots.set(emptyStackIndex, resultStack);
                             break;
@@ -387,8 +386,8 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     }
                     continue;
                 }
-                final float itemExperience = blockEntity.recipeCache[slotIndex].getExperience();
-                blockEntity.experience += itemExperience;
+                
+                addExp(blockEntity, slotIndex);
                 
                 emulatedOutputStack.setCount(emulatedOutputStack.getCount() + 1);
             }
@@ -397,7 +396,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         return true;
     }
     
-    private static NonNullList<ItemStack> copyOutputSlots(NonNullList<ItemStack> outputStacks)
+    private static @NotNull NonNullList<ItemStack> copyOutputSlots(NonNullList<ItemStack> outputStacks)
     {
         NonNullList<ItemStack> copy = NonNullList.withSize(KILN_SLOT_COUNT_FOR_EACH_TYPE, ItemStack.EMPTY);
         
@@ -418,7 +417,13 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             emulatedOutputStack.getCount() <= emulatedOutputStack.getMaxStackSize();
     }
     
-    private static boolean checkAndShrinkInputItems(KilnBlockEntity blockEntity, Level level, BlockPos pos)
+    private static void addExp(@NotNull KilnBlockEntity blockEntity, int slotIndex)
+    {
+        final float itemExperience = blockEntity.recipeCache[slotIndex].getExperience();
+        blockEntity.experience += itemExperience;
+    }
+    
+    private static boolean checkAndShrinkInputItems(@NotNull KilnBlockEntity blockEntity, Level level, BlockPos pos)
     {
         if(level == null || level.isClientSide)
             return false;
@@ -465,15 +470,33 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         //* Reinitialize first, then load contents.
         this.containerItems = NonNullList.withSize(KILN_DEFAULT_SIZE, ItemStack.EMPTY);
         ContainerHelper.loadAllItems(tag, this.containerItems, registries);
+        
+        final double loadedVisualProgress = tag.contains(NBT_TAG_VISUAL_PROGRESS, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_VISUAL_PROGRESS) : 0D;
+        final double loadedRealProgress = tag.contains(NBT_TAG_REAL_PROGRESS, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_REAL_PROGRESS) : 0D;
+        final float loadedExp = tag.contains(NBT_TAG_EXPERIENCE, Tag.TAG_FLOAT) ? tag.getFloat(NBT_TAG_EXPERIENCE) : 0F;
+        final byte loadedLitProperty = tag.contains(NBT_TAG_LIT, Tag.TAG_BYTE) ? tag.getByte(NBT_TAG_LIT) : TRUE;
+        final byte loadedBalanceTick = tag.contains(NBT_TAG_BALANCE_TICK, Tag.TAG_BYTE) ? tag.getByte(NBT_TAG_BALANCE_TICK) : 0;
+        final double loadedBalanceRate = tag.contains(NBT_TAG_BALANCE_RATE, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_BALANCE_RATE) : 0D;
+        
+        this.model.synchronize(loadedRealProgress, loadedVisualProgress, VisualTrend.NONE, loadedLitProperty == TRUE);
+        this.calculator.synchronize(loadedBalanceTick, loadedBalanceRate);
+        
+        this.experience = loadedExp;
+        this.inputState = InputState.ALL_EMPTY;
+        this.updateInputSlotsInfo();
     }
     
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
     {
         super.saveAdditional(tag, registries);
-        tag.putDouble("VisualProgress", this.model.getVisualProgress());
-        tag.putDouble("RealProgress", this.model.getRealProgress());
-        tag.putFloat("Experience", this.experience);
+        tag.putDouble(NBT_TAG_VISUAL_PROGRESS, this.model.getVisualProgress());
+        tag.putDouble(NBT_TAG_REAL_PROGRESS, this.model.getRealProgress());
+        tag.putFloat(NBT_TAG_EXPERIENCE, this.experience);
+        tag.putByte(NBT_TAG_LIT, (byte) this.model.getIgnitionState());
+        tag.putByte(NBT_TAG_BALANCE_TICK, this.calculator.getBalanceTick());
+        tag.putDouble(NBT_TAG_BALANCE_RATE, this.calculator.getBalanceRate());
+        
         ContainerHelper.saveAllItems(tag, this.containerItems, registries);
     }
     //endregion
@@ -486,8 +509,10 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
      */
     public boolean canSmelt(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getKilnCachedRecipes().containsKey(itemstack.getItem()); }
     
-    private boolean isBanned(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getBannedRecipes().containsKey(itemstack.getItem()); }
+    public boolean isBanned(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getBannedRecipes().containsKey(itemstack.getItem()); }
     
     public ContainerData getData() { return this.data; }
+    
+    private void configDebug(String message, Object @NotNull... args) { CrispLogUtils.logIf(CrispConfig.KILN_BE_DEBUG.get(), () -> LOGGER.debug(message, args)); }
     //endregion
 }

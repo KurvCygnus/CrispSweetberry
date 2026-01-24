@@ -1,6 +1,6 @@
 package kurvcygnus.crispsweetberry.client.registries;
 
-import kurvcygnus.crispsweetberry.utils.CrispCommonUtils;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -17,5 +17,5 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class CrispStats
 {
-    public static final ResourceLocation INTERACT_WITH_KILN = CrispCommonUtils.getModNamespacedLocation("interact_with_kiln");
+    public static final ResourceLocation INTERACT_WITH_KILN = CrispDefUtils.getModNamespacedLocation("interact_with_kiln");
 }

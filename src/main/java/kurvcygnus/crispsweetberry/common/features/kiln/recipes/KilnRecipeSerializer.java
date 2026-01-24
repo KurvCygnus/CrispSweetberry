@@ -55,8 +55,8 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
     @Override
     public @NotNull StreamCodec<RegistryFriendlyByteBuf, KilnRecipe> streamCodec() { return this.streamCodec; }
     
-    //? TODO: Group implementation for JEI/REI compatability.
-    private void toNetwork(RegistryFriendlyByteBuf buffer, KilnRecipe recipe)
+    //? TODO: Group implementation for JEI/REI compatibility.
+    private void toNetwork(RegistryFriendlyByteBuf buffer, @NotNull KilnRecipe recipe)
     {
         Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.getIngredient());
         ItemStack.STREAM_CODEC.encode(buffer, recipe.getResult());
@@ -64,7 +64,7 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
         buffer.writeFloat(recipe.getExperience());
     }
     
-    private KilnRecipe fromNetwork(RegistryFriendlyByteBuf buffer)
+    private @NotNull KilnRecipe fromNetwork(RegistryFriendlyByteBuf buffer)
     {
         Ingredient ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
         ItemStack stack = ItemStack.STREAM_CODEC.decode(buffer);

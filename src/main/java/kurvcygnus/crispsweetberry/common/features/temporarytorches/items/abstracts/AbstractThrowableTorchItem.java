@@ -26,7 +26,7 @@ import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.P
  * The <b>basic</b> of <b>all throwable torches</b>.
  * @param <T> The <b>torch entity it bounds to</b>.
  * @see ThrowableTorchItem Basic Implementation
- * @since CSB 1.0 release
+ * @since 1.0 Release
  * @author Kurv Cygnus
  */
 public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEntity> extends Item implements ProjectileItem

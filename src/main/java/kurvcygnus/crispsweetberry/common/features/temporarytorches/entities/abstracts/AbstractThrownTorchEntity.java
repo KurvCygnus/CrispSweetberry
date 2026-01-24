@@ -48,7 +48,7 @@ import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*
 /**
  * The basic of all thrown torch entities.
  * @see AbstractThrownTorchRenderer Renderer
- * @since CSB 1.0 release
+ * @since 1.0 Release
  * @author Kurv Cygnus
  */
 public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile

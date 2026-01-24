@@ -1,11 +1,13 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import com.mojang.logging.LogUtils;
+import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.LogicalResult;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProcessionState;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProgressTrend;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ResultType;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
+import kurvcygnus.crispsweetberry.utils.misc.CrispLogUtils;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Contract;
@@ -14,9 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
-
-import static com.mojang.math.Constants.EPSILON;
-import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.KILN_SLOT_COUNT_FOR_EACH_TYPE;
 
 /**
  * This class makes sure that the balancing effect of kiln is visually acceptable.
@@ -28,7 +27,7 @@ public final class KilnProgressCalculator
 {
     private static final double NORMAL_PROGRESS_RATE = 0.005D;
     private static final double STANDARD_PROCESS_FACTOR = 1D;
-    private static final int BALANCE_STATE_STANDARD_TICKS = 60;
+    private static final int BALANCE_STATE_STANDARD_TICKS = 40;
     
     private @NotNull KilnRecipe[] recipes = { KilnRecipe.noRecipe(), KilnRecipe.noRecipe(), KilnRecipe.noRecipe() };
     
@@ -38,29 +37,31 @@ public final class KilnProgressCalculator
      * {@code WORKING} variant, not {@code BALANCING}.</u>
      */
     private @Nullable Double lastProcessFactor = null;
-    private boolean isBalancing = false;
+    private byte balanceTick = 0;
+    private double balanceRate = 0D;
     
     /**
      * This field is used for return early in <u>{@link #calculateRates calculateRates()}</u>.<br>
-     * It's named "predicted" since the standard procession is uncertain, due to BALANCE stuff.
+     * It's named "nonWorking" since the standard procession is uncertain, due to BALANCE stuff.<br>
+     * It is only reliable when <u>{@link ProcessionState}</u> is <u>{@link ProcessionState#COOLDOWN COOLDOWN}</u>.
      */
-    private @NotNull ResultType predictedResultType = ResultType.SKIP;
+    private @NotNull LogicalResult nonWorkingLogicalResult = LogicalResult.SKIP;
     
     private boolean hasWarnedRecipeLengthMismatch = false;
     private boolean hasWarnedNullRecipe = false;
     private boolean hasWarnedAbnormalFactor = false;
     
-    private static final Logger logger = LogUtils.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
     
     public KilnProgressCalculator() {}
     
-    public void setRecipesAndResultType(KilnRecipe @NotNull [] recipes, @NotNull ResultType resultType)
+    public void setRecipesAndResultType(KilnRecipe @NotNull [] recipes, @NotNull LogicalResult logicalResult)
     {
         if(this.recipes.length != recipes.length)
         {
-            if(!hasWarnedRecipeLengthMismatch)
+            if(!hasWarnedRecipeLengthMismatch || CrispConfig.KILN_BE_CAL_DEBUG.get())
             {
-                logger.warn("[ABNORMAL_RECIPES] Kiln recipes' length do NOT match, go check codes!");
+                LOGGER.warn("[ABNORMAL_RECIPES] Kiln recipes' length do NOT match, go check codes!");
                 hasWarnedRecipeLengthMismatch = true;
             }
             return;
@@ -70,9 +71,9 @@ public final class KilnProgressCalculator
         {
             if(recipes[index] == null)
             {
-                if(!hasWarnedNullRecipe)
+                if(!hasWarnedNullRecipe || CrispConfig.KILN_BE_CAL_DEBUG.get())
                 {
-                    logger.error("[ABNORMAL_RECIPES] Denied new recipe for its invalidity. Null element start at -> 'Index {}'", index);
+                    LOGGER.error("[ABNORMAL_RECIPES] Denied new recipe for its invalidity. Null element start at -> 'Index {}'", index);
                     hasWarnedNullRecipe = true;
                 }
                 return;
@@ -80,7 +81,13 @@ public final class KilnProgressCalculator
         }
         
         this.recipes = recipes;
-        this.predictedResultType = resultType;
+        this.nonWorkingLogicalResult = logicalResult;
+    }
+    
+    public void synchronize(byte balanceTick, double balanceRate)
+    {
+        this.balanceTick = balanceTick > 0 ? balanceTick : 0;
+        this.balanceRate = balanceRate;
     }
     
     @Contract("_, _, _ -> new")
@@ -89,32 +96,43 @@ public final class KilnProgressCalculator
     {
         if(processState != ProcessionState.WORKING)
         {
-            lastProcessFactor = null;
-            isBalancing = false;
+            this.lastProcessFactor = null;
+            this.balanceTick = 0;
+            this.balanceRate = 0D;
             
-            logger.debug("[CAL_END] Current resultType \"{}\" doesn't need any further calculation. Returning decreased progresses as result.",
-                predictedResultType.name()
+            //* Defensive measures are taken at KilnProgressModel#synchronize().
+            final double decreasedRealProgress = currentRealProgress - NORMAL_PROGRESS_RATE;
+            final double decreasedVisualProgress = currentVisualProgress - NORMAL_PROGRESS_RATE;
+            
+            configDebug("[CAL_END] Current logicalResult \"{}\" doesn't need any further calculation. Progress values: R: {}, V: {}",
+                nonWorkingLogicalResult.name(), decreasedRealProgress, decreasedVisualProgress
             );
             
             return new CalculationResult(
-                currentRealProgress - NORMAL_PROGRESS_RATE,
-                currentVisualProgress - NORMAL_PROGRESS_RATE,
-                predictedResultType,
-                ProgressTrend.DECREASE
+                decreasedRealProgress,
+                decreasedVisualProgress,
+                nonWorkingLogicalResult,
+                VisualTrend.NORMAL
             );//! This is the case that the container holds inputs that are invalid or unsupported, so we should treat it as COOLDOWN.
         }
         
-        logger.debug("[CAL_CHECK] recipes = {}, lastFactor = {}, isBalancing = {}, processState = {}",
-            Arrays.toString(recipes), lastProcessFactor, isBalancing, processState.name());
+        final byte remainingTicks = (byte) (BALANCE_STATE_STANDARD_TICKS - this.balanceTick);
+        
+        configDebug("[CAL_CHECK] recipes = {}, lastFactor = {}, processState = {}{}",
+            Arrays.toString(this.recipes), this.lastProcessFactor, processState.name(),
+            this.balanceTick > 0 ? ", %d balance tick%s remain%s".formatted
+            (remainingTicks, remainingTicks == 1 ? "s" : "", remainingTicks == 1 ? "" : "s") : ""
+        );
         
         final double currentProcessFactor;
         double multipliedFactor = STANDARD_PROCESS_FACTOR;
         double revaluateFactor = 0D;
         boolean canUseAverageReward = true;
+        int nonEmptyCount = 0;
         
         for(KilnRecipe recipe: recipes)
         {
-            logger.debug("[FACTOR_CAL] Factor of recipe({}): {}",
+            configDebug("[FACTOR_CAL] Factor of recipe({}): {}",
                 recipe, recipe.getProcessFactor()
             );
             
@@ -128,88 +146,114 @@ public final class KilnProgressCalculator
                 canUseAverageReward = false;
             
             if(!KilnRecipe.isEmptyRecipe(recipe))
+            {
+                nonEmptyCount++;
                 multipliedFactor *= recipe.getProcessFactor();
+            }
         }
         
-        currentProcessFactor = canUseAverageReward ? revaluateFactor / KILN_SLOT_COUNT_FOR_EACH_TYPE : multipliedFactor;
+        currentProcessFactor = canUseAverageReward ? revaluateFactor / nonEmptyCount : multipliedFactor;
         
-        logger.debug("[STRATEGY_SELECT] strategy = \"{}\"",
-            canUseAverageReward ? "Average" : "Multiply");
+        configDebug("[STRATEGY_SELECT] strategy = \"{}\", totalFactor = {}{}",
+            canUseAverageReward ? "Average" : "Multiply", currentProcessFactor, 
+            canUseAverageReward ? ", non-empty recipes: %d".formatted(nonEmptyCount) : ""
+        );
         
         if(currentProcessFactor <= 0D)
         {
-            isBalancing = false;
-            lastProcessFactor = STANDARD_PROCESS_FACTOR;
+            this.balanceTick = 0;
+            this.balanceRate = 0D;
+            this.lastProcessFactor = STANDARD_PROCESS_FACTOR;
             
-            if(!hasWarnedAbnormalFactor)
+            if(!hasWarnedAbnormalFactor || CrispConfig.KILN_BE_CAL_DEBUG.get())
             {
-                logger.warn("[CAL_ERROR] Calculation error! Returning the values of args as result. Reason: Variable \"currentProgressFactor\" happens to be " +
+                LOGGER.warn("[CAL_ERROR] Calculation error! Returning the values of args as result. Reason: Variable \"currentProgressFactor\" happens to be " +
                     "a non-positive double number, which will cause calculation result abnormal. {}", MiscConstants.FEEDBACK_MESSAGE
                 );
                 hasWarnedAbnormalFactor = true;
             }
             
-            logger.debug("[CAL_ERROR] Keeping progress unchanged to prevent unexpected behavior.");
+            configDebug("[CAL_ERROR] Keeping progress unchanged to prevent unexpected behavior.");
             
             return CalculationResult.unexpectedResult(currentRealProgress, currentVisualProgress);
         }
         
-        if(lastProcessFactor != null)
-            if(Double.compare(currentProcessFactor, lastProcessFactor) != 0)
-            {
-                logger.debug("[CAL_BALANCE] ProgressFactor mismatch. Start balancing.");
-                isBalancing = true;
-            }
+        final boolean shouldBalance;
+        
+        if(this.lastProcessFactor != null)
+            shouldBalance = Double.compare(this.lastProcessFactor, currentProcessFactor) != 0 && currentRealProgress > 0D;
+        else 
+            shouldBalance = false;
         
         this.lastProcessFactor = currentProcessFactor;
         
-        if(isBalancing)
+        final double realChangeRate = NORMAL_PROGRESS_RATE / currentProcessFactor;
+        
+        if(shouldBalance)
         {
-            final double targetProgress = currentRealProgress / currentProcessFactor;
+            configDebug("[CAL_BALANCE] ProgressFactor mismatch. Start calculate balance factors.");
             
-            //! You may think: Why use BALANCE_STATE_STANDARD_TICKS instead of the halved value of this constant(30), right?
-            //! However, the fact is, since both real and visual progresses are moving, slicing rate into 60 pieces
-            //! is actually averaged for both real and visual progress, so it's ok.
-            final double visualPercentage = 1D / BALANCE_STATE_STANDARD_TICKS;
-            final double balanceDecayRate = (targetProgress - currentVisualProgress) * visualPercentage;
-            final double balancedVisualProgress = currentVisualProgress + balanceDecayRate;
+            currentRealProgress /= currentProcessFactor;
+            this.balanceRate = (currentRealProgress + realChangeRate * BALANCE_STATE_STANDARD_TICKS - currentVisualProgress) / BALANCE_STATE_STANDARD_TICKS;
+            currentVisualProgress += this.balanceRate;
             
-            if(Math.abs(targetProgress - currentVisualProgress) < EPSILON)//! BALANCING completes when visualProgress converges to targetProgress.
-            {
-                logger.debug("[CAL_BALANCE] Dual Progress are approximately equal, balance ended.");
-                
-                isBalancing = false;
-                return new CalculationResult(
-                    targetProgress,
-                    targetProgress,
-                    ResultType.CONTINUE,
-                    ProgressTrend.NEUTRAL
-                );
-            }
+            this.balanceTick = BALANCE_STATE_STANDARD_TICKS - 1;//* The calculation tick also counts as a tick of whole balance state.
             
-            logger.debug("[CAL_BALANCE] RealProgress adjusted to {}, Visual: {}, rate: {}",
-                targetProgress, balancedVisualProgress, balanceDecayRate);
+            configDebug("[CAL_BALANCE_END] Balance calculation ended. Progresses: R: {}, V: {}, V-Rate: {}",
+                currentRealProgress, currentVisualProgress, this.balanceRate
+            );
             
             return new CalculationResult(
-                targetProgress,//* targetProgress is also balancedRealProgress.
-                balancedVisualProgress,
-                ResultType.BALANCING,
-                balanceDecayRate > EPSILON ? ProgressTrend.INCREASE : ProgressTrend.DECREASE
+                currentRealProgress,
+                currentVisualProgress,
+                LogicalResult.BALANCING,
+                currentProcessFactor > this.lastProcessFactor ? VisualTrend.BURST : VisualTrend.BALANCE
             );
         }
         
-        final double realChangeRate = NORMAL_PROGRESS_RATE / currentProcessFactor;
+        if(this.balanceTick > 0)
+        {
+            configDebug("[CAL_BALANCE] balanceTick({}) is bigger than 0. Continue to calculate visualProgress.", balanceTick);
+            
+            this.balanceTick--;
+            
+            return new CalculationResult(
+                currentRealProgress + realChangeRate,
+                currentVisualProgress + this.balanceRate,
+                LogicalResult.BALANCING,
+                currentProcessFactor > this.lastProcessFactor ? VisualTrend.BURST : VisualTrend.BALANCE
+            );
+        }
         
         @SuppressWarnings("UnnecessaryLocalVariable")//! JIT will opt this, and it's semantically necessary.
         final double visualChangeRate = realChangeRate;
         
-        logger.debug("[CAL_NORMAL] Rate: {}", realChangeRate);
+        final double newRealProgress = currentRealProgress + realChangeRate;
+        final double newVisualProgress = currentVisualProgress + visualChangeRate;
+        
+        if(Math.abs(newRealProgress - newVisualProgress) > 0.02D)
+            configError("[CAL_NORMAL_ERROR] ProgressPair doesn't match. R: {}, V: {}",
+                newRealProgress, newVisualProgress
+            );
+        
+        configDebug("[CAL_NORMAL] Rate: {}, progressPairValue: R: {}, V: {}",
+            realChangeRate, newRealProgress, newVisualProgress
+        );
         
         return new CalculationResult(
-            realChangeRate + currentRealProgress,
-            visualChangeRate + currentVisualProgress,
-            ResultType.CONTINUE,
-            ProgressTrend.INCREASE
+            newRealProgress,
+            newVisualProgress,
+            LogicalResult.CONTINUE,
+            VisualTrend.NORMAL
         );
     }
+    
+    public byte getBalanceTick() { return balanceTick; }
+    
+    public double getBalanceRate() { return balanceRate; }
+    
+    private void configDebug(String message, Object @NotNull ... args) { CrispLogUtils.logIf(CrispConfig.KILN_BE_CAL_DEBUG.get(), () -> LOGGER.debug(message, args)); }
+    
+    @SuppressWarnings("SameParameterValue")//! This is util.
+    private void configError(String message, Object @NotNull ... args) { CrispLogUtils.logIf(CrispConfig.KILN_BE_CAL_DEBUG.get(), () -> LOGGER.error(message, args)); }
 }

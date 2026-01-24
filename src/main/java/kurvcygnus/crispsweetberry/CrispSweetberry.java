@@ -3,9 +3,13 @@ package kurvcygnus.crispsweetberry;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.client.registries.CrispCreativeTabs;
 import kurvcygnus.crispsweetberry.client.registries.CrispMenus;
+import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.registries.*;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 @Mod(CrispSweetberry.MOD_ID)
@@ -14,8 +18,11 @@ public final class CrispSweetberry
     public static final String MOD_ID = "crispsweetberry";
     public static final Logger LOGGER = LogUtils.getLogger();
     
-    public CrispSweetberry(IEventBus eventBus/*, ModContainer modContainer*/)
+    public CrispSweetberry(IEventBus eventBus, @NotNull ModContainer modContainer)
     {
+        modContainer.registerConfig(ModConfig.Type.CLIENT, CrispConfig.SPEC);
+        LOGGER.info("Initializing Configurations...");
+        
         CrispBlocks.CRISP_BLOCK_REGISTER.register(eventBus);
         LOGGER.info("Registering Blocks...");
         

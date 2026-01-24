@@ -18,7 +18,7 @@ import java.util.Objects;
  * @apiNote It is recommended to <b>use this as a constant</b>, constantly creating instances like this only brings performance penalty.<br>
  * Also, {@code CrispRanger} is always immutable.
  * @author Kurv Cygnus
- * @since CSB 1.0 Release
+ * @since 1.0 Release
  * @param <N> The type of number that will be hold by Ranger.
  */
 public final class CrispRanger<N extends Number & Comparable<N>>

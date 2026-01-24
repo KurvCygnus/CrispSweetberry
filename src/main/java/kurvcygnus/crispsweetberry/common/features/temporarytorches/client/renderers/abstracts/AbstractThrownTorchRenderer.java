@@ -23,7 +23,7 @@ import org.joml.Matrix4f;
  * @param <T> The thrown torch that it renders.
  * @see ThrownTorchRenderer Basic implementation
  * @see ThrowableTorchesRendererRegisterEvent Registry
- * @since CSB 1.0 release
+ * @since 1.0 Release
  * @author Kurv Cygnus
  */
 @OnlyIn(Dist.CLIENT)

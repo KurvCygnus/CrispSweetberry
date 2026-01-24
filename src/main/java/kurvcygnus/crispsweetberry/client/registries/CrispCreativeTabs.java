@@ -1,7 +1,7 @@
 package kurvcygnus.crispsweetberry.client.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.utils.CrispCommonUtils;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -22,7 +22,7 @@ public final class CrispCreativeTabs
     public static final DeferredRegister<CreativeModeTab> CRISP_TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CrispSweetberry.MOD_ID);
     
     public static final ResourceKey<CreativeModeTab> CRISP_CREATIVE_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, 
-        CrispCommonUtils.getModNamespacedLocation("crisp_tab"));
+        CrispDefUtils.getModNamespacedLocation("crisp_tab"));
     
     @SuppressWarnings("unused")
     public static final Holder<CreativeModeTab> CSB_TAB = CRISP_TAB_REGISTER.register("crisp_tab", () ->

@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  *  public static final Holder<Item> Foo = ...
  * }</pre>
  * @see CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent)  Annotation Executor
- * @since CSB 1.0 Release
+ * @since 1.0 Release
  * @author Kurv Cygnus
  */
 @Target(ElementType.FIELD)
