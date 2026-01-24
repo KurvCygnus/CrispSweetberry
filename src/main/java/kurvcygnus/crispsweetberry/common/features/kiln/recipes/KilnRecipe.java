@@ -140,8 +140,6 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! We shouldn't reverse method, the name of inverted method will lead to confusion.
     public static boolean isEmptyRecipe(@NotNull KilnRecipe recipe) { return recipe.state.equals(RecipeState.NULL); }
     
-    public static boolean isTipRecipe(@NotNull KilnRecipe recipe) { return recipe.state.equals(RecipeState.TIP); }
-    
     public Ingredient getIngredient() { return this.ingredient; }
     
     public ItemStack getResult() { return this.result; }
