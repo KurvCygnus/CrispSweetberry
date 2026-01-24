@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "crispsweetberry:block/carry_crate",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "crispsweetberry:block/carry_crate"
+    },
+    "facing=south": {
+      "model": "crispsweetberry:block/carry_crate",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "crispsweetberry:block/carry_crate",
+      "y": 270
+    }
+  }
+}

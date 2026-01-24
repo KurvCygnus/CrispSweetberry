@@ -19,9 +19,10 @@ import java.util.Arrays;
 
 /**
  * This class makes sure that the balancing effect of kiln is visually acceptable.
- * @since 1.0 Release
+ *
  * @author Kurv Cygnus
- * @see KilnBlockEntity#serverTick Usage 
+ * @see KilnBlockEntity#serverTick Usage
+ * @since 1.0 Release
  */
 public final class KilnProgressCalculator
 {
@@ -29,16 +30,17 @@ public final class KilnProgressCalculator
     private static final double STANDARD_PROCESS_FACTOR = 1D;
     private static final int BALANCE_STATE_STANDARD_TICKS = 40;
     
-    private @NotNull KilnRecipe[] recipes = { KilnRecipe.noRecipe(), KilnRecipe.noRecipe(), KilnRecipe.noRecipe() };
+    private @NotNull KilnRecipe[] recipes = {KilnRecipe.noRecipe(), KilnRecipe.noRecipe(), KilnRecipe.noRecipe()};
     
     /**
-     * We should use <u>{@link Double}</u> instead of primitive type {@code double}, 
-     * when it comes to cases like empty content, putting stuff inside should go to 
+     * We should use <u>{@link Double}</u> instead of primitive type {@code double},
+     * when it comes to cases like empty content, putting stuff inside should go to
      * {@code WORKING} variant, not {@code BALANCING}.</u>
      */
     private @Nullable Double lastProcessFactor = null;
     private byte balanceTick = 0;
     private double balanceRate = 0D;
+    private VisualTrend balanceTrend = VisualTrend.NORMAL;
     
     /**
      * This field is used for return early in <u>{@link #calculateRates calculateRates()}</u>.<br>
@@ -53,7 +55,7 @@ public final class KilnProgressCalculator
     
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    public KilnProgressCalculator() {}
+    public KilnProgressCalculator() { }
     
     public void setRecipesAndResultType(KilnRecipe @NotNull [] recipes, @NotNull LogicalResult logicalResult)
     {
@@ -86,7 +88,7 @@ public final class KilnProgressCalculator
     
     public void synchronize(byte balanceTick, double balanceRate)
     {
-        this.balanceTick = balanceTick > 0 ? balanceTick : 0;
+        this.balanceTick = (byte) Math.clamp(balanceTick, 0, BALANCE_STATE_STANDARD_TICKS);
         this.balanceRate = balanceRate;
     }
     
@@ -121,14 +123,14 @@ public final class KilnProgressCalculator
         configDebug("[CAL_CHECK] recipes = {}, lastFactor = {}, processState = {}{}",
             Arrays.toString(this.recipes), this.lastProcessFactor, processState.name(),
             this.balanceTick > 0 ? ", %d balance tick%s remain%s".formatted
-            (remainingTicks, remainingTicks == 1 ? "s" : "", remainingTicks == 1 ? "" : "s") : ""
+                (remainingTicks, remainingTicks == 1 ? "s" : "", remainingTicks == 1 ? "" : "s") : ""
         );
         
         final double currentProcessFactor;
         double multipliedFactor = STANDARD_PROCESS_FACTOR;
         double revaluateFactor = 0D;
         boolean canUseAverageReward = true;
-        int nonEmptyCount = 0;
+        byte nonEmptyCount = 0;
         
         for(KilnRecipe recipe: recipes)
         {
@@ -152,10 +154,10 @@ public final class KilnProgressCalculator
             }
         }
         
-        currentProcessFactor = canUseAverageReward ? revaluateFactor / nonEmptyCount : multipliedFactor;
+        currentProcessFactor = canUseAverageReward ? (revaluateFactor / nonEmptyCount) : multipliedFactor;
         
         configDebug("[STRATEGY_SELECT] strategy = \"{}\", totalFactor = {}{}",
-            canUseAverageReward ? "Average" : "Multiply", currentProcessFactor, 
+            canUseAverageReward ? "Average" : "Multiply", currentProcessFactor,
             canUseAverageReward ? ", non-empty recipes: %d".formatted(nonEmptyCount) : ""
         );
         
@@ -182,8 +184,13 @@ public final class KilnProgressCalculator
         
         if(this.lastProcessFactor != null)
             shouldBalance = Double.compare(this.lastProcessFactor, currentProcessFactor) != 0 && currentRealProgress > 0D;
-        else 
+        else
             shouldBalance = false;
+        
+        if(shouldBalance)
+            this.balanceTrend = currentProcessFactor > this.lastProcessFactor ? VisualTrend.BALANCE : VisualTrend.BURST;
+        
+        configDebug("[CAL_DATA_INFO] Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor);
         
         this.lastProcessFactor = currentProcessFactor;
         
@@ -191,7 +198,7 @@ public final class KilnProgressCalculator
         
         if(shouldBalance)
         {
-            configDebug("[CAL_BALANCE] ProgressFactor mismatch. Start calculate balance factors.");
+            configDebug("[CAL_BALANCE] ProgressFactor mismatch. Start calculate balance factors");
             
             currentRealProgress /= currentProcessFactor;
             this.balanceRate = (currentRealProgress + realChangeRate * BALANCE_STATE_STANDARD_TICKS - currentVisualProgress) / BALANCE_STATE_STANDARD_TICKS;
@@ -199,19 +206,18 @@ public final class KilnProgressCalculator
             
             this.balanceTick = BALANCE_STATE_STANDARD_TICKS - 1;//* The calculation tick also counts as a tick of whole balance state.
             
-            configDebug("[CAL_BALANCE_END] Balance calculation ended. Progresses: R: {}, V: {}, V-Rate: {}",
-                currentRealProgress, currentVisualProgress, this.balanceRate
-            );
+            configDebug("[CAL_BALANCE_END] Balance calculation ended.");
             
             return new CalculationResult(
                 currentRealProgress,
                 currentVisualProgress,
                 LogicalResult.BALANCING,
-                currentProcessFactor > this.lastProcessFactor ? VisualTrend.BURST : VisualTrend.BALANCE
+                this.balanceTrend
             );
         }
         
         if(this.balanceTick > 0)
+        
         {
             configDebug("[CAL_BALANCE] balanceTick({}) is bigger than 0. Continue to calculate visualProgress.", balanceTick);
             
@@ -221,7 +227,7 @@ public final class KilnProgressCalculator
                 currentRealProgress + realChangeRate,
                 currentVisualProgress + this.balanceRate,
                 LogicalResult.BALANCING,
-                currentProcessFactor > this.lastProcessFactor ? VisualTrend.BURST : VisualTrend.BALANCE
+                this.balanceTrend
             );
         }
         

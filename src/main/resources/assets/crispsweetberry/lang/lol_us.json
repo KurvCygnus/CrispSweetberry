@@ -1,10 +1,10 @@
 {
   "block.crispsweetberry.temporary_torch": "fullee lite stik",
   "block.crispsweetberry.temporary_wall_torch": "fullee lite stik",
-  "block.crispsweetberry.paper_box": "hoom",
+  "block.crispsweetberry.carry_crate": "hoom",
   "block.crispsweetberry.kiln": "big warn bokz",
   "item.crispsweetberry.throwable_torch": "chuk da lite stik",
-  "item.crispsweetberry.paper_box": "KANZ IZ MAI HOOM",
+  "item.crispsweetberry.carry_crate": "KANZ IZ MAI HOOM",
   "item.crispsweetberry.kiln": "I CAN HAZ WARM BOKZ",
   "item.crispsweetberry.transmog_wand": "MAGIK STIK OWO",
   "item.crispsweetberry.echo_disc": "MP3 MAEKR",
@@ -20,5 +20,6 @@
   "crispsweetberry.ui.widget.kiln_tip_blast": "BIG BOKZ KIN'T TAK THIZ!!!",
   
   "crispsweetberry.config.debug.kiln_be": "[DAVZ] WARM BOZ: BlarkAntity Tezt Stuff",
-  "crispsweetberry.config.debug.kiln_cal": "[DAVZ] WARM BOZ: Kaqlaytor Tezt Stuff"
+  "crispsweetberry.config.debug.kiln_cal": "[DAVZ] WARM BOZ: Kaqlaytor Tezt Stuff",
+  "crispsweetberry.config.debug.kiln_event": "[DAVZ] WARM BOZ: EVENT BUZ GOGOGO"
 }

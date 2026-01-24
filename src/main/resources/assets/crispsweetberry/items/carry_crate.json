@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "crispsweetberry:block/paper_box"
+    "model": "crispsweetberry:block/carry_crate"
   }
 }

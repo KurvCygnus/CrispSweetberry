@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.common.features.paperbox;
+package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Direction;
@@ -13,19 +13,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 //? TODO
-public class PaperBoxBlock extends HorizontalDirectionalBlock
+public class CarryCrateBlock extends HorizontalDirectionalBlock
 {
-    public static final MapCodec<PaperBoxBlock> CODEC = simpleCodec(PaperBoxBlock::new);
+    public static final MapCodec<CarryCrateBlock> CODEC = simpleCodec(CarryCrateBlock::new);
     
     /**
      * A <b>placeholder construct method, as its superclass demands to implement it</b>.
      */
-    public PaperBoxBlock(@Nullable Properties properties) { this(); }
+    public CarryCrateBlock(@Nullable Properties properties) { this(); }
     
     /**
      * This is the actual construct method for <b>block registry</b>.
      */
-    public PaperBoxBlock()
+    public CarryCrateBlock()
     {
         super(BlockBehaviour.Properties.of().
             destroyTime(0.1F).

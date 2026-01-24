@@ -1,10 +1,10 @@
 {
   "block.crispsweetberry.temporary_torch": "投掷火把",
   "block.crispsweetberry.temporary_wall_torch": "投掷火把",
-  "block.crispsweetberry.paper_box": "纸箱",
+  "block.crispsweetberry.carry_crate": "搬运箱",
   "block.crispsweetberry.kiln": "窑炉",
   "item.crispsweetberry.throwable_torch": "投掷火把",
-  "item.crispsweetberry.paper_box": "纸箱",
+  "item.crispsweetberry.carry_crate": "搬运箱",
   "item.crispsweetberry.kiln": "窑炉",
   "item.crispsweetberry.transmog_wand": "幻变魔杖",
   "item.crispsweetberry.echo_disc": "回响唱片",
@@ -20,5 +20,6 @@
   "crispsweetberry.ui.widget.kiln_tip_blast": "部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料.",
   
   "crispsweetberry.config.debug.kiln_be": "[调试] 窑炉: BlockEntity 调试日志",
-  "crispsweetberry.config.debug.kiln_cal": "[调试] 窑炉: Calculator 调试日志"
+  "crispsweetberry.config.debug.kiln_cal": "[调试] 窑炉: Calculator 调试日志",
+  "crispsweetberry.config.debug.kiln_event": "[调试] 窑炉: 缓存事件调试日志"
 }

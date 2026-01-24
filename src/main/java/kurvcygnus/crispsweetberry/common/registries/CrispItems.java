@@ -2,6 +2,7 @@ package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.items.ThrowableTorchItem;
+import kurvcygnus.crispsweetberry.common.misc.items.CoinCollections;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.BanFromTabRegistry;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
@@ -18,7 +19,7 @@ public final class CrispItems
     
     @BanFromTabRegistry
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
-
+    
     @RegisterToTab
     public static final Holder<Item> THROWABLE_TORCH = CRISP_ITEM_REGISTER.register("throwable_torch", resourceLocation ->
         new ThrowableTorchItem(new Item.Properties())
@@ -28,30 +29,33 @@ public final class CrispItems
         new Item(
             new Item.Properties().
                 food(new FoodProperties.Builder().
-                    nutrition(1).saturationModifier(8.0F).
+                    nutrition(1).
+                    saturationModifier(8.0F).
                     build()
                 )
-            )
-        );
-    
-    @RegisterToTab
-    public static Holder<Item> PAPER_BOX = CRISP_ITEM_REGISTER.register("paper_box", resourceLocation ->
-        new BlockItem(CrispBlocks.PAPER_BOX.value(), new Item.Properties())
+        )
     );
     
     @RegisterToTab
-    public static Holder<Item> KILN = CRISP_ITEM_REGISTER.register("kiln", resourceLocation ->
+    public static final Holder<Item> CARRY_CRATE = CRISP_ITEM_REGISTER.register("carry_crate", resourceLocation ->
+        new BlockItem(CrispBlocks.CARRY_CRATE.value(), new Item.Properties())
+    );
+    
+    @RegisterToTab
+    public static final Holder<Item> KILN = CRISP_ITEM_REGISTER.register("kiln", resourceLocation ->
         new BlockItem(CrispBlocks.KILN.value(), new Item.Properties())
     );
+    
+    @RegisterToTab
+    public static final Holder<Item> IRON_COIN = CRISP_ITEM_REGISTER.register("iron_coin", resourceLocation -> new CoinCollections.IronCoinItem());
+    
+    @RegisterToTab
+    public static final Holder<Item> GOLD_COIN = CRISP_ITEM_REGISTER.register("gold_coin", resourceLocation -> new CoinCollections.GoldCoinItem());
     
     public static final Holder<Item> ECHO_DISC = CRISP_ITEM_REGISTER.register("echo_disc", resourceLocation ->
         new Item(new Item.Properties().
             stacksTo(16).
             rarity(RARE)
         )
-    );
-    
-    public static final Holder<Item> GREEDY_CRYSTAL = CRISP_ITEM_REGISTER.register("greedy_crystal", resourceLocation ->
-        new Item(new Item.Properties().rarity(RARE))
     );
 }

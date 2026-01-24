@@ -48,13 +48,13 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     private static final int TIP_HEIGHT = 8;
     
     //! About namespaces: please use "static" to decrease performance penalty.
-    //? TODO: 将贴图迁移到贴图管理器中
     private static final ResourceLocation BACKGROUND_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/background.png");
-    private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/lit_campfire.png");
-    private static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/progress_arrow.png");
-    private static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/balance_decrease_arrow.png");
-    private static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/balance_increase_arrow.png");
-    private static final ResourceLocation TIP_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/tip_arrow.png");
+    
+    private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/lit_campfire");
+    private static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/progress_arrow");
+    private static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_decrease_arrow");
+    private static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_increase_arrow");
+    private static final ResourceLocation TIP_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/tip_arrow");
     
     private final KilnInfoWidget widget = new KilnInfoWidget(TIP_X_POS, TIP_Y_POS, TIP_WIDTH, TIP_HEIGHT);
     
@@ -82,14 +82,9 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         final double progress = KilnContainerData.toStandardProgress(menu.data.get(VISUAL_PROGRESS_INDEX));
         final VisualTrend trend = VisualTrend.toEnum(menu.data.get(PROGRESS_TREND_INDEX));
         final boolean isIgnited = KilnContainerData.toStandardIgnitionState(menu.data.get(IGNITION_STATE_INDEX));
-
+        
         if(isIgnited)
-            guiGraphics.blit(LIT_CAMPFIRE_TEXTURE,
-                this.leftPos + CAMPFIRE_X_POS, this.topPos + CAMPFIRE_Y_POS,
-                NO_OFFSET, NO_OFFSET,
-                CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT,
-                CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT
-            );
+            guiGraphics.blitSprite(LIT_CAMPFIRE_TEXTURE, this.leftPos + CAMPFIRE_X_POS, this.topPos + CAMPFIRE_Y_POS, CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT);
         
         //*                  ↓ We should always tip players about recipes that are banned. 
         if(progress > 0D || trend == VisualTrend.TIP)//! Strictly, the layered arrow texture doesn't belong to background stuff.
@@ -130,7 +125,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     
     @Override
     protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY)
-        { guiGraphics.blit(BACKGROUND_TEXTURE, this.leftPos, this.topPos, NO_OFFSET, NO_OFFSET, BG_WIDTH, BG_HEIGHT, BG_WIDTH, BG_HEIGHT); }
+    { guiGraphics.blit(BACKGROUND_TEXTURE, this.leftPos, this.topPos, NO_OFFSET, NO_OFFSET, BG_WIDTH, BG_HEIGHT, BG_WIDTH, BG_HEIGHT); }
     
     /**
      * This wrapper method is used to reduce the complexity of
@@ -145,13 +140,14 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
      * <b>that's more important than this</b>.</i><br>
      * Just go <a href="https://en.wikipedia.org/wiki/Computer_graphics_(disambiguation)">here</a> if you really can't understand.
      */
-    private void blitArrow(@NotNull GuiGraphics gui, @NotNull ResourceLocation texture, int progressWidth)
+    private void blitArrow(@NotNull GuiGraphics gui, @NotNull ResourceLocation sprite, int progressWidth)
     {
-        gui.blit(texture,
-            this.leftPos + ARROW_X_POS, this.topPos + ARROW_Y_POS,
+        gui.blitSprite(
+            sprite,
+            ARROW_WIDTH, ARROW_HEIGHT,
             NO_OFFSET, NO_OFFSET,
-            progressWidth, ARROW_HEIGHT,
-            ARROW_WIDTH, ARROW_HEIGHT
+            this.leftPos + ARROW_X_POS, this.topPos + ARROW_Y_POS,
+            progressWidth, ARROW_HEIGHT
         );
     }
     
@@ -178,7 +174,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         @Override
         protected void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
         {
-            if(this.getTooltip() == EMPTY_TIP)//* No necessary, then no render.
+            if(this.getTooltip() == EMPTY_TIP)//! No necessary, then no render.
                 return;
             
             final int centerX = this.getX() + this.width / 2;

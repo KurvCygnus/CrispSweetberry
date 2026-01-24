@@ -1,10 +1,10 @@
 {
   "block.crispsweetberry.temporary_torch": "Thrown Torch",
   "block.crispsweetberry.temporary_wall_torch": "Thrown Torch",
-  "block.crispsweetberry.paper_box": "Paper Box",
+  "block.crispsweetberry.carry_crate": "Carry Crate",
   "block.crispsweetberry.kiln": "Kiln",
   "item.crispsweetberry.throwable_torch": "Throwable Torch",
-  "item.crispsweetberry.paper_box": "Paper Box",
+  "item.crispsweetberry.carry_crate": "Carry Crate",
   "item.crispsweetberry.kiln": "Kiln",
   "item.crispsweetberry.transmog_wand": "Transmog Wand",
   "item.crispsweetberry.echo_disc": "Echo Disc",
@@ -20,5 +20,6 @@
   "crispsweetberry.ui.widget.kiln_tip_blast": "Some materials are blasting recipe.\nKiln can't process such items that requires high heat.",
   
   "crispsweetberry.config.debug.kiln_be": "[DEBUG ONLY] Kiln: BlockEntity Debug Log",
-  "crispsweetberry.config.debug.kiln_cal": "[DEBUG ONLY] Kiln: Calculator Debug Log"
+  "crispsweetberry.config.debug.kiln_cal": "[DEBUG ONLY] Kiln: Calculator Debug Log",
+  "crispsweetberry.config.debug.kiln_event": "[DEBUG ONLY] Kiln: Cache Event Debug Log"
 }

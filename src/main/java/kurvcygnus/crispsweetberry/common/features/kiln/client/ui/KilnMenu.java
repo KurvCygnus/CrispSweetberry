@@ -72,6 +72,7 @@ public final class KilnMenu extends AbstractContainerMenu
     
     /**
      * The constructor method for <b>server-side</b>, it <b>settles the basic ghost block problem</b>.
+     *
      * @implNote As mentioned above(see {@link #INPUT_SLOT_TOP_X_POS}), the layout shape of Kiln is pyramid shape,
      * <b>so DO NOT wrap "addSlots" to private methods to just make it visually more graceful, that's a bad code smell.</b>
      */
@@ -81,30 +82,36 @@ public final class KilnMenu extends AbstractContainerMenu
         this.container = container;
         this.data = this.container.getData();
         
-        this.addSlot(new KilnInputSlot(container, 
-            KILN_INPUT_SLOTS_RANGE.getMin(),
-            INPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS)
+        this.addSlot(new KilnInputSlot(container,
+                KILN_INPUT_SLOTS_RANGE.getMin(),
+                INPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
+            )
         );
         this.addSlot(new KilnInputSlot(container,
-            KILN_INPUT_SLOTS_RANGE.getMin() + 1,
-            INPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS)
+                KILN_INPUT_SLOTS_RANGE.getMin() + 1,
+                INPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
+            )
         );
         this.addSlot(new KilnInputSlot(container,
-            KILN_INPUT_SLOTS_RANGE.getMax(),
-            INPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS)
+                KILN_INPUT_SLOTS_RANGE.getMax(),
+                INPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
+            )
         );
         
         this.addSlot(new KilnOutputSlot(container,
-            KILN_OUTPUT_SLOTS_RANGE.getMin(),
-            OUTPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS)
+                KILN_OUTPUT_SLOTS_RANGE.getMin(),
+                OUTPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
+            )
         );
         this.addSlot(new KilnOutputSlot(container,
-            KILN_OUTPUT_SLOTS_RANGE.getMin() + 1,
-            OUTPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS)
+                KILN_OUTPUT_SLOTS_RANGE.getMin() + 1,
+                OUTPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
+            )
         );
         this.addSlot(new KilnOutputSlot(container,
-            KILN_OUTPUT_SLOTS_RANGE.getMax(),
-            OUTPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS)
+                KILN_OUTPUT_SLOTS_RANGE.getMax(),
+                OUTPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
+            )
         );
         
         CrispUIUtils.addGridSlots(inventory, INVENTORY_SLOTS_GRID_START_INDEX,
@@ -215,11 +222,11 @@ public final class KilnMenu extends AbstractContainerMenu
      * It was used to solve the problem of verbose method parameters of {@link #moveItemStackTo moveItemStackTo()},
      * making the logic clear and easy to modify.
      *
-     * @see SlotConstants More details about these constants
      * @apiNote The problem of vanilla closedOpen range has been fixed here.
+     * @see SlotConstants More details about these constants
      */
     private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger, boolean reverseDirection)
-        { return CrispUIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
+    { return CrispUIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
     
     /**
      * A helper method for {@link #quickMoveStack(Player, int)}.<br>
@@ -229,8 +236,9 @@ public final class KilnMenu extends AbstractContainerMenu
      * @apiNote Don't forget flag {@code reverseDirection} is false in this overloaded method.
      * @see SlotConstants More details about these constants
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+//! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.
     private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger)
-        { return moveToSlotRange(interactStack, ranger, false); }
+    { return moveToSlotRange(interactStack, ranger, false); }
     //endregion
 }

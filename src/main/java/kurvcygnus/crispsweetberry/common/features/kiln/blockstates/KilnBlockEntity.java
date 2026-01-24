@@ -49,7 +49,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe
 
 /**
  * The <b>container part</b> of <b>Kiln Block</b>, which is responsible for <b>containment, sync and logical</b> things.
- * @since 1.0 Release
+ *
  * @author Kurv Cygnus
  * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel Progress Model
  * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator Progress Calculator
@@ -57,8 +57,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe
  * @see KilnMenu Menu Part
  * @see KilnRecipeCacheEvent Recipe Initialization
  * @see KilnRecipe Recipe Definition
- * @implNote The full execution flow of KilnBlockEntity is documented in
- * {@link kurvcygnus.crispsweetberry.common.features.kiln.docs Kiln-Flowmap.md}.
+ * @since 1.0 Release
  */
 public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements MenuProvider, WorldlyContainer permits KilnDummyBlockEntity
 {
@@ -78,10 +77,10 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         KILN_OUTPUT_SLOTS_RANGE.getMax()
     };
     
-    private static final String NBT_TAG_VISUAL_PROGRESS = "VisualProgress";
-    private static final String NBT_TAG_REAL_PROGRESS = "RealProgress";
-    private static final String NBT_TAG_EXPERIENCE = "Experience";
-    private static final String NBT_TAG_LIT = "Lit";
+    private static final String NBT_TAG_VISUAL_PROGRESS = "visualProgress";
+    private static final String NBT_TAG_REAL_PROGRESS = "realProgress";
+    private static final String NBT_TAG_EXPERIENCE = "experience";
+    private static final String NBT_TAG_LIT = "lit";
     private static final String NBT_TAG_BALANCE_TICK = "balanceTick";
     private static final String NBT_TAG_BALANCE_RATE = "balanceRate";
     
@@ -99,7 +98,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     private final ContainerData data = new KilnContainerData(this);
     
-    private final KilnRecipe[] recipeCache = { noRecipe(), noRecipe(), noRecipe() };
+    private final KilnRecipe[] recipeCache = {noRecipe(), noRecipe(), noRecipe()};
     
     //*:== Logical Procession Data
     private InputState inputState = InputState.ALL_EMPTY;
@@ -134,7 +133,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     @Override
     public boolean canTakeItemThroughFace(int index, @NotNull ItemStack stack, @NotNull Direction direction)
-        { return direction == Direction.DOWN && KILN_OUTPUT_SLOTS_RANGE.inRange(index); }
+    { return direction == Direction.DOWN && KILN_OUTPUT_SLOTS_RANGE.inRange(index); }
     
     //*:=== Container Basics
     @Override
@@ -145,7 +144,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     @Override
     protected @NotNull AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory)
-        { return new KilnMenu(containerId, inventory, this); }
+    { return new KilnMenu(containerId, inventory, this); }
     
     @Override
     public int getContainerSize() { return KILN_DEFAULT_SIZE; }
@@ -157,7 +156,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     protected void setItems(@NotNull NonNullList<ItemStack> items) { this.containerItems = items; }
     
     /**
-     * @implNote Do not add flags like {@code slotChanged} to make <u>{@link #updateInputSlotsInfo()}</u> event-driven based. 
+     * @implNote Do not add flags like {@code slotChanged} to make <u>{@link #updateInputSlotsInfo()}</u> event-driven based.
      * Neither <u>{@link ItemStack#isSameItem ItemStack#isSameItem()}</u> nor <u>{@link ItemStack#isSameItemSameComponents ItemStack#isSameItemSameComponents()}</u>
      * can fully cover boundary cases. Mixed other logics with them together mostly also won't settle these issues.
      */
@@ -204,24 +203,25 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             ItemStack stackInSlot = containerItems.get(slotIndex);
             
             configDebug("[INPUT_CHECK] slotIndex: {}, cacheIndex: {}, content: {}",
-                slotIndex, cacheIndex, stackInSlot.getDisplayName());
+                slotIndex, cacheIndex, stackInSlot.getDisplayName()
+            );
             
             if(stackInSlot.isEmpty())
                 recipeCache[cacheIndex] = noRecipe();
-            else if(canSmelt(stackInSlot))    
+            else if(canSmelt(stackInSlot))
             {
                 if(inputState != InputState.VALID)
                     configDebug("[INPUT_STATE_CHANGED] {} -> VALID (at slot {}, stack: {})",
-                        inputState, slotIndex, stackInSlot.getDisplayName());
+                        inputState, slotIndex, stackInSlot.getDisplayName()
+                    );
                 
                 inputState = InputState.VALID;
-                //? TODO: Polymorph support
-                KilnRecipe recipe = KilnRecipeCacheEvent.getKilnCachedRecipes().
-                    getOrDefault(stackInSlot.getItem(), noRecipeList()).getFirst();
+                KilnRecipe recipe = getKilnRecipe(stackInSlot);
                 
                 recipeCache[cacheIndex] = (recipe != null && !isEmptyRecipe(recipe)) ? recipe : noRecipe();
                 configDebug("[CACHE_WRITE] write cache[{}] from slot {} -> {}",
-                    cacheIndex, slotIndex, recipe);
+                    cacheIndex, slotIndex, recipe
+                );
             }
             else if(isBanned(stackInSlot))
             {
@@ -239,7 +239,8 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             }
             
             configDebug("[CACHE_CONFIRM] new cache at index {}: [Ingredient: {}, Result: {}]",
-                slotIndex, recipeCache[cacheIndex].getIngredient(), recipeCache[cacheIndex].getResult());
+                slotIndex, recipeCache[cacheIndex].getIngredient(), recipeCache[cacheIndex].getResult()
+            );
         }
         
         final LogicalResult nonWorkingLogicalResult;
@@ -265,7 +266,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     /**
      * @apiNote This method is called by <u>{@link KilnOutputSlot#onTake(Player, ItemStack) KilnOutputSlot#onTake()}</u>, not the blockEntity itself.
      */
-    public void dropExperience(@NotNull Player player) 
+    public void dropExperience(@NotNull Player player)
     {
         int exp = Mth.floor(this.experience);
         ExperienceOrb.award((ServerLevel) level, player.position(), exp);
@@ -289,11 +290,12 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         
         switch(result.logicalResult())
         {
-            case CONTINUE, BALANCING -> {}
-            case INVALID -> LOGGER.error("[UNEXPECTED_RESULT] Received unexpected result \"{}\"", result.logicalResult().name());
+            case CONTINUE, BALANCING -> { }
+            case INVALID ->
+                LOGGER.error("[UNEXPECTED_RESULT] Received unexpected result \"{}\"", result.logicalResult().name());
             case SKIP -> { return; }
         }
-            
+        
         final boolean isFinishedProcession = upgradeProgress(blockEntity.model);
         
         boolean worldDirty = false;
@@ -309,13 +311,12 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     }
     
     /**
-     * @apiNote 
-     * State <u>{@link LogicalResult#BALANCING BALANCING}</u>
-     * is strictly considered as a special variation of 
+     * @apiNote State <u>{@link LogicalResult#BALANCING BALANCING}</u>
+     * is strictly considered as a special variation of
      * <u>{@link ProcessionState#WORKING WORKING}</u>, instead of being an independent state,
-     * it's deduced, only being used in 
+     * it's deduced, only being used in
      * <u>{@link KilnProgressCalculator#calculateRates Calculation}</u>
-     * and returned as a part of <u>{@link CalculationResult CalculationResult}</u> 
+     * and returned as a part of <u>{@link CalculationResult CalculationResult}</u>
      * for menu visual change.
      */
     public ProcessionState deduceProcessState(boolean isIgnited)
@@ -351,7 +352,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     /**
      * @implNote This method emulates the insertion of result items by trying to insert one item into three different slots<i>(9 attempts in most cases)</i>,
-     * only when both of three result item insertions are succeed, then the method will return {@code true} to tell 
+     * only when both of three result item insertions are succeed, then the method will return {@code true} to tell
      * <u>{@link #processInputItems processInputItems()}</u> to apply emulated results.
      */
     private static boolean insertItemsToSlots(KilnBlockEntity blockEntity, ItemStack[] resultStacks, NonNullList<ItemStack> emulatedOutputSlots)
@@ -372,7 +373,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     
                     if(emptyStackIndex == null && emulatedOutputStack.isEmpty())
                         emptyStackIndex = attemptSlotIndex;//! Only assigns the earliest matched index to emptyStackIndex to make sure the merge
-                                                           //! behavior is same as vanilla.
+                    //! behavior is same as vanilla.
                     
                     if(invalidAttempts >= 3)
                     {
@@ -503,16 +504,25 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     //  region
     //* Helpers, Getters & Setters
+    
     /**
      * Helper methods to check item validation.
+     *
      * @see KilnRecipeCacheEvent#getKilnRecipes(ServerStartedEvent)  Source
      */
     public boolean canSmelt(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getKilnCachedRecipes().containsKey(itemstack.getItem()); }
     
     public boolean isBanned(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getBannedRecipes().containsKey(itemstack.getItem()); }
     
+    private static KilnRecipe getKilnRecipe(@NotNull ItemStack stackInSlot)
+    {
+        //? TODO: Polymorph support
+        return KilnRecipeCacheEvent.getKilnCachedRecipes().
+            getOrDefault(stackInSlot.getItem(), noRecipeList()).getFirst();
+    }
+    
     public ContainerData getData() { return this.data; }
     
-    private void configDebug(String message, Object @NotNull... args) { CrispLogUtils.logIf(CrispConfig.KILN_BE_DEBUG.get(), () -> LOGGER.debug(message, args)); }
+    private void configDebug(String message, Object @NotNull ... args) { CrispLogUtils.logIf(CrispConfig.KILN_BE_DEBUG.get(), () -> LOGGER.debug(message, args)); }
     //endregion
 }

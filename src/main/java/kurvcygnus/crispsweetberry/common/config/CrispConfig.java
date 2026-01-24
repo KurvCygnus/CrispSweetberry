@@ -5,12 +5,14 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import static net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import static net.neoforged.neoforge.common.ModConfigSpec.Builder;
 
+//? TODO: GUI
 public class CrispConfig
 {
     private static final Builder BUILDER = new Builder();
     
     public static final BooleanValue KILN_BE_DEBUG;
     public static final BooleanValue KILN_BE_CAL_DEBUG;
+    public static final BooleanValue KILN_EVENT_DEBUG;
     
     static
     {
@@ -23,6 +25,11 @@ public class CrispConfig
             comment("Kiln: Calculator Debug Log Display Toggle").
             translation("crispsweetberry.config.configDebug.kiln_cal").
             define("kilnBECalDebug", false);
+        
+        KILN_EVENT_DEBUG = BUILDER.
+            comment("Kiln: Event Debug Log Display Toggle").
+            translation("crispsweetberry.config.debug.kiln_event").
+            define("kilnEventDebug", false);
     }
     
     public static final ModConfigSpec SPEC = BUILDER.build();
