@@ -1,7 +1,7 @@
 package kurvcygnus.crispsweetberry.utils.ui;
 
 import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
-import kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants;
+import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
 import kurvcygnus.crispsweetberry.utils.ui.functions.IQuadMoveStackPredicate;
 import kurvcygnus.crispsweetberry.utils.ui.functions.IQuadSlotSupplier;
 import net.minecraft.world.Container;
@@ -12,8 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants.CORRECTION_INDEX;
-import static kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants.SLOT_GAP;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.CORRECTION_INDEX;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.SLOT_GAP;
 
 /**
  * A collection of some simple helpers for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu UI stuff}</u>.
@@ -40,7 +40,7 @@ public final class CrispUIUtils
      *             this::addSlot
      *         );
      * }</pre>
-     * All constants can be found at <u>{@link SlotConstants}</u>.
+     * All constants can be found at <u>{@link ExampleSlotConstants}</u>.
      * @apiNote Please make sure that both {@code rows} and {@code cols} are unsigned. Or else this method will
      * throw <u>{@link IllegalArgumentException}</u>.
      */
@@ -74,7 +74,7 @@ public final class CrispUIUtils
      * @implSpec Example:<pre>{@code 
      *  moveStackByRanger(stack, ranger, flag, this::moveItemStackTo);
      * }</pre>
-     * @see SlotConstants Furnace Layout Index Reference
+     * @see ExampleSlotConstants Furnace Layout Index Reference
      * @see CrispIntRanger Ranger
      */
     public static boolean moveStackByRanger

@@ -8,7 +8,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.utils.ui.CrispUIUtils;
 import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
-import kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants;
+import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
-import static kurvcygnus.crispsweetberry.utils.ui.constants.SlotConstants.*;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.*;
 
 /**
  * The <b>user interface part</b> of the Kiln Block.<br>
@@ -223,7 +223,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * making the logic clear and easy to modify.
      *
      * @apiNote The problem of vanilla closedOpen range has been fixed here.
-     * @see SlotConstants More details about these constants
+     * @see ExampleSlotConstants More details about these constants
      */
     private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger, boolean reverseDirection)
     { return CrispUIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
@@ -234,7 +234,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * making the logic clear and easy to modify.
      *
      * @apiNote Don't forget flag {@code reverseDirection} is false in this overloaded method.
-     * @see SlotConstants More details about these constants
+     * @see ExampleSlotConstants More details about these constants
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
 //! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.

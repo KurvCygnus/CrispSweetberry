@@ -17,14 +17,10 @@ public class CarryCrateBlock extends HorizontalDirectionalBlock
 {
     public static final MapCodec<CarryCrateBlock> CODEC = simpleCodec(CarryCrateBlock::new);
     
-    /**
-     * A <b>placeholder construct method, as its superclass demands to implement it</b>.
-     */
+    /// A **placeholder construct method, as its superclass demands to implement it**.
     public CarryCrateBlock(@Nullable Properties properties) { this(); }
     
-    /**
-     * This is the actual construct method for <b>block registry</b>.
-     */
+    /// This is the actual construct method for **block registry**.
     public CarryCrateBlock()
     {
         super(BlockBehaviour.Properties.of().

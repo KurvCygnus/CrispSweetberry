@@ -2,32 +2,39 @@ package kurvcygnus.crispsweetberry.utils.ui.collects;
 
 import com.google.common.collect.Range;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * A simple range class for making range checks more readable.<br>
  * The reason of not using <u>{@link Range Range}</u> is that the function we need is far more few than it offers,
  * besides, API may change with time.<br>
  * If you need to use it for other number types, you may try <u>{@link CrispRanger}</u>.
+ *
+ * @author Kurv Cygnus
  * @apiNote It is recommended to <b>use this as a constant</b>, constantly creating instances like this only brings performance penalty.<br>
  * Also, {@code CrispIntRanger} is always immutable.
- * @author Kurv Cygnus
  * @since 1.0 Release
  */
-public final class CrispIntRanger
+@ApiStatus.Internal
+public final class CrispIntRanger implements Iterable<Integer>
 {
     private final int min;
     private final int max;
     private final boolean minClosed;
     private final boolean maxClosed;
-    private static final Logger logger = LoggerFactory.getLogger(CrispIntRanger.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CrispIntRanger.class);
     
     private CrispIntRanger(int min, int max, boolean minClosed, boolean maxClosed)
     {
@@ -43,7 +50,7 @@ public final class CrispIntRanger
         {
             this.min = max;
             this.max = min;
-            logger.warn("Swapped the value of min({})/max({}) to avoid abnormal behaviors.", max, min);
+            LOGGER.warn("Swapped the value of min({})/max({}) to avoid abnormal behaviors.", max, min);
         }
         this.minClosed = minClosed;
         this.maxClosed = maxClosed;
@@ -102,7 +109,7 @@ public final class CrispIntRanger
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
     @CheckReturnValue
-    public static int inRangers(int value, CrispIntRanger @NotNull... rangers)
+    public static int inRangers(int value, CrispIntRanger @NotNull ... rangers)
     {
         for(int index = 0; index < rangers.length; index++)
         {
@@ -116,16 +123,41 @@ public final class CrispIntRanger
         return -1;
     }
     
+    public <C extends AbstractContainerMenu> void forEachSlot(@NotNull C menu, @NotNull Consumer<Slot> action)
+    {
+        Objects.requireNonNull(menu, "Param \"menu\" must not be null!");
+        Objects.requireNonNull(action, "Param \"action\" must not be null!");
+        
+        for(int index: this)
+            if(index >= 0 && index < menu.slots.size())
+                action.accept(menu.getSlot(index));
+    }
+    
     @CheckReturnValue
     public int getMin() { return min; }
     
     @CheckReturnValue
     public int getMax() { return max; }
     
-    /**
-     * Returns the value of this ranger's range.
-     * @apiNote This didn't take closed/open cases in account.
-     */
-    @CheckReturnValue
-    public int getRange() { return this.max - this.min; }
+    public int size() { return (maxClosed ? max : max - 1) - (minClosed ? min : min + 1) + 1; }
+    
+    @Override @Contract(" -> new")
+    public @NotNull Iterator<Integer> iterator() { return new CrispIntIterator(); }
+    
+    private class CrispIntIterator implements Iterator<Integer>
+    {
+        private int cursor = minClosed ? min : min + 1;
+        private final int last = maxClosed ? max : max - 1;
+        
+        @Override
+        public boolean hasNext() { return cursor <= last; }
+        
+        @Override
+        public Integer next()
+        {
+            if(!hasNext())
+                throw new NoSuchElementException();
+            return cursor++;
+        }
+    }
 }

@@ -12,9 +12,9 @@ import net.minecraft.world.entity.player.Player;
  * Custom slots should follow its own slots index.
  * @since 1.0 Release
  */
-public final class SlotConstants
+public final class ExampleSlotConstants
 {
-    private SlotConstants() { throw new IllegalAccessError(); }
+    private ExampleSlotConstants() { throw new IllegalAccessError(); }
     
     public static final int NO_X_SLOT_OFFSET = 0;
     

@@ -18,12 +18,16 @@ public final class CoinCollections
 {
     public abstract static class AbstractCoinItem extends Item
     {
-        private final int storedExperience = initStoredExperience();
+        private final int storedExperience;
         
         @SuppressWarnings("unused")//! Only for vanilla CODEC stuff.
         private AbstractCoinItem(@Nullable Properties properties) { this(); }
         
-        public AbstractCoinItem() { super(new Properties()); }
+        public AbstractCoinItem() 
+        {
+            super(new Properties());
+            this.storedExperience = initStoredExperience();
+        }
         
         protected abstract int initStoredExperience();
         

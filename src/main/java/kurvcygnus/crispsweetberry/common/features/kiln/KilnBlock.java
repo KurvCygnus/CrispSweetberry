@@ -6,13 +6,13 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.registries.CrispBlockEntities;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
 import kurvcygnus.crispsweetberry.utils.misc.CrispVisualUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
@@ -89,7 +89,7 @@ public final class KilnBlock extends BaseEntityBlock
     //*: Constructors & Basic Definitions
     
     /**
-     * This constructor method has no exact usage, it is implemented as the super class requires.
+     * This constructor method has no exact usage, it is implemented for vanilla CODEC stuff.
      */
     private KilnBlock(@Nullable Properties properties) { this(); }
     
@@ -188,9 +188,7 @@ public final class KilnBlock extends BaseEntityBlock
     public @NotNull ItemStack getCloneItemStack(@NotNull BlockState state, @NotNull HitResult target, @NotNull LevelReader level, @NotNull BlockPos pos, @NotNull Player player)
     {
         ItemStack stack = new ItemStack(this);
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(new CompoundTag()
-            {{ putBoolean(LIT_PROPERTY, state.getValue(LIT)); }})
-        );
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         return stack;
     }
     
@@ -201,9 +199,7 @@ public final class KilnBlock extends BaseEntityBlock
         
         for(ItemStack stack: drops)
             if(stack.is(this.asItem()))
-                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(new CompoundTag()
-                    {{ putBoolean(LIT_PROPERTY, state.getValue(LIT)); }})
-                );
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         
         return drops;
     }
