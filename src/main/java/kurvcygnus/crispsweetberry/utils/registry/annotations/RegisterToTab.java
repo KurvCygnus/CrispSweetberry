@@ -16,10 +16,14 @@ import java.lang.annotation.Target;
  * Annotation for automatically creative mode tab's registry.<br>
  * <b><i>It only works on items</i></b>.
  * @implSpec Usage Example:<br><pre>{@code
- *  @RegisterToTab(TabType.SpecifiedTabType)
+ *  @RegisterToTab(
+ *  tabGroup = TabType.SpecifiedTabType,
+ *  condition = bar// default: true
+ *  )
  *  public static final Holder<Item> Foo = ...
  * }</pre>
  * @see CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent)  Annotation Executor
+ * @see kurvcygnus.crispsweetberry.CrispSweetberry#ANNOTATION_CACHE Info Source
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
@@ -28,6 +32,7 @@ import java.lang.annotation.Target;
 public @interface RegisterToTab
 {
     TabType tabGroup() default TabType.CRISPY;
+    boolean registerCondition() default true;
     
     /**
      * The enum to <b>uniform CreativeModeTabTypes</b>.<br>

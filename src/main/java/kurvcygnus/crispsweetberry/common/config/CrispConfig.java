@@ -5,9 +5,11 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import static net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import static net.neoforged.neoforge.common.ModConfigSpec.Builder;
 
-//? TODO: GUI
-public class CrispConfig
+//? TODO: Bound with GUI
+public final class CrispConfig
 {
+    private CrispConfig() { throw new IllegalAccessError(); }
+    
     private static final Builder BUILDER = new Builder();
     
     public static final BooleanValue KILN_BE_DEBUG;

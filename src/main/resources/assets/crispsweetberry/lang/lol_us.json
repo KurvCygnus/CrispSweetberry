@@ -3,6 +3,7 @@
   "block.crispsweetberry.temporary_wall_torch": "fullee lite stik",
   "block.crispsweetberry.carry_crate": "hoom",
   "block.crispsweetberry.kiln": "big warn bokz",
+  
   "item.crispsweetberry.throwable_torch": "chuk da lite stik",
   "item.crispsweetberry.carry_crate": "KANZ IZ MAI HOOM",
   "item.crispsweetberry.kiln": "I CAN HAZ WARM BOKZ",
@@ -19,6 +20,7 @@
   "crispsweetberry.ui.widget.kiln_info_cooldown": "DA BIG BOKZ IZ TRYIN' 2 BEE NOT OP",
   "crispsweetberry.ui.widget.kiln_tip_blast": "BIG BOKZ KIN'T TAK THIZ!!!",
   
+  "crispsweetberry.config.title": "TA2TY FRUT XDAFF",
   "crispsweetberry.config.debug.kiln_be": "[DAVZ] WARM BOZ: BlarkAntity Tezt Stuff",
   "crispsweetberry.config.debug.kiln_cal": "[DAVZ] WARM BOZ: Kaqlaytor Tezt Stuff",
   "crispsweetberry.config.debug.kiln_event": "[DAVZ] WARM BOZ: EVENT BUZ GOGOGO"

@@ -3,6 +3,7 @@
   "block.crispsweetberry.temporary_wall_torch": "投掷火把",
   "block.crispsweetberry.carry_crate": "搬运箱",
   "block.crispsweetberry.kiln": "窑炉",
+  
   "item.crispsweetberry.throwable_torch": "投掷火把",
   "item.crispsweetberry.carry_crate": "搬运箱",
   "item.crispsweetberry.kiln": "窑炉",
@@ -19,6 +20,7 @@
   "crispsweetberry.ui.widget.kiln_info_cooldown": "总输入热量改变. 正在重分配热量...",
   "crispsweetberry.ui.widget.kiln_tip_blast": "部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料.",
   
+  "crispsweetberry.config.title": "澄莓物语: 配置菜单",
   "crispsweetberry.config.debug.kiln_be": "[调试] 窑炉: BlockEntity 调试日志",
   "crispsweetberry.config.debug.kiln_cal": "[调试] 窑炉: Calculator 调试日志",
   "crispsweetberry.config.debug.kiln_event": "[调试] 窑炉: 缓存事件调试日志"

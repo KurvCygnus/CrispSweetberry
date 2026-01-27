@@ -2,15 +2,16 @@ package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateBlock;
+import kurvcygnus.crispsweetberry.common.features.coins.CoinType;
+import kurvcygnus.crispsweetberry.common.features.coins.GenericCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.TemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.abstracts.ITemporaryTorchBehaviors;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import static kurvcygnus.crispsweetberry.common.misc.blocks.CoinStackCollections.*;
 
 
 public final class CrispBlocks
@@ -29,15 +30,15 @@ public final class CrispBlocks
     
     public static final Holder<Block> KILN = CRISP_BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
     
-    public static final Holder<Block> COPPER_COIN_STACK = CRISP_BLOCK_REGISTER.register("copper_coin_stack", resourceLocation ->
-        new CopperCoinStackBlock());
+    public static final DeferredHolder<Block, GenericCoinStackBlock> COPPER_COIN_STACK = CRISP_BLOCK_REGISTER.register("copper_coin_stack", resourceLocation ->
+        new GenericCoinStackBlock(() -> CoinType.COPPER));
     
-    public static final Holder<Block> IRON_COIN_STACK = CRISP_BLOCK_REGISTER.register("iron_coin_stack", resourceLocation ->
-        new IronCoinStackBlock());
+    public static final DeferredHolder<Block, GenericCoinStackBlock> IRON_COIN_STACK = CRISP_BLOCK_REGISTER.register("iron_coin_stack", resourceLocation ->
+        new GenericCoinStackBlock(() -> CoinType.IRON));
     
-    public static final Holder<Block> GOLD_COIN_STACK = CRISP_BLOCK_REGISTER.register("gold_coin_stack", resourceLocation ->
-        new GoldCoinStackBlock());
+    public static final DeferredHolder<Block, GenericCoinStackBlock> GOLD_COIN_STACK = CRISP_BLOCK_REGISTER.register("gold_coin_stack", resourceLocation ->
+        new GenericCoinStackBlock(() -> CoinType.GOLD));
     
-    public static final Holder<Block> DIAMOND_COIN_STACK = CRISP_BLOCK_REGISTER.register("diamond_coin_stack", resourceLocation ->
-        new DiamondCoinStackBlock());
+    public static final DeferredHolder<Block, GenericCoinStackBlock> DIAMOND_COIN_STACK = CRISP_BLOCK_REGISTER.register("diamond_coin_stack", resourceLocation ->
+        new GenericCoinStackBlock(() -> CoinType.DIAMOND));
 }

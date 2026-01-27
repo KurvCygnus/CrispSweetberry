@@ -1,7 +1,7 @@
-package kurvcygnus.crispsweetberry.common.misc.events;
+package kurvcygnus.crispsweetberry.common.features.coins.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.misc.items.CoinCollections;
+import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -14,12 +14,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
-
-import static kurvcygnus.crispsweetberry.common.misc.items.CoinCollections.AbstractCoinItem;
 
 //? TODO: Cover more cases.
 
@@ -27,7 +24,7 @@ import static kurvcygnus.crispsweetberry.common.misc.items.CoinCollections.Abstr
  * This event is the actual role that makes experience mechanic work.
  *
  * @author Kurv Cygnus
- * @see CoinCollections Coin Families
+ * @see kurvcygnus.crispsweetberry.common.features.coins.GenericCoinItem Base Coin
  * @since 1.0 Release
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
@@ -55,7 +52,7 @@ public final class CoinExperienceEvent
             {
                 Player player = event.getEntity();
                 
-                if(player.totalExperience < coinItem.getStoredExperience())//? TODO: Tip players about this.
+                if(player.totalExperience < coinItem.getCoinType().getExperience())//? TODO: Tip players about this.
                     event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).set(ItemStack.EMPTY);//* If player has not enough exp for coin, hide result.
             }
         }
@@ -72,7 +69,7 @@ public final class CoinExperienceEvent
             return;
         
         if(item instanceof AbstractCoinItem coin)
-            player.giveExperiencePoints(-coin.getStoredExperience());
+            player.giveExperiencePoints(-coin.getCoinType().getExperience());
         else switch(event.getInventory())
         {
             case InventoryMenu ignored -> checkSlotsAndDispenseExp(event, INVENTORY_INPUT_SLOTS_RANGE);
@@ -85,18 +82,24 @@ public final class CoinExperienceEvent
     private static void checkSlotsAndDispenseExp(@NotNull PlayerEvent.ItemCraftedEvent event, @NotNull CrispIntRanger ranger)
     {
         final ItemStack result = event.getInventory().getItem(UNIVERSAL_RESULT_SLOT_INDEX);
+        int coinCount = 0;
         
         for(int inputIndex: ranger)
         {
             final ItemStack material = event.getInventory().getItem(inputIndex);
             
-            if(material.getItem() instanceof AbstractCoinItem coin && result.is(Tags.Items.NUGGETS))//? TODO: Still unreliable.
-            {                                                                                       //? Consider adding field "nuggetItem" in CoinItem? IDK
-                Player player = event.getEntity();
-                ServerLevel level = (ServerLevel) player.level();
-                
-                ExperienceOrb.award(level, player.position(), coin.getStoredExperience());
-                return;
+            if(material.getItem() instanceof AbstractCoinItem coin)
+            {
+                coinCount++;
+                if(inputIndex == ranger.getMax() && coinCount == 1 && result.getItem() == coin.getCoinType().getNuggetItemSupplier())//? TODO: Refactor this with recipe check.
+                {
+                    Player player = event.getEntity();
+                    ServerLevel level = (ServerLevel) player.level();
+                    
+                    //*                                                         No penalty, coins will be super OP. ↓
+                    ExperienceOrb.award(level, player.position(), (int) (coin.getCoinType().getExperience() * coin.getCoinType().getPenaltyRate()));
+                    return;
+                }
             }
             else if(material != ItemStack.EMPTY)
                 return;
