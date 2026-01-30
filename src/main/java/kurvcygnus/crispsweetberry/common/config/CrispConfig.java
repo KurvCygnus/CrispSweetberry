@@ -6,6 +6,13 @@ import static net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import static net.neoforged.neoforge.common.ModConfigSpec.Builder;
 
 //? TODO: Bound with GUI
+
+/**
+ * This defines the option for Crisp Sweetberry.
+ * @see kurvcygnus.crispsweetberry.common.config.gui.CrispConfigScreen Screen
+ * @since Release 1.0
+ * @author Kurv Cygnus
+ */
 public final class CrispConfig
 {
     private CrispConfig() { throw new IllegalAccessError(); }

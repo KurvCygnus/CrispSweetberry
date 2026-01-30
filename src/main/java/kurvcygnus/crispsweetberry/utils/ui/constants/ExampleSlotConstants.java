@@ -1,7 +1,6 @@
 package kurvcygnus.crispsweetberry.utils.ui.constants;
 
 import kurvcygnus.crispsweetberry.utils.ui.CrispUIUtils;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -57,10 +56,6 @@ public final class ExampleSlotConstants
     public static final int BACKPACK_SLOT_END_INDEX = 29;
     public static final int HOTBAR_SLOT_START_INDEX = 30;
     public static final int HOTBAR_SLOT_END_INDEX = 38;
-    
-    public static final CrispIntRanger BACKPACK_SLOTS_RANGE = CrispIntRanger.closed(BACKPACK_SLOT_START_INDEX, BACKPACK_SLOT_END_INDEX);
-    public static final CrispIntRanger HOTBAR_SLOTS_RANGE = CrispIntRanger.closed(HOTBAR_SLOT_START_INDEX, HOTBAR_SLOT_END_INDEX);
-    public static final CrispIntRanger INVENTORY_SLOTS_RANGE = CrispIntRanger.closed(BACKPACK_SLOTS_RANGE.getMin(), HOTBAR_SLOTS_RANGE.getMax());
     
     public static final int ABNORMAL_RANGE = -1;
     public static final int INPUT_RANGE = 0;

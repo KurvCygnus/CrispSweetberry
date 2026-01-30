@@ -2,7 +2,7 @@ package kurvcygnus.crispsweetberry.utils.misc;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 /**
  * This util contains log-related functions.
@@ -21,18 +21,18 @@ public final class CrispLogUtils
     
     public static void logIf(boolean condition, @NotNull Runnable logAction)
     {
+        requireNonNull(logAction, "Param \"logAction\" cannot be null!");
+        
         if(!condition)
             return;
-        
-        Objects.requireNonNull(logAction, "Param \"logAction\" cannot be null!");
         
         logAction.run();
     }
     
     public static void conditionalLog(boolean condition, @NotNull Runnable trueLogAction, @NotNull Runnable falseLogAction)
     {
-        Objects.requireNonNull(trueLogAction, "Param \"trueLogAction\" cannot be null!(Param 1)");
-        Objects.requireNonNull(falseLogAction, "Param \"falseLogAction\" cannot be null!(Param 2)");
+        requireNonNull(trueLogAction, "Param \"trueLogAction\" cannot be null!(Param 1)");
+        requireNonNull(falseLogAction, "Param \"falseLogAction\" cannot be null!(Param 2)");
         
         if(condition)
             trueLogAction.run();

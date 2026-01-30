@@ -16,6 +16,6 @@ public final class CrispBlockstateProvider extends BlockStateProvider
     @Override
     protected void registerStatesAndModels()
     {
-    
+        
     }
 }

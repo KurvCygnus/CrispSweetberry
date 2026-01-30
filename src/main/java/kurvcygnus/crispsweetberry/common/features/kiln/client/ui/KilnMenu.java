@@ -1,7 +1,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
-import kurvcygnus.crispsweetberry.client.registries.CrispMenus;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnDummyBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
@@ -78,7 +78,7 @@ public final class KilnMenu extends AbstractContainerMenu
      */
     public KilnMenu(int containerId, Inventory inventory, KilnBlockEntity container)
     {
-        super(CrispMenus.KILN_MENU.get(), containerId);
+        super(KilnRegistries.KILN_MENU.get(), containerId);
         this.container = container;
         this.data = this.container.getData();
         

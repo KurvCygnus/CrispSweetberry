@@ -2,22 +2,23 @@ package kurvcygnus.crispsweetberry.client.init;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.BanFromTabRegistry;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
-import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
+import java.util.function.Supplier;
 
 /**
  * The executor of annotation <b><u>{@link RegisterToTab @RegisterToTab}</u></b>.<br>
- * <b>It automatically registers every item in {@code CrispItems.class} which presents {@link RegisterToTab @RegisterToTab} to designated tabs.</b>
+ * <b>It automatically registers every entry that presents {@link RegisterToTab @RegisterToTab} to designated tabs.</b>
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
@@ -36,7 +37,7 @@ public final class CrispCreativeTabsRegistryEvent
         
         LOGGER.info("[TAB_REGISTRY] Start the registration of creative mode tab contents...");
         
-        for(ModFileScanData.AnnotationData data: CrispSweetberry.ANNOTATION_CACHE)
+        for(var data: CrispSweetberry.ANNOTATION_CACHE)
         {
             try
             {
@@ -52,16 +53,40 @@ public final class CrispCreativeTabsRegistryEvent
                 if(!annotation.registerCondition())
                     continue;
                 
+                final Object rawValue = field.get(null);
+                if(rawValue == null)
+                    continue;
+                
+                final Item item;
+                if(rawValue instanceof Supplier<?> supplier)
+                {
+                    final Object supplied = supplier.get();
+                    
+                    if(supplied instanceof Item supplyItem)
+                        item = supplyItem;
+                    else
+                        continue;
+                }
+                else if(rawValue instanceof Item supplyItem)
+                    item = supplyItem;
+                else
+                    continue;
+                
+                if(item instanceof AbstractCoinItem<?> coinItem && !coinItem.getCoinType().shouldAppear())
+                {
+                    LOGGER.debug("[TAB_REGISTRY] Skipping {} because its nugget is missing.", field.getName());
+                    continue;
+                }
+                
                 if(event.getTabKey().equals(annotation.tabGroup().toCreativeTab()))
                 {
-                    //* Passing "null" instead of variable "clazz" is correct and effective way in reflection.
-                    try { event.accept((ItemLike) field.get(null)); }
-                    catch(IllegalAccessException error) { LOGGER.error(error.getMessage()); }
-                    finally { LOGGER.debug("[TAB_REGISTRY] Attempting to register {} to tab {}", field.getName(), event.getTabKey().toString().toLowerCase()); }
+                    event.accept(item);
+                    LOGGER.debug("[TAB_REGISTRY] Registered {} to tab {}", field.getName(), event.getTabKey().location());
                 }
             }
             catch(ClassNotFoundException e) { LOGGER.error("[TAB_REGISTRY] Failed to find class, details: {}", e.getMessage()); }
             catch(NoSuchFieldException e) { LOGGER.error("[TAB_REGISTRY] Failed to find field, details: {}", e.getMessage()); }
+            catch(IllegalAccessException e) { LOGGER.error("[TAB_REGISTRY] Failed to access field, details: {}", e.getMessage()); }
             finally { LOGGER.debug("[TAB_REGISTRY] Go to next entry..."); }
         }
         

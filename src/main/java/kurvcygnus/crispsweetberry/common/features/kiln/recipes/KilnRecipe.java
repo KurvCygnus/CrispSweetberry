@@ -1,6 +1,6 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.recipes;
 
-import kurvcygnus.crispsweetberry.common.registries.CrispRecipes;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
@@ -60,9 +60,9 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
     private final double processFactor;
     private final float experience;
     
-    public final RecipeState state;
+    private final RecipeState state;
     
-    public enum RecipeState { NORMAL, NULL, TIP }
+    private enum RecipeState { NORMAL, NULL, TIP }
     
     /**
      * The contractor method for <b>creating a recipe</b>, and <b>serialization</b>.
@@ -76,7 +76,7 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
         this.state = RecipeState.NORMAL;
     }
     
-    private KilnRecipe(RecipeState state)
+    private KilnRecipe(@NotNull RecipeState state)
     {
         this.ingredient = Ingredient.EMPTY;
         this.result = ItemStack.EMPTY;
@@ -122,7 +122,7 @@ public final class KilnRecipe implements Recipe<KilnRecipeInput>
     public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider registries) { return this.result.copy(); }
     
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() { return CrispRecipes.KILN_SERIALIZER.get(); }
+    public @NotNull RecipeSerializer<?> getSerializer() { return KilnRegistries.KILN_SERIALIZER.get(); }
     
     @Override
     public @NotNull RecipeType<?> getType() { return KilnRecipeType.INSTANCE; }

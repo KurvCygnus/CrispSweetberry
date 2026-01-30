@@ -1,7 +1,7 @@
 package kurvcygnus.crispsweetberry.common.config.gui;
 
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
-import kurvcygnus.crispsweetberry.utils.misc.CrispMiscUtils;
+import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -10,6 +10,13 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This makes the config editable and visually seeable in game.<br>
+ * WIP.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see CrispConfig Config
+ */
 public final class CrispConfigScreen extends Screen
 {
     private final @NotNull Screen lastScreen;
@@ -36,7 +43,7 @@ public final class CrispConfigScreen extends Screen
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) ->
             {
                 CrispConfig.SPEC.save();
-                CrispMiscUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
+                CrispFunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
             }
         ).bounds(x, this.height - 28, buttonWidth, 20).build());
     }
@@ -53,6 +60,6 @@ public final class CrispConfigScreen extends Screen
     public void onClose()
     {
         CrispConfig.SPEC.save();
-        CrispMiscUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
+        CrispFunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
     }
 }

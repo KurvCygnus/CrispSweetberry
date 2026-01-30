@@ -3,6 +3,7 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.CalculationResult;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
@@ -15,7 +16,6 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
-import kurvcygnus.crispsweetberry.common.registries.CrispBlockEntities;
 import kurvcygnus.crispsweetberry.utils.misc.CrispLogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -110,7 +110,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     //  region
     //* Constructor & Basic Info Declaration
-    public KilnBlockEntity(BlockPos pos, BlockState blockState) { super(CrispBlockEntities.KILN_BLOCK_ENTITY.get(), pos, blockState); }
+    public KilnBlockEntity(BlockPos pos, BlockState blockState) { super(KilnRegistries.KILN_BLOCK_ENTITY.get(), pos, blockState); }
     
     //*:=== Hopper Support Essentials
     @Override

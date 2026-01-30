@@ -1,35 +1,47 @@
 package kurvcygnus.crispsweetberry.common.features.coins.abstracts;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import kurvcygnus.crispsweetberry.common.features.coins.CoinType;
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
 /**
- * This is the basic of coin series.
- * @implNote The reason we keep <u>{@link AbstractCoinItem}</u> and <u>{@link kurvcygnus.crispsweetberry.common.features.coins.GenericCoinItem GenericCoinItem}</u>
+ * This is the basic of coin items, which can store experience, with penalty as costs.
+ * @implNote The reason we keep <u>{@link AbstractCoinItem}</u> and <u>{@link VanillaCoinItem VanillaCoinItem}</u>
  * separated is that we are considering using annotation processors to solve boilerplate problems in future developing.
- * @see kurvcygnus.crispsweetberry.common.features.coins.GenericCoinItem Universal Implementation
+ * @see VanillaCoinItem Vanilla Implementation
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public abstract class AbstractCoinItem extends Item
+public abstract class AbstractCoinItem<C extends ICoinType<C>> extends Item
 {
-    private CoinType coinType = null;
-    private final @NotNull Supplier<CoinType> lazyCoinTypeSupplier = Suppliers.memoize(this::initCoinType);
+    private C coinType = null;
+    
+     /**
+     * @apiNote Lazy initialization is required here to avoid registry order issues.<br>
+     * {@link ICoinType} references Item/Block,
+     * while Item/Block also need to resolve their CoinType.<br>
+     * Eager initialization will cause <u>{@link NullPointerException null access}</u> or <u>{@link IllegalStateException incomplete registration}</u>.
+     */
+    private final @NotNull Lazy<C> lazyCoinTypeSupplier = Lazy.of(this::initCoinType);
     
     @SuppressWarnings("unused")//! Only for vanilla CODEC stuff.
     private AbstractCoinItem(@Nullable Properties properties) { this(); }
     
     public AbstractCoinItem() { super(new Properties()); }
     
-    protected abstract @NotNull CoinType initCoinType();
+    /**
+     * @apiNote Lazy initialization is required here to avoid registry order issues.<br>
+     * {@link ICoinType} references Item/Block,
+     * while Item/Block also need to resolve their CoinType.<br>
+     * Eager initialization will cause <u>{@link NullPointerException null access}</u> or <u>{@link IllegalStateException incomplete registration}</u>.
+     */
+    protected abstract @NotNull C initCoinType();
     
-    public final @NotNull CoinType getCoinType()
+    public final @NotNull C getCoinType()
     {
         if(this.coinType == null)
         {

@@ -2,19 +2,36 @@ package kurvcygnus.crispsweetberry.common.features.coins.abstracts;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-public interface ICoinType
+/**
+ * This is the contract of making a new coin variant.
+ * @apiNote This self-bounded generic is NOT optional.
+ * Without it, CoinItem / CoinStackItem / CoinStackBlock may reference different CoinType instances, causing silent logic corruption
+ * that cannot be detected at compile time.
+ * @param <C> <u>{@link ICoinType}</u> itself, here used <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">{@code F-bounded quantification}</a>
+ * technique to make sure that a series of coin's detailed type must be same.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
+@ApiStatus.Internal
+public interface ICoinType<C extends ICoinType<C>>
 {
     @NotNull ResourceLocation getId();
     
-    @NotNull AbstractCoinStackBlock stackBlock();
-    @NotNull AbstractCoinStackItem stackItem();
-    @NotNull AbstractCoinItem coinItem();
+    @NotNull AbstractCoinStackBlock<C> stackBlock();
+    @NotNull AbstractCoinStackItem<C> stackItem();
+    @NotNull AbstractCoinItem<C> coinItem();
     @NotNull Item nuggetItem();
     
     int getExperience();
     float getPenaltyRate();
+    float getStrength();
     
-    default boolean shouldRegister() { return true; }
+    /**
+     * @apiNote Mainly used for <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#COPPER Copper}</u> and 
+     * <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#DIAMOND diamond}</u> coins' in-game accessibility.
+     */
+    default boolean shouldAppear() { return true; }
 }

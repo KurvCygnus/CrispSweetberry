@@ -5,9 +5,8 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEnti
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
-import kurvcygnus.crispsweetberry.common.registries.CrispBlockEntities;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
-import kurvcygnus.crispsweetberry.utils.misc.CrispMiscUtils;
 import kurvcygnus.crispsweetberry.utils.misc.CrispVisualUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -188,7 +187,7 @@ public final class KilnBlock extends BaseEntityBlock
     public @NotNull ItemStack getCloneItemStack(@NotNull BlockState state, @NotNull HitResult target, @NotNull LevelReader level, @NotNull BlockPos pos, @NotNull Player player)
     {
         ItemStack stack = new ItemStack(this);
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispMiscUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         return stack;
     }
     
@@ -199,7 +198,7 @@ public final class KilnBlock extends BaseEntityBlock
         
         for(ItemStack stack: drops)
             if(stack.is(this.asItem()))
-                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispMiscUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         
         return drops;
     }
@@ -214,7 +213,7 @@ public final class KilnBlock extends BaseEntityBlock
         if(level.isClientSide)//! Tick is handled by server, client shouldn't touch this.
             return null;
         else
-            return createTickerHelper(serverBlockEntityType, CrispBlockEntities.KILN_BLOCK_ENTITY.get(), KilnBlockEntity::serverTick);
+            return createTickerHelper(serverBlockEntityType, KilnRegistries.KILN_BLOCK_ENTITY.get(), KilnBlockEntity::serverTick);
     }
     
     @Override
@@ -234,7 +233,10 @@ public final class KilnBlock extends BaseEntityBlock
         {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if(blockEntity instanceof KilnBlockEntity kiln)
+            {
                 player.openMenu(kiln, pos);
+                player.awardStat(KilnRegistries.INTERACT_WITH_KILN);
+            }
             
             return InteractionResult.CONSUME;
         }

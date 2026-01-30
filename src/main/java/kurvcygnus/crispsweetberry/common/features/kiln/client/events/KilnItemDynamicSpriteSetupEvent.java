@@ -1,7 +1,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.client.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.registries.CrispItems;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.component.DataComponents;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock.LIT_PROPERTY;
 
 /**
- * This event make the sprite of <u>{@link CrispItems#KILN Kiln Item}</u> change with
+ * This event make the sprite of <u>{@link KilnRegistries#KILN Kiln Item}</u> change with
  * <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock#LIT_PROPERTY LIT_PROPERTY}</u>,
  * which is kept even after the block is destroyed and dropped the corresponded item.
  *
@@ -31,7 +31,7 @@ final class KilnItemDynamicSpriteSetupEvent
     {
         event.enqueueWork(() ->
             ItemProperties.register(
-                CrispItems.KILN.value(),
+                KilnRegistries.KILN.value(),
                 CrispDefUtils.getModNamespacedLocation("lit"),
                 (stack, level, entity, seed) ->
                 {

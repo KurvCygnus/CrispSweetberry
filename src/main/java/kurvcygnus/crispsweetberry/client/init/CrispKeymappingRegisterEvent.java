@@ -1,12 +1,13 @@
 package kurvcygnus.crispsweetberry.client.init;
 
+import com.mojang.logging.LogUtils;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
-import static kurvcygnus.crispsweetberry.CrispSweetberry.LOGGER;
 import static kurvcygnus.crispsweetberry.CrispSweetberry.MOD_ID;
 import static kurvcygnus.crispsweetberry.client.registries.CrispKeymap.SPYGLASS_ZOOM;
 
@@ -19,8 +20,10 @@ import static kurvcygnus.crispsweetberry.client.registries.CrispKeymap.SPYGLASS_
 @EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
 public final class CrispKeymappingRegisterEvent
 {
+    private static final Logger LOGGER = LogUtils.getLogger(); 
+    
     @SubscribeEvent
-    public static void registerKeyBinds(final @NotNull RegisterKeyMappingsEvent event)
+    static void registerKeyBinds(final @NotNull RegisterKeyMappingsEvent event)
     {
         LOGGER.info("Registering Keybinds...");
         event.register(SPYGLASS_ZOOM);

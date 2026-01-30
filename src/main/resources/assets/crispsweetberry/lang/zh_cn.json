@@ -13,6 +13,8 @@
   "item.crispsweetberry.greedy_crystal": "贪婪结晶",
   "item.crispsweetberry.crisp_sweetberry": "澄蜜浆果",
   
+  "stat.crispsweetberry.interact_with_kiln": "与窑炉的交互次数",
+  
   "crispsweetberry.creativetab.tabtitle": "澄莓物语",
   "crispsweetberry.container.kiln": "窑炉",
   "crispsweetberry.keybind.spyglass_zoom": "望远镜快速使用",

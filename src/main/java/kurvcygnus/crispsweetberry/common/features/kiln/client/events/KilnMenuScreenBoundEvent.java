@@ -1,7 +1,7 @@
-package kurvcygnus.crispsweetberry.client.init;
+package kurvcygnus.crispsweetberry.common.features.kiln.client.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.client.registries.CrispMenus;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnScreen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -10,11 +10,8 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.jetbrains.annotations.NotNull;
 
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID, value = Dist.CLIENT)
-public final class CrispMenuScreenBoundEvent
+final class KilnMenuScreenBoundEvent
 {
     @SubscribeEvent
-    public static void registerScreens(final @NotNull RegisterMenuScreensEvent event)
-    {
-        event.register(CrispMenus.KILN_MENU.get(), KilnScreen::new);
-    }
+    static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KilnRegistries.KILN_MENU.get(), KilnScreen::new); }
 }

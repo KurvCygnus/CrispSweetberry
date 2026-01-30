@@ -1,8 +1,5 @@
 package kurvcygnus.crispsweetberry.client.registries;
 
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import net.minecraft.resources.ResourceLocation;
-
 /**
  * Custom stat ID used by this mod.
  *
@@ -17,5 +14,4 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class CrispStats
 {
-    public static final ResourceLocation INTERACT_WITH_KILN = CrispDefUtils.getModNamespacedLocation("interact_with_kiln");
 }

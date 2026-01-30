@@ -1,6 +1,6 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates;
 
-import kurvcygnus.crispsweetberry.common.registries.CrispBlocks;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class KilnDummyBlockEntity extends KilnBlockEntity
 {
-    public KilnDummyBlockEntity() { super(BlockPos.ZERO, CrispBlocks.KILN.value().defaultBlockState()); }
+    public KilnDummyBlockEntity() { super(BlockPos.ZERO, KilnRegistries.KILN_BLOCK.value().defaultBlockState()); }
     
     @Override
     public boolean stillValid(@NotNull Player player) { return true; }

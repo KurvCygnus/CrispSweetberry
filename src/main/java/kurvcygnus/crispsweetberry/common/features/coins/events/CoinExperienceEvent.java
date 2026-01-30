@@ -2,6 +2,7 @@ package kurvcygnus.crispsweetberry.common.features.coins.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * This event is the actual role that makes experience mechanic work.
  *
  * @author Kurv Cygnus
- * @see kurvcygnus.crispsweetberry.common.features.coins.GenericCoinItem Base Coin
+ * @see VanillaCoinItem Base Coin
  * @since 1.0 Release
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
@@ -48,7 +49,7 @@ public final class CoinExperienceEvent
         {
             final ItemStack result = event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).getItem();
             
-            if(result.getItem() instanceof AbstractCoinItem coinItem)
+            if(result.getItem() instanceof AbstractCoinItem<?> coinItem)
             {
                 Player player = event.getEntity();
                 
@@ -68,7 +69,7 @@ public final class CoinExperienceEvent
         if(level.isClientSide)
             return;
         
-        if(item instanceof AbstractCoinItem coin)
+        if(item instanceof AbstractCoinItem<?> coin)
             player.giveExperiencePoints(-coin.getCoinType().getExperience());
         else switch(event.getInventory())
         {
@@ -88,10 +89,10 @@ public final class CoinExperienceEvent
         {
             final ItemStack material = event.getInventory().getItem(inputIndex);
             
-            if(material.getItem() instanceof AbstractCoinItem coin)
+            if(material.getItem() instanceof AbstractCoinItem<?> coin)
             {
                 coinCount++;
-                if(inputIndex == ranger.getMax() && coinCount == 1 && result.getItem() == coin.getCoinType().getNuggetItemSupplier())//? TODO: Refactor this with recipe check.
+                if(inputIndex == ranger.getMax() && coinCount == 1 && result.getItem() == coin.getCoinType().nuggetItem())//? TODO: Refactor this with recipe check.
                 {
                     Player player = event.getEntity();
                     ServerLevel level = (ServerLevel) player.level();
