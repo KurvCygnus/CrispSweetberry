@@ -2,4 +2,5 @@ package kurvcygnus.crispsweetberry.common.features.temporarytorches.behaviors.ab
 
 public abstract class AbstractTemporaryTorchBehaviors
 {
+    
 }

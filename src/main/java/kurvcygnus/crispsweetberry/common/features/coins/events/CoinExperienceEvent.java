@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * This event is the actual role that makes experience mechanic work.
  *
  * @author Kurv Cygnus
- * @see VanillaCoinItem Base Coin
+ * @see VanillaCoinItem Vanilla Coin Type
  * @since 1.0 Release
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
@@ -85,7 +85,7 @@ public final class CoinExperienceEvent
         final ItemStack result = event.getInventory().getItem(UNIVERSAL_RESULT_SLOT_INDEX);
         int coinCount = 0;
         
-        for(int inputIndex: ranger)
+        for(final int inputIndex: ranger)
         {
             final ItemStack material = event.getInventory().getItem(inputIndex);
             

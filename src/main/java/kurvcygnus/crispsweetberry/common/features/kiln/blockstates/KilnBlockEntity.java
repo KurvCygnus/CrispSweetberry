@@ -9,7 +9,6 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.Ki
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.InputState;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.LogicalResult;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProcessionState;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
@@ -103,6 +102,8 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     //*:== Logical Procession Data
     private InputState inputState = InputState.ALL_EMPTY;
     private float experience = 0F;
+    
+    public enum ProcessionState { WORKING, COOLDOWN }
     
     //*:== Logger
     private static final Logger LOGGER = LogUtils.getLogger();

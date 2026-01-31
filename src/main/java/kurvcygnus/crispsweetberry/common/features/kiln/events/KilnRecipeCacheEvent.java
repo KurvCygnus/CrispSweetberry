@@ -43,7 +43,7 @@ public final class KilnRecipeCacheEvent
      *              <b><i>So it's obvious that this is the best timing for getting recipes, as they must have been prepared in that time.</b></i>
      */
     @SubscribeEvent
-    public static void getKilnRecipes(final @NotNull ServerStartedEvent event)
+    static void getKilnRecipes(final @NotNull ServerStartedEvent event)
     {
         StopWatch time = new StopWatch();
         time.start();

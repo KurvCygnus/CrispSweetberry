@@ -206,9 +206,8 @@ public final class KilnBlock extends BaseEntityBlock
     
     //  region
     //*: Block Entity Linking
-    @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> serverBlockEntityType)
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> serverBlockEntityType)
     {
         if(level.isClientSide)//! Tick is handled by server, client shouldn't touch this.
             return null;
@@ -245,35 +244,35 @@ public final class KilnBlock extends BaseEntityBlock
     @Override
     protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
         @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
-    {
-        if(state.getValue(LIT))
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        
-        Item itemInHand = stack.getItem();
-        
-        if(canLitStuff(stack, itemInHand))
-        {
-            final boolean isDamageable = stack.isDamageableItem();
-            final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
-            
-            level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
-                SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
-            );
-            
-            if(!level.isClientSide)
             {
-                level.setBlockAndUpdate(pos, state.setValue(LIT, true));
-                if(isDamageable)
-                    stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
-                else
-                    stack.consume(1, player);
+                if(state.getValue(LIT))
+                    return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                
+                Item itemInHand = stack.getItem();
+                
+                if(canLitStuff(stack, itemInHand))
+                {
+                    final boolean isDamageable = stack.isDamageableItem();
+                    final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
+                    
+                    level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
+                        SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
+                    );
+                    
+                    if(!level.isClientSide)
+                    {
+                        level.setBlockAndUpdate(pos, state.setValue(LIT, true));
+                        if(isDamageable)
+                            stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+                        else
+                            stack.consume(1, player);
+                    }
+                    
+                    return ItemInteractionResult.sidedSuccess(level.isClientSide);
+                }
+                
+                return ItemInteractionResult.FAIL;
             }
-            
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
-        }
-        
-        return ItemInteractionResult.FAIL;
-    }
     //endregion
     
     //  region

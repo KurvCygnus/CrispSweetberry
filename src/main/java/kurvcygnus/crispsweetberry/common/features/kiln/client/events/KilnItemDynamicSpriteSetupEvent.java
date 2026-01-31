@@ -27,7 +27,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock.LIT_PROP
 final class KilnItemDynamicSpriteSetupEvent
 {
     @SubscribeEvent
-    public static void SpriteBoundEvent(@NotNull FMLClientSetupEvent event)
+    static void SpriteBoundEvent(@NotNull FMLClientSetupEvent event)
     {
         event.enqueueWork(() ->
             ItemProperties.register(
@@ -35,7 +35,8 @@ final class KilnItemDynamicSpriteSetupEvent
                 CrispDefUtils.getModNamespacedLocation("lit"),
                 (stack, level, entity, seed) ->
                 {
-                    CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+                    final CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+                    
                     if(data != null && data.contains(LIT_PROPERTY))
                         return data.copyTag().getBoolean(LIT_PROPERTY) ? 1.0F : 0.0F;
                     

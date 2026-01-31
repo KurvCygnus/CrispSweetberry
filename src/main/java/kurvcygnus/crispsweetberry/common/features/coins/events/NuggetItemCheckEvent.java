@@ -30,14 +30,17 @@ import java.util.function.Supplier;
  * should exist.
  * @since Release 1.0
  * @author Kurv Cygnus
+ * @see Tags.Items#NUGGETS Tag
+ * @apiNote This can be used as a template for custom <u>{@link kurvcygnus.crispsweetberry.common.features.coins.abstracts.ICoinType CoinType}</u>'s validation and 
+ * existence determination.
  */
 @EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
 public final class NuggetItemCheckEvent
 {
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    public static Supplier<Item> copperNugget = () -> Items.AIR;
-    public static Supplier<Item> diamondNugget = () -> Items.AIR;
+    public static Supplier<Item> copperNuggetSupplier = () -> Items.AIR;
+    public static Supplier<Item> diamondNuggetSupplier = () -> Items.AIR;
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
     static void onTagsUpdated(@NotNull TagsUpdatedEvent event)
@@ -53,22 +56,21 @@ public final class NuggetItemCheckEvent
         
         nuggetTag.ifPresent(holders ->
             {
-                copperNugget = () -> Items.AIR;
-                diamondNugget = () -> Items.AIR;
+                copperNuggetSupplier = () -> Items.AIR;
+                diamondNuggetSupplier = () -> Items.AIR;
                 
                 for(var holder: holders)
-                {
-                    if(holder.getKey() == null)
-                        continue;
-                    
-                    ResourceLocation location = holder.getKey().registry();
-                    String path = location.getPath();
-                    
-                    if(path.contains("copper_nugget"))
-                        copperNugget = holder::value;
-                    else if(path.contains("diamond_nugget"))
-                        diamondNugget = holder::value;
-                }
+                    holder.unwrapKey().ifPresent(key ->
+                        {
+                            final ResourceLocation id = key.location();
+                            final String path = id.getPath();
+                            
+                            if(path.contains("copper_nugget"))//! Currently, this is the best way to find correspond item with no exceptions allowed.
+                                copperNuggetSupplier = holder::value;
+                            else if(path.contains("diamond_nugget"))
+                                diamondNuggetSupplier = holder::value;
+                        }
+                    );
             }
         );
         

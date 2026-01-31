@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -25,11 +26,9 @@ public final class CrispCreativeTabs
         CrispDefUtils.getModNamespacedLocation("crisp_tab"));
     
     @SuppressWarnings("unused")
-    public static final Holder<CreativeModeTab> CSB_TAB = CRISP_TAB_REGISTER.register("crisp_tab", () ->
-        CreativeModeTab.builder().
-            title(Component.translatable("crispsweetberry.creativetab.tabtitle")).
-            withTabsBefore(CreativeModeTabs.COMBAT).
-            icon(() -> new ItemStack(net.minecraft.world.item.Items.SWEET_BERRIES))
-            .build()
+    public static final Holder<CreativeModeTab> CSB_TAB = CRISP_TAB_REGISTER.register("crisp_tab", CreativeModeTab.builder().
+        title(Component.translatable("crispsweetberry.creativetab.tabtitle")).
+        withTabsBefore(CreativeModeTabs.COMBAT).
+        icon(() -> new ItemStack(Items.SWEET_BERRIES))::build
     );
 }

@@ -4,7 +4,6 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.LogicalResult;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.ProcessionState;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.utils.misc.CrispLogUtils;
@@ -45,7 +44,7 @@ public final class KilnProgressCalculator
     /**
      * This field is used for return early in <u>{@link #calculateRates calculateRates()}</u>.<br>
      * It's named "nonWorking" since the standard procession is uncertain, due to BALANCE stuff.<br>
-     * It is only reliable when <u>{@link ProcessionState}</u> is <u>{@link ProcessionState#COOLDOWN COOLDOWN}</u>.
+     * It is only reliable when <u>{@link KilnBlockEntity.ProcessionState}</u> is <u>{@link KilnBlockEntity.ProcessionState#COOLDOWN COOLDOWN}</u>.
      */
     private @NotNull LogicalResult nonWorkingLogicalResult = LogicalResult.SKIP;
     
@@ -94,9 +93,9 @@ public final class KilnProgressCalculator
     
     @Contract("_, _, _ -> new")
     @CheckReturnValue
-    public @NotNull CalculationResult calculateRates(double currentRealProgress, double currentVisualProgress, @NotNull ProcessionState processState)
+    public @NotNull CalculationResult calculateRates(double currentRealProgress, double currentVisualProgress, @NotNull KilnBlockEntity.ProcessionState processState)
     {
-        if(processState != ProcessionState.WORKING)
+        if(processState != KilnBlockEntity.ProcessionState.WORKING)
         {
             this.lastProcessFactor = null;
             this.balanceTick = 0;

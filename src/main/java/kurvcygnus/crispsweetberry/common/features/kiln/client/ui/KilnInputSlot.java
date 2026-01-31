@@ -3,6 +3,7 @@ package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
+@ApiStatus.Internal
 public final class KilnInputSlot extends Slot
 {
     /**

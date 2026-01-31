@@ -25,6 +25,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * Contains everything related to kiln.
+ * @since 1.0 Release
+ */
 public final class KilnRegistries
 {
     private KilnRegistries() { throw new IllegalAccessError(); }

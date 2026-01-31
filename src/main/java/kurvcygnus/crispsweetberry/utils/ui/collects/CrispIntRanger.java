@@ -24,7 +24,6 @@ import static java.util.Objects.requireNonNull;
  * A simple range class for making range checks more readable.<br>
  * The reason of not using <u>{@link Range Range}</u> is that the function we need is far more few than it offers,
  * besides, API may change with time.<br>
- * If you need to use it for other number types, you may try <u>{@link CrispRanger}</u>.
  *
  * @author Kurv Cygnus
  * @apiNote It is recommended to <b>use this as a constant</b>, constantly creating instances like this only brings performance penalty.<br>

@@ -21,11 +21,54 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
+/**
+ * This a simple helper class to create custom <u>{@link AbstractCoinStackBlock coin stack}</u> drops.<br>
+ * If you have no demand to make custom behaviors, directly {@code extends} this, when write content list, then you are done.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
 public abstract class AbstractCoinLootTableProvider extends BlockLootSubProvider
 {
-    public AbstractCoinLootTableProvider(HolderLookup.Provider registries) { super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags(), registries); }
+    public AbstractCoinLootTableProvider(@NotNull HolderLookup.Provider registries) { super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags(), registries); }
     
-    protected abstract List<? extends AbstractCoinStackBlock<?>> initCoinBlockLists();
+    protected abstract @NotNull List<? extends AbstractCoinStackBlock<?>> initCoinBlockLists();
+    
+    protected void addCoinLoot(@NotNull AbstractCoinStackBlock<?> coinStackBlock, @NotNull ICoinType<?> coinType)
+    {
+        requireNonNull(coinStackBlock, "Param \"coinStackBlock\" must not be null!");
+        requireNonNull(coinType, "Param \"coinType\" must not be null!");
+        
+        this.add(coinStackBlock, blockAttributes ->
+            CrispLootUtils.initLootPool(() -> LootPool.lootPool().
+                setRolls(ConstantValue.exactly(1F)).
+                add(createAlternatives(coinType))
+            )
+        );
+    }
+    
+    protected @NotNull AlternativesEntry.Builder createAlternatives(@NotNull ICoinType<?> coinType)
+    {
+        requireNonNull(coinType, "Param \"coinType\" must not be null!");
+        
+        return AlternativesEntry.alternatives(
+            LootItem.
+                lootTableItem(coinType.stackItem()).
+                when(hasSilkTouch()),
+            
+            LootItem.
+                lootTableItem(coinType.nuggetItem()).
+                when(IsCrunchingCondition::new).
+                apply(SetCoinCountFunction::new),//! Experience award is processed in Block itself, not lootTable.
+            
+            LootItem.
+                lootTableItem(coinType.coinItem()).
+                when(InvertedLootItemCondition.invert(IsCrunchingCondition::new)).
+                apply(SetCoinCountFunction::new).
+                apply(ApplyExplosionDecay.explosionDecay())
+        );
+    }
     
     @Override
     protected final void generate()
@@ -36,27 +79,7 @@ public abstract class AbstractCoinLootTableProvider extends BlockLootSubProvider
              
             final ICoinType<?> coinType = coinStackBlock.getCoinType();
             
-            this.add(coinStackBlock, blockAttributes ->
-                CrispLootUtils.initLootPool(() -> LootPool.lootPool().
-                    setRolls(ConstantValue.exactly(1F)).
-                    add(AlternativesEntry.alternatives(
-                        LootItem.
-                            lootTableItem(coinType.stackItem()).
-                            when(hasSilkTouch()),
-                        
-                        LootItem.
-                            lootTableItem(coinType.nuggetItem()).
-                            when(IsCrunchingCondition::new).
-                            apply(SetCoinCountFunction::new),//! Experience award is processed in Block itself, not lootTable.
-                        
-                        LootItem.
-                            lootTableItem(coinType.coinItem()).
-                            when(InvertedLootItemCondition.invert(IsCrunchingCondition::new)).
-                            apply(SetCoinCountFunction::new).
-                            apply(ApplyExplosionDecay.explosionDecay())
-                    ))
-                )
-            );
+            addCoinLoot(coinStackBlock, coinType);
         }
     }
     

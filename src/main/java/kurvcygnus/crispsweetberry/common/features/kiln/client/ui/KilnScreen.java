@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.*;
+import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
 import static kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants.NO_OFFSET;
 
 /**
@@ -32,10 +33,10 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     private static final int BG_WIDTH = 176;
     private static final int BG_HEIGHT = 166;
     
-    public static final int CAMPFIRE_X_POS = 47;
-    public static final int CAMPFIRE_Y_POS = 62;
-    public static final int CAMPFIRE_WIDTH = 17;
-    public static final int CAMPFIRE_HEIGHT = 16;
+    private static final int CAMPFIRE_X_POS = 47;
+    private static final int CAMPFIRE_Y_POS = 62;
+    private static final int CAMPFIRE_WIDTH = 17;
+    private static final int CAMPFIRE_HEIGHT = 16;
     
     private static final int ARROW_X_POS = 79;
     private static final int ARROW_Y_POS = 34;
@@ -58,7 +59,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     
     private final KilnInfoWidget widget = new KilnInfoWidget(TIP_X_POS, TIP_Y_POS, TIP_WIDTH, TIP_HEIGHT);
     
-    public KilnScreen(KilnMenu menu, Inventory playerInventory, Component title) { super(menu, playerInventory, title); }
+    public KilnScreen(@NotNull KilnMenu menu, @NotNull Inventory playerInventory, @NotNull Component title) { super(menu, playerInventory, title); }
     
     @Override
     public void init()
@@ -125,7 +126,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     
     @Override
     protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY)
-    { guiGraphics.blit(BACKGROUND_TEXTURE, this.leftPos, this.topPos, NO_OFFSET, NO_OFFSET, BG_WIDTH, BG_HEIGHT, BG_WIDTH, BG_HEIGHT); }
+        { guiGraphics.blit(BACKGROUND_TEXTURE, this.leftPos, this.topPos, NO_OFFSET, NO_OFFSET, BG_WIDTH, BG_HEIGHT, BG_WIDTH, BG_HEIGHT); }
     
     /**
      * This wrapper method is used to reduce the complexity of
@@ -136,9 +137,9 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
      * <li>{@code uWidth} The length of horizontal texture clipping.</li>
      * <li>{@code uHeight} The length of vertical texture clipping.</li>
      * </ul></h2><br>
-     * <i>Can't understand these paras? If is that so, it would be better to learn basic computer graphic knowledge first,
-     * <b>that's more important than this</b>.</i><br>
-     * Just go <a href="https://en.wikipedia.org/wiki/Computer_graphics_(disambiguation)">here</a> if you really can't understand.
+     * <i>If you can't understand these things with comments, it would be better to learn basic computer graphic knowledge first,
+     * that's more important than this if you want to do visual-related stuff.</i><br>
+     * Just go <a href="https://en.wikipedia.org/wiki/2D_computer_graphics">here</a> if you really can't understand.
      */
     private void blitArrow(@NotNull GuiGraphics gui, @NotNull ResourceLocation sprite, int progressWidth)
     {
@@ -168,6 +169,10 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         public KilnInfoWidget(int x, int y, int width, int height)
         {
             super(x, y, width, height, Component.literal("?"));
+            throwIf(x < 0, () -> new IllegalArgumentException("Param \"x\" should be a positive integer!"));
+            throwIf(y < 0, () -> new IllegalArgumentException("Param \"y\" should be a positive integer!"));
+            throwIf(width < 0, () -> new IllegalArgumentException("Param \"width\" should be a positive integer!"));
+            throwIf(height < 0, () -> new IllegalArgumentException("Param \"height\" should be a positive integer!"));
             this.setTooltip(EMPTY_TIP);
         }
         

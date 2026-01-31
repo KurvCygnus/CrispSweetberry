@@ -19,7 +19,6 @@ public final class VanillaCoinStackBlock extends AbstractCoinStackBlock<VanillaC
 {
     public VanillaCoinStackBlock(@NotNull Supplier<VanillaCoinTypes> coinTypeSupplier)
     {
-        super(coinTypeSupplier.get());
-        Objects.requireNonNull(coinTypeSupplier, "Field \"coinTypeSupplier\" must not be null!");
+        super(Objects.requireNonNull(coinTypeSupplier.get(), "Field \"coinTypeSupplier\" must not be null!"));
     }
 }

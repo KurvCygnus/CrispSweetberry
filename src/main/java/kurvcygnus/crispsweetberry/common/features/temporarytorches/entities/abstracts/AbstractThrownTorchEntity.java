@@ -391,7 +391,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         );
     }
     
-    private Map<Integer, SimpleParticleType> processLongerParticleStateList(SimpleParticleType[] states)
+    private Map<Integer, SimpleParticleType> processLongerParticleStateList(SimpleParticleType... states)
     {
         Map<Integer, SimpleParticleType> longerParticleStateList = new HashMap<>();
         

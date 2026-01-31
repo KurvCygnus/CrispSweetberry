@@ -5,6 +5,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.en
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -13,7 +14,8 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainer
 import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.TRUE;
 
 /**
- * This class keeps the synchronization, and connections between blockEntity and menu.
+ * This class keeps the synchronization, and connections between 
+ * {@link net.minecraft.world.level.block.entity.BaseContainerBlockEntity blockEntity} and {@link net.minecraft.world.inventory.AbstractContainerMenu menu}.
  * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity BlockEntity
  * @since 1.0 Release
  * @author Kurv Cygnus
@@ -35,7 +37,7 @@ public final class KilnProgressModel
         this.isIgnited = true;
     }
     
-    public void synchronize(double realProgress, double visualProgress, VisualTrend trend, boolean isIgnited)
+    public void synchronize(double realProgress, double visualProgress, @Nullable VisualTrend trend, boolean isIgnited)
     {
         this.realProgress = Math.clamp(realProgress, 0D, 1D);
         this.visualProgress = Math.clamp(visualProgress, 0D, 1D);
@@ -64,17 +66,17 @@ public final class KilnProgressModel
         return false;
     }
     
-    public double getRealProgress() { return realProgress; }
+    public double getRealProgress() { return this.realProgress; }
     
-    public double getVisualProgress() { return visualProgress; }
+    public double getVisualProgress() { return this.visualProgress; }
     
-    public int getProgressTrendIndex() { return trend.ordinal(); }
+    public int getProgressTrendIndex() { return this.trend.ordinal(); }
     
-    public int getIgnitionState() { return isIgnited ? TRUE : FALSE; }
+    public int getIgnitionState() { return this.isIgnited ? TRUE : FALSE; }
     
     public void setVisualProgress(double visualProgress) { this.visualProgress = visualProgress; }
     
     public void setProgressTrend(VisualTrend trend) { this.trend = trend; }
     
-    public void setIgnitionState(int state) { this.isIgnited = state == TRUE; }
+    public void setIgnitionState(int state) { this.isIgnited = (state == TRUE); }
 }

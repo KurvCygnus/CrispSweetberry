@@ -36,7 +36,7 @@ public final class VanillaCoinTypes implements ICoinType<VanillaCoinTypes>
     private final @NotNull Supplier<? extends AbstractCoinStackBlock<VanillaCoinTypes>> blockSupplier;
     private final @NotNull Supplier<? extends AbstractCoinStackItem<VanillaCoinTypes>> stackSupplier;
     private final @NotNull Supplier<? extends AbstractCoinItem<VanillaCoinTypes>> coinSupplier;
-    private final @Nullable Supplier<? extends Item> nuggetSupplier;
+    private final @NotNull Supplier<? extends Item> nuggetSupplier;
     private final int experience;
     private final float penaltyRate;
     private final float strength;
@@ -44,12 +44,13 @@ public final class VanillaCoinTypes implements ICoinType<VanillaCoinTypes>
     
     private VanillaCoinTypes(@NotNull String id, @NotNull Supplier<? extends AbstractCoinStackBlock<VanillaCoinTypes>> blockSupplier,
         @NotNull Supplier<? extends AbstractCoinStackItem<VanillaCoinTypes>> stackSupplier, @NotNull Supplier<? extends AbstractCoinItem<VanillaCoinTypes>> coinSupplier,
-        @Nullable Supplier<? extends Item> nuggetSupplier, int experience, float penaltyRate, float strength, @NotNull Predicate<Supplier<? extends Item>> enableCondition)
+        @NotNull Supplier<? extends Item> nuggetSupplier, int experience, float penaltyRate, float strength, @NotNull Predicate<Supplier<? extends Item>> enableCondition)
             {
                 requireNonNull(id, "Param \"id\" must not be null!");
                 requireNonNull(blockSupplier, "Param \"blockSupplier\" must not be null!");
                 requireNonNull(stackSupplier, "Param \"stackSupplier\" must not be null!");
                 requireNonNull(coinSupplier, "Param \"coinSupplier\" must not be null!");
+                requireNonNull(nuggetSupplier, "Param \"nuggetSupplier\" must not be null!");
                 throwIf(experience <= 0, () -> new IllegalArgumentException("Param \"experience\" must be a positive integer!"));
                 throwIf(penaltyRate <= 0F || penaltyRate > 1F, () ->
                     new IllegalArgumentException("Param \"penaltyRate\" must be in range of (0F, 1F]!"));
@@ -71,7 +72,7 @@ public final class VanillaCoinTypes implements ICoinType<VanillaCoinTypes>
     
     public static final VanillaCoinTypes COPPER = new VanillaCoinTypes(
         "copper", COPPER_COIN_STACK_BLOCK, COPPER_COIN_STACK, COPPER_COIN,
-        NuggetItemCheckEvent.copperNugget, 1, 0.7F, 0.5F, OPTIONAL
+        NuggetItemCheckEvent.copperNuggetSupplier, 1, 0.7F, 0.5F, OPTIONAL
     );
     
     public static final VanillaCoinTypes IRON = new VanillaCoinTypes(
@@ -86,7 +87,7 @@ public final class VanillaCoinTypes implements ICoinType<VanillaCoinTypes>
     
     public static final VanillaCoinTypes DIAMOND = new VanillaCoinTypes(
         "diamond", DIAMOND_COIN_STACK_BLOCK, DIAMOND_COIN_STACK, DIAMOND_COIN,
-        NuggetItemCheckEvent.diamondNugget, 10, 0.9F, 1.5F, OPTIONAL
+        NuggetItemCheckEvent.diamondNuggetSupplier, 10, 0.9F, 1.5F, OPTIONAL
     );
     
     public static final VanillaCoinTypes[] VALUES = {COPPER, IRON, GOLD, DIAMOND};
@@ -101,12 +102,7 @@ public final class VanillaCoinTypes implements ICoinType<VanillaCoinTypes>
     
     @Override public @NotNull AbstractCoinItem<VanillaCoinTypes> coinItem() { return this.coinSupplier.get(); }
     
-    @Override
-    public @NotNull Item nuggetItem()
-    {
-        requireNonNull(nuggetSupplier, "Impossible case: field \"nuggetSupplier\" is null.");
-        return nuggetSupplier.get();
-    }
+    @Override public @NotNull Item nuggetItem() { return nuggetSupplier.get(); }
     
     @Override public int getExperience() { return this.experience; }
     
@@ -133,5 +129,5 @@ public final class VanillaCoinTypes implements ICoinType<VanillaCoinTypes>
     
     @Override public int hashCode() { return hash(id, experience, penaltyRate); }
     
-    @Override public @NotNull String toString() { return "VanillaCoinTypes[" + "id=" + id + ", experience=" + experience + "]"; }
+    @Override public @NotNull String toString() { return "VanillaCoinTypes[id=%s, experience=%d, strength=%f]".formatted(id, experience, strength); }
 }

@@ -30,7 +30,7 @@ public interface ICoinType<C extends ICoinType<C>>
     float getStrength();
     
     /**
-     * @apiNote Mainly used for <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#COPPER Copper}</u> and 
+     * @apiNote Mainly used for <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#COPPER copper}</u> and 
      * <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#DIAMOND diamond}</u> coins' in-game accessibility.
      */
     default boolean shouldAppear() { return true; }
