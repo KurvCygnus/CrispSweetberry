@@ -33,5 +33,6 @@ public interface ICoinType<C extends ICoinType<C>>
      * @apiNote Mainly used for <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#COPPER copper}</u> and 
      * <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#DIAMOND diamond}</u> coins' in-game accessibility.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! We should follow intuitive naming style.
     default boolean shouldAppear() { return true; }
 }

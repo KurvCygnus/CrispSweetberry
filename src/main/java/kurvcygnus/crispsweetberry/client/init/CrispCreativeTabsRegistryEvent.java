@@ -37,12 +37,12 @@ public final class CrispCreativeTabsRegistryEvent
         
         LOGGER.info("[TAB_REGISTRY] Start the registration of creative mode tab contents...");
         
-        for(var data: CrispSweetberry.ANNOTATION_CACHE)
+        for(final var data: CrispSweetberry.ANNOTATION_CACHE)
         {
             try
             {
-                Class<?> clazz = Class.forName(data.clazz().getClassName());
-                Field field = clazz.getDeclaredField(data.memberName());
+                final Class<?> clazz = Class.forName(data.clazz().getClassName());
+                final Field field = clazz.getDeclaredField(data.memberName());
                 field.setAccessible(true);
                 
                 if(!field.isAnnotationPresent(RegisterToTab.class) || field.isAnnotationPresent(BanFromTabRegistry.class))
@@ -62,13 +62,13 @@ public final class CrispCreativeTabsRegistryEvent
                 {
                     final Object supplied = supplier.get();
                     
-                    if(supplied instanceof Item supplyItem)
-                        item = supplyItem;
+                    if(supplied instanceof Item registry)
+                        item = registry;
                     else
                         continue;
                 }
-                else if(rawValue instanceof Item supplyItem)
-                    item = supplyItem;
+                else if(rawValue instanceof Item registry)
+                    item = registry;
                 else
                     continue;
                 

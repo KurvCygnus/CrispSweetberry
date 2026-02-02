@@ -79,7 +79,7 @@ public final class TemporaryRedstoneTorchBlock extends AbstractTemporaryTorchBlo
     public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
         super.tick(oldState, level, pos, random);
-        for(Direction direction : Direction.values())
+        for(final Direction direction : Direction.values())
             level.updateNeighborsAt(pos.relative(direction), this);
         
         if(signalSent && !level.isClientSide)
@@ -112,9 +112,9 @@ public final class TemporaryRedstoneTorchBlock extends AbstractTemporaryTorchBlo
         if(!state.getValue(LIT))
             return;
         
-        double X_POS = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
-        double Y_POS = (double)pos.getY() + 0.7 + (random.nextDouble() - 0.5) * 0.2;
-        double Z_POS = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
+        final double X_POS = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
+        final double Y_POS = (double)pos.getY() + 0.7 + (random.nextDouble() - 0.5) * 0.2;
+        final double Z_POS = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
         level.addParticle(DustParticleOptions.REDSTONE, X_POS, Y_POS, Z_POS, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
     }
     //endregion

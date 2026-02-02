@@ -21,7 +21,6 @@ public final class VanillaCoinStackItem extends AbstractCoinStackItem<VanillaCoi
     
     public VanillaCoinStackItem(@NotNull Supplier<VanillaCoinTypes> coinTypeSupplier)
     {
-        super();
         this.coinTypeSupplier = coinTypeSupplier;
         Objects.requireNonNull(this.coinTypeSupplier, "Field \"coinTypeSupplier\" must not be null!");
     }

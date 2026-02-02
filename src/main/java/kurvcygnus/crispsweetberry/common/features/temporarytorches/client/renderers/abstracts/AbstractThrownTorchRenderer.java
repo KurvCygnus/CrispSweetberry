@@ -70,10 +70,10 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         poseStack.scale(TORCH_SCALE, TORCH_SCALE, TORCH_SCALE);
         
         //Set entity's RenderType to NoCull, preventing rendering issue.
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
+        final VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
         
-        PoseStack.Pose lastPose = poseStack.last();
-        Matrix4f poseMatrix = lastPose.pose();
+        final PoseStack.Pose lastPose = poseStack.last();
+        final Matrix4f poseMatrix = lastPose.pose();
         
         createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 0, 0, 1);
         createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1.0F, 0, 1, 1);

@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * This class makes sure that the balancing effect of kiln is visually acceptable.
@@ -53,8 +54,6 @@ public final class KilnProgressCalculator
     private boolean hasWarnedAbnormalFactor = false;
     
     private static final Logger LOGGER = LogUtils.getLogger();
-    
-    public KilnProgressCalculator() { }
     
     public void setRecipesAndResultType(KilnRecipe @NotNull [] recipes, @NotNull LogicalResult logicalResult)
     {
@@ -131,7 +130,7 @@ public final class KilnProgressCalculator
         boolean canUseAverageReward = true;
         byte nonEmptyCount = 0;
         
-        for(KilnRecipe recipe: recipes)
+        for(final KilnRecipe recipe: recipes)
         {
             configDebug("[FACTOR_CAL] Factor of recipe({}): {}",
                 recipe, recipe.getProcessFactor()
@@ -189,7 +188,8 @@ public final class KilnProgressCalculator
         if(shouldBalance)
             this.balanceTrend = currentProcessFactor > this.lastProcessFactor ? VisualTrend.BALANCE : VisualTrend.BURST;
         
-        configDebug("[CAL_DATA_INFO] Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor);
+        CrispLogUtils.logIf(Objects.requireNonNullElse(this.lastProcessFactor, -1D) != currentProcessFactor,
+            () -> configDebug("[CAL_DATA_INFO] Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor));
         
         this.lastProcessFactor = currentProcessFactor;
         
@@ -197,9 +197,9 @@ public final class KilnProgressCalculator
         
         if(shouldBalance)
         {
-            configDebug("[CAL_BALANCE] ProgressFactor mismatch. Start calculate balance factors");
+            configDebug("[CAL_BALANCE] ProgressFactor mismatch. Start calculate balance factors.");
             
-            currentRealProgress /= currentProcessFactor;
+            currentRealProgress = currentRealProgress * (this.lastProcessFactor / currentProcessFactor);
             this.balanceRate = (currentRealProgress + realChangeRate * BALANCE_STATE_STANDARD_TICKS - currentVisualProgress) / BALANCE_STATE_STANDARD_TICKS;
             currentVisualProgress += this.balanceRate;
             
@@ -221,6 +221,8 @@ public final class KilnProgressCalculator
             configDebug("[CAL_BALANCE] balanceTick({}) is bigger than 0. Continue to calculate visualProgress.", balanceTick);
             
             this.balanceTick--;
+            
+            configDebug("[CAL_BALANCE] Current VisualTrend: {}", this.balanceTrend);
             
             return new CalculationResult(
                 currentRealProgress + realChangeRate,

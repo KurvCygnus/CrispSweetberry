@@ -45,17 +45,17 @@ public final class KilnRecipeCacheEvent
     @SubscribeEvent
     static void getKilnRecipes(final @NotNull ServerStartedEvent event)
     {
-        StopWatch time = new StopWatch();
+        final StopWatch time = new StopWatch();
         time.start();
         
         LOGGER.info("[CACHE_START] Getting Kiln Recipes...");
         
         KILN_CACHED_RECIPES.clear();
         
-        RecipeManager manager = event.getServer().getRecipeManager();
+        final RecipeManager manager = event.getServer().getRecipeManager();
         
-        HashMap<Item, NonNullList<SmokingRecipe>> tempSmokingRecipes = new HashMap<>();
-        HashMap<Item, NonNullList<SmeltingRecipe>> tempKilnRecipes = new HashMap<>();
+        final HashMap<Item, NonNullList<SmokingRecipe>> tempSmokingRecipes = new HashMap<>();
+        final HashMap<Item, NonNullList<SmeltingRecipe>> tempKilnRecipes = new HashMap<>();
         
         LOGGER.info("[SMOKER_PHASE] Collecting Smoker Recipes...");
         streamRecipes(tempSmokingRecipes, manager, RecipeType.SMOKING);
@@ -66,15 +66,15 @@ public final class KilnRecipeCacheEvent
         configDebug("[BLAST_PHASE] Collection ended, {} entries in total, content: {}", BANNED_RECIPES.size(), BANNED_RECIPES);
         
         LOGGER.info("[INITIAL_FILTER] Starting filtering kiln recipes...");
-        for(RecipeHolder<SmeltingRecipe> recipeHolder: manager.getAllRecipesFor(RecipeType.SMELTING))
+        for(final RecipeHolder<SmeltingRecipe> recipeHolder: manager.getAllRecipesFor(RecipeType.SMELTING))
         {
-            SmeltingRecipe recipe = recipeHolder.value();
+            final SmeltingRecipe recipe = recipeHolder.value();
             
-            for(Ingredient ingredient: recipe.getIngredients())
+            for(final Ingredient ingredient: recipe.getIngredients())
             {
-                for(ItemStack stack: ingredient.getItems())
+                for(final ItemStack stack: ingredient.getItems())
                 {
-                    Item item = stack.getItem();
+                    final Item item = stack.getItem();
                     
                     if(BANNED_RECIPES.containsKey(item))
                     {
@@ -91,7 +91,7 @@ public final class KilnRecipeCacheEvent
         }
         LOGGER.info("[FINAL_FILTER] Finished filtering kiln recipes. Start conversion...");
         
-        HashMap<Item, NonNullList<KilnRecipe>> completedKilnRecipesCacheList = new HashMap<>();
+        final HashMap<Item, NonNullList<KilnRecipe>> completedKilnRecipesCacheList = new HashMap<>();
         
         filterRecipes(completedKilnRecipesCacheList, tempKilnRecipes, event.getServer().registryAccess());
         //* Smoker recipes are intentionally applied after smelting recipes to override them for the same input item.
@@ -111,15 +111,15 @@ public final class KilnRecipeCacheEvent
     private static <R extends AbstractCookingRecipe> void streamRecipes
     (HashMap<Item, NonNullList<R>> targetMap, @NotNull RecipeManager manager, RecipeType<R> recipeType)
     {
-        for(RecipeHolder<R> recipeHolder: manager.getAllRecipesFor(recipeType))
+        for(final RecipeHolder<R> recipeHolder: manager.getAllRecipesFor(recipeType))
         {
-            R recipe = recipeHolder.value();
+            final R recipe = recipeHolder.value();
             
-            for(Ingredient ingredient: recipe.getIngredients())
+            for(final Ingredient ingredient: recipe.getIngredients())
             {
-                for(ItemStack stack: ingredient.getItems())
+                for(final ItemStack stack: ingredient.getItems())
                 {
-                    Item item = stack.getItem();
+                    final Item item = stack.getItem();
                     
                     targetMap.computeIfAbsent(item, i -> NonNullList.create()).
                         add(recipe);
@@ -149,11 +149,11 @@ public final class KilnRecipeCacheEvent
                     }
                 }
                 
-                for(R recipe: list)
+                for(final R recipe: list)
                 {
-                    for(Ingredient ingredient: recipe.getIngredients())
+                    for(final Ingredient ingredient: recipe.getIngredients())
                     {
-                        KilnRecipe convertedRecipe = new KilnRecipe(
+                        final KilnRecipe convertedRecipe = new KilnRecipe(
                             ingredient,
                             recipe.getResultItem(access),
                             calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),

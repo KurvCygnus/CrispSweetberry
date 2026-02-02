@@ -66,10 +66,10 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
     
     private @NotNull KilnRecipe fromNetwork(RegistryFriendlyByteBuf buffer)
     {
-        Ingredient ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
-        ItemStack stack = ItemStack.STREAM_CODEC.decode(buffer);
-        double processFactor = buffer.readDouble();
-        float experience = buffer.readFloat();
+        final Ingredient ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
+        final ItemStack stack = ItemStack.STREAM_CODEC.decode(buffer);
+        final double processFactor = buffer.readDouble();
+        final float experience = buffer.readFloat();
         
         return new KilnRecipe(ingredient, stack, processFactor, experience);
     }

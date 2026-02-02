@@ -59,7 +59,7 @@ public final class NuggetItemCheckEvent
                 copperNuggetSupplier = () -> Items.AIR;
                 diamondNuggetSupplier = () -> Items.AIR;
                 
-                for(var holder: holders)
+                for(final var holder: holders)
                     holder.unwrapKey().ifPresent(key ->
                         {
                             final ResourceLocation id = key.location();
@@ -78,7 +78,7 @@ public final class NuggetItemCheckEvent
         
         try
         {
-            for(var type: VanillaCoinTypes.VALUES)
+            for(final var type: VanillaCoinTypes.VALUES)
             {
                 final ItemStack nuggetStack = type.nuggetItem().getDefaultInstance();
                 

@@ -165,13 +165,13 @@ public final class KilnMenu extends AbstractContainerMenu
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player player, int index)
     {
-        Slot slot = this.slots.get(index);
+        final Slot slot = this.slots.get(index);
         
         if(!slot.hasItem())
             return ItemStack.EMPTY;
         
-        ItemStack interactStack = slot.getItem();
-        ItemStack temporaryStack = interactStack.copy();
+        final ItemStack interactStack = slot.getItem();
+        final ItemStack temporaryStack = interactStack.copy();
         
         final int rangeIndex = CrispIntRanger.inRangers(index, SLOT_RANGERS);
         final boolean hasMoved;

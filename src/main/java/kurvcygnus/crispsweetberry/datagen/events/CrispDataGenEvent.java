@@ -1,7 +1,10 @@
 package kurvcygnus.crispsweetberry.datagen.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.datagen.*;
+import kurvcygnus.crispsweetberry.datagen.CrispBlockLootSubProvider;
+import kurvcygnus.crispsweetberry.datagen.CrispBlockstateProvider;
+import kurvcygnus.crispsweetberry.datagen.CrispRecipeProvider;
+import kurvcygnus.crispsweetberry.datagen.VanillaCoinLootTableProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -13,6 +16,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,8 +50,9 @@ final class CrispDataGenEvent
         
         generator.addProvider(
             event.includeServer(),
-            new CrispLootTableProvider(
+            new LootTableProvider(
                 output,
+                Collections.emptySet(),
                 List.of(
                     new LootTableProvider.SubProviderEntry(
                         CrispBlockLootSubProvider::new,

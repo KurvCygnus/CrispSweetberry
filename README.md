@@ -154,4 +154,4 @@ We also welcome contributions in:
 Every form of contribution is respected.
 
 If you agree with these principles, you are already a great fit for Crisp Sweetberry — regardless of experience level.
-If you have any interest in joining us, you can go further to our [contribution guidelines](CONTRIBUTION.md).
+If you have any interest in joining us, you can go further to our [contribution guidelines](CONTRIBUTING.md).

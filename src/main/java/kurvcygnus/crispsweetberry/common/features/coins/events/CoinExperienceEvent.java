@@ -51,7 +51,7 @@ public final class CoinExperienceEvent
             
             if(result.getItem() instanceof AbstractCoinItem<?> coinItem)
             {
-                Player player = event.getEntity();
+                final Player player = event.getEntity();
                 
                 if(player.totalExperience < coinItem.getCoinType().getExperience())//? TODO: Tip players about this.
                     event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).set(ItemStack.EMPTY);//* If player has not enough exp for coin, hide result.
@@ -94,8 +94,8 @@ public final class CoinExperienceEvent
                 coinCount++;
                 if(inputIndex == ranger.getMax() && coinCount == 1 && result.getItem() == coin.getCoinType().nuggetItem())//? TODO: Refactor this with recipe check.
                 {
-                    Player player = event.getEntity();
-                    ServerLevel level = (ServerLevel) player.level();
+                    final Player player = event.getEntity();
+                    final ServerLevel level = (ServerLevel) player.level();
                     
                     //*                                                         No penalty, coins will be super OP. ↓
                     ExperienceOrb.award(level, player.position(), (int) (coin.getCoinType().getExperience() * coin.getCoinType().getPenaltyRate()));

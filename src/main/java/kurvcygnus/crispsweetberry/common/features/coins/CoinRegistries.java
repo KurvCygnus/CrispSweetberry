@@ -6,7 +6,6 @@ import kurvcygnus.crispsweetberry.common.features.coins.datagen.SetCoinCountFunc
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
-import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.BanFromTabRegistry;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
@@ -15,10 +14,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.List;
+
+import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes.*;
 
 /**
  * Everything that is related to coin is registered at here.
@@ -54,61 +56,61 @@ public final class CoinRegistries
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinItem> COPPER_COIN = COIN_ITEM_REGISTER.register("copper_coin", resourceLocation ->
-        new VanillaCoinItem(() -> VanillaCoinTypes.COPPER)
+        new VanillaCoinItem(() -> COPPER)
     );
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinItem> IRON_COIN = COIN_ITEM_REGISTER.register("iron_coin", resourceLocation ->
-        new VanillaCoinItem(() -> VanillaCoinTypes.IRON)
+        new VanillaCoinItem(() -> IRON)
     );
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinItem> GOLD_COIN = COIN_ITEM_REGISTER.register("gold_coin", resourceLocation ->
-        new VanillaCoinItem(() -> VanillaCoinTypes.GOLD)
+        new VanillaCoinItem(() -> GOLD)
     );
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinItem> DIAMOND_COIN = COIN_ITEM_REGISTER.register("diamond_coin", resourceLocation ->
-        new VanillaCoinItem(() -> VanillaCoinTypes.DIAMOND)
+        new VanillaCoinItem(() -> DIAMOND)
     );
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinStackItem> COPPER_COIN_STACK = COIN_ITEM_REGISTER.register("copper_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> VanillaCoinTypes.COPPER)
+        new VanillaCoinStackItem(() -> COPPER)
     );
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinStackItem> IRON_COIN_STACK = COIN_ITEM_REGISTER.register("iron_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> VanillaCoinTypes.IRON)
+        new VanillaCoinStackItem(() -> IRON)
     );
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinStackItem> GOLD_COIN_STACK = COIN_ITEM_REGISTER.register("gold_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> VanillaCoinTypes.GOLD)
+        new VanillaCoinStackItem(() -> GOLD)
     );
     
     @RegisterToTab
     public static final DeferredHolder<Item, VanillaCoinStackItem> DIAMOND_COIN_STACK = COIN_ITEM_REGISTER.register("diamond_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> VanillaCoinTypes.DIAMOND)
+        new VanillaCoinStackItem(() -> DIAMOND)
     );
     
     @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> COPPER_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("copper_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(() -> VanillaCoinTypes.COPPER)
+        new VanillaCoinStackBlock(Lazy.of(() -> COPPER))
     );
     
     @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> IRON_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("iron_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(() -> VanillaCoinTypes.IRON)
+        new VanillaCoinStackBlock(Lazy.of(() -> IRON))
     );
     
     @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> GOLD_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("gold_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(() -> VanillaCoinTypes.GOLD)
+        new VanillaCoinStackBlock(Lazy.of(() -> GOLD))
     );
     
     @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> DIAMOND_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("diamond_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(() -> VanillaCoinTypes.DIAMOND)
+        new VanillaCoinStackBlock(Lazy.of(() -> DIAMOND))
     );
 }

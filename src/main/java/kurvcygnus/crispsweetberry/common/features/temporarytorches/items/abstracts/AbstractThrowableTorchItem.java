@@ -91,7 +91,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand)
     {
-        ItemStack itemstack = player.getItemInHand(hand);
+        final ItemStack itemstack = player.getItemInHand(hand);
         final float THROW_SOUND_PITCH = 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F);
         
         player.startUsingItem(hand);
@@ -104,7 +104,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
         
         if(!level.isClientSide)
         {
-            T projectile = this.createProjectile(player, level);
+            final T projectile = this.createProjectile(player, level);
             projectile.setItem(itemstack);
             projectile.shootFromRotation(player, player.getXRot(), player.getYRot(),
                 PROJECTILE_SHOOT_Z_POS, throwVelocity, throwAccuracy);
@@ -121,7 +121,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
     @Override
     public @NotNull Projectile asProjectile(@NotNull Level level, @NotNull Position pos, @NotNull ItemStack stack, @NotNull Direction direction)
     {
-        T projectile = this.createProjectile(pos.x(), pos.y(), pos.z(), level);
+        final T projectile = this.createProjectile(pos.x(), pos.y(), pos.z(), level);
         projectile.setItem(stack);
         return projectile;
     }

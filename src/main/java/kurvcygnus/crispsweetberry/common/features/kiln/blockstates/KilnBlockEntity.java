@@ -35,7 +35,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -164,7 +163,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     @Override
     public void setItem(int index, @NotNull ItemStack stack)
     {
-        ItemStack oldItemStack = containerItems.get(index);
+        final ItemStack oldItemStack = containerItems.get(index);
         
         configDebug("[INPUT_CHECK] Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
             index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
@@ -200,8 +199,8 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         
         for(int slotIndex = KILN_INPUT_SLOTS_RANGE.getMin(); KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
         {
-            int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.getMin();
-            ItemStack stackInSlot = containerItems.get(slotIndex);
+            final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.getMin();
+            final ItemStack stackInSlot = containerItems.get(slotIndex);
             
             configDebug("[INPUT_CHECK] slotIndex: {}, cacheIndex: {}, content: {}",
                 slotIndex, cacheIndex, stackInSlot.getDisplayName()
@@ -217,7 +216,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     );
                 
                 inputState = InputState.VALID;
-                KilnRecipe recipe = getKilnRecipe(stackInSlot);
+                final KilnRecipe recipe = getKilnRecipe(stackInSlot);
                 
                 recipeCache[cacheIndex] = (recipe != null && !isEmptyRecipe(recipe)) ? recipe : noRecipe();
                 configDebug("[CACHE_WRITE] write cache[{}] from slot {} -> {}",
@@ -269,7 +268,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
      */
     public void dropExperience(@NotNull Player player)
     {
-        int exp = Mth.floor(this.experience);
+        final int exp = Mth.floor(this.experience);
         ExperienceOrb.award((ServerLevel) level, player.position(), exp);
         
         this.experience = 0F;
@@ -282,7 +281,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     {
         final boolean isIgnited = state.getValue(KilnBlock.LIT);
         
-        ProcessionState currentState = blockEntity.deduceProcessState(isIgnited);
+        final ProcessionState currentState = blockEntity.deduceProcessState(isIgnited);
         
         final CalculationResult result = blockEntity.calculator.
             calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
@@ -330,13 +329,13 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     private static boolean processInputItems(KilnBlockEntity blockEntity, Level level)
     {
-        ItemStack[] resultStacks = new ItemStack[3];
+        final ItemStack[] resultStacks = new ItemStack[3];
         
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
             resultStacks[index] = blockEntity.recipeCache[index].getResultItem(level.registryAccess()).copy();
         
         //* Since the procession is complex, using emulation-then-apply strategy can sufficiently decrease the quantity of boundary cases.
-        NonNullList<ItemStack> emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
+        final NonNullList<ItemStack> emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
         
         if(!insertItemsToSlots(blockEntity, resultStacks, emulatedOutputSlots))
             return false;
@@ -400,7 +399,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     private static @NotNull NonNullList<ItemStack> copyOutputSlots(NonNullList<ItemStack> outputStacks)
     {
-        NonNullList<ItemStack> copy = NonNullList.withSize(KILN_SLOT_COUNT_FOR_EACH_TYPE, ItemStack.EMPTY);
+        final NonNullList<ItemStack> copy = NonNullList.withSize(KILN_SLOT_COUNT_FOR_EACH_TYPE, ItemStack.EMPTY);
         
         for(int index = KILN_SLOT_COUNT_FOR_EACH_TYPE; index < KILN_DEFAULT_SIZE; index++)
         {
@@ -432,8 +431,8 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         
         for(int index = KILN_INPUT_SLOTS_RANGE.getMin(); KILN_INPUT_SLOTS_RANGE.inRange(index); index++)
         {
-            ItemStack stack = blockEntity.containerItems.get(index);
-            ItemStack remainingStack;
+            final ItemStack stack = blockEntity.containerItems.get(index);
+            final ItemStack remainingStack;
             
             if(stack.isEmpty())
                 continue;
@@ -508,8 +507,6 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     /**
      * Helper methods to check item validation.
-     *
-     * @see KilnRecipeCacheEvent#getKilnRecipes(ServerStartedEvent)  Source
      */
     public boolean canSmelt(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getKilnCachedRecipes().containsKey(itemstack.getItem()); }
     

@@ -1,10 +1,10 @@
 package kurvcygnus.crispsweetberry.common.features.coins.vanilla;
 
 import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackBlock;
+import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * @author Kurv Cygnus
@@ -17,8 +17,8 @@ import java.util.function.Supplier;
 //@Deprecated(since = "1.1.0 Release", forRemoval = false)
 public final class VanillaCoinStackBlock extends AbstractCoinStackBlock<VanillaCoinTypes>
 {
-    public VanillaCoinStackBlock(@NotNull Supplier<VanillaCoinTypes> coinTypeSupplier)
+    public VanillaCoinStackBlock(@NotNull Lazy<VanillaCoinTypes> lazyCoinTypeSupplier)
     {
-        super(Objects.requireNonNull(coinTypeSupplier.get(), "Field \"coinTypeSupplier\" must not be null!"));
+        super(Objects.requireNonNull(lazyCoinTypeSupplier.get(), "Field \"coinTypeSupplier\" must not be null!"));
     }
 }

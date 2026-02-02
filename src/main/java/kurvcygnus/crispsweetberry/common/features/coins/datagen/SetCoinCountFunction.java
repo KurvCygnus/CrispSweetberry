@@ -28,7 +28,7 @@ public record SetCoinCountFunction(List<LootItemCondition> predicates) implement
     
     public static final MapCodec<SetCoinCountFunction> CODEC = RecordCodecBuilder.mapCodec(instance ->
         instance.group(
-            LootItemCondition.DIRECT_CODEC.listOf().fieldOf("conditions").orElse(List.of()).forGetter(f -> f.predicates)
+            LootItemCondition.DIRECT_CODEC.listOf().fieldOf("conditions").orElse(List.of()).forGetter(fun -> fun.predicates)
         ).apply(instance, SetCoinCountFunction::new)
     );
     
@@ -40,13 +40,13 @@ public record SetCoinCountFunction(List<LootItemCondition> predicates) implement
     @Override
     public ItemStack apply(@NotNull ItemStack stack, @NotNull LootContext context)
     {
-        BlockState state = context.getParamOrNull(LootContextParams.BLOCK_STATE);
+        final BlockState state = context.getParamOrNull(LootContextParams.BLOCK_STATE);
         if(state == null) 
             return stack;
         
-        int layers = state.getValue(AbstractCoinStackBlock.LAYERS);
+        final int layers = state.getValue(AbstractCoinStackBlock.LAYERS);
         
-        int finalCount = layers * DROPS_COUNT_PER_LAYER;
+        final int finalCount = layers * DROPS_COUNT_PER_LAYER;
         
         stack.setCount(finalCount);
         

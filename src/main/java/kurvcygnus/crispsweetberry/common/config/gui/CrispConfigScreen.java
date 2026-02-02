@@ -30,9 +30,9 @@ public final class CrispConfigScreen extends Screen
     @Override
     protected void init()
     {
-        int buttonWidth = 200;
-        int x = this.width / 2 - buttonWidth / 2;
-        int y = 40;
+        final int buttonWidth = 200;
+        final int x = this.width / 2 - buttonWidth / 2;
+        final int y = 40;
         
         this.addRenderableWidget(CycleButton.onOffBuilder(CrispConfig.KILN_BE_DEBUG.get())
             .create(x, y, buttonWidth, 20, Component.translatable("crispsweetberry.config.debug.kiln_be"),

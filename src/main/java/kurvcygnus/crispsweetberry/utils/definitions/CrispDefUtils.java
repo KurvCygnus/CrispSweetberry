@@ -46,7 +46,7 @@ public final class CrispDefUtils
     {
         requireNonNull(action, "Param \"action\" must not be null!");
         
-        CompoundTag tag = new CompoundTag();
+        final CompoundTag tag = new CompoundTag();
         action.accept(tag);
         
         return tag;

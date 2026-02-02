@@ -140,12 +140,12 @@ public final class KilnBlock extends BaseEntityBlock
     @Override
     public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
     {
-        BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        final BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
         
-        ItemStack itemstack = context.getItemInHand();
+        final ItemStack itemstack = context.getItemInHand();
         
         boolean isLit = true;
-        CustomData customData = itemstack.get(DataComponents.CUSTOM_DATA);
+        final CustomData customData = itemstack.get(DataComponents.CUSTOM_DATA);
         if(customData != null && customData.contains(LIT_PROPERTY))
             isLit = customData.copyTag().getBoolean(LIT_PROPERTY);
         
@@ -173,7 +173,7 @@ public final class KilnBlock extends BaseEntityBlock
         if(state.is(newState.getBlock()))
             return;
         
-        BlockEntity blockEntity = level.getBlockEntity(pos);
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
         
         if(blockEntity instanceof KilnBlockEntity kiln)
         {
@@ -186,7 +186,7 @@ public final class KilnBlock extends BaseEntityBlock
     @Override
     public @NotNull ItemStack getCloneItemStack(@NotNull BlockState state, @NotNull HitResult target, @NotNull LevelReader level, @NotNull BlockPos pos, @NotNull Player player)
     {
-        ItemStack stack = new ItemStack(this);
+        final ItemStack stack = new ItemStack(this);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         return stack;
     }
@@ -194,9 +194,9 @@ public final class KilnBlock extends BaseEntityBlock
     @Override
     public @NotNull List<ItemStack> getDrops(@NotNull BlockState state, LootParams.@NotNull Builder params)
     {
-        List<ItemStack> drops = super.getDrops(state, params);
+        final List<ItemStack> drops = super.getDrops(state, params);
         
-        for(ItemStack stack: drops)
+        for(final ItemStack stack: drops)
             if(stack.is(this.asItem()))
                 stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         
@@ -230,7 +230,7 @@ public final class KilnBlock extends BaseEntityBlock
             return InteractionResult.SUCCESS;
         else
         {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
             if(blockEntity instanceof KilnBlockEntity kiln)
             {
                 player.openMenu(kiln, pos);
@@ -248,7 +248,7 @@ public final class KilnBlock extends BaseEntityBlock
                 if(state.getValue(LIT))
                     return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
                 
-                Item itemInHand = stack.getItem();
+                final Item itemInHand = stack.getItem();
                 
                 if(canLitStuff(stack, itemInHand))
                 {
@@ -295,8 +295,8 @@ public final class KilnBlock extends BaseEntityBlock
                 false
             );
         
-        Direction direction = state.getValue(FACING);
-        Direction.Axis directionAxis = direction.getAxis();
+        final Direction direction = state.getValue(FACING);
+        final Direction.Axis directionAxis = direction.getAxis();
         
         final double PARTICLE_BASE_RANDOM_OFFSET = random.nextDouble() * 0.6 - 0.3;
         final double PARTICLE_X_OFFSET = directionAxis == Direction.Axis.X ? (double) direction.getStepX() * 0.52 : PARTICLE_BASE_RANDOM_OFFSET;

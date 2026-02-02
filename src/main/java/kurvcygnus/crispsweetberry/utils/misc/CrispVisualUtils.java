@@ -26,7 +26,7 @@ public final class CrispVisualUtils
         
         for(int index = 0; index < particleOptions.length; index++)
         {
-            ParticleOptions particle = particleOptions[index];
+            final ParticleOptions particle = particleOptions[index];
             Objects.requireNonNull(particle, "Particle can not be null! Null particle at index: " + index);
             level.addParticle(particle, x, y, z, xSpeed, ySpeed, zSpeed);
         }

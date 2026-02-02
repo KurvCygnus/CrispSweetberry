@@ -110,7 +110,7 @@ public interface ITemporaryTorchBehaviors
         @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, 
         @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
             {
-                Item itemInHand = stack.getItem();
+                final Item itemInHand = stack.getItem();
                 final Set<Item> interactableItems = Set.of(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                 
                 if(!interactableItems.contains(itemInHand) || !getReLitProperty()|| isStillBright(state))
@@ -151,8 +151,8 @@ public interface ITemporaryTorchBehaviors
     {
         final double VERTICAL_PARTICLE_SPEED = (random.nextDouble() * 2.0D - 1.0D) * 0.03D;
         
-        AbstractThrownTorchEntity.LightState oldLightState = oldState.getValue(LIGHT_PROPERTY);
-        BlockState newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());
+        final AbstractThrownTorchEntity.LightState oldLightState = oldState.getValue(LIGHT_PROPERTY);
+        final BlockState newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());
         
         //! Terminates this method if the state is already dark.
         if(oldLightState == AbstractThrownTorchEntity.LightState.DARK)
@@ -186,7 +186,7 @@ public interface ITemporaryTorchBehaviors
         
         if(isWallTorch)//* Wall torch's particle position is different from standard one, of course.
         {
-            Direction direction = state.getValue(FACING).getOpposite();
+            final Direction direction = state.getValue(FACING).getOpposite();
             
             X_POS += HORIZONTAL_WALL_TORCH_OFFSET_VALUE * (double)direction.getStepX();
             Y_POS += VERTICAL_WALL_TORCH_OFFSET_VALUE;

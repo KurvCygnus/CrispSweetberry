@@ -203,12 +203,12 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     @Override
     protected void onHitEntity(@NotNull EntityHitResult result)
     {
-        Entity entity = result.getEntity();
+        final Entity entity = result.getEntity();
         super.onHitEntity(result);
         
-        boolean shouldExtendBurnTicks = entity.getRemainingFireTicks() <= HIT_STD_MAX_TICKS * getTier();
+        final boolean shouldExtendBurnTicks = entity.getRemainingFireTicks() <= HIT_STD_MAX_TICKS * getTier();
         
-        int hitResult = shouldCheckFireResistMob ?
+        final int hitResult = shouldCheckFireResistMob ?
             1 : (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ?
             HIT_RESULT_NO_DAMAGE : HIT_RESULT_DO_DAMAGE;//TODO: 做自定义Fire-Resistant Mob标签
         
@@ -230,8 +230,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
             if(!tryHandleSpecialCase())
                 return;
             
-            BlockPos placementPos = getPlacementPos(result);
-            BlockState stateToPlace = getPlacementState(result, placementPos);
+            final BlockPos placementPos = getPlacementPos(result);
+            final BlockState stateToPlace = getPlacementState(result, placementPos);
             
             if(stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
                 playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
@@ -265,9 +265,9 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         {
             for(int attempt = 0; attempt < 5; attempt++)
             {
-                double offsetX = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
-                double offsetY = this.random.nextDouble() * OFFSET_CALCULATE_CONSTANT;
-                double offsetZ = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
+                final double offsetX = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
+                final double offsetY = this.random.nextDouble() * OFFSET_CALCULATE_CONSTANT;
+                final double offsetZ = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
                 
                 this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, CrispItems.THROWABLE_TORCH.value().getDefaultInstance()),
                     this.getX() + offsetX,
@@ -319,7 +319,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         if(placementPos == null)
             return null;
         
-        Direction hitSide = result.getDirection();
+        final Direction hitSide = result.getDirection();
         BlockState baseState = null;
         
         if(hitSide == Direction.UP)
@@ -328,7 +328,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
             baseState = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
         
         if(baseState != null && getTier() == TIER_GONE)
-            baseState = baseState.setValue(ITemporaryTorchBehaviors.LIGHT_PROPERTY, LightState.DARK);
+            return baseState.setValue(ITemporaryTorchBehaviors.LIGHT_PROPERTY, LightState.DARK);
         
         return baseState;
     }
@@ -351,8 +351,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected boolean canBeActuallyPlaced(@NotNull BlockPos pos)
     {
-        Block posBlock = this.level().getBlockState(pos).getBlock();
-        BlockState posBlockState = this.level().getBlockState(pos);
+        final Block posBlock = this.level().getBlockState(pos).getBlock();
+        final BlockState posBlockState = this.level().getBlockState(pos);
         
         if(posBlock instanceof AbstractTemporaryTorchBlock || posBlock instanceof AbstractTemporaryWallTorchBlock &&
             (posBlockState.getValue(ITemporaryTorchBehaviors.LIGHT_PROPERTY).ordinal() <= LightState.DIM.ordinal()))
@@ -393,7 +393,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     private Map<Integer, SimpleParticleType> processLongerParticleStateList(SimpleParticleType... states)
     {
-        Map<Integer, SimpleParticleType> longerParticleStateList = new HashMap<>();
+        final Map<Integer, SimpleParticleType> longerParticleStateList = new HashMap<>();
         
         for(int index = 0; index < LONGER_PARTICLE_STATES; index++)
             longerParticleStateList.put(index, states[index]);

@@ -15,7 +15,13 @@ import java.util.concurrent.CompletableFuture;
 
 public final class CrispRecipeProvider extends RecipeProvider
 {
-    public CrispRecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries) { super(output, registries); }
+    private final VanillaCoinRecipeProvider coinRecipeProvider;
+    
+    public CrispRecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries) 
+    {
+        super(output, registries);
+        this.coinRecipeProvider = new VanillaCoinRecipeProvider(output, registries);
+    }
     
     @Override
     protected void buildRecipes(@NotNull RecipeOutput output)
@@ -29,7 +35,7 @@ public final class CrispRecipeProvider extends RecipeProvider
             define('B', Items.BRICKS).
             define('C', Items.CAMPFIRE).//? TODO: Tags
             unlockedBy("kiln_unlocked", has(Items.FURNACE)). //? TODO
-            save(output);
+            save(output, "kiln_std");
         
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, KilnRegistries.KILN.value()).//? Use this dumb impl for now.
             pattern("TTT").
@@ -40,8 +46,7 @@ public final class CrispRecipeProvider extends RecipeProvider
             define('B', Items.BRICKS).
             define('C', Items.SOUL_CAMPFIRE).
             unlockedBy("kiln_unlocked", has(Items.FURNACE)).
-            save(output)
-        ;
+            save(output, "kiln_soul");
         
         ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, CrispItems.CARRY_CRATE.value(), 2).
             pattern("PPP").
@@ -76,5 +81,7 @@ public final class CrispRecipeProvider extends RecipeProvider
             unlockedBy("throwable_torch_unlocked_nether_standard",  has(Items.SOUL_TORCH)).
             unlockedBy("throwable_torch_unlocked_from_loot", has(CrispItems.THROWABLE_TORCH.value())).
             save(output);
+        
+        coinRecipeProvider.buildRecipes(output);
     }
 }

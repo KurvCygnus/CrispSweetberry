@@ -21,7 +21,6 @@ public final class VanillaCoinItem extends AbstractCoinItem<VanillaCoinTypes>
     
     public VanillaCoinItem(@NotNull Supplier<VanillaCoinTypes> coinTypeSupplier)
     {
-        super();
         this.coinTypeSupplier = coinTypeSupplier;
         Objects.requireNonNull(coinTypeSupplier, "Field \"coinTypeSupplier\" must not be null!");
     }

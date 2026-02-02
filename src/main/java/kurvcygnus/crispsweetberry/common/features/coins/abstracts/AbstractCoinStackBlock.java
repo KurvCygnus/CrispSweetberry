@@ -43,7 +43,7 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
     @SuppressWarnings({"unused", "DataFlowIssue"})//! Only for vanilla CODEC.
     private AbstractCoinStackBlock(@Nullable Properties properties, @Nullable C coinType) { this(coinType); }
     
-    public AbstractCoinStackBlock(@NotNull C coinType)
+    public AbstractCoinStackBlock(@NotNull C coinType)//! This is safe since the base class uses lazy to pass value.
     {
         super(Properties.of().
             strength(coinType.getStrength()).//! Oh my god, Minecraft API is terrible.
