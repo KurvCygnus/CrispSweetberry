@@ -8,6 +8,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeSeriali
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType;
 import kurvcygnus.crispsweetberry.datagen.CrispBlockstateProvider;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Holder;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -41,17 +43,28 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock.LIT_PROP
  * Contains everything related to kiln.
  * @since 1.0 Release
  */
-@EventBusSubscriber(modid = CrispSweetberry.MOD_ID, value = Dist.CLIENT)
-public final class KilnRegistries
+@EventBusSubscriber(modid = CrispSweetberry.ID, value = Dist.CLIENT)
+public enum KilnRegistries implements IRegistryHelper
 {
-    private KilnRegistries() { throw new IllegalAccessError(); }
+    INSTANCE;
     
-    private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
-    public static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
-    private static final DeferredRegister<BlockEntityType<?>> KILN_BE_REGISTER = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.MOD_ID);
-    private static final DeferredRegister<RecipeType<?>> KILN_RECIPE_REGISTER = DeferredRegister.create(Registries.RECIPE_TYPE, CrispSweetberry.MOD_ID);
-    private static final DeferredRegister<RecipeSerializer<?>> KILN_SERIALIZER_REGISTER = DeferredRegister.create(Registries.RECIPE_SERIALIZER, CrispSweetberry.MOD_ID);
-    private static final DeferredRegister<MenuType<?>> KILN_MENU_REGISTER = DeferredRegister.create(Registries.MENU, CrispSweetberry.MOD_ID);
+    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(register -> register.register(bus)); }
+    
+    @Override
+    public boolean isFeature() { return true; }
+    
+    @Override
+    public @NotNull String getJob() { return "Kiln"; }
+    
+    @Override
+    public int getPriority() { return 4; }
+    
+    private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.ID);
+    public static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.ID);
+    private static final DeferredRegister<BlockEntityType<?>> KILN_BE_REGISTER = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.ID);
+    private static final DeferredRegister<RecipeType<?>> KILN_RECIPE_REGISTER = DeferredRegister.create(Registries.RECIPE_TYPE, CrispSweetberry.ID);
+    private static final DeferredRegister<RecipeSerializer<?>> KILN_SERIALIZER_REGISTER = DeferredRegister.create(Registries.RECIPE_SERIALIZER, CrispSweetberry.ID);
+    private static final DeferredRegister<MenuType<?>> KILN_MENU_REGISTER = DeferredRegister.create(Registries.MENU, CrispSweetberry.ID);
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         KILN_ITEM_REGISTER,
@@ -70,7 +83,7 @@ public final class KilnRegistries
      * @see CrispBlockstateProvider Appearance Variants Implementation
      */
     @SubscribeEvent
-    static void KilnItemDynamicSpriteEvent(@NotNull FMLClientSetupEvent event)
+    static void kilnItemDynamicSpriteEvent(@NotNull FMLClientSetupEvent event)
     {
         event.enqueueWork(() ->
             ItemProperties.register(

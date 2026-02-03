@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-@EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
+@EventBusSubscriber(modid = CrispSweetberry.ID)
 public final class CoinRecipeCollectEvent
 {
     private static final Logger LOGGER = LogUtils.getLogger();

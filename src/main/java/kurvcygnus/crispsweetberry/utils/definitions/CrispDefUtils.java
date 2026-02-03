@@ -22,7 +22,7 @@ public final class CrispDefUtils
     public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation) 
     {
         requireNonNull(assetLocation, "Param \"assetLocation\" cannot be null!");
-        return ResourceLocation.fromNamespaceAndPath(CrispSweetberry.MOD_ID, assetLocation);
+        return ResourceLocation.fromNamespaceAndPath(CrispSweetberry.ID, assetLocation);
     }
     
     /**

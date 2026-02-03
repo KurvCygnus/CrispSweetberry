@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * @apiNote This can be used as a template for custom <u>{@link kurvcygnus.crispsweetberry.common.features.coins.abstracts.ICoinType CoinType}</u>'s validation and 
  * existence determination.
  */
-@EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
+@EventBusSubscriber(modid = CrispSweetberry.ID)
 public final class NuggetItemCheckEvent
 {
     private static final Logger LOGGER = LogUtils.getLogger();

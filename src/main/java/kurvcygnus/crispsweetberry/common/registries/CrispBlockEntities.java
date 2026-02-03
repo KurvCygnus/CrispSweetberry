@@ -5,10 +5,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-public final class CrispBlockEntities
+public enum CrispBlockEntities
 {
-    private CrispBlockEntities() { throw new IllegalAccessError(); }
+    INSTANCE;
     
     public static final DeferredRegister<BlockEntityType<?>> CRISP_BLOCK_ENTITY_REGISTER =
-        DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.MOD_ID);
+        DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.ID);
 }

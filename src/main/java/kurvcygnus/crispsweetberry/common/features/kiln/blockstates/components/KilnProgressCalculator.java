@@ -8,10 +8,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.en
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.utils.misc.CrispLogUtils;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
-import org.jetbrains.annotations.CheckReturnValue;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
@@ -24,6 +21,7 @@ import java.util.Objects;
  * @see KilnBlockEntity#serverTick Usage
  * @since 1.0 Release
  */
+@ApiStatus.Internal
 public final class KilnProgressCalculator
 {
     private static final double NORMAL_PROGRESS_RATE = 0.005D;
@@ -188,8 +186,10 @@ public final class KilnProgressCalculator
         if(shouldBalance)
             this.balanceTrend = currentProcessFactor > this.lastProcessFactor ? VisualTrend.BALANCE : VisualTrend.BURST;
         
-        CrispLogUtils.logIf(Objects.requireNonNullElse(this.lastProcessFactor, -1D) != currentProcessFactor,
-            () -> configDebug("[CAL_DATA_INFO] Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor));
+        CrispLogUtils.logIf(
+            Objects.requireNonNullElse(this.lastProcessFactor, -1D) != currentProcessFactor,
+            () -> configDebug("[CAL_DATA_INFO] Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor == null ? "N/A" : this.lastProcessFactor)
+        );
         
         this.lastProcessFactor = currentProcessFactor;
         
@@ -216,7 +216,6 @@ public final class KilnProgressCalculator
         }
         
         if(this.balanceTick > 0)
-        
         {
             configDebug("[CAL_BALANCE] balanceTick({}) is bigger than 0. Continue to calculate visualProgress.", balanceTick);
             

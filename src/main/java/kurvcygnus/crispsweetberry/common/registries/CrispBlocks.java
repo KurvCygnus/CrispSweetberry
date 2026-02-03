@@ -5,15 +5,29 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateBlock;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.TemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.abstracts.ITemporaryTorchBehaviors;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.NotNull;
 
-public final class CrispBlocks
+public enum CrispBlocks implements IRegistryHelper
 {
-    private CrispBlocks() { throw new IllegalAccessError(); }
+    INSTANCE;
     
-    public static final DeferredRegister<Block> CRISP_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
+    @Override public void register(@NotNull IEventBus bus) { CRISP_BLOCK_REGISTER.register(bus); }
+    
+    @Override
+    public boolean isFeature() { return false; }
+    
+    @Override
+    public @NotNull String getJob() { return "Misc Blocks"; }
+    
+    @Override
+    public int getPriority() { return 0; }
+    
+    public static final DeferredRegister<Block> CRISP_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.ID);
     
     public static final Holder<Block> TEMPORARY_TORCH = CRISP_BLOCK_REGISTER.register("temporary_torch", resourceLocation ->
             new TemporaryTorchBlock(ITemporaryTorchBehaviors.DEFAULT_TEMP_TORCH_PARTICLE));

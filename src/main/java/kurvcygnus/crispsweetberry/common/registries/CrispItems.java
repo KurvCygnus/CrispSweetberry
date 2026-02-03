@@ -2,22 +2,34 @@ package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.temporarytorches.items.ThrowableTorchItem;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.BanFromTabRegistry;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.NotNull;
 
 import static net.minecraft.world.item.Rarity.RARE;
 
-public final class CrispItems
+public enum CrispItems implements IRegistryHelper
 {
-    private CrispItems() { throw new IllegalAccessError(); }
+    INSTANCE;
+    @Override
+    public void register(@NotNull IEventBus bus) { CRISP_ITEM_REGISTER.register(bus); }
     
-    @BanFromTabRegistry
-    public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
+    @Override
+    public boolean isFeature() { return false; }
+    
+    @Override
+    public @NotNull String getJob() { return "Misc Items"; }
+    
+    @Override
+    public int getPriority() { return 1; }
+    
+    public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.ID);
     
     @RegisterToTab
     public static final Holder<Item> THROWABLE_TORCH = CRISP_ITEM_REGISTER.register("throwable_torch", resourceLocation ->

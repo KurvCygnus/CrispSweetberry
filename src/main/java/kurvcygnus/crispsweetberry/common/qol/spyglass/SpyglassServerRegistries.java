@@ -9,7 +9,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jetbrains.annotations.NotNull;
 
-@EventBusSubscriber(modid = CrispSweetberry.MOD_ID)
+@EventBusSubscriber(modid = CrispSweetberry.ID)
 public final class SpyglassServerRegistries
 {
     private SpyglassServerRegistries() {}

@@ -6,7 +6,7 @@ import kurvcygnus.crispsweetberry.common.features.coins.datagen.SetCoinCountFunc
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.BanFromTabRegistry;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -14,9 +14,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -26,31 +28,42 @@ import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCo
  * Everything that is related to coin is registered at here.
  * @since Release 1.0
  */
-public final class CoinRegistries
+public enum CoinRegistries implements IRegistryHelper
 {
-    private CoinRegistries() { throw new IllegalAccessError(); }
+    INSTANCE;
+    @Override
+    public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(register -> register.register(bus)); }
     
-    @BanFromTabRegistry private static final DeferredRegister<Item> COIN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.MOD_ID);
-    @BanFromTabRegistry private static final DeferredRegister<Block> COIN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.MOD_ID);
-    @BanFromTabRegistry private static final DeferredRegister<LootItemConditionType> COIN_LOOT_TABLE_CONDITION_REGISTER = DeferredRegister.create(
-        Registries.LOOT_CONDITION_TYPE, CrispSweetberry.MOD_ID
+    @Override
+    public boolean isFeature() { return true; }
+    
+    @Override
+    public @NotNull String getJob() { return "Coin"; }
+    
+    @Override
+    public int getPriority() { return 3; }
+    
+    private static final DeferredRegister<Item> COIN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.ID);
+    private static final DeferredRegister<Block> COIN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.ID);
+    private static final DeferredRegister<LootItemConditionType> COIN_LOOT_TABLE_CONDITION_REGISTER = DeferredRegister.create(
+        Registries.LOOT_CONDITION_TYPE, CrispSweetberry.ID
     );
-    @BanFromTabRegistry private static final DeferredRegister<LootItemFunctionType<?>> COIN_LOOT_TABLE_FUNCTION_REGISTER = DeferredRegister.create(
-        Registries.LOOT_FUNCTION_TYPE, CrispSweetberry.MOD_ID
+    private static final DeferredRegister<LootItemFunctionType<?>> COIN_LOOT_TABLE_FUNCTION_REGISTER = DeferredRegister.create(
+        Registries.LOOT_FUNCTION_TYPE, CrispSweetberry.ID
     );
     
-    @BanFromTabRegistry public static final List<DeferredRegister<?>> REGISTRIES = List.of(
+    public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         COIN_ITEM_REGISTER,
         COIN_BLOCK_REGISTER,
         COIN_LOOT_TABLE_CONDITION_REGISTER,
         COIN_LOOT_TABLE_FUNCTION_REGISTER
     );
     
-    @BanFromTabRegistry public static final Holder<LootItemConditionType> IS_CRUNCHING_CONDITION = COIN_LOOT_TABLE_CONDITION_REGISTER.register("is_crunching", () ->
+    public static final Holder<LootItemConditionType> IS_CRUNCHING_CONDITION = COIN_LOOT_TABLE_CONDITION_REGISTER.register("is_crunching", () ->
         new LootItemConditionType(IsCrunchingCondition.CODEC)
     );
     
-    @BanFromTabRegistry public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<SetCoinCountFunction>> SET_COIN_COUNT_FUNCTION = COIN_LOOT_TABLE_FUNCTION_REGISTER.register
+    public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<SetCoinCountFunction>> SET_COIN_COUNT_FUNCTION = COIN_LOOT_TABLE_FUNCTION_REGISTER.register
         ("set_coin_count", () -> new LootItemFunctionType<>(SetCoinCountFunction.CODEC)
     );
     
@@ -94,22 +107,18 @@ public final class CoinRegistries
         new VanillaCoinStackItem(() -> DIAMOND)
     );
     
-    @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> COPPER_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("copper_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> COPPER))
     );
     
-    @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> IRON_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("iron_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> IRON))
     );
     
-    @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> GOLD_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("gold_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> GOLD))
     );
     
-    @BanFromTabRegistry
     public static final DeferredHolder<Block, VanillaCoinStackBlock> DIAMOND_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("diamond_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> DIAMOND))
     );

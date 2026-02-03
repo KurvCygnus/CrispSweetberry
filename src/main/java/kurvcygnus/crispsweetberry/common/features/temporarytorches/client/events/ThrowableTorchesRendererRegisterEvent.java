@@ -16,7 +16,7 @@ import org.slf4j.Logger;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-@EventBusSubscriber(modid = CrispSweetberry.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CrispSweetberry.ID, value = Dist.CLIENT)
 public final class ThrowableTorchesRendererRegisterEvent
 {
     private static final Logger LOGGER = LogUtils.getLogger();

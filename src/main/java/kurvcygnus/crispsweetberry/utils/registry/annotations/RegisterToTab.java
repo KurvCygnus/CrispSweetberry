@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  *  public static final Holder<Item> Foo = ...
  * }</pre>
  * @see CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent)  Annotation Executor
- * @see kurvcygnus.crispsweetberry.CrispSweetberry#ANNOTATION_CACHE Info Source
+ * @see kurvcygnus.crispsweetberry.CrispSweetberry#TAB_LOOKUP Info Source
  * @since 1.0 Release
  * @author Kurv Cygnus
  */

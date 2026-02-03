@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "kurvcygnus.crispsweetberry.common.qol.spyglass.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "SpyglassItemUsingMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

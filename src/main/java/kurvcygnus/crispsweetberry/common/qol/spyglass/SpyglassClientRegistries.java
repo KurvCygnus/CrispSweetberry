@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 
-@EventBusSubscriber(modid = CrispSweetberry.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CrispSweetberry.ID, value = Dist.CLIENT)
 public final class SpyglassClientRegistries
 {
     private static final Logger LOGGER = LogUtils.getLogger();

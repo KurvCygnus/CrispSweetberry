@@ -32,26 +32,19 @@ public final class SpyglassPayloadHandler
                     
                     player.setItemInHand(InteractionHand.OFF_HAND, spyglass);
                     inventory.setItem(slot, oldOffhand);
-                    
-                    player.startUsingItem(InteractionHand.OFF_HAND);
                 }
             }
-            else
+            else if(player.getPersistentData().contains(ORIGINAL_SLOT_TAG))
             {
-                player.stopUsingItem();
+                final int originalSlot = player.getPersistentData().getInt(ORIGINAL_SLOT_TAG);
                 
-                if(player.getPersistentData().contains(ORIGINAL_SLOT_TAG))
-                {
-                    final int originalSlot = player.getPersistentData().getInt(ORIGINAL_SLOT_TAG);
-                    
-                    final ItemStack currentOffhand = player.getOffhandItem().copy();
-                    final ItemStack itemInOriginalSlot = inventory.getItem(originalSlot).copy();
-                    
-                    player.setItemInHand(InteractionHand.OFF_HAND, itemInOriginalSlot);
-                    inventory.setItem(originalSlot, currentOffhand);
-                    
-                    player.getPersistentData().remove(ORIGINAL_SLOT_TAG);
-                }
+                final ItemStack currentOffhand = player.getOffhandItem().copy();
+                final ItemStack itemInOriginalSlot = inventory.getItem(originalSlot).copy();
+                
+                player.setItemInHand(InteractionHand.OFF_HAND, itemInOriginalSlot);
+                inventory.setItem(originalSlot, currentOffhand);
+                
+                player.getPersistentData().remove(ORIGINAL_SLOT_TAG);
             }
         });
     }
