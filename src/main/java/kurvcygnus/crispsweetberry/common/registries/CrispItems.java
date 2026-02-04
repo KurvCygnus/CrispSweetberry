@@ -1,8 +1,8 @@
 package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.temporarytorches.items.ThrowableTorchItem;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
+import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static net.minecraft.world.item.Rarity.RARE;
 
-public enum CrispItems implements IRegistryHelper
+public enum CrispItems implements IRegistrant
 {
     INSTANCE;
     @Override

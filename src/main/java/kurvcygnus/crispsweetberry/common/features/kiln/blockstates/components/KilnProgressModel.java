@@ -2,11 +2,12 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
+import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
+import org.slf4j.MarkerFactory;
 
 import java.util.Objects;
 
@@ -27,7 +28,7 @@ public final class KilnProgressModel
     private VisualTrend trend;
     private boolean isIgnited;
     
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final MarkLogger LOGGER = MarkLogger.getMarkedLogger(LogUtils.getLogger(), MarkerFactory.getMarker("PROGRESS_MISMATCH"));
     
     public KilnProgressModel()
     {

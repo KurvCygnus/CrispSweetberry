@@ -38,7 +38,7 @@ public abstract class AbstractCoinStackItem<C extends ICoinType<C>> extends Bloc
     protected AbstractCoinStackItem() { super(null, new Properties().stacksTo(16)); }
     
     /**
-     * @implNote  This method is used by <u>{@link BlockItem}</u> to get the instance of block.<br>
+     * @implNote  This method is used by <u>{@link BlockItem}</u> to getMarkedLogger the instance of block.<br>
      * We override this to implement lazy loading block to avoid footgun.
      */
     @Override

@@ -2,7 +2,7 @@ package kurvcygnus.crispsweetberry.client.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @see kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent)  Content addition implementation
  */
-public enum CrispCreativeTabs implements IRegistryHelper
+public enum CrispCreativeTabs implements IRegistrant
 {
     INSTANCE;
     

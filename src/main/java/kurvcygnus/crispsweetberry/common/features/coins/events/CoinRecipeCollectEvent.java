@@ -4,6 +4,8 @@ import com.google.common.collect.HashBiMap;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
+import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -12,33 +14,53 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
+import org.slf4j.MarkerFactory;
 
 import java.util.List;
 
 @EventBusSubscriber(modid = CrispSweetberry.ID)
 public final class CoinRecipeCollectEvent
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), MarkerFactory.getMarker("COIN_RECIPE"));
     
     private static final HashBiMap<Item, Item> NUGGET_TO_COIN_RECIPES = HashBiMap.create();
     private static final HashBiMap<Item, Item> COIN_TO_NUGGET_RECIPES = HashBiMap.create();
     private static final HashBiMap<Item, Item> COIN_TO_STACK_RECIPES = HashBiMap.create();
     
     @SubscribeEvent
-    static void collectCoinRecipes(final @NotNull ServerAboutToStartEvent event)
+    static void collectCoinRecipes(final @NotNull ServerAboutToStartEvent event) { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
+    
+    @SubscribeEvent
+    static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
     {
-        LOGGER.debug("[COIN_RECIPE] Start collecting coins recipes...");
+        event.addListener((
+            preparationBarrier,
+            resourceManager,
+            profilerIn,
+            profilerOut,
+            backgroundExecutor,
+            gameExecutor
+            ) ->
+            preparationBarrier.wait(net.minecraft.util.Unit.INSTANCE).thenRunAsync(() ->
+                    collectRecipes(event.getServerResources().getRecipeManager(), event.getRegistryAccess()),
+                gameExecutor
+            )
+        );
+    }
+    
+    private static void collectRecipes(@NotNull RecipeManager manager, @NotNull RegistryAccess registryAccess)
+    {
+        LOGGER.debug("Start collecting coins recipes...");
         
         NUGGET_TO_COIN_RECIPES.clear();
         COIN_TO_NUGGET_RECIPES.clear();
+        COIN_TO_STACK_RECIPES.clear();
         
-        final RecipeManager manager = event.getServer().getRecipeManager();
-        
-        manager.getAllRecipesFor(RecipeType.CRAFTING).stream().map(RecipeHolder::value).forEach(recipe -> 
+        manager.getAllRecipesFor(RecipeType.CRAFTING).stream().map(RecipeHolder::value).forEach(recipe ->
             {
                 final @Nullable List<Ingredient> ingredients = recipe.getIngredients().stream().filter(i -> !i.isEmpty()).toList();
                 
@@ -46,7 +68,7 @@ public final class CoinRecipeCollectEvent
                     return;
                 
                 final ItemStack materialSample = ingredients.getFirst().getItems()[0].copy();
-                final ItemStack resultItem = recipe.getResultItem(event.getServer().registryAccess());
+                final ItemStack resultItem = recipe.getResultItem(registryAccess);
                 
                 if(ingredients.size() == 1)
                 {
@@ -63,7 +85,8 @@ public final class CoinRecipeCollectEvent
                         COIN_TO_STACK_RECIPES.put(materialSample.getItem(), resultItem.getItem());
                 }
             }
-        );
+        )
+        ;
     }
     
     public static @NotNull HashBiMap<Item, Item> getCoinCraftRecipes() { return NUGGET_TO_COIN_RECIPES; }

@@ -226,7 +226,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * @see ExampleSlotConstants More details about these constants
      */
     private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger, boolean reverseDirection)
-    { return CrispUIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
+        { return CrispUIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
     
     /**
      * A helper method for {@link #quickMoveStack(Player, int)}.<br>
@@ -239,6 +239,6 @@ public final class KilnMenu extends AbstractContainerMenu
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
 //! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.
     private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger)
-    { return moveToSlotRange(interactStack, ranger, false); }
+        { return moveToSlotRange(interactStack, ranger, false); }
     //endregion
 }

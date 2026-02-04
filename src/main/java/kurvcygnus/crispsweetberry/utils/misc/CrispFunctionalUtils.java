@@ -29,6 +29,14 @@ public final class CrispFunctionalUtils
         action.accept(object);
     }
     
+    public static void doIf(boolean condition, @NotNull Runnable action)
+    {
+        requireNonNull(action, "Param \"action\" must not be null!");
+        
+        if(condition)
+            action.run();
+    }
+    
     public static <E extends Throwable> void throwIf(boolean condition, @NotNull Supplier<E> supplier) throws E
     {
         requireNonNull(supplier, "Param \"supplier\" cannot be null!(Param 2, Bro, serious?)");

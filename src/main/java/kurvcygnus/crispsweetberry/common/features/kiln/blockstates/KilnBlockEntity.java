@@ -15,7 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
 import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
-import kurvcygnus.crispsweetberry.utils.misc.CrispLogUtils;
+import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -36,7 +36,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import java.util.Arrays;
 
@@ -105,7 +104,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     public enum ProcessionState { WORKING, COOLDOWN }
     
     //*:== Logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final MarkLogger LOGGER = MarkLogger.getLogger(LogUtils.getLogger());
     //endregion
     
     //  region
@@ -165,22 +164,26 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     {
         final ItemStack oldItemStack = containerItems.get(index);
         
-        configDebug("[INPUT_CHECK] Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
-            index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
-        );
-        
-        stack.limitSize(this.getMaxStackSize(stack));
-        this.containerItems.set(index, stack);
-        
-        if(level != null && !level.isClientSide)
+        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
-            if(KILN_INPUT_SLOTS_RANGE.inRange(index))
-            {
-                configDebug("[UPDATE_INFO] index: {} -> at input range -> go update input slots' information", index);
-                updateInputSlotsInfo();
-            }
+            configDebug("Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
+                index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
+            );
             
-            setChanged(level, worldPosition, this.getBlockState());//If the content in the container is changed, the data must get dirtied.
+            stack.limitSize(this.getMaxStackSize(stack));
+            this.containerItems.set(index, stack);
+            
+            if(level != null && !level.isClientSide)
+            {
+                if(KILN_INPUT_SLOTS_RANGE.inRange(index))
+                {
+                    handle.changeMarker("UPDATE_INFO");
+                    configDebug("index: {} -> at input range -> go update input slots' information", index);
+                    updateInputSlotsInfo();
+                }
+                
+                setChanged(level, worldPosition, this.getBlockState());//If the content in the container is changed, the data must getMarkedLogger dirtied.
+            }
         }
     }
     
@@ -197,67 +200,77 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     {
         inputState = InputState.ALL_EMPTY;
         
-        for(int slotIndex = KILN_INPUT_SLOTS_RANGE.getMin(); KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
-        {
-            final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.getMin();
-            final ItemStack stackInSlot = containerItems.get(slotIndex);
-            
-            configDebug("[INPUT_CHECK] slotIndex: {}, cacheIndex: {}, content: {}",
-                slotIndex, cacheIndex, stackInSlot.getDisplayName()
-            );
-            
-            if(stackInSlot.isEmpty())
-                recipeCache[cacheIndex] = noRecipe();
-            else if(canSmelt(stackInSlot))
-            {
-                if(inputState != InputState.VALID)
-                    configDebug("[INPUT_STATE_CHANGED] {} -> VALID (at slot {}, stack: {})",
-                        inputState, slotIndex, stackInSlot.getDisplayName()
-                    );
-                
-                inputState = InputState.VALID;
-                final KilnRecipe recipe = getKilnRecipe(stackInSlot);
-                
-                recipeCache[cacheIndex] = (recipe != null && !isEmptyRecipe(recipe)) ? recipe : noRecipe();
-                configDebug("[CACHE_WRITE] write cache[{}] from slot {} -> {}",
-                    cacheIndex, slotIndex, recipe
-                );
-            }
-            else if(isBanned(stackInSlot))
-            {
-                //* Kiln doesn't support blasting recipes since they require huge heats, which can't afforded by kiln,
-                //* and thus, we should tip players about this.
-                inputState = InputState.HAS_TIP;
-                recipeCache[cacheIndex] = tipRecipe();
-                break;
-            }
-            else
-            {
-                //* This is vanilla behavior: when something can't be processed in the container, the entire procession will be paused.
-                recipeCache[cacheIndex] = noRecipe();
-                break;
-            }
-            
-            configDebug("[CACHE_CONFIRM] new cache at index {}: [Ingredient: {}, Result: {}]",
-                slotIndex, recipeCache[cacheIndex].getIngredient(), recipeCache[cacheIndex].getResult()
-            );
-        }
-        
         final LogicalResult nonWorkingLogicalResult;
         
-        switch(inputState)
+        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
-            case HAS_TIP -> nonWorkingLogicalResult = LogicalResult.BLAST_TIP;
-            case VALID -> nonWorkingLogicalResult = LogicalResult.CONTINUE;
-            default -> nonWorkingLogicalResult = LogicalResult.SKIP;
+            for(int slotIndex = KILN_INPUT_SLOTS_RANGE.getMin(); KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
+            {
+                final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.getMin();
+                final ItemStack stackInSlot = containerItems.get(slotIndex);
+                
+                configDebug("slotIndex: {}, cacheIndex: {}, content: {}",
+                    slotIndex, cacheIndex, stackInSlot.getDisplayName()
+                );
+                
+                if(stackInSlot.isEmpty())
+                    recipeCache[cacheIndex] = noRecipe();
+                else if(canSmelt(stackInSlot))
+                {
+                    if(inputState != InputState.VALID)
+                    {
+                        handle.changeMarker("INPUT_STATE_CHANGED");
+                        configDebug("{} -> VALID (at slot {}, stack: {})",
+                            inputState, slotIndex, stackInSlot.getDisplayName()
+                        );
+                    }
+                    
+                    inputState = InputState.VALID;
+                    final KilnRecipe recipe = getKilnRecipe(stackInSlot);
+                    
+                    recipeCache[cacheIndex] = (recipe != null && !isEmptyRecipe(recipe)) ? recipe : noRecipe();
+                    
+                    handle.changeMarker("CACHE_WRITE");
+                    configDebug("write cache[{}] from slot {} -> {}",
+                        cacheIndex, slotIndex, recipe
+                    );
+                }
+                else if(isBanned(stackInSlot))
+                {
+                    //* Kiln doesn't support blasting recipes since they require huge heats, which can't afforded by kiln,
+                    //* and thus, we should tip players about this.
+                    inputState = InputState.HAS_TIP;
+                    recipeCache[cacheIndex] = tipRecipe();
+                    break;
+                }
+                else
+                {
+                    //* This is vanilla behavior: when something can't be processed in the container, the entire procession will be paused.
+                    recipeCache[cacheIndex] = noRecipe();
+                    break;
+                }
+                
+                handle.changeMarker("CACHE_CONFIRM");
+                configDebug("new cache at index {}: [Ingredient: {}, Result: {}]",
+                    slotIndex, recipeCache[cacheIndex].getIngredient(), recipeCache[cacheIndex].getResult()
+                );
+            }
+            
+            switch(inputState)
+            {
+                case HAS_TIP -> nonWorkingLogicalResult = LogicalResult.BLAST_TIP;
+                case VALID -> nonWorkingLogicalResult = LogicalResult.CONTINUE;
+                default -> nonWorkingLogicalResult = LogicalResult.SKIP;
+            }
+            
+            handle.changeMarker("PULL_CACHE");
+            configDebug(
+                "\"Calculator#setRecipesAndResultType\" called. inputState = {}, recipes = {}, nonWorkingLogicalResult = {}",
+                inputState,
+                Arrays.toString(recipeCache),
+                nonWorkingLogicalResult.name()
+            );
         }
-        
-        configDebug(
-            "[PULL_CACHE] \"Calculator#setRecipesAndResultType\" called. inputState = {}, recipes = {}, nonWorkingLogicalResult = {}",
-            inputState,
-            Arrays.toString(recipeCache),
-            nonWorkingLogicalResult.name()
-        );
         
         //* Sync recipes here to minimalize performance penalty instead of doing this in serverTick.
         this.calculator.setRecipesAndResultType(recipeCache, nonWorkingLogicalResult);
@@ -292,7 +305,10 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         {
             case CONTINUE, BALANCING -> { }
             case INVALID ->
-                LOGGER.error("[UNEXPECTED_RESULT] Received unexpected result \"{}\"", result.logicalResult().name());
+            {
+                try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("UNEXPECTED_RESULT"))
+                    { LOGGER.error("Received unexpected result \"{}\"", result.logicalResult().name()); }
+            }
             case SKIP -> { return; }
         }
         
@@ -521,6 +537,6 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     public ContainerData getData() { return this.data; }
     
-    private void configDebug(String message, Object @NotNull ... args) { CrispLogUtils.logIf(CrispConfig.KILN_BE_DEBUG.get(), () -> LOGGER.debug(message, args)); }
+    private void configDebug(String message, Object @NotNull ... args) { LOGGER.debugIf(CrispConfig.KILN_BE_DEBUG.get(), message, args); }
     //endregion
 }

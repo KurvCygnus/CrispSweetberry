@@ -1,8 +1,8 @@
 package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.temporarytorches.entities.ThrownTorchEntity;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
+import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownTorchEntity;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -11,7 +11,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-public enum CrispEntities implements IRegistryHelper
+public enum CrispEntities implements IRegistrant
 {
     INSTANCE;
     

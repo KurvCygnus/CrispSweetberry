@@ -2,17 +2,17 @@ package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateBlock;
-import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.TemporaryTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.TemporaryWallTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.temporarytorches.blocks.abstracts.ITemporaryTorchBehaviors;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.ITemporaryTorchBehaviors;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-public enum CrispBlocks implements IRegistryHelper
+public enum CrispBlocks implements IRegistrant
 {
     INSTANCE;
     

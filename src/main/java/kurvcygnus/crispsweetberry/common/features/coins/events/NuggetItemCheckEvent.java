@@ -3,7 +3,7 @@ package kurvcygnus.crispsweetberry.common.features.coins.events;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes;
-import kurvcygnus.crispsweetberry.utils.misc.CrispLogUtils;
+import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -17,7 +17,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
+import org.slf4j.MarkerFactory;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
 @EventBusSubscriber(modid = CrispSweetberry.ID)
 public final class NuggetItemCheckEvent
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), MarkerFactory.getMarker("NUGGET_CHECK"));
     
     public static Supplier<Item> copperNuggetSupplier = () -> Items.AIR;
     public static Supplier<Item> diamondNuggetSupplier = () -> Items.AIR;
@@ -82,10 +82,9 @@ public final class NuggetItemCheckEvent
             {
                 final ItemStack nuggetStack = type.nuggetItem().getDefaultInstance();
                 
-                CrispLogUtils.logIf(!nuggetStack.is(Tags.Items.NUGGETS), () ->
-                    LOGGER.warn("Invalid definition for {}: Item {} is not in the Nuggets tag!",
-                        type.id().toUpperCase(), nuggetStack.getItemHolder().getRegisteredName()
-                    )
+                LOGGER.warnIf(!nuggetStack.is(Tags.Items.NUGGETS), 
+                    "Invalid definition for {}: Item {} is not in the Nuggets tag!",
+                    type.id().toUpperCase(), nuggetStack.getItemHolder().getRegisteredName()
                 );
             }
         }

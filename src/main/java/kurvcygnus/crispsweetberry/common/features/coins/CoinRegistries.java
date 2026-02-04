@@ -6,7 +6,7 @@ import kurvcygnus.crispsweetberry.common.features.coins.datagen.SetCoinCountFunc
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -28,7 +28,7 @@ import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCo
  * Everything that is related to coin is registered at here.
  * @since Release 1.0
  */
-public enum CoinRegistries implements IRegistryHelper
+public enum CoinRegistries implements IRegistrant
 {
     INSTANCE;
     @Override

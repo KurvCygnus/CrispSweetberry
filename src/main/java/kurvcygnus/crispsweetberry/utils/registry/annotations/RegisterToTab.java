@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
  *  )
  *  public static final Holder<Item> Foo = ...
  * }</pre>
+ * <i><b>We strongly recommend using {@code public static final} to avoid potential problems</b></i>.
  * @see CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent)  Annotation Executor
  * @see kurvcygnus.crispsweetberry.CrispSweetberry#TAB_LOOKUP Info Source
  * @since 1.0 Release

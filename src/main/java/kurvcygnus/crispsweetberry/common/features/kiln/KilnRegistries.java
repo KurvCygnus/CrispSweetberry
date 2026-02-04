@@ -8,7 +8,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeSeriali
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType;
 import kurvcygnus.crispsweetberry.datagen.CrispBlockstateProvider;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistryHelper;
+import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Holder;
@@ -44,7 +44,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock.LIT_PROP
  * @since 1.0 Release
  */
 @EventBusSubscriber(modid = CrispSweetberry.ID, value = Dist.CLIENT)
-public enum KilnRegistries implements IRegistryHelper
+public enum KilnRegistries implements IRegistrant
 {
     INSTANCE;
     
@@ -134,5 +134,6 @@ public enum KilnRegistries implements IRegistryHelper
         new MenuType<>(KilnMenu::new, FeatureFlags.DEFAULT_FLAGS)
     );
     
+    //? TODO: This should be registered.
     public static final ResourceLocation INTERACT_WITH_KILN = CrispDefUtils.getModNamespacedLocation("interact_with_kiln");
 }
