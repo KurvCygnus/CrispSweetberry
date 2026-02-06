@@ -7,7 +7,6 @@ import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.MarkerFactory;
 
 import java.util.Objects;
 
@@ -28,7 +27,7 @@ public final class KilnProgressModel
     private VisualTrend trend;
     private boolean isIgnited;
     
-    private static final MarkLogger LOGGER = MarkLogger.getMarkedLogger(LogUtils.getLogger(), MarkerFactory.getMarker("PROGRESS_MISMATCH"));
+    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "PROGRESS_MISMATCH");
     
     public KilnProgressModel()
     {

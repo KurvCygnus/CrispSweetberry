@@ -82,7 +82,7 @@ public final class NuggetItemCheckEvent
             {
                 final ItemStack nuggetStack = type.nuggetItem().getDefaultInstance();
                 
-                LOGGER.warnIf(!nuggetStack.is(Tags.Items.NUGGETS), 
+                LOGGER.when(!nuggetStack.is(Tags.Items.NUGGETS)).warn( 
                     "Invalid definition for {}: Item {} is not in the Nuggets tag!",
                     type.id().toUpperCase(), nuggetStack.getItemHolder().getRegisteredName()
                 );

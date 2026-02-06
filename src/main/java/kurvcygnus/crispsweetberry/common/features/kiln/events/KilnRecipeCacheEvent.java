@@ -38,7 +38,7 @@ public final class KilnRecipeCacheEvent
     private static final HashMap<Item, NonNullList<KilnRecipe>> KILN_CACHED_RECIPES = new HashMap<>();
     private static final HashMap<Item, NonNullList<BlastingRecipe>> BANNED_RECIPES = new HashMap<>();
     
-    private static final MarkLogger LOGGER = MarkLogger.getLogger(LogUtils.getLogger());
+    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     
     /**
      * Triggers the initial cache population when the server finishes its startup sequence.
@@ -157,28 +157,28 @@ public final class KilnRecipeCacheEvent
     private static <R extends AbstractCookingRecipe> void streamRecipes
     (@NotNull HashMap<Item, NonNullList<R>> targetMap, @NotNull RecipeManager manager, @NotNull RecipeType<R> recipeType)
     {
-        manager.getAllRecipesFor(recipeType).stream().map(RecipeHolder::value).forEach(
-            recipe ->
-            {
-                for(final Ingredient ingredient: recipe.getIngredients())
+        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("RECIPE_STREAM"))
+        {
+            manager.getAllRecipesFor(recipeType).stream().map(RecipeHolder::value).forEach(
+                recipe ->
                 {
-                    for(final ItemStack stack: ingredient.getItems())
+                    for(final Ingredient ingredient: recipe.getIngredients())
                     {
-                        final Item item = stack.getItem();
-                        
-                        targetMap.computeIfAbsent(item, i -> NonNullList.create()).
-                            add(recipe);
+                        for(final ItemStack stack: ingredient.getItems())
+                        {
+                            final Item item = stack.getItem();
+                            
+                            targetMap.computeIfAbsent(item, i -> NonNullList.create()).
+                                add(recipe);
+                        }
                     }
-                }
-                
-                try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("RECIPE_STREAM"))
-                {
+                    
                     configDebug("Completed a round of recipe collection, Ingredients: {}, current stream recipe type: {}",
                         recipe.getIngredients(), recipeType
                     );
                 }
-            }
-        );
+            );
+        }
     }
     
     /**
@@ -187,35 +187,37 @@ public final class KilnRecipeCacheEvent
     private static <R extends AbstractCookingRecipe> void filterRecipes
     (@NotNull HashMap<Item, NonNullList<KilnRecipe>> targetMap, @NotNull HashMap<Item, NonNullList<R>> convertMap, @NotNull RegistryAccess access)
     {
-        convertMap.forEach((item, list) ->
-            {
-                if(!list.isEmpty() && list.getFirst() instanceof SmokingRecipe)
+        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("FINAL_FILTER"))
+        {
+            convertMap.forEach((item, list) ->
                 {
-                    if(targetMap.containsKey(item))
+                    if(!list.isEmpty() && list.getFirst() instanceof SmokingRecipe)
                     {
-                        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("FINAL_FILTER"))
-                            { configDebug("Item {} found in cache, clearing old Smelting recipes to override with Smoking.", item); }
-                        targetMap.get(item).clear();
+                        if(targetMap.containsKey(item))
+                        {
+                            configDebug("Item {} found in cache, clearing old Smelting recipes to override with Smoking.", item);
+                            targetMap.get(item).clear();
+                        }
+                    }
+                    
+                    for(final R recipe: list)
+                    {
+                        for(final Ingredient ingredient: recipe.getIngredients())
+                        {
+                            final KilnRecipe convertedRecipe = new KilnRecipe(
+                                ingredient,
+                                recipe.getResultItem(access),
+                                calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),
+                                recipe.getExperience()
+                            );
+                            
+                            targetMap.computeIfAbsent(item, i -> NonNullList.create()).
+                                add(convertedRecipe);
+                        }
                     }
                 }
-                
-                for(final R recipe: list)
-                {
-                    for(final Ingredient ingredient: recipe.getIngredients())
-                    {
-                        final KilnRecipe convertedRecipe = new KilnRecipe(
-                            ingredient,
-                            recipe.getResultItem(access),
-                            calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),
-                            recipe.getExperience()
-                        );
-                        
-                        targetMap.computeIfAbsent(item, i -> NonNullList.create()).
-                            add(convertedRecipe);
-                    }
-                }
-            }
-        );
+            );
+        }
     }
     
     private static double calculateProcessFactor(int cookingTime, boolean isSmokingRecipe)
@@ -241,5 +243,5 @@ public final class KilnRecipeCacheEvent
     
     public static @NotNull HashMap<Item, NonNullList<BlastingRecipe>> getBannedRecipes() { return BANNED_RECIPES; }
     
-    private static void configDebug(@NotNull String message, Object @NotNull ... args) { LOGGER.debugIf(CrispConfig.KILN_EVENT_DEBUG.get(), message, args); }
+    private static void configDebug(@NotNull String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_EVENT_DEBUG.get()).debug(message, args); }
 }

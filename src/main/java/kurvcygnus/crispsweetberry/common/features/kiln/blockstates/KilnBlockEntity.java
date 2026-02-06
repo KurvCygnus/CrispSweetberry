@@ -104,7 +104,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     public enum ProcessionState { WORKING, COOLDOWN }
     
     //*:== Logger
-    private static final MarkLogger LOGGER = MarkLogger.getLogger(LogUtils.getLogger());
+    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     //endregion
     
     //  region
@@ -182,7 +182,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     updateInputSlotsInfo();
                 }
                 
-                setChanged(level, worldPosition, this.getBlockState());//If the content in the container is changed, the data must getMarkedLogger dirtied.
+                setChanged(level, worldPosition, this.getBlockState());//If the content in the container is changed, the data must markedLogger dirtied.
             }
         }
     }
@@ -537,6 +537,6 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     public ContainerData getData() { return this.data; }
     
-    private void configDebug(String message, Object @NotNull ... args) { LOGGER.debugIf(CrispConfig.KILN_BE_DEBUG.get(), message, args); }
+    private void configDebug(String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_BE_DEBUG.get()).debug(message, args); }
     //endregion
 }

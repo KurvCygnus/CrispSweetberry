@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 /**
- * This is the basic of stacked coin blocks, which behaves like <u>{@link SnowLayerBlock}</u>, and can be broke to getMarkedLogger 
+ * This is the basic of stacked coin blocks, which behaves like <u>{@link SnowLayerBlock}</u>, and can be broke to markedLogger 
  * <u>{@link AbstractCoinItem coins}</u>, or <u>{@link VanillaCoinTypes#nuggetItem() nuggets}</u> with <u>{@link ExperienceOrb experiences}</u> on crunching case 
  * in survivor mode.
  *

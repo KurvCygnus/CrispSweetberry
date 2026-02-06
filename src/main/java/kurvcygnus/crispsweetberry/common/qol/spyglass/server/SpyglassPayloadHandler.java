@@ -34,10 +34,12 @@ public final class SpyglassPayloadHandler
                         player.setItemInHand(InteractionHand.OFF_HAND, spyglass);
                         player.awardStat(Stats.ITEM_USED.get(Items.SPYGLASS));
                         inventory.setItem(slot, oldOffhand);
+                        player.startUsingItem(InteractionHand.OFF_HAND);
                     }
                 }
                 else if(player.getPersistentData().contains(ORIGINAL_SLOT_TAG))
                 {
+                    player.stopUsingItem();
                     final int originalSlot = player.getPersistentData().getInt(ORIGINAL_SLOT_TAG);
                     
                     final ItemStack currentOffhand = player.getOffhandItem();

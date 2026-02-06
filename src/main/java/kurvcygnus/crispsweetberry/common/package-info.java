@@ -9,7 +9,7 @@
  * <u>{@link kurvcygnus.crispsweetberry.common.features features}</u> package,
  * and small contents like new building blocks belong to the <u>{@link kurvcygnus.crispsweetberry.common.misc misc}</u> package.<br><br>
  * 
- * <i>The purpose of these requirements is to ensure that mod's architecture won't getMarkedLogger out of control as its content grows,
+ * <i>The purpose of these requirements is to ensure that mod's architecture won't markedLogger out of control as its content grows,
  * and allow everyone to quickly and clearly find the relevant code of one content.</i>
  * 
  * @implNote DO NOT add {@link javax.annotation.ParametersAreNonnullByDefault @ParametersAreNonnullByDefault} in package-infos,

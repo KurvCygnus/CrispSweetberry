@@ -50,7 +50,7 @@ public final class KilnProgressCalculator
     private boolean hasWarnedNullRecipe = false;
     private boolean hasWarnedAbnormalFactor = false;
     
-    private static final MarkLogger LOGGER = MarkLogger.getLogger(LogUtils.getLogger());
+    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     
     public void setRecipesAndResultType(KilnRecipe @NotNull [] recipes, @NotNull LogicalResult logicalResult)
     {
@@ -254,7 +254,7 @@ public final class KilnProgressCalculator
             if(Math.abs(newRealProgress - newVisualProgress) > 0.02D)
             {
                 handle.changeMarker("CAL_NORMAL_ERROR");
-                LOGGER.errorIf(CrispConfig.KILN_BE_CAL_DEBUG.get(),
+                LOGGER.when(CrispConfig.KILN_BE_CAL_DEBUG.get()).error(
                     "ProgressPair doesn't match. R: {}, V: {}",
                     newRealProgress, newVisualProgress
                 );
@@ -278,5 +278,5 @@ public final class KilnProgressCalculator
     
     public double getBalanceRate() { return balanceRate; }
     
-    private void configDebug(String message, Object @NotNull ... args) { LOGGER.debugIf(CrispConfig.KILN_BE_CAL_DEBUG.get(), message, args); }
+    private void configDebug(String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_BE_CAL_DEBUG.get()).debug(message, args); }
 }

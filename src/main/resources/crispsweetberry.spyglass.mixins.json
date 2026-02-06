@@ -4,9 +4,13 @@
   "package": "kurvcygnus.crispsweetberry.common.qol.spyglass.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "SpyglassItemUsingMixin"
+    "SpyglassItemUsingInjection",
+    "SpyglassKeybindScopeInjection"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "SpyglassUsePoseInjection"
+  ]
 }
