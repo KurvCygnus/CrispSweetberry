@@ -43,13 +43,13 @@ public enum CoinRegistries implements IRegistrant
     @Override
     public int getPriority() { return 3; }
     
-    private static final DeferredRegister<Item> COIN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.ID);
-    private static final DeferredRegister<Block> COIN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.ID);
+    private static final DeferredRegister<Item> COIN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
+    private static final DeferredRegister<Block> COIN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<LootItemConditionType> COIN_LOOT_TABLE_CONDITION_REGISTER = DeferredRegister.create(
-        Registries.LOOT_CONDITION_TYPE, CrispSweetberry.ID
+        Registries.LOOT_CONDITION_TYPE, CrispSweetberry.NAMESPACE
     );
     private static final DeferredRegister<LootItemFunctionType<?>> COIN_LOOT_TABLE_FUNCTION_REGISTER = DeferredRegister.create(
-        Registries.LOOT_FUNCTION_TYPE, CrispSweetberry.ID
+        Registries.LOOT_FUNCTION_TYPE, CrispSweetberry.NAMESPACE
     );
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(

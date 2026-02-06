@@ -47,6 +47,11 @@ public final class ExampleSlotConstants
      */
     public static final int CORRECTION_INDEX = 1;
     
+    /**
+     * Alias, means <b>"Not a number"</b>.
+     */
+    public static final int NAN = -1;
+    
     public static final int INPUT_SLOT = 0;
     
     public static final int FUEL_SLOT = 1;

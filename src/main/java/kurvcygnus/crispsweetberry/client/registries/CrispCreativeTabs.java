@@ -35,7 +35,7 @@ public enum CrispCreativeTabs implements IRegistrant
     @Override
     public int getPriority() { return 5; }
     
-    public static final DeferredRegister<CreativeModeTab> CRISP_TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CrispSweetberry.ID);
+    public static final DeferredRegister<CreativeModeTab> CRISP_TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CrispSweetberry.NAMESPACE);
     
     public static final ResourceKey<CreativeModeTab> CRISP_CREATIVE_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB,
         CrispDefUtils.getModNamespacedLocation("crisp_tab")

@@ -3,8 +3,6 @@ package kurvcygnus.crispsweetberry.common.features.kiln;
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
-import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
-import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
 import kurvcygnus.crispsweetberry.utils.misc.CrispVisualUtils;

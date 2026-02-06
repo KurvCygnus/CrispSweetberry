@@ -28,7 +28,7 @@ public enum CrispEntities implements IRegistrant
     public int getPriority() { return 2; }
     
     public static final DeferredRegister<EntityType<?>> CRISP_ENTITY_TYPE_REGISTER =
-        DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.ID);
+        DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.NAMESPACE);
     
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownTorchEntity>> THROWN_TORCH = CRISP_ENTITY_TYPE_REGISTER.register("thrown_torch", () ->
         EntityType.Builder.<ThrownTorchEntity>of(ThrownTorchEntity::new, MobCategory.MISC).

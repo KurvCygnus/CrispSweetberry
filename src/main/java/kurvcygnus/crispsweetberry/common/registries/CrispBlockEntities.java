@@ -10,5 +10,5 @@ public enum CrispBlockEntities
     INSTANCE;
     
     public static final DeferredRegister<BlockEntityType<?>> CRISP_BLOCK_ENTITY_REGISTER =
-        DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.ID);
+        DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.NAMESPACE);
 }

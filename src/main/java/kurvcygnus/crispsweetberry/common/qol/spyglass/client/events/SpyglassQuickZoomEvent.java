@@ -1,13 +1,16 @@
 package kurvcygnus.crispsweetberry.common.qol.spyglass.client.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.qol.spyglass.server.SpyglassPayload;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayload;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpyglassItem;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -18,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import static kurvcygnus.crispsweetberry.common.qol.spyglass.SpyglassClientRegistries.SPYGLASS_ZOOM;
 import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_PITCH;
 import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_VOLUME;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.NAN;
 
 /**
  * This handles clientside zoom stuff.
@@ -59,15 +63,17 @@ import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL
  *         effectively "mute" standard interactions while the quick-zoom is active.
  *    </li>
  * </ul>
- * @see SpyglassPayload Serverside stuff
- * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Using State Mixin
- * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassKeybindScopeInjection Essential Input Intercept
+ * @see SpyglassPayloadHandler#handleData Serverside stuff
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Input Intercept
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassKeybindScopeInjection Essential Input Emulation
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassUsePoseInjection Visual Essential Mixin
  */
-@EventBusSubscriber(modid = CrispSweetberry.ID)
-final class SpyglassQuickZoomEvent//? TODO: leftClick disable.
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
+public final class SpyglassQuickZoomEvent
 {
+    private static boolean hotkeyPressed = false;
     private static ZoomState zoomState = ZoomState.IDLE;
+    private static boolean hasSpyglass = false;
     
     private enum ZoomState
     {
@@ -85,7 +91,13 @@ final class SpyglassQuickZoomEvent//? TODO: leftClick disable.
         if(instance.gameMode == null || player == null)
             return;
         
-        final boolean hotkeyPressed = SPYGLASS_ZOOM.isDown();
+        if(player.isUsingItem() && player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SpyglassItem)
+            return;//! No repeat use.
+        
+        hotkeyPressed = SPYGLASS_ZOOM.isDown();
+        
+        hasSpyglass = player.getInventory().offhand.getFirst().is(Items.SPYGLASS) ||//! Slot match should be the later one, because it brings more performance penalty.
+            player.getInventory().findSlotMatchingItem(Items.SPYGLASS.getDefaultInstance()) != NAN;
         
         if(hotkeyPressed)
             switch(zoomState)
@@ -126,4 +138,6 @@ final class SpyglassQuickZoomEvent//? TODO: leftClick disable.
         
         event.setNewFovModifier(SpyglassItem.ZOOM_FOV_MODIFIER);
     }
+    
+    public static boolean isZooming() { return hotkeyPressed && hasSpyglass; }
 }

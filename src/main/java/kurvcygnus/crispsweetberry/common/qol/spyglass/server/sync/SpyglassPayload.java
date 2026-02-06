@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.common.qol.spyglass.server;
+package kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync;
 
 import io.netty.buffer.ByteBuf;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;

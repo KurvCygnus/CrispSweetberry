@@ -68,7 +68,7 @@ public final class VanillaCoinTypes extends BaseCoinType<VanillaCoinTypes>
     
     public static final VanillaCoinTypes[] VALUES = {COPPER, IRON, GOLD, DIAMOND};
     
-    @Override protected @NotNull String initNamespace() { return CrispSweetberry.ID; }
+    @Override protected @NotNull String initNamespace() { return CrispSweetberry.NAMESPACE; }
     
     protected @NotNull Predicate<Supplier<? extends Item>> initEnableCondition() { return this.isOptional ? DEFAULT_CONDITION : OPTIONAL; }
     

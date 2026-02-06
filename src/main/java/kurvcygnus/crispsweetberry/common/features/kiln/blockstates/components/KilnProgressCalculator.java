@@ -199,7 +199,7 @@ public final class KilnProgressCalculator
             if(Objects.requireNonNullElse(this.lastProcessFactor, -1D) != currentProcessFactor)
             {
                 handle.changeMarker("CAL_DATA_INFO");
-                configDebug("Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor == null ? "N/A" : this.lastProcessFactor);
+                configDebug("Factors: C: {}, L: {}", currentProcessFactor, Objects.requireNonNullElse(this.lastProcessFactor, "N/A"));
             }
             
             this.lastProcessFactor = currentProcessFactor;

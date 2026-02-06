@@ -1,7 +1,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
-import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants;
 import net.minecraft.client.Minecraft;
@@ -15,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.*;
+import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.*;
 import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
 import static kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants.NO_OFFSET;
 

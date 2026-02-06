@@ -43,7 +43,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock.LIT_PROP
  * Contains everything related to kiln.
  * @since 1.0 Release
  */
-@EventBusSubscriber(modid = CrispSweetberry.ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
 public enum KilnRegistries implements IRegistrant
 {
     INSTANCE;
@@ -59,12 +59,12 @@ public enum KilnRegistries implements IRegistrant
     @Override
     public int getPriority() { return 4; }
     
-    private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.ID);
-    public static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.ID);
-    private static final DeferredRegister<BlockEntityType<?>> KILN_BE_REGISTER = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.ID);
-    private static final DeferredRegister<RecipeType<?>> KILN_RECIPE_REGISTER = DeferredRegister.create(Registries.RECIPE_TYPE, CrispSweetberry.ID);
-    private static final DeferredRegister<RecipeSerializer<?>> KILN_SERIALIZER_REGISTER = DeferredRegister.create(Registries.RECIPE_SERIALIZER, CrispSweetberry.ID);
-    private static final DeferredRegister<MenuType<?>> KILN_MENU_REGISTER = DeferredRegister.create(Registries.MENU, CrispSweetberry.ID);
+    private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
+    public static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
+    private static final DeferredRegister<BlockEntityType<?>> KILN_BE_REGISTER = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CrispSweetberry.NAMESPACE);
+    private static final DeferredRegister<RecipeType<?>> KILN_RECIPE_REGISTER = DeferredRegister.create(Registries.RECIPE_TYPE, CrispSweetberry.NAMESPACE);
+    private static final DeferredRegister<RecipeSerializer<?>> KILN_SERIALIZER_REGISTER = DeferredRegister.create(Registries.RECIPE_SERIALIZER, CrispSweetberry.NAMESPACE);
+    private static final DeferredRegister<MenuType<?>> KILN_MENU_REGISTER = DeferredRegister.create(Registries.MENU, CrispSweetberry.NAMESPACE);
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         KILN_ITEM_REGISTER,

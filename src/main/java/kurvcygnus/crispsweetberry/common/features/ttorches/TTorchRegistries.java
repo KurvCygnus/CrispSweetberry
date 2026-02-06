@@ -29,8 +29,8 @@ public enum TTorchRegistries implements IRegistrant
     @Override
     public int getPriority() { return 6; }
     
-    private static final DeferredRegister<Item> THROWABLE_TORCH_REGISTER = DeferredRegister.createItems(CrispSweetberry.ID);
-    private static final DeferredRegister<Block> TEMPORARY_TORCH_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.ID); 
+    private static final DeferredRegister<Item> THROWABLE_TORCH_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
+    private static final DeferredRegister<Block> TEMPORARY_TORCH_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE); 
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         THROWABLE_TORCH_REGISTER,

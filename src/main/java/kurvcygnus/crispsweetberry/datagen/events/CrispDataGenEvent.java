@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
  * <u>{@link net.neoforged.api.distmarker.Dist#DEDICATED_SERVER ServerSide}</u>, so just remind that adding these params to 
  * <u>{@link EventBusSubscriber}</u> will cause problems(will be silent at some cases), don't do this.
  */
-@EventBusSubscriber(modid = CrispSweetberry.ID)
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 final class CrispDataGenEvent
 {
     @SubscribeEvent

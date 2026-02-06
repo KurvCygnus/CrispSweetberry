@@ -22,7 +22,7 @@ import org.slf4j.MarkerFactory;
 
 import java.util.List;
 
-@EventBusSubscriber(modid = CrispSweetberry.ID)
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class CoinRecipeCollectEvent
 {
     private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), MarkerFactory.getMarker("COIN_RECIPE"));

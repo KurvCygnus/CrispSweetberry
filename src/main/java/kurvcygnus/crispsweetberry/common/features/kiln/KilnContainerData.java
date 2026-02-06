@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.common.features.kiln.data;
+package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;

@@ -5,13 +5,12 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.en
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.FALSE;
-import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.TRUE;
+import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.FALSE;
+import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.TRUE;
 
 /**
  * This class keeps the synchronization, and connections between 
@@ -46,19 +45,19 @@ public final class KilnProgressModel
     }
     
     @CheckReturnValue
-    public static boolean upgradeProgress(@NotNull KilnProgressModel model)
+    public boolean upgradeProgress()
     {
-        if(model.realProgress >= 1D)
+        if(this.realProgress >= 1D)
         {
-            if(model.visualProgress < 1D)
+            if(this.visualProgress < 1D)
                 LOGGER.warn("Kiln Model encountered a abnormal situation. Detail: visualProgress does not match realProgress when procession is " +
                         "already done. visualProgress: {} \n{}",
-                    model.visualProgress,
+                    this.visualProgress,
                     MiscConstants.FEEDBACK_MESSAGE
                 );
             
-            model.realProgress = 0D;
-            model.visualProgress = 0D;
+            this.realProgress = 0D;
+            this.visualProgress = 0D;
             
             return true;
         }

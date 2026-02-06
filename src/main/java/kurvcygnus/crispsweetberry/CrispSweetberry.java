@@ -29,10 +29,10 @@ import java.util.function.Supplier;
  * @see IRegistrant Our Content Registration Implementation
  * @since Always here!
  */
-@Mod(CrispSweetberry.ID)
+@Mod(CrispSweetberry.NAMESPACE)
 public final class CrispSweetberry
 {
-    public static final String ID = "crispsweetberry";
+    public static final String NAMESPACE = "crispsweetberry";
     private static final List<String> ANNOTATIONS = List.of(
         RegisterToTab.class.getName()
     );

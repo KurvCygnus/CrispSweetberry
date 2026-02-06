@@ -17,7 +17,7 @@ public final class ThrownTorchRenderer extends AbstractThrownTorchRenderer<Throw
     public ThrownTorchRenderer(EntityRendererProvider.Context context) { super(context); }
     
     @Override
-    protected @NotNull String getNamespace() { return CrispSweetberry.ID; }
+    protected @NotNull String getNamespace() { return CrispSweetberry.NAMESPACE; }
     
     @Override
     protected @NotNull String getTextureName() { return "thrown_torch"; }

@@ -23,7 +23,7 @@ import java.util.List;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-@EventBusSubscriber(modid = CrispSweetberry.ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
 public final class CrispCreativeTabsRegistryEvent
 {
     private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), MarkerFactory.getMarker("TAB_REGISTRY"));

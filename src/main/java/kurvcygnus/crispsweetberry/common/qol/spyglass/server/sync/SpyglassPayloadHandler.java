@@ -1,5 +1,7 @@
-package kurvcygnus.crispsweetberry.common.qol.spyglass.server;
+package kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync;
 
+import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -11,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class SpyglassPayloadHandler
 {
-    private static final String ORIGINAL_SLOT_TAG = "ExchangeSlot";
+    public static final String ORIGINAL_SLOT_TAG = "%s:spyglass_exchange_slot_index".formatted(CrispSweetberry.NAMESPACE);
     
     public static void handleData(@NotNull SpyglassPayload data, @NotNull IPayloadContext context)
     {
@@ -24,7 +26,7 @@ public final class SpyglassPayloadHandler
                 {
                     final int slot = inventory.findSlotMatchingItem(Items.SPYGLASS.getDefaultInstance());
                     
-                    if(slot != -1 && slot != Inventory.SLOT_OFFHAND)
+                    if(slot != ExampleSlotConstants.NAN && slot != Inventory.SLOT_OFFHAND)
                     {
                         player.getPersistentData().putInt(ORIGINAL_SLOT_TAG, slot);
                         

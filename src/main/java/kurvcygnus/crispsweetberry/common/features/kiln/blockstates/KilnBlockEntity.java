@@ -3,6 +3,8 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.CalculationResult;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator;
@@ -12,8 +14,6 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.en
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
-import kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData;
-import kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
@@ -40,8 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
-import static kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel.upgradeProgress;
-import static kurvcygnus.crispsweetberry.common.features.kiln.data.KilnContainerData.TRUE;
+import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.TRUE;
 import static kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe.*;
 
 /**
@@ -312,7 +311,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             case SKIP -> { return; }
         }
         
-        final boolean isFinishedProcession = upgradeProgress(blockEntity.model);
+        final boolean isFinishedProcession = blockEntity.model.upgradeProgress();
         
         boolean worldDirty = false;
         

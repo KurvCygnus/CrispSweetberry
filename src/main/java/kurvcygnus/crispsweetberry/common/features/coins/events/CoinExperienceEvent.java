@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * @see VanillaCoinItem Vanilla Coin Type
  * @since 1.0 Release
  */
-@EventBusSubscriber(modid = CrispSweetberry.ID)
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class CoinExperienceEvent
 {
     private static final int INVENTORY_INPUT_SLOT_START_INDEX = 1;

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 public final class CrispBlockstateProvider extends BlockStateProvider
 {
     public CrispBlockstateProvider(@NotNull PackOutput output, @NotNull ExistingFileHelper exFileHelper)
-        { super(output, CrispSweetberry.ID, exFileHelper); }
+        { super(output, CrispSweetberry.NAMESPACE, exFileHelper); }
     
     @Override
     protected void registerStatesAndModels()

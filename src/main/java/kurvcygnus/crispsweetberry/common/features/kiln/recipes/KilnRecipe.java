@@ -1,5 +1,6 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.recipes;
 
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * <li>
  *     Supporting recipe unlocking inherently requires full integration with <u>{@link net.minecraft.world.item.crafting.RecipeManager RecipeManager}</u>,
  *     whose implementation is completely different from 
- *     <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.events.KilnRecipeCacheEvent KilnRecipeCacheEvent}</u>,
+ *     <u>{@link KilnRecipeCacheEvent KilnRecipeCacheEvent}</u>,
  *     and the event itself is the heart of <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity KilnBlockEntity}</u>, 
  *     <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator KilnProcessCalculator}</u>, 
  *     would require a fundamental architectural redesign.

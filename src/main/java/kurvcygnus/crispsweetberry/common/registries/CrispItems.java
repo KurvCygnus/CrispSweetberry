@@ -29,7 +29,7 @@ public enum CrispItems implements IRegistrant
     @Override
     public int getPriority() { return 1; }
     
-    public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.ID);
+    public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     
     @RegisterToTab
     public static final Holder<Item> THROWABLE_TORCH = CRISP_ITEM_REGISTER.register("throwable_torch", resourceLocation ->

@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.common.features.kiln.events;
+package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
@@ -32,7 +32,7 @@ import java.util.HashMap;
  * @see KilnRecipe Recipe Implementation
  * @since 1.0 Release
  */
-@EventBusSubscriber(modid = CrispSweetberry.ID)
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class KilnRecipeCacheEvent
 {
     private static final HashMap<Item, NonNullList<KilnRecipe>> KILN_CACHED_RECIPES = new HashMap<>();

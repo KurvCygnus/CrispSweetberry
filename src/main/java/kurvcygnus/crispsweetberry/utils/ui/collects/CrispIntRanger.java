@@ -19,11 +19,13 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
+import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.NAN;
 
 /**
  * A simple range class for making range checks more readable.<br>
  * The reason of not using <u>{@link Range Range}</u> is that the function we need is far more few than it offers,
- * besides, API may change with time.<br>
+ * besides, API may change with time.<br><br>
+ * <h3><b>Please note that this is not a math range class, it's specially designed for Minecraft UI.</b></h3>
  *
  * @author Kurv Cygnus
  * @apiNote It is recommended to <b>use this as a constant</b>, constantly creating instances like this only brings performance penalty.<br>
@@ -146,7 +148,7 @@ public final class CrispIntRanger implements Iterable<Integer>
                 return index;
         }
         
-        return -1;
+        return NAN;
     }
     
     /**
@@ -189,7 +191,7 @@ public final class CrispIntRanger implements Iterable<Integer>
                 return index;
         }
         
-        return -1;
+        return NAN;
     }
     
     /**
@@ -271,14 +273,16 @@ public final class CrispIntRanger implements Iterable<Integer>
     
     public static @NotNull Optional<CrispIntRanger> merge(@NotNull CrispIntRanger first, @NotNull CrispIntRanger second)
     {
-        requireNonNull(first, "firstRanger must not be null!");
-        requireNonNull(second, "secondRanger must not be null!");
+        requireNonNull(first, "Param \"first\" must not be null!");
         return first.merge(second);
     }
     
+    @Contract("_ -> new")
+    public @NotNull CrispIntRanger offset(int offset) { return closed(this.min + offset, this.max + offset); }
+    
     public @NotNull IntStream stream() { return IntStream.rangeClosed(this.min, this.max); }
     
-    public @NotNull IntStream rangelessStream() { return IntStream.rangeClosed(this.minClosed ? min : min - 1, this.maxClosed ? max : max + 1); }
+    public @NotNull IntStream rawStream() { return IntStream.rangeClosed(this.minClosed ? min : min - 1, this.maxClosed ? max : max + 1); }
     
     @CheckReturnValue public int getMin() { return this.min; }
     
