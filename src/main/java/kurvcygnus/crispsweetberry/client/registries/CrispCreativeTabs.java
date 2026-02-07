@@ -3,6 +3,7 @@ package kurvcygnus.crispsweetberry.client.registries;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -22,6 +23,13 @@ import org.jetbrains.annotations.NotNull;
 public enum CrispCreativeTabs implements IRegistrant
 {
     INSTANCE;
+    
+    @AutoI18n({
+        "en_us -> Crisp Sweetberry",
+        "lol_us -> TA2TY FRUT",
+        "zh_cn -> 澄莓物语"
+    })
+    private static final Component CRISP_CREATIVE_TAB_TITLE = Component.translatable("crispsweetberry.creativetab.tabtitle");
     
     @Override
     public void register(@NotNull IEventBus bus) { CRISP_TAB_REGISTER.register(bus); }
@@ -43,7 +51,7 @@ public enum CrispCreativeTabs implements IRegistrant
     
     @SuppressWarnings("unused")
     public static final Holder<CreativeModeTab> CSB_TAB = CRISP_TAB_REGISTER.register("crisp_tab", CreativeModeTab.builder().
-        title(Component.translatable("crispsweetberry.creativetab.tabtitle")).
+        title(CRISP_CREATIVE_TAB_TITLE).
         withTabsBefore(CreativeModeTabs.COMBAT).
         icon(() -> new ItemStack(Items.SWEET_BERRIES))::build
     );

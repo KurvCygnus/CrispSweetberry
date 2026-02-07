@@ -1,5 +1,6 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
@@ -160,8 +161,8 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
      */
     private static final class KilnInfoWidget extends AbstractWidget
     {
-        static final Tooltip COOLDOWN_TIP = Tooltip.create(Component.translatable("crispsweetberry.ui.widget.kiln_info_cooldown"));
-        static final Tooltip BLAST_TIP = Tooltip.create(Component.translatable("crispsweetberry.ui.widget.kiln_tip_blast"));
+        static final Tooltip COOLDOWN_TIP = Tooltip.create(KilnConstants.KILN_WIDGET_COOLDOWN_TIP);
+        static final Tooltip BLAST_TIP = Tooltip.create(KilnConstants.KILN_WIDGET_BLAST_TIP);
         static final Tooltip EMPTY_TIP = Tooltip.create(Component.empty());
         
         private static final int HIGHLIGHT_COLOR = 0x80FFFFFF;

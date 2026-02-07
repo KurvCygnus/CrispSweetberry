@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "SpyglassItemUsingInjection",
-    "SpyglassKeybindScopeInjection"
+    "SpyglassPlayerStateInjection"
   ],
   "injectors": {
     "defaultRequire": 1

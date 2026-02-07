@@ -17,10 +17,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.client.events.SpyglassQuickZoomEvent Client Zoom Implementation
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Input Intercept
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassUsePoseInjection Visual Essential Mixin
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemDegreeFixInjection Item Model Degree Fix
  * @see SpyglassPayloadHandler#handleData Serverside stuff
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
  */
 @Mixin(Player.class)
-public final class SpyglassKeybindScopeInjection
+public final class SpyglassPlayerStateInjection
 {
     @Inject(method = "isScoping", at = @At("RETURN"), cancellable = true)
     private void scopeInject(CallbackInfoReturnable<Boolean> cir)

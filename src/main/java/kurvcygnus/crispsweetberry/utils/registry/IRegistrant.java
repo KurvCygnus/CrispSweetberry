@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  *     <li>
  *         Q: Isn't manually adjusting initialization priorities troublesome?<br>
  *         A: Yeah, you got me. This is the only tricky issue we are deal with. Currently we have no solution about it.<br>
- *         We are considering using <u>{@link Enum}</u> to decide main registration scope, and using <u>{@link #getPriority()}</u> 
+ *         We are considering using <u>{@link Enum}</u> to decide main registration key, and using <u>{@link #getPriority()}</u> 
  *         to confirm the detailed order. However, that another things that will happen when mod becomes much bigger than now, 
  *         currently it is not worth it.
  *     </li>

@@ -232,7 +232,7 @@ public final class KilnBlock extends BaseEntityBlock
             if(blockEntity instanceof KilnBlockEntity kiln)
             {
                 player.openMenu(kiln, pos);
-                player.awardStat(KilnRegistries.INTERACT_WITH_KILN);
+                player.awardStat(KilnRegistries.INTERACT_WITH_KILN.value());
             }
             
             return InteractionResult.CONSUME;

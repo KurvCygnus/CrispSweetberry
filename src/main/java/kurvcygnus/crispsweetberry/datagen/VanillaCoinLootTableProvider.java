@@ -9,9 +9,9 @@ import java.util.List;
 
 import static kurvcygnus.crispsweetberry.common.features.coins.CoinRegistries.*;
 
-public final class VanillaCoinLootTableProvider extends AbstractCoinLootTableProvider
+final class VanillaCoinLootTableProvider extends AbstractCoinLootTableProvider
 {
-    public VanillaCoinLootTableProvider(HolderLookup.Provider registries) { super(registries); }
+    VanillaCoinLootTableProvider(HolderLookup.Provider registries) { super(registries); }
     
     @Override
     protected @NotNull List<? extends AbstractCoinStackBlock<?>> initCoinBlockLists()

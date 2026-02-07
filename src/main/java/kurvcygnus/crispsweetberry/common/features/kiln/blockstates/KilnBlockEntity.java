@@ -87,7 +87,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     //*:== Components
     /**
      * Field <u>{@link KilnProgressModel KilnProgressModel}</u> keeps
-     * both real and visual progress of the kiln, and the model itself has some private methods specifically for fixing values.
+     * both real and visual progress of the kiln, and the model itself has some private methods specifically for fixing value.
      */
     public final KilnProgressModel model = new KilnProgressModel();
     private final KilnProgressCalculator calculator = new KilnProgressCalculator();
@@ -135,7 +135,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     //*:=== Container Basics
     @Override
-    protected @NotNull Component getDefaultName() { return Component.translatable("crispsweetberry.container.kiln"); }
+    protected @NotNull Component getDefaultName() { return KILN_CONTAINER_TITLE; }
     
     @Override
     protected @NotNull NonNullList<ItemStack> getItems() { return this.containerItems; }

@@ -1,6 +1,8 @@
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
+import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import net.minecraft.network.chat.Component;
 
 /**
  * This class mainly maintains slots contants of Kiln.
@@ -10,6 +12,27 @@ import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 public final class KilnConstants
 {
     private KilnConstants() { throw new IllegalAccessError(); }
+    
+    @AutoI18n({
+        "en_us -> Kiln",
+        "lol_us -> IN DA WARM BOKZ",
+        "zh_cn -> 窑炉"
+    })
+    public static final Component KILN_CONTAINER_TITLE = Component.translatable("crispsweetberry.container.kiln");
+    
+    @AutoI18n({
+        "en_us -> Total heat changed. Rebalancing heat distribution...",
+        "lol_us -> DA BIG BOKZ IZ TRYIN' 2 BEE NOT OP",
+        "zh_cn -> 总输入热量改变. 正在重分配热量..."
+    })
+    public static final Component KILN_WIDGET_COOLDOWN_TIP = Component.translatable("crispsweetberry.ui.widget.kiln_info_cooldown");
+    
+    @AutoI18n({
+        "en_us -> Some materials are blasting recipe.\nKiln can't process such items that requires high heat.",
+        "lol_us -> BIG BOKZ KIN'T TAK THIZ!!!",
+        "zh_cn -> 部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料."
+    })
+    public static final Component KILN_WIDGET_BLAST_TIP = Component.translatable("crispsweetberry.ui.widget.kiln_tip_blast");
     
     public static final int KILN_SLOT_COUNT_FOR_EACH_TYPE = 3;
     public static final int KILN_DEFAULT_SIZE = KILN_SLOT_COUNT_FOR_EACH_TYPE * 2;

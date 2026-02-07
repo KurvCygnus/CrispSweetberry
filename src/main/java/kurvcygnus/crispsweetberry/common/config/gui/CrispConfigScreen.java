@@ -2,6 +2,7 @@ package kurvcygnus.crispsweetberry.common.config.gui;
 
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -9,6 +10,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
+
+import static kurvcygnus.crispsweetberry.common.config.CrispConfig.KILN_BE_DEBUG_TEXT;
 
 /**
  * This makes the config editable and visually seeable in game.<br>
@@ -21,9 +24,16 @@ public final class CrispConfigScreen extends Screen
 {
     private final @NotNull Screen lastScreen;
     
+    @AutoI18n({
+        "en_us -> Crisp Sweetberry Config Menu",
+        "lol_us -> TA2TY FRUT XDAFF",
+        "zh_cn -> 澄莓物语: 配置菜单"
+    })
+    private static final Component CRISP_CONFIG_TITLE = Component.translatable("crispsweetberry.config.title");
+    
     public CrispConfigScreen(@NotNull Screen lastScreen)
     {
-        super(Component.translatable("crispsweetberry.config.title"));
+        super(CRISP_CONFIG_TITLE);
         this.lastScreen = lastScreen;
     }
     
@@ -35,7 +45,7 @@ public final class CrispConfigScreen extends Screen
         final int y = 40;
         
         this.addRenderableWidget(CycleButton.onOffBuilder(CrispConfig.KILN_BE_DEBUG.get())
-            .create(x, y, buttonWidth, 20, Component.translatable("crispsweetberry.config.debug.kiln_be"),
+            .create(x, y, buttonWidth, 20, KILN_BE_DEBUG_TEXT,
                 (button, value) -> CrispConfig.KILN_BE_DEBUG.set(value)
             )
         );

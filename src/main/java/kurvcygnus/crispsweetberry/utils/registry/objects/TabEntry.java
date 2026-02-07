@@ -1,4 +1,4 @@
-package kurvcygnus.crispsweetberry.utils.registry;
+package kurvcygnus.crispsweetberry.utils.registry.objects;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;

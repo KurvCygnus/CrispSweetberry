@@ -22,9 +22,9 @@ import java.util.List;
 
 import static kurvcygnus.crispsweetberry.datagen.utils.CrispLootUtils.initLootPool;
 
-public final class CrispBlockLootSubProvider extends BlockLootSubProvider
+final class CrispBlockLootSubProvider extends BlockLootSubProvider
 {
-    public CrispBlockLootSubProvider(@NotNull HolderLookup.Provider registries) { super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags(), registries); }
+    CrispBlockLootSubProvider(@NotNull HolderLookup.Provider registries) { super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags(), registries); }
     
     @Override
     protected void generate()

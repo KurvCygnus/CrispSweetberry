@@ -3,6 +3,7 @@ package kurvcygnus.crispsweetberry.common.registries;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
@@ -11,8 +12,6 @@ import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
-
-import static net.minecraft.world.item.Rarity.RARE;
 
 public enum CrispItems implements IRegistrant
 {
@@ -32,6 +31,11 @@ public enum CrispItems implements IRegistrant
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Throwable Torch",
+        "lol_us -> chuk da lite stik",
+        "zh_cn -> 投掷火把"
+    })
     public static final Holder<Item> THROWABLE_TORCH = CRISP_ITEM_REGISTER.register("throwable_torch", resourceLocation ->
         new ThrowableTorchItem(new Item.Properties())
     );
@@ -48,14 +52,12 @@ public enum CrispItems implements IRegistrant
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Carry Crate",
+        "lol_us -> hoom",
+        "zh_cn -> 搬运箱"
+    })
     public static final Holder<Item> CARRY_CRATE = CRISP_ITEM_REGISTER.register("carry_crate", resourceLocation ->
         new BlockItem(CrispBlocks.CARRY_CRATE.value(), new Item.Properties())
-    );
-    
-    public static final Holder<Item> ECHO_DISC = CRISP_ITEM_REGISTER.register("echo_disc", resourceLocation ->
-        new Item(new Item.Properties().
-            stacksTo(16).
-            rarity(RARE)
-        )
     );
 }

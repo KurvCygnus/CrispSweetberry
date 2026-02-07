@@ -11,9 +11,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public final class VanillaCoinRecipeProvider extends BaseCoinRecipeProvider
+final class VanillaCoinRecipeProvider extends BaseCoinRecipeProvider
 {
-    public VanillaCoinRecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries) { super(output, registries); }
+    VanillaCoinRecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries) { super(output, registries); }
     
     @Override
     protected @NotNull List<? extends ICoinType<?>> getCoinTypeList() { return Arrays.asList(VanillaCoinTypes.VALUES); }

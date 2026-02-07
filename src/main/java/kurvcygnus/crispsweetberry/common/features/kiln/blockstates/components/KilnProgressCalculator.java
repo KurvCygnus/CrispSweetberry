@@ -108,7 +108,7 @@ public final class KilnProgressCalculator
                 final double decreasedVisualProgress = currentVisualProgress - NORMAL_PROGRESS_RATE;
                 
                 handle.changeMarker("CAL_END");
-                configDebug("Current logicalResult \"{}\" doesn't need any further calculation. Progress values: R: {}, V: {}",
+                configDebug("Current logicalResult \"{}\" doesn't need any further calculation. Progress value: R: {}, V: {}",
                     nonWorkingLogicalResult.name(), decreasedRealProgress, decreasedVisualProgress
                 );
                 
@@ -143,9 +143,9 @@ public final class KilnProgressCalculator
                 );
                 
                 //! Explanation: processFactor smaller than STANDARD_PROCESS_FACTOR means it is a recipe that processes faster than normal
-                //! process time, multiplying these values in such situation would lead to an imbalance.
+                //! process time, multiplying these value in such situation would lead to an imbalance.
                 //! Therefore, taking the average value of three small factors is the best solution.
-                //! Of course, this method will not be used if any of the values is greater than STANDARD_PROCESS_FACTOR.
+                //! Of course, this method will not be used if any of the value is greater than STANDARD_PROCESS_FACTOR.
                 if(recipe.getProcessFactor() <= STANDARD_PROCESS_FACTOR)
                     revaluateFactor += recipe.getProcessFactor();
                 else
@@ -175,7 +175,7 @@ public final class KilnProgressCalculator
                 handle.changeMarker("CAL_ERROR");
                 if(!hasWarnedAbnormalFactor || CrispConfig.KILN_BE_CAL_DEBUG.get())
                 {
-                    LOGGER.warn("Calculation error! Returning the values of args as result. Reason: Variable \"currentProgressFactor\" happens to be " +
+                    LOGGER.warn("Calculation error! Returning the value of args as result. Reason: Variable \"currentProgressFactor\" happens to be " +
                         "a non-positive double number, which will cause calculation result abnormal. {}", MiscConstants.FEEDBACK_MESSAGE
                     );
                     hasWarnedAbnormalFactor = true;

@@ -13,11 +13,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class CrispRecipeProvider extends RecipeProvider
+final class CrispRecipeProvider extends RecipeProvider
 {
     private final VanillaCoinRecipeProvider coinRecipeProvider;
     
-    public CrispRecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries) 
+    CrispRecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries) 
     {
         super(output, registries);
         this.coinRecipeProvider = new VanillaCoinRecipeProvider(output, registries);

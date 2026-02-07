@@ -1,6 +1,8 @@
 package kurvcygnus.crispsweetberry.common.qol.spyglass.server.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -14,6 +16,17 @@ import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler.ORIGINAL_SLOT_TAG;
 
+/**
+ * This makes sure player's item won't be corrupted when they touched boundary cases, like logout, or death.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see SpyglassPayloadHandler#handleData Serverside stuff
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Input Intercept
+ * @see SpyglassPlayerStateInjection Essential Input Emulation
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassUsePoseInjection Visual Essential Mixin
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemDegreeFixInjection Item Model Degree Fix
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.client.events.SpyglassQuickZoomEvent Client Zoom Implementation
+ */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class SpyglassItemBoundaryCheckEvents
 {
@@ -28,8 +41,7 @@ public final class SpyglassItemBoundaryCheckEvents
         if(!(entity instanceof Player player && player.getPersistentData().contains(ORIGINAL_SLOT_TAG)))
             return;
         
-        final int originalSlotIndex = player.getPersistentData().getInt(ORIGINAL_SLOT_TAG);
-        emergencyCleanup(player, originalSlotIndex);
+        emergencyCleanup(player, player.getPersistentData().getInt(ORIGINAL_SLOT_TAG));
     }
     
     @SubscribeEvent
@@ -39,8 +51,7 @@ public final class SpyglassItemBoundaryCheckEvents
         if(!player.getPersistentData().contains(ORIGINAL_SLOT_TAG))
             return;
         
-        final int originalSlotIndex = player.getPersistentData().getInt(ORIGINAL_SLOT_TAG);
-        emergencyCleanup(player, originalSlotIndex);
+        emergencyCleanup(player, player.getPersistentData().getInt(ORIGINAL_SLOT_TAG));
     }
     
     private static void emergencyCleanup(@NotNull Player player, int originalSlotIndex)

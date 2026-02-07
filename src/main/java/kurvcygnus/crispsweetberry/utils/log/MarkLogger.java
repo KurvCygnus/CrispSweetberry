@@ -54,7 +54,7 @@ public final class MarkLogger
      * As long as this deque has any <u>{@link Marker}</u>s, both three markers above
      * (<u>{@link #defaultMarker}</u>, <u>{@link #errorMarker}</u> and <u>{@link #warnMarker}</u>) will all be overridden.<br>
      * 
-     * @apiNote Usually, {@code mutableMarker} will only exists in a limited scope with <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>, 
+     * @apiNote Usually, {@code mutableMarker} will only exists in a limited key with <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>, 
      * which is recommended to be used with 
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>, 
      * unexpected situations will only happen in neither directly use <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>, 
@@ -206,7 +206,7 @@ public final class MarkLogger
     //*:=== Scoped Marker Logics
     /**
      * Push a <u>{@link #mutableMarker temporary marker}</u> to <u>{@link MarkLogger}</u>, 
-     * and will always be used until current scope is ended.<br><br>
+     * and will always be used until current key is ended.<br><br>
      * <b>Thus, this will only work correctly and normally with 
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>.
      * @implSpec <pre>{@code 
@@ -216,7 +216,7 @@ public final class MarkLogger
      *      // All markers of log inside
      *      // will be overridden with "Foo".
      *  }
-     *  // Out of scope, override no longer exists.
+     *  // Out of key, override no longer exists.
      * }</pre>
      * @throws NullPointerException When {@code marker} is {@code null}
      */
@@ -241,7 +241,7 @@ public final class MarkLogger
      *      // All markers of log inside
      *      // will be overridden with "Foo".
      *  }
-     *  // Out of scope, override no longer exists.
+     *  // Out of key, override no longer exists.
      * }</pre>
      * @throws NullPointerException When {@code mark} is {@code null}
      */
@@ -270,7 +270,7 @@ public final class MarkLogger
         
         /**
          * Changes the temporary marker that overrides the default one.
-         * @apiNote This should be used in the scope of 
+         * @apiNote This should be used in the key of 
          * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>,
          * which is started by <u>{@link #pushMarker(Marker)}</u>, or <u>{@link #pushMarker(String)}</u>.
          * @implSpec <pre>{@code
@@ -295,7 +295,7 @@ public final class MarkLogger
         /**
          * Changes the temporary marker that overrides the default one.
          *
-         * @apiNote This should be used in the scope of
+         * @apiNote This should be used in the key of
          * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>,
          * which is started by <u>{@link #pushMarker(Marker)}</u>, or <u>{@link #pushMarker(String)}</u>.
          * @implSpec <pre>{@code

@@ -7,6 +7,7 @@ import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -31,6 +32,7 @@ import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCo
 public enum CoinRegistries implements IRegistrant
 {
     INSTANCE;
+    
     @Override
     public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(register -> register.register(bus)); }
     
@@ -68,57 +70,117 @@ public enum CoinRegistries implements IRegistrant
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Copper Coin",
+        "lol_us -> Kop rounz thin'",
+        "zh_cn -> 铜币"
+    })
     public static final DeferredHolder<Item, VanillaCoinItem> COPPER_COIN = COIN_ITEM_REGISTER.register("copper_coin", resourceLocation ->
         new VanillaCoinItem(() -> COPPER)
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Iron Coin",
+        "lol_us -> Airn rounz thin'",
+        "zh_cn -> 铁币"
+    })
     public static final DeferredHolder<Item, VanillaCoinItem> IRON_COIN = COIN_ITEM_REGISTER.register("iron_coin", resourceLocation ->
         new VanillaCoinItem(() -> IRON)
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Gold Coin",
+        "lol_us -> Shyni rounz thin'",
+        "zh_cn -> 金币"
+    })
     public static final DeferredHolder<Item, VanillaCoinItem> GOLD_COIN = COIN_ITEM_REGISTER.register("gold_coin", resourceLocation ->
         new VanillaCoinItem(() -> GOLD)
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Diamond Coin",
+        "lol_us -> pez of $$$",
+        "zh_cn -> 钻石币"
+    })
     public static final DeferredHolder<Item, VanillaCoinItem> DIAMOND_COIN = COIN_ITEM_REGISTER.register("diamond_coin", resourceLocation ->
         new VanillaCoinItem(() -> DIAMOND)
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Copper Coin Stack",
+        "lol_us -> Kop rounz thinz",
+        "zh_cn -> 铜币堆"
+    })
     public static final DeferredHolder<Item, VanillaCoinStackItem> COPPER_COIN_STACK = COIN_ITEM_REGISTER.register("copper_coin_stack", resourceLocation ->
         new VanillaCoinStackItem(() -> COPPER)
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Iron Coin Stack",
+        "lol_us -> Airn rounz thinz",
+        "zh_cn -> 铁币堆"
+    })
     public static final DeferredHolder<Item, VanillaCoinStackItem> IRON_COIN_STACK = COIN_ITEM_REGISTER.register("iron_coin_stack", resourceLocation ->
         new VanillaCoinStackItem(() -> IRON)
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Gold Coin Stack",
+        "lol_us -> OW GOD TOO SHYNI",
+        "zh_cn -> 金币堆"
+    })
     public static final DeferredHolder<Item, VanillaCoinStackItem> GOLD_COIN_STACK = COIN_ITEM_REGISTER.register("gold_coin_stack", resourceLocation ->
         new VanillaCoinStackItem(() -> GOLD)
     );
     
     @RegisterToTab
+    @AutoI18n({
+        "en_us -> Diamond Coin Stack",
+        "lol_us -> Loz of $$$",
+        "zh_cn -> 钻石币堆"
+    })
     public static final DeferredHolder<Item, VanillaCoinStackItem> DIAMOND_COIN_STACK = COIN_ITEM_REGISTER.register("diamond_coin_stack", resourceLocation ->
         new VanillaCoinStackItem(() -> DIAMOND)
     );
     
+    @AutoI18n({
+        "en_us -> Copper Coins",
+        "lol_us -> Kop rounz thinz",
+        "zh_cn -> 铜币堆"
+    })
     public static final DeferredHolder<Block, VanillaCoinStackBlock> COPPER_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("copper_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> COPPER))
     );
     
+    @AutoI18n({
+        "en_us -> Iron Coins",
+        "lol_us -> Airn rounz thinz",
+        "zh_cn -> 铁币堆"
+    })
     public static final DeferredHolder<Block, VanillaCoinStackBlock> IRON_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("iron_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> IRON))
     );
     
+    @AutoI18n({
+        "en_us -> Gold Coins",
+        "lol_us -> OW GOD TOO SHYNI",
+        "zh_cn -> 金币堆"
+    })
     public static final DeferredHolder<Block, VanillaCoinStackBlock> GOLD_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("gold_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> GOLD))
     );
     
+    @AutoI18n({
+        "en_us -> Diamond Coins",
+        "lol_us -> Loz of $$$",
+        "zh_cn -> 钻石币堆"
+    })
     public static final DeferredHolder<Block, VanillaCoinStackBlock> DIAMOND_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("diamond_coin_stack", resourceLocation ->
         new VanillaCoinStackBlock(Lazy.of(() -> DIAMOND))
     );

@@ -1,6 +1,7 @@
 package kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
 import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
@@ -11,6 +12,17 @@ import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This handles player's using state declaration, and the logic of item exchange.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Input Intercept
+ * @see SpyglassPlayerStateInjection Essential Input Emulation
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassUsePoseInjection Visual Essential Mixin
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemDegreeFixInjection Item Model Degree Fix
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.client.events.SpyglassQuickZoomEvent Client Zoom Implementation
+ */
 public final class SpyglassPayloadHandler
 {
     public static final String ORIGINAL_SLOT_TAG = "%s:spyglass_exchange_slot_index".formatted(CrispSweetberry.NAMESPACE);

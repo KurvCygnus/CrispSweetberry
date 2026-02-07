@@ -1,6 +1,7 @@
 package kurvcygnus.crispsweetberry.common.qol.spyglass.client.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayload;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler;
 import net.minecraft.client.Minecraft;
@@ -15,6 +16,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
+import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +51,7 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
  *         is happening on the server a few milliseconds later.
  *    </li>
  *    <li>
- *         <b>Q: What's with the <u>{@link kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassKeybindScopeInjection SpyglassKeybindScopeInjection}</u>?</b><br>
+ *         <b>Q: What's with the <u>{@link SpyglassPlayerStateInjection SpyglassPlayerStateInjection}</u>?</b><br>
  *         A: This is the most counter-intuitive part. The game's <u>{@link Player#isScoping()}</u> method specifically checks 
  *         if the player is using a Spyglass AND if the <i>use-item keybind</i> (Right Click) is pressed. Since our 
  *         hotkey isn't Right Click, the vanilla logic returns {@code false}, breaking the overlay and 
@@ -64,16 +66,19 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
  *    </li>
  * </ul>
  * @see SpyglassPayloadHandler#handleData Serverside stuff
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Input Intercept
- * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassKeybindScopeInjection Essential Input Emulation
+ * @see SpyglassPlayerStateInjection Essential Input Emulation
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassUsePoseInjection Visual Essential Mixin
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemDegreeFixInjection Item Model Degree Fix
  */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
 public final class SpyglassQuickZoomEvent
 {
-    private static boolean hotkeyPressed = false;
+    private static final float SPYGLASS_MOVEMENT_FACTOR = 0.2F;
     private static ZoomState zoomState = ZoomState.IDLE;
     private static boolean hasSpyglass = false;
+    private static boolean hotkeyPressed = false;
     
     private enum ZoomState
     {
@@ -137,6 +142,19 @@ public final class SpyglassQuickZoomEvent
             return;
         
         event.setNewFovModifier(SpyglassItem.ZOOM_FOV_MODIFIER);
+    }
+    
+    @SubscribeEvent
+    static void speedEdit(@NotNull MovementInputUpdateEvent event)//? TODO: Behavior mismatch. Vanilla won't stop sprinting immediately after using.
+    {
+        if(!isZooming())
+            return;
+        
+        event.getInput().leftImpulse *= SPYGLASS_MOVEMENT_FACTOR;
+        event.getInput().forwardImpulse *= SPYGLASS_MOVEMENT_FACTOR;
+        
+        if(event.getEntity().isSprinting())
+            event.getEntity().setSprinting(false);
     }
     
     public static boolean isZooming() { return hotkeyPressed && hasSpyglass; }
