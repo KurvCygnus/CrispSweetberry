@@ -108,12 +108,7 @@ public enum KilnRegistries implements IRegistrant
     }
     
     @SubscribeEvent
-    static void registerStat(@NotNull FMLCommonSetupEvent event)
-    {
-        event.enqueueWork(() ->
-            Stats.CUSTOM.get(INTERACT_WITH_KILN.value())    
-        );
-    }
+    static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
     
     /**
      * This event bounds <u>{@link KilnScreen Screen}</u> to corresponded <u>{@link KilnMenu Menu}</u>.<br>

@@ -17,7 +17,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.MarkerFactory;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -37,7 +36,7 @@ import java.util.function.Supplier;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class NuggetItemCheckEvent
 {
-    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), MarkerFactory.getMarker("NUGGET_CHECK"));
+    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "NUGGET_CHECK");
     
     public static Supplier<Item> copperNuggetSupplier = () -> Items.AIR;
     public static Supplier<Item> diamondNuggetSupplier = () -> Items.AIR;

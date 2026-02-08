@@ -1,13 +1,11 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts;
 
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.ITemporaryTorchBehaviors;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
-import kurvcygnus.crispsweetberry.common.registries.CrispBlocks;
-import kurvcygnus.crispsweetberry.common.registries.CrispItems;
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -43,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.LIGHT_PROPERTY;
 import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*;
 
 /**
@@ -269,7 +268,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                 final double offsetY = this.random.nextDouble() * OFFSET_CALCULATE_CONSTANT;
                 final double offsetZ = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
                 
-                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, CrispItems.THROWABLE_TORCH.value().getDefaultInstance()),
+                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, TTorchRegistries.THROWABLE_TORCH.value().getDefaultInstance()),
                     this.getX() + offsetX,
                     this.getY() + offsetY,
                     this.getZ() + offsetZ,
@@ -323,12 +322,12 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         BlockState baseState = null;
         
         if(hitSide == Direction.UP)
-            baseState = CrispBlocks.TEMPORARY_TORCH.value().defaultBlockState();
+            baseState = TTorchRegistries.TEMPORARY_TORCH.value().defaultBlockState();
         else if(hitSide != Direction.DOWN)
-            baseState = CrispBlocks.TEMPORARY_WALL_TORCH.value().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
+            baseState = TTorchRegistries.TEMPORARY_WALL_TORCH.value().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
         
         if(baseState != null && getTier() == TIER_GONE)
-            return baseState.setValue(ITemporaryTorchBehaviors.LIGHT_PROPERTY, LightState.DARK);
+            return baseState.setValue(LIGHT_PROPERTY, LightState.DARK);
         
         return baseState;
     }
@@ -355,7 +354,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         final BlockState posBlockState = this.level().getBlockState(pos);
         
         if(posBlock instanceof AbstractTemporaryTorchBlock || posBlock instanceof AbstractTemporaryWallTorchBlock &&
-            (posBlockState.getValue(ITemporaryTorchBehaviors.LIGHT_PROPERTY).ordinal() <= LightState.DIM.ordinal()))
+            (posBlockState.getValue(LIGHT_PROPERTY).ordinal() <= LightState.DIM.ordinal()))
             {//* If the state is too dark, of course the torch can be replaced.
                 this.level().levelEvent(LEVEL_BLOCK_DESTROY_EVENT_ID, pos, Block.getId(posBlockState));
                 return true;

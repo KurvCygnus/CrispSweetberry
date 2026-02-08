@@ -51,7 +51,7 @@ public final class MarkLogger
     /**
      * The marker collections based on <u>{@link java.util.Stack Stack}</u>(or more precisely, <u>{@link ArrayDeque}</u>), 
      * and <u>{@link ThreadLocal}</u>(Out of prevent context pollution, and implement inexplicit context passing).<br>
-     * As long as this deque has any <u>{@link Marker}</u>s, both three markers above
+     * As long as this deque has a single <u>{@link Marker}</u>, both three markers above
      * (<u>{@link #defaultMarker}</u>, <u>{@link #errorMarker}</u> and <u>{@link #warnMarker}</u>) will all be overridden.<br>
      * 
      * @apiNote Usually, {@code mutableMarker} will only exists in a limited key with <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>, 
@@ -194,11 +194,7 @@ public final class MarkLogger
         requireNonNull(logger, "Param \"logger\" must not be null!");
         requireNonNull(mark, "Param \"mark\" must not be null!");
         
-        final Marker marker = MarkerFactory.getMarker(mark);
-        final Marker err = MarkerFactory.getMarker(adaptSuffix(mark, "_ERR"));
-        final Marker expr = MarkerFactory.getMarker(adaptSuffix(mark, "_WARN"));
-        
-        return new MarkLogger(logger, marker, err, expr);
+        return withMarkerSuffixes(logger, MarkerFactory.getMarker(mark));
     }
     //endregion
     
@@ -249,8 +245,7 @@ public final class MarkLogger
     public @NotNull MarkerHandle pushMarker(@NotNull String mark)
     {
         requireNonNull(mark, "Param \"mark\" must not be null!");
-        pushTempMarker(MarkerFactory.getMarker(mark));
-        return new MarkerHandle(this);
+        return this.pushMarker(MarkerFactory.getMarker(mark));
     }
     
     /**

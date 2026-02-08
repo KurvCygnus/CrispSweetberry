@@ -1,7 +1,6 @@
 package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
@@ -29,16 +28,6 @@ public enum CrispItems implements IRegistrant
     public int getPriority() { return 1; }
     
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
-    
-    @RegisterToTab
-    @AutoI18n({
-        "en_us -> Throwable Torch",
-        "lol_us -> chuk da lite stik",
-        "zh_cn -> 投掷火把"
-    })
-    public static final Holder<Item> THROWABLE_TORCH = CRISP_ITEM_REGISTER.register("throwable_torch", resourceLocation ->
-        new ThrowableTorchItem(new Item.Properties())
-    );
     
     public static final Holder<Item> HONEY_BERRY = CRISP_ITEM_REGISTER.register("crisp_sweetberry", resourceLocation ->
         new Item(

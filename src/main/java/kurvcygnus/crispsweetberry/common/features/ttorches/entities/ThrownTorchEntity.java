@@ -1,9 +1,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities;
 
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.ThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
-import kurvcygnus.crispsweetberry.common.registries.CrispEntities;
-import kurvcygnus.crispsweetberry.common.registries.CrispItems;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,15 +20,15 @@ public final class ThrownTorchEntity extends AbstractThrownTorchEntity
 {
     public ThrownTorchEntity(@NotNull EntityType<? extends AbstractThrownTorchEntity> entityType, @NotNull Level level) { super(entityType, level); }
     
-    public ThrownTorchEntity(double x, double y, double z, @NotNull Level level) { super(CrispEntities.THROWN_TORCH.get(), x, y, z, level); }
+    public ThrownTorchEntity(double x, double y, double z, @NotNull Level level) { super(TTorchRegistries.THROWN_TORCH.get(), x, y, z, level); }
     
-    public ThrownTorchEntity(@NotNull LivingEntity shooter, @NotNull Level level) { super(CrispEntities.THROWN_TORCH.get(), shooter, level); }
+    public ThrownTorchEntity(@NotNull LivingEntity shooter, @NotNull Level level) { super(TTorchRegistries.THROWN_TORCH.get(), shooter, level); }
     
     @Override
     protected @NotNull SimpleParticleType[] getLongerParticleStateList() { return DEFAULT_LONGER_PARTICLE_STATE_LIST; }
     
     @Override
-    protected @NotNull Item getDefaultItem() { return CrispItems.THROWABLE_TORCH.value(); }
+    protected @NotNull Item getDefaultItem() { return TTorchRegistries.THROWABLE_TORCH.value(); }
     
     @Override
     protected int getLongerParticleFrequency() { return DEFAULT_LONGER_PARTICLE_FREQUENCY; }

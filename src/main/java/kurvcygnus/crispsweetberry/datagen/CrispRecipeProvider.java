@@ -1,6 +1,7 @@
 package kurvcygnus.crispsweetberry.datagen;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.registries.CrispItems;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.core.HolderLookup;
@@ -13,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-final class CrispRecipeProvider extends RecipeProvider
+public final class CrispRecipeProvider extends RecipeProvider
 {
     private final VanillaCoinRecipeProvider coinRecipeProvider;
     
@@ -72,14 +73,14 @@ final class CrispRecipeProvider extends RecipeProvider
             )).
             save(output);
         
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, CrispItems.THROWABLE_TORCH.value(), 9).
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, TTorchRegistries.THROWABLE_TORCH.value(), 9).
             requires(ItemTags.COALS).
             requires(ItemTags.COALS).
             requires(ItemTags.COALS).
             requires(Items.STICK).
             unlockedBy("throwable_torch_unlocked_standard", has(Items.TORCH)).
             unlockedBy("throwable_torch_unlocked_nether_standard",  has(Items.SOUL_TORCH)).
-            unlockedBy("throwable_torch_unlocked_from_loot", has(CrispItems.THROWABLE_TORCH.value())).
+            unlockedBy("throwable_torch_unlocked_from_loot", has(TTorchRegistries.THROWABLE_TORCH.value())).
             save(output);
         
         coinRecipeProvider.buildRecipes(output);

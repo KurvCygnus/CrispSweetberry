@@ -17,7 +17,6 @@ import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
-import org.slf4j.MarkerFactory;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -39,7 +38,7 @@ public final class CrispSweetberry
     
     public static final Map<ResourceKey<CreativeModeTab>, List<TabEntry>> TAB_LOOKUP = new HashMap<>();
     
-    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), MarkerFactory.getMarker("MOD_INIT"));
+    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "MOD_INIT");
     
     public CrispSweetberry(@NotNull IEventBus eventBus, @NotNull ModContainer modContainer)
     {

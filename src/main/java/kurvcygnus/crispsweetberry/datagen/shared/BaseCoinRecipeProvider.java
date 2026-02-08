@@ -57,10 +57,12 @@ public abstract class BaseCoinRecipeProvider extends RecipeProvider
                 unlockedBy("%s_nugget_unlocked".formatted(id), has(coinItem)).
                 save(output);
             
-            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, coinStackItem).
-                requires(coinItem).requires(coinItem).requires(coinItem).
-                requires(coinItem).requires(coinItem).requires(coinItem).
-                requires(coinItem).requires(coinItem).requires(coinItem).
+            ShapelessRecipeBuilder coinStackBlockRecipe = ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, coinStackItem);
+            
+            for(int quantity = 0; quantity < 9; quantity++)
+                coinStackBlockRecipe = coinStackBlockRecipe.requires(coinItem);
+            
+            coinStackBlockRecipe.
                 unlockedBy("%s_coin_stack_unlocked".formatted(id), has(coinItem)).
                 unlockedBy("%s_coin_stack_unlocked_by_loot".formatted(id), has(coinStackItem)).
                 save(output);

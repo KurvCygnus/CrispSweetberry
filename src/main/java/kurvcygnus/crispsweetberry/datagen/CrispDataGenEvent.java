@@ -42,7 +42,7 @@ import java.util.regex.Matcher;
  * <u>{@link EventBusSubscriber}</u> will cause problems(will be silent at some cases), don't do this.
  */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
-final class CrispDataGenEvent
+public final class CrispDataGenEvent
 {
     private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     
@@ -85,7 +85,7 @@ final class CrispDataGenEvent
                         continue;
                     }
                     
-                    final Object value = field.get(null);
+                    final @Nullable Object value = field.get(null);
                     
                     if(autoI18n == null || value == null)
                         continue;

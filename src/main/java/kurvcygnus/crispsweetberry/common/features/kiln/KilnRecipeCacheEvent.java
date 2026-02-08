@@ -187,37 +187,34 @@ public final class KilnRecipeCacheEvent
     private static <R extends AbstractCookingRecipe> void filterRecipes
     (@NotNull HashMap<Item, NonNullList<KilnRecipe>> targetMap, @NotNull HashMap<Item, NonNullList<R>> convertMap, @NotNull RegistryAccess access)
     {
-        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("FINAL_FILTER"))
-        {
-            convertMap.forEach((item, list) ->
+        convertMap.forEach((item, list) ->
+            {
+                if(!list.isEmpty() && list.getFirst() instanceof SmokingRecipe)
                 {
-                    if(!list.isEmpty() && list.getFirst() instanceof SmokingRecipe)
+                    if(targetMap.containsKey(item))
                     {
-                        if(targetMap.containsKey(item))
-                        {
-                            configDebug("Item {} found in cache, clearing old Smelting recipes to override with Smoking.", item);
-                            targetMap.get(item).clear();
-                        }
-                    }
-                    
-                    for(final R recipe: list)
-                    {
-                        for(final Ingredient ingredient: recipe.getIngredients())
-                        {
-                            final KilnRecipe convertedRecipe = new KilnRecipe(
-                                ingredient,
-                                recipe.getResultItem(access),
-                                calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),
-                                recipe.getExperience()
-                            );
-                            
-                            targetMap.computeIfAbsent(item, i -> NonNullList.create()).
-                                add(convertedRecipe);
-                        }
+                        configDebug("Item {} found in cache, clearing old Smelting recipes to override with Smoking.", item);
+                        targetMap.get(item).clear();
                     }
                 }
-            );
-        }
+                
+                for(final R recipe: list)
+                {
+                    for(final Ingredient ingredient: recipe.getIngredients())
+                    {
+                        final KilnRecipe convertedRecipe = new KilnRecipe(
+                            ingredient,
+                            recipe.getResultItem(access),
+                            calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),
+                            recipe.getExperience()
+                        );
+                        
+                        targetMap.computeIfAbsent(item, i -> NonNullList.create()).
+                            add(convertedRecipe);
+                    }
+                }
+            }
+        );
     }
     
     private static double calculateProcessFactor(int cookingTime, boolean isSmokingRecipe)
@@ -229,12 +226,9 @@ public final class KilnRecipeCacheEvent
         //!                             ↓ so we should make sure at least processFactor is always bigger than 0D.
         final double factor = Math.max(0.05D, (double) cookingTime / standardTime) * (isSmokingRecipe ? 1.25D : 1D);
         
-        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("FINAL_FILTER"))
-        {
-            configDebug("Type: {}, Time: {}, Factor: {}",
-                isSmokingRecipe ? "Smoking" : "Smelting", cookingTime, factor
-            );
-        }
+        configDebug("Type: {}, Time: {}, Factor: {}",
+            isSmokingRecipe ? "Smoking" : "Smelting", cookingTime, factor
+        );
         
         return factor;
     }

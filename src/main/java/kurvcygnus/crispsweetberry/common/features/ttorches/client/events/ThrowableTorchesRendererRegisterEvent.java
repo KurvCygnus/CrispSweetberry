@@ -2,8 +2,8 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.client.events;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.ThrownTorchRenderer;
-import kurvcygnus.crispsweetberry.common.registries.CrispEntities;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -25,6 +25,6 @@ public final class ThrowableTorchesRendererRegisterEvent
     public static void registerRenderEvents(final EntityRenderersEvent.@NotNull RegisterRenderers event)
     {
         LOGGER.info("Registering EntityRenderers...");
-        event.registerEntityRenderer(CrispEntities.THROWN_TORCH.get(), ThrownTorchRenderer::new);
+        event.registerEntityRenderer(TTorchRegistries.THROWN_TORCH.get(), ThrownTorchRenderer::new);
     }
 }

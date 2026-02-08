@@ -13,7 +13,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.MarkerFactory;
 
 import java.util.List;
 
@@ -26,42 +25,45 @@ import java.util.List;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
 public final class CrispCreativeTabsRegistryEvent
 {
-    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), MarkerFactory.getMarker("TAB_REGISTRY"));
+    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "TAB_REGISTRY");
     
     @SubscribeEvent
     public static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
     {
         final List<TabEntry> entries = CrispSweetberry.TAB_LOOKUP.get(event.getTabKey());
         
-        if(entries != null)
+        if(entries == null)
         {
-            for(final TabEntry entry: entries)
+            try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("TAB_REGISTRY_FETAL")) { LOGGER.error("No registry entry exists. Terminating registration."); }
+            return;
+        }
+        
+        for(final TabEntry entry: entries)
+        {
+            if(!entry.condition())
             {
-                if(!entry.condition())
-                {
-                    LOGGER.debug("Skipped the registration of {} as its condition hasn't met.", entry.itemSupplier().get().getDefaultInstance().getDisplayName());
-                    continue;
-                }
-                
-                final Item item = entry.itemSupplier().get();
-                
-                if(item instanceof AbstractCoinItem<?> coin && !coin.getCoinType().shouldAppear())
-                {
-                    LOGGER.debug("Skipped the registration of coin {} as it shouldn't appear.", coin.getDefaultInstance().getDisplayName());
-                    continue;
-                }
-                
-                if(item instanceof AbstractCoinStackItem<?> stack && !stack.getCoinType().shouldAppear())
-                {
-                    LOGGER.debug("Skipped the registration of coinStack {} as it shouldn't appear.", stack.getDefaultInstance().getDisplayName());
-                    continue;
-                }
-                
-                if(entry.tab() == event.getTabKey())
-                {
-                    event.accept(item);
-                    LOGGER.debug("Registered item \"{}\" to tab \"{}\".", item.getDefaultInstance().getDisplayName(), entry.tab());
-                }
+                LOGGER.debug("Skipped the registration of {} as its condition hasn't met.", entry.itemSupplier().get().getDefaultInstance().getDisplayName());
+                continue;
+            }
+            
+            final Item item = entry.itemSupplier().get();
+            
+            if(item instanceof AbstractCoinItem<?> coin && !coin.getCoinType().shouldAppear())
+            {
+                LOGGER.debug("Skipped the registration of coin {} as it shouldn't appear.", coin.getDefaultInstance().getDisplayName());
+                continue;
+            }
+            
+            if(item instanceof AbstractCoinStackItem<?> stack && !stack.getCoinType().shouldAppear())
+            {
+                LOGGER.debug("Skipped the registration of coinStack {} as it shouldn't appear.", stack.getDefaultInstance().getDisplayName());
+                continue;
+            }
+            
+            if(entry.tab() == event.getTabKey())
+            {
+                event.accept(item);
+                LOGGER.debug("Registered item \"{}\" to tab \"{}\".", item.getDefaultInstance().getDisplayName(), entry.tab());
             }
         }
     }

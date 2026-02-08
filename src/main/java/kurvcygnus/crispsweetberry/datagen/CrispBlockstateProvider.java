@@ -19,15 +19,17 @@ public final class CrispBlockstateProvider extends BlockStateProvider
     @Override
     protected void registerStatesAndModels()
     {
-        final ModelFile kilnOff = models().orientable("kiln",
+        final ModelFile kilnOff = models().orientableWithBottom("kiln",
             modLoc("block/kiln_side"),
             modLoc("block/kiln_front_off"),
+            modLoc("block/kiln_bottom"),
             modLoc("block/kiln_top")
         );
         
-        final ModelFile kilnOn = models().orientable("kiln_on",
+        final ModelFile kilnOn = models().orientableWithBottom("kiln_on",
             modLoc("block/kiln_side"),
             modLoc("block/kiln_front"),
+            modLoc("block/kiln_bottom"),
             modLoc("block/kiln_top")
         );
         

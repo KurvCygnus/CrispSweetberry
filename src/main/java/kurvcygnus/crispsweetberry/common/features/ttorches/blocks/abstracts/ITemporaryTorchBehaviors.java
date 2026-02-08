@@ -4,7 +4,6 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.Ab
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -19,16 +18,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
-import java.util.function.ToIntFunction;
 
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.*;
 import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*;
 import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
@@ -43,32 +39,6 @@ import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 public interface ITemporaryTorchBehaviors
 {
     //  region
-    //* Constants & Fields
-    int DEFAULT_STATE_PERIOD_TICK = 400;//Equals to 20 seconds.
-    
-    double HORIZONTAL_WALL_TORCH_OFFSET_VALUE = 0.27;
-    double VERTICAL_WALL_TORCH_OFFSET_VALUE = 0.22;
-    double HORIZONTAL_TORCH_OFFSET_VALUE = 0.5;
-    double VERTICAL_TORCH_OFFSET_VALUE = 0.7;
-    
-    float TORCH_BURNING_OUT_VOL = 0.2F;
-    
-    SimpleParticleType DEFAULT_TEMP_TORCH_PARTICLE = ParticleTypes.FLAME;
-    SimpleParticleType DEFAULT_TEMP_TORCH_SUB_PARTICLE = ParticleTypes.SMOKE;
-    
-    BlockBehaviour.Properties TEMP_TORCH_BASIC_PROPERTIES = BlockBehaviour.Properties.of().
-        noLootTable().
-        sound(SoundType.WOOD).
-        ignitedByLava().
-        noCollission().
-        instabreak();
-    
-    EnumProperty<AbstractThrownTorchEntity.LightState> LIGHT_PROPERTY = EnumProperty.create("torchstate", AbstractThrownTorchEntity.LightState.class);
-    
-    ToIntFunction<BlockState> DEFAULT_BRIGHTNESS_FORMULA = bs -> bs.getValue(LIGHT_PROPERTY).toBrightness();
-    //endregion
-    
-    //  region
     //* Abstract parameter getters
     /**
      * The getter method which <b>passes particle to Interface to use</b>.
@@ -79,9 +49,6 @@ public interface ITemporaryTorchBehaviors
     
     boolean getReLitProperty();
     
-    /**
-     * Getter method for <b>each state's life period</b>, <b>if you don't want to customize this, just return <u>{@link #DEFAULT_STATE_PERIOD_TICK}</u></b>.
-     */
     int getStateLength();
     //endregion
     
@@ -201,7 +168,7 @@ public interface ITemporaryTorchBehaviors
         }
     }
     
-    private static boolean isStillBright(@NotNull BlockState state)
+    static boolean isStillBright(@NotNull BlockState state)
         { return state.getValue(LIGHT_PROPERTY).ordinal() > AbstractThrownTorchEntity.LightState.DIM.ordinal(); }
     //endregion
 }
