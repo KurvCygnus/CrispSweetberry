@@ -1,8 +1,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
@@ -20,8 +20,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.DEFAULT_TEMP_TORCH_PARTICLE;
 
 /**
  * This registers everything that relates to throwable torch series.<br>
@@ -59,8 +57,8 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us -> fullee lite stik",
         "zh_cn -> 投掷火把"
     })
-    public static final Holder<Block> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register("temporary_torch", resourceLocation ->
-        new TemporaryTorchBlock(DEFAULT_TEMP_TORCH_PARTICLE)
+    public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register("temporary_torch", resourceLocation ->
+        new TemporaryTorchBlock()
     );
     
     @AutoI18n({
@@ -68,8 +66,8 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us -> fullee lite stik",
         "zh_cn -> 投掷火把"
     })
-    public static final Holder<Block> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register("temporary_wall_torch", resourceLocation ->
-        new TemporaryWallTorchBlock(DEFAULT_TEMP_TORCH_PARTICLE)
+    public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register("temporary_wall_torch", resourceLocation ->
+        new TemporaryWallTorchBlock()
     );
     
     @RegisterToTab

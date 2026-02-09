@@ -10,6 +10,12 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 import java.util.function.ToIntFunction;
 
+/**
+ * This handles every constants that relates to throwable torch series.<br>
+ * <i>Since the first letter of this series content are all {@code 'T'}, thus both registry and package are called {@code TTorch}.</i>
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
 public final class TTorchConstants
 {
     private TTorchConstants() { throw new IllegalAccessError(); }
@@ -26,12 +32,17 @@ public final class TTorchConstants
     public static final SimpleParticleType DEFAULT_TEMP_TORCH_PARTICLE = ParticleTypes.FLAME;
     public static final SimpleParticleType DEFAULT_TEMP_TORCH_SUB_PARTICLE = ParticleTypes.SMOKE;
     
-    public static final BlockBehaviour.Properties TEMP_TORCH_BASIC_PROPERTIES = BlockBehaviour.Properties.of().
+    public static final BlockBehaviour.Properties BASIC_TEMP_TORCH_PROPERTIES = BlockBehaviour.Properties.of().
         noLootTable().
         sound(SoundType.WOOD).
         ignitedByLava().
         noCollission().
         instabreak();
+    
+    public static final BlockBehaviour.Properties TEMP_TORCH_BASE_PROPERTIES = BlockBehaviour.Properties.of().
+        noCollission().
+        instabreak().
+        ignitedByLava();
     
     public static final EnumProperty<AbstractThrownTorchEntity.LightState> LIGHT_PROPERTY =
         EnumProperty.create("torchstate", AbstractThrownTorchEntity.LightState.class);

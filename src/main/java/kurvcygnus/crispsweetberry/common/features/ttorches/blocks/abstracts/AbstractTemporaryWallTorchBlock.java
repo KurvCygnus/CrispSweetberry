@@ -1,104 +1,106 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryRedstoneWallTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryWallTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WallTorchBlock;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.function.ToIntFunction;
+import java.util.Map;
 
-/**
- * The <b>base</b> of all <b>temporary wall torch variants</b>.
- * Since torches' behavior has a lot in common, detailed methods are implemented in
- * <b>{@link ITemporaryTorchBehaviors Interface}</b>.
- * @see TemporaryWallTorchBlock Basic Implementation
- * @see TemporaryRedstoneWallTorchBlock Redstone variants
- * @since 1.0 Release
- * @author Kurv Cygnus
- */
-public abstract class AbstractTemporaryWallTorchBlock extends WallTorchBlock implements ITemporaryTorchBehaviors
+public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporaryTorchBehavior> extends AbstractGenericTorchBlock<T>
 {
-    private final SimpleParticleType torchParticle;
+    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     
-    /**
-     * The <b>construct method</b> for <b>block registry</b>.
-     * @param torchParticle The particle will be used in <b><u>
-     * {@link ITemporaryTorchBehaviors#animateTick(BlockState, Level, BlockPos, boolean) animatedTick()}
-     * </u></b>.
-     * @param brightnessFormula If you don't want to customize this, <b>use
-     * <u>{@link ITemporaryTorchBehaviors#DEFAULT_BRIGHTNESS_FORMULA DEFAULT_BRIGHTNESS_FORMULA}</u></b>.
-     */
-    public AbstractTemporaryWallTorchBlock(@NotNull SimpleParticleType torchParticle, @NotNull ToIntFunction<BlockState> brightnessFormula)
+    private static final Map<Direction, VoxelShape> AABBS = Maps.newEnumMap(
+        ImmutableMap.of(
+            Direction.NORTH,
+            Block.box(5.5, 3.0, 11.0, 10.5, 13.0, 16.0),
+            Direction.SOUTH,
+            Block.box(5.5, 3.0, 0.0, 10.5, 13.0, 5.0),
+            Direction.WEST,
+            Block.box(11.0, 3.0, 5.5, 16.0, 13.0, 10.5),
+            Direction.EAST,
+            Block.box(0.0, 3.0, 5.5, 5.0, 13.0, 10.5)
+        )
+    );
+    
+    public AbstractTemporaryWallTorchBlock(@NotNull SimpleParticleType torchParticle, @NotNull Properties properties, @NotNull T behavior)
     {
-        super(torchParticle, TEMP_TORCH_BASIC_PROPERTIES.lightLevel(brightnessFormula));
-        this.torchParticle = torchParticle;
-        this.registerDefaultState(this.defaultBlockState().setValue(LIGHT_PROPERTY, AbstractThrownTorchEntity.LightState.FULL_BRIGHT));
+        super(torchParticle, properties, behavior, true);
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+    
+    protected final void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
+    {
+        builder.add(FACING);
+        this.addExtraStateDefinition(builder);
+    }
+    
+    protected abstract void addExtraStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder);
+    
+    @Override
+    public final @NotNull String getDescriptionId() { return this.asItem().getDescriptionId(); }
+    
+    @Override
+    protected final @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
+        { return AABBS.get(state.getValue(FACING)); }
+    
+    @Override
+    public final boolean canSurvive(@NotNull BlockState state, @NotNull LevelReader level, @NotNull BlockPos pos)
+    {
+        final Direction facing = state.getValue(FACING);
+        final BlockPos blockpos = pos.relative(facing);
+        final BlockState blockstate = level.getBlockState(blockpos);
+        
+        return blockstate.isFaceSturdy(level, blockpos, facing);
     }
     
     @Override
-    protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
+    public @Nullable BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
     {
-        super.createBlockStateDefinition(builder);
-        builder.add(LIGHT_PROPERTY);
+        BlockState blockstate = this.defaultBlockState();
+        final LevelReader levelreader = context.getLevel();
+        final BlockPos blockpos = context.getClickedPos();
+        final Direction[] possibleDirections = context.getNearestLookingDirections();
+        
+        for(final Direction direction: possibleDirections)
+        {
+            if(direction.getAxis().isHorizontal())
+            {
+                final Direction currentDirection = direction.getOpposite();
+                blockstate = blockstate.setValue(FACING, currentDirection);
+                
+                if(blockstate.canSurvive(levelreader, blockpos))
+                    return blockstate;
+            }
+        }
+        
+        return null;
     }
     
-    /**
-     * {@inheritDoc}
-     * @return {@inheritDoc}
-     */
     @Override
-    public final @NotNull SimpleParticleType getTorchParticle() { return this.torchParticle; }
-    
-    public abstract @NotNull SimpleParticleType getSubTorchParticle();
-    
-    /**
-     * {@inheritDoc}
-     * @see ITemporaryTorchBehaviors#DEFAULT_STATE_PERIOD_TICK Constant Source
-     */
-    public abstract int getStateLength();
-    
-    public abstract boolean getReLitProperty();
-    //endregion
-    
-    //* region
-    @Override
-    public void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
-        { ITemporaryTorchBehaviors.super.onPlace(state, level, pos, oldState, isMoving); }
+    protected final @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction facing, @NotNull BlockState facingState,
+        @NotNull LevelAccessor level, @NotNull BlockPos currentPos, @NotNull BlockPos facingPos)
+            { return facing.getOpposite() == state.getValue(FACING) && !state.canSurvive(level, currentPos) ? Blocks.AIR.defaultBlockState() : state; }
     
     @Override
-    public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
-        { ITemporaryTorchBehaviors.super.tick(oldState, level, pos, random); }
-    
-    /**
-     * {@inheritDoc}
-     * <br>
-     * <b>Note</b>: Always passes <b><u>{@code isWallTorch}</b></u> as <b><u>{@code true}</b></u> to the <b>interface implementation</b>.
-     *
-     * @see ITemporaryTorchBehaviors#animateTick(BlockState, Level, BlockPos, boolean)  Func Source
-     */
-    @Override
-    public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
-        { ITemporaryTorchBehaviors.super.animateTick(state, level, pos, true); }
+    protected final @NotNull BlockState rotate(@NotNull BlockState state, @NotNull Rotation rotation)
+        { return state.setValue(FACING, rotation.rotate(state.getValue(FACING))); }
     
     @Override
-    public @NotNull ItemInteractionResult useItemOn(
-        @NotNull ItemStack stack, @NotNull BlockState state,
-        @NotNull Level level, @NotNull BlockPos pos,
-        @NotNull Player player, @NotNull InteractionHand hand,
-        @NotNull BlockHitResult hitResult)
-            { return ITemporaryTorchBehaviors.super.useItemOn(stack, state, level, pos, player, hand, hitResult); }
+    protected final @NotNull BlockState mirror(@NotNull BlockState state, @NotNull Mirror mirror)
+        { return this.rotate(state, mirror.getRotation(state.getValue(FACING))); }
 }

@@ -1,9 +1,9 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
