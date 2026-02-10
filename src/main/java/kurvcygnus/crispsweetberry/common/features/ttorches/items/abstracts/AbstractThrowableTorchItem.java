@@ -3,6 +3,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.projectile.ITriProjectileFunction;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.sounds.SoundEvent;
@@ -20,7 +21,10 @@ import net.minecraft.world.item.ProjectileItem;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.PROJECTILE_SHOOT_Z_POS;
+import java.util.Objects;
+import java.util.function.BiFunction;
+
+import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.PROJECTILE_SHOOT_Z_POS;
 
 /**
  * The <b>basic</b> of <b>all throwable torches</b>.
@@ -32,62 +36,38 @@ import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.P
 public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEntity> extends Item implements ProjectileItem
 {
     //  region
-    //* Constants, Fields & Constructors
-    protected static final float ALWAYS_ACCURATE = 1.0F;
-    protected static final float DEFAULT_TORCH_THROW_VELOCITY = 1.5F;
+    //*:=== Constants, Fields & Constructors
+    private static final float ALWAYS_ACCURATE = 1.0F;
+    private static final float DEFAULT_TORCH_THROW_VELOCITY = 1.5F;
     
-    protected static final int DEFAULT_THROW_COOLDOWN = 12;
+    private static final int DEFAULT_THROW_COOLDOWN = 12;
     
-    protected static final SoundEvent DEFAULT_THROW_SOUND = SoundEvents.SNOWBALL_THROW;
-    
-    private final float throwAccuracy = getAccuracy();
-    private final float throwVelocity = getThrowVelocity();
-    
-    private final int throwCooldown = getThrowCooldown();
-    
-    private final SoundEvent throwSound = getThrowSound();
+    private static final SoundEvent DEFAULT_THROW_SOUND = SoundEvents.SNOWBALL_THROW;
     
     /**
      * The construct function for <b>item registry</b>.
      */
-    public AbstractThrowableTorchItem(Properties properties) { super(properties); }
+    public AbstractThrowableTorchItem(@NotNull Properties properties) 
+        { super(Objects.requireNonNull(properties, "Param \"properties\" must not be null!")); }
     //endregion
     
     //  region
-    //* Abstract parameter getters
-    /**
-     * Getter method for <b>projectile's accuracy</b>, <b>if you don't want to customize this, just return <u>{@link #ALWAYS_ACCURATE}</u></b>.
-     */
-    protected abstract float getAccuracy();
+    //*:=== Abstract parameter getters
+    protected float getAccuracy() { return ALWAYS_ACCURATE; }
     
-    /**
-     * Getter method for <b>projectile's speed</b>, <b>if you don't want to customize this, just return <u>{@link #DEFAULT_TORCH_THROW_VELOCITY}</u></b>.
-     */
-    protected abstract float getThrowVelocity();
+    protected float getThrowVelocity() { return DEFAULT_TORCH_THROW_VELOCITY; }
     
-    /**
-     * Getter method for <b>item's use cooldown</b>, <b>if you don't want to customize this, just return <u>{@link #DEFAULT_THROW_COOLDOWN}</u></b>.
-     */
-    protected abstract int getThrowCooldown();
+    protected int getThrowCooldown() { return DEFAULT_THROW_COOLDOWN; }
     
-    /**
-     * Getter method for <b>item's throw sound</b>, <b>if you don't want to customize this, just return <u>{@link #DEFAULT_THROW_SOUND}</u></b>.
-     */
-    protected abstract @NotNull SoundEvent getThrowSound();
+    protected @NotNull SoundEvent getThrowSound() { return DEFAULT_THROW_SOUND; }
     
-    /**
-     * <b>Getter method</b> for <b>player's throw action</b>.
-     */
-    protected abstract @NotNull T createProjectile(LivingEntity shooter, Level level);
+    protected abstract @NotNull BiFunction<LivingEntity, Level, T> getPlayerUsedProjectile();
     
-    /**
-     * <b>Getter method</b> for <b>dispenser's throw action</b>.
-     */
-    protected abstract @NotNull T createProjectile(double x, double y, double z, Level level);
+    protected abstract @NotNull ITriProjectileFunction<T> getDispenserUsedProjectile();
     //endregion
     
     //  region
-    //* Use interaction logics
+    //*:=== Use interaction logics
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand)
     {
@@ -99,20 +79,28 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
         
         level.playSound(
             null, player.getX(), player.getY(), player.getZ(),
-            throwSound, SoundSource.NEUTRAL, SoundConstants.QUIET_SOUND_VOLUME, THROW_SOUND_PITCH
+            getThrowSound(), SoundSource.NEUTRAL, SoundConstants.QUIET_SOUND_VOLUME, THROW_SOUND_PITCH
         );
         
         if(!level.isClientSide)
         {
             final T projectile = this.createProjectile(player, level);
             projectile.setItem(itemstack);
-            projectile.shootFromRotation(player, player.getXRot(), player.getYRot(),
-                PROJECTILE_SHOOT_Z_POS, throwVelocity, throwAccuracy);
+            
+            projectile.shootFromRotation(
+                player,
+                player.getXRot(),
+                player.getYRot(),
+                PROJECTILE_SHOOT_Z_POS,
+                getThrowVelocity(),
+                getAccuracy()
+            );
+            
             level.addFreshEntity(projectile);
         }
         
         player.awardStat(Stats.ITEM_USED.get(this));
-        player.getCooldowns().addCooldown(this, throwCooldown);
+        player.getCooldowns().addCooldown(this, getThrowCooldown());
         itemstack.consume(1, player);
         
         return InteractionResultHolder.sidedSuccess(itemstack, level.isClientSide());
@@ -123,7 +111,12 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
     {
         final T projectile = this.createProjectile(pos.x(), pos.y(), pos.z(), level);
         projectile.setItem(stack);
+        
         return projectile;
     }
+    
+    private @NotNull T createProjectile(@NotNull LivingEntity shooter, @NotNull Level level) { return getPlayerUsedProjectile().apply(shooter, level); }
+    
+    private @NotNull T createProjectile(double x, double y, double z, @NotNull Level level) { return getDispenserUsedProjectile().apply(x, y, z, level); }
     //endregion
 }

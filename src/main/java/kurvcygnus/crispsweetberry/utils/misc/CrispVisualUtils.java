@@ -13,7 +13,7 @@ import java.util.Objects;
  */
 public final class CrispVisualUtils
 {
-    private CrispVisualUtils() { throw new IllegalAccessError(); }
+    private CrispVisualUtils() { throw new IllegalAccessError("Class \"CrispVisualUtils\" is not meant to be instantized!"); }
     
     private static final Logger LOGGER = LogUtils.getLogger();
     

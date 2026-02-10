@@ -12,7 +12,15 @@ import java.util.regex.Pattern;
  * This is a simple annotation used for data generation, <b>specially on internationalization(i18n)</b>.
  * @apiNote This annotation only works on field that holds a key of a content(e.g. <u>{@link net.minecraft.world.item.Item Item}</u>, 
  * <u>{@link net.minecraft.world.level.block.Block Block}</u>),
- * as fields that hold no key is actually can't be i18n-ized.
+ * as fields that hold no key is actually can't be i18n-ized.<br>
+ * <b>Also, if you are using IDEA, you can generate a template with typing keyword {@code i18n}</b>.<br><br>
+ * Template:<br><pre>
+ *  <span style="color: a7f8e7">&#64;AutoI18n</span>({
+ *      <span style="color: 79a85d">"en_us -></span> <span style="color: e47087">$TRANS1$</span><span style="color: 79a85d">"</span>,
+ *      <span style="color: 79a85d">"lol_us -></span> <span style="color: e47087">$TRANS2$</span><span style="color: 79a85d">"</span>,
+ *      <span style="color: 79a85d">"zh_cn -></span> <span style="color: e47087">$TRANS3$</span><span style="color: 79a85d">"</span>
+ *  })
+ * </pre>
  * @implSpec <pre>
  *  <span style="color: a7f8e7">&#64;AutoI18n</span>({
  *      <span style="color: 79a85d">"en_us -> Foo"</span>,// In English, this is "Foo".

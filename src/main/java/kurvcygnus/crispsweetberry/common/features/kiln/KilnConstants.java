@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
  */
 public final class KilnConstants
 {
-    private KilnConstants() { throw new IllegalAccessError(); }
+    private KilnConstants() { throw new IllegalAccessError("Class \"KilnConstants\" is not meant to be instantized!"); }
     
     @AutoI18n({
         "en_us -> Kiln",

@@ -3,7 +3,10 @@ package kurvcygnus.crispsweetberry.common.features.ttorches;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownTorchEntity;
+import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
+import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
@@ -20,10 +23,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This registers everything that relates to throwable torch series.<br>
- * <i>Since the first letter of this series content are all {@code 'T'}, thus both registry and package are called {@code TTorch}.</i>
+ * <i>Since the first letter of this series' content are all {@code 'T'}, thus both registry and package are called {@code TTorch}.</i>
  * @since 1.0 Release
  */
 public enum TTorchRegistries implements IRegistrant
@@ -57,8 +61,9 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us -> fullee lite stik",
         "zh_cn -> 投掷火把"
     })
-    public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register("temporary_torch", resourceLocation ->
-        new TemporaryTorchBlock()
+    public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register(
+        "temporary_torch",
+        resourceLocation -> new TemporaryTorchBlock()
     );
     
     @AutoI18n({
@@ -66,8 +71,9 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us -> fullee lite stik",
         "zh_cn -> 投掷火把"
     })
-    public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register("temporary_wall_torch", resourceLocation ->
-        new TemporaryWallTorchBlock()
+    public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
+        "temporary_wall_torch", 
+        resourceLocation -> new TemporaryWallTorchBlock()
     );
     
     @RegisterToTab
@@ -76,8 +82,20 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us -> chuk da lite stik",
         "zh_cn -> 投掷火把"
     })
-    public static final Holder<Item> THROWABLE_TORCH = THROWABLE_TORCH_REGISTER.register("throwable_torch", resourceLocation ->
-        new ThrowableTorchItem(new Item.Properties())
+    public static final Holder<Item> THROWABLE_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "throwable_torch",
+        resourceLocation -> new ThrowableTorchItem()
+    );
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us -> Throwable Redstone Torch",
+        "lol_us -> lite stewberi stik",
+        "zh_cn -> 红石投掷火把"
+    })
+    public static final Holder<Item> THROWABLE_REDSTONE_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "throwable_redstone_torch",
+        resourceLocation -> new ThrowableRedstoneTorchItem()
     );
     
     @AutoI18n({
@@ -85,11 +103,29 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us -> Spinn' Stik",
         "zh_ch -> 投掷火把"
     })
-    public static final DeferredHolder<EntityType<?>, EntityType<ThrownTorchEntity>> THROWN_TORCH = THROWN_TORCH_REGISTER.register("thrown_torch", () ->
-        EntityType.Builder.<ThrownTorchEntity>of(ThrownTorchEntity::new, MobCategory.MISC).
-            sized(0.25F, 0.25F).
-            updateInterval(10).
-            noSummon().
-            build("thrown_torch")
-    );
+    public static final DeferredHolder<EntityType<?>, EntityType<ThrownTorchEntity>> THROWN_TORCH = 
+        buildThrownTorch(ThrownTorchEntity::new, "thrown_torch");
+    
+    @AutoI18n({
+        "en_us -> Thrown Redstone Torch",
+        "lol_us -> Spinn' Stewberi Stik",
+        "zh_ch -> 红石投掷火把"
+    })
+    public static final DeferredHolder<EntityType<?>, EntityType<ThrownRedstoneTorchEntity>> THROWN_REDSTONE_TORCH = 
+        buildThrownTorch(ThrownRedstoneTorchEntity::new, "thrown_redstone_torch");
+    
+    private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>> buildThrownTorch
+        (EntityType.EntityFactory<T> entityFactory, @NotNull String key)
+            {
+                Objects.requireNonNull(entityFactory, "Param \"entityFactory\" must not be null!");
+                Objects.requireNonNull(key, "Param \"key\" must not be null!");
+                
+                return THROWN_TORCH_REGISTER.register(
+                    key,
+                    () -> EntityType.Builder.of(entityFactory, MobCategory.MISC).
+                    sized(0.25F, 0.25F).
+                    updateInterval(10).
+                    noSummon().
+                    build(key));
+            }
 }

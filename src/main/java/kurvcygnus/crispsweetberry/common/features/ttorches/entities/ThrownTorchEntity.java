@@ -3,7 +3,6 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.entities;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.ThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -25,26 +24,5 @@ public final class ThrownTorchEntity extends AbstractThrownTorchEntity
     public ThrownTorchEntity(@NotNull LivingEntity shooter, @NotNull Level level) { super(TTorchRegistries.THROWN_TORCH.get(), shooter, level); }
     
     @Override
-    protected @NotNull SimpleParticleType[] getLongerParticleStateList() { return DEFAULT_LONGER_PARTICLE_STATE_LIST; }
-    
-    @Override
     protected @NotNull Item getDefaultItem() { return TTorchRegistries.THROWABLE_TORCH.value(); }
-    
-    @Override
-    protected int getLongerParticleFrequency() { return DEFAULT_LONGER_PARTICLE_FREQUENCY; }
-    
-    @Override
-    protected int getShorterParticleFrequency() { return DEFAULT_SHORTER_PARTICLE_FREQUENCY; }
-    
-    @Override
-    protected boolean getShouldCheckLiquidsFlag() { return true; }
-    
-    @Override
-    protected boolean getNoSmokeWhenBurnedOutFlag() { return true; }
-    
-    @Override
-    protected boolean getShouldCheckFireResistMobFlag() { return true; }
-    
-    @Override
-    protected boolean getShouldLitMobFlag() { return true; }
 }

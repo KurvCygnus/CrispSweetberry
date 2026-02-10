@@ -16,7 +16,7 @@ import static java.util.Objects.requireNonNull;
  */
 public final class CrispDefUtils
 {
-    private CrispDefUtils() { throw new IllegalAccessError(); }
+    private CrispDefUtils() { throw new IllegalAccessError("Class \"CrispDefUtils\" is not meant to be instantized!"); }
     
     @Contract("_ -> new")
     public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation) 

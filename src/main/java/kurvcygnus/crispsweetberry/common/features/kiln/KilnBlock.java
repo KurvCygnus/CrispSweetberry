@@ -49,8 +49,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static kurvcygnus.crispsweetberry.utils.definitions.ProjectileConstants.*;
 import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.*;
+import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
 
 /**
  * The <b>physically interactable, seen</b> part of the Kiln Block.<br>
@@ -79,7 +79,7 @@ public final class KilnBlock extends BaseEntityBlock
     //*:=== Property Fields
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty LIT = BooleanProperty.create(LIT_PROPERTY);
-    //public static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
+    //public static final EnumProperty<DyeColor> COLOR = EnumProperty.apply("color", DyeColor.class);
     //endregion
     
     //  region

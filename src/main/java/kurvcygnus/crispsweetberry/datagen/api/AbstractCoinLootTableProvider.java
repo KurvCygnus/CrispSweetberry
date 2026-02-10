@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 
 /**
- * This a simple helper class to create custom <u>{@link AbstractCoinStackBlock coin stack}</u> drops.<br>
+ * This a simple helper class to apply custom <u>{@link AbstractCoinStackBlock coin stack}</u> drops.<br>
  * If you have no demand to make custom behaviors, directly {@code extends} this, when write content list, then you are done.
  * @since 1.0 Release
  * @author Kurv Cygnus

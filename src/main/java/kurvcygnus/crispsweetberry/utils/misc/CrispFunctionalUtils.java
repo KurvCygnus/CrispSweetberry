@@ -13,7 +13,7 @@ import static java.util.Objects.requireNonNull;
 
 public final class CrispFunctionalUtils
 {
-    private CrispFunctionalUtils() { throw new IllegalAccessError(); }
+    private CrispFunctionalUtils() { throw new IllegalAccessError("Class \"CrispFunctionalUtils\" is not meant to be instantized!"); }
     
     private static final Logger LOGGER = LogUtils.getLogger();
     

@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * This a simple helper class to create custom <u>{@link AbstractCoinStackBlock coin stack}</u> recipes.<br>
+ * This a simple helper class to apply custom <u>{@link AbstractCoinStackBlock coin stack}</u> recipes.<br>
  * @apiNote <b>DataGen only accepts one <u>{@link RecipeProvider}</u>, so it's recommend to do 
  * <a href="https://en.wikipedia.org/wiki/Composition_over_inheritance"><u>{@code Composition}</u></a>
  * at your own main <u>{@link RecipeProvider}</u>, then use <u>{@link BaseCoinRecipeProvider#buildRecipes}</u> in it</b>.

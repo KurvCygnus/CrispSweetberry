@@ -6,6 +6,8 @@ import com.mojang.math.Axis;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.events.ThrowableTorchesRendererRegisterEvent;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.ThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -14,10 +16,14 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
-//? TODO: 方位性贴图实现
+import java.util.List;
+
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.*;
+
 /**
  * The <b>basic renderer</b> of all <b>thrown torches</b>.
  * @param <T> The thrown torch that it renders.
@@ -29,108 +35,175 @@ import org.joml.Matrix4f;
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchEntity> extends EntityRenderer<T>
 {
-    //  region
-    //* Constants, Fields & Constructors
-    protected static final String BASE_TEXTURE_PATH = "textures/entity/";
-    protected static final String TEXTURE_SUFFIX = ".png";
+    private static final CrispIntRanger FRONT_GROUP_1 = CrispIntRanger.closed(0, 45);
+    private static final CrispIntRanger FRONT_GROUP_2 = CrispIntRanger.openClosed(315, 360);
+    private static final CrispIntRanger FLIPPED_FRONT_GROUP = CrispIntRanger.openClosed(135, 225);
     
-    protected static final float STANDARD_TORCH_SCALE = 0.5F;
-    protected static final float ROTATION_DEGREES = 180.0F;
+    private static final List<CrispIntRanger> HORIZONTAL_FRONT_RANGERS = List.of(FRONT_GROUP_1, FRONT_GROUP_2, FLIPPED_FRONT_GROUP);
     
-    protected static final int TEXTURE_INDEX_CORRECTION_STD = 1;
-    protected static final int DEFAULT_ANIMATION_DURATION_TICKS = 1;
-    protected static final int DEFAULT_ANIMATION_FRAMES_IN_TOTAL = 8;
+    private static final CrispIntRanger VERTICAL_TOP_RANGE = CrispIntRanger.closed(45, 90);
+    private static final CrispIntRanger VERTICAL_BOTTOM_RANGE = CrispIntRanger.closed(-90, 45);
+    private static final CrispIntRanger VERTICAL_UPPER_TILT_RANGE = CrispIntRanger.closedOpen(15, 45);
+    private static final CrispIntRanger VERTICAL_DOWNER_TILT_RANGE = CrispIntRanger.openClosed(-45, -15);
+    private static final CrispIntRanger VERTICAL_DIRECT_RANGE = CrispIntRanger.closed(-15, 15);
     
-    protected final String NAMESPACE = getNamespace();
-    protected final String TEXTURE_NAME = getTextureName();
-    protected final String ALT_TEXTURE_STATE_NAME = getAltTextureName();
+    private static final List<CrispIntRanger> VERTICAL_DIRECTION_RANGERS = List.of(
+        VERTICAL_TOP_RANGE,
+        VERTICAL_BOTTOM_RANGE,
+        VERTICAL_UPPER_TILT_RANGE,
+        VERTICAL_DOWNER_TILT_RANGE,
+        VERTICAL_DIRECT_RANGE
+    );
     
-    protected final float TORCH_SCALE = getTorchScale();
-    
-    protected final int ANIMATION_DURATION_TICKS = getAnimationDurationTicks();
-    protected final int ANIMATION_FRAMES_IN_TOTAL = getTotalAnimationFrames();
-    
-    protected final boolean HAS_ANIMATION = hasAnimation();
-    protected final boolean HAS_STATE_VARIATION = hasStateVariation();
-    
-    /**
-     * This constructor is used for initialization registry, thus implementing this is a must.
-     */
-    public AbstractThrownTorchRenderer(EntityRendererProvider.Context context) { super(context); }
-    //endregion
-    
-    //  region
-    //* Core logics
+    public AbstractThrownTorchRenderer(@NotNull EntityRendererProvider.Context context) { super(context); }
     @Override
-    public void render(@NotNull T entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight)
+    public void render(@NotNull T entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight)
     {
+        final FacingPair relativeFacing = this.getFacing(entity);
+        
         poseStack.pushPose();
         poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());//* Makes entity always face the observer.
-        poseStack.mulPose(Axis.YP.rotationDegrees(ROTATION_DEGREES));//Fix the sprite mirror issue.
-        poseStack.scale(TORCH_SCALE, TORCH_SCALE, TORCH_SCALE);
+        poseStack.mulPose(Axis.YP.rotationDegrees(ROTATION_DEGREES));
+        poseStack.scale(getTorchScale(), getTorchScale(), getTorchScale());
         
-        //Set entity's RenderType to NoCull, preventing rendering issue.
-        final VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
+        final VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity, relativeFacing)));
         
         final PoseStack.Pose lastPose = poseStack.last();
         final Matrix4f poseMatrix = lastPose.pose();
         
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 0, 0, 1);
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1.0F, 0, 1, 1);
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1.0F, 1, 1, 0);
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 1, 0, 0);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 0, 0, 1, relativeFacing.flipHorizontal);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1.0F, 0, 1, 1, relativeFacing.flipHorizontal);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1.0F, 1, 1, 0, relativeFacing.flipHorizontal);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 1, 0, 0, relativeFacing.flipHorizontal);
         
         poseStack.popPose();
         
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
     
-    /**
-     * The method which <b>create vertexes for rendering</b>, and <b>set the properties at the same time</b>.
-     */
-    protected static void createVertex(VertexConsumer consumer, Matrix4f pose, PoseStack.Pose lastPose, int lightmapUV, float x, int y, int u, int v)
+    @Contract("_ -> new")
+    private @NotNull FacingPair getFacing(@NotNull T entity)
     {
-        consumer.addVertex(pose, x - 0.5F, (float) y - 0.25F, 0.0F)
-            .setColor(255, 255, 255, 255)
-            .setUv((float) u, (float) v)
-            .setOverlay(OverlayTexture.NO_OVERLAY)
-            .setLight(lightmapUV)
-            .setNormal(lastPose, 0.0F, 1.0F, 0.0F);
+        final double relativeX = this.entityRenderDispatcher.camera.getPosition().x - entity.getX();
+        final double relativeY = this.entityRenderDispatcher.camera.getPosition().y - entity.getEyeY();
+        final double relativeZ = this.entityRenderDispatcher.camera.getPosition().z - entity.getZ();
+        
+        final float entityYaw = entity.getYRot();
+        final double angle = Math.toDegrees(Math.atan2(relativeX, relativeZ));
+        int relativeYaw = (int) ((angle - entityYaw + 180D) % 360D);
+        
+        if(relativeYaw < 0)
+            relativeYaw += 360;
+        
+        final HorizontalFacing horizontalFacing;
+        final boolean flipHorizontal;
+        
+        if(CrispIntRanger.inRangers(relativeYaw, HORIZONTAL_FRONT_RANGERS) != -1)
+        {
+            horizontalFacing = HorizontalFacing.FRONT;
+            flipHorizontal = false;
+        }
+        else
+        {
+            horizontalFacing = HorizontalFacing.SIDE;
+            flipHorizontal = relativeYaw > 180D;
+        }
+        
+        final VerticalFacing verticalFacing = getVerticalFacing(relativeX, relativeY, relativeZ);
+        
+        return new FacingPair(horizontalFacing, verticalFacing, flipHorizontal);
     }
     
-    /**
-     * The method which <b>returns the location of the sprite which the renderer will use</b>.
-     */
+    private static @NotNull VerticalFacing getVerticalFacing(double relativeX, double relativeY, double relativeZ)
+    {
+        final double horizontalDistance = Math.sqrt(relativeX * relativeX + relativeZ * relativeZ);
+        final int relativeVerticalDegree = (int) Math.toDegrees(Math.atan2(relativeY, horizontalDistance));
+        
+        final VerticalFacing verticalFacing;
+        
+        switch(CrispIntRanger.inRangers(relativeVerticalDegree, VERTICAL_DIRECTION_RANGERS))
+        {
+            case 0 -> verticalFacing = VerticalFacing.TOP;
+            case 1 -> verticalFacing = VerticalFacing.BOTTOM;
+            case 2, 3 -> verticalFacing = VerticalFacing.TILT;
+            case 4 -> verticalFacing = VerticalFacing.DIRECT;
+            default -> throw new IllegalArgumentException("Get a impossible degree value: %d".formatted(relativeVerticalDegree));
+        }
+        
+        return verticalFacing;
+    }
+    
+    private static void createVertex(@NotNull VertexConsumer consumer, Matrix4f pose, PoseStack.Pose lastPose, int lightmapUV, float x, int y, int u, int v, boolean flip)
+    {
+        final float correctedU = flip ? (1.0F - (float) u) : (float) u;
+        
+        consumer.addVertex(pose, x - 0.5F, (float) y - 0.25F, 0.0F).
+            setColor(255, 255, 255, 255).
+            setUv(correctedU, (float) v).
+            setOverlay(OverlayTexture.NO_OVERLAY).
+            setLight(lightmapUV).
+            setNormal(lastPose, 0.0F, 1.0F, 0.0F);
+    }
+    
+    protected @NotNull ResourceLocation getTextureLocation(@NotNull T entity, @NotNull FacingPair pair)
+    {
+        final StringBuilder path = new StringBuilder(BASE_TEXTURE_PATH).append(getTextureName());
+        
+        path.append("_").append(pair.horizontalFacing().getAlias());
+        path.append("_").append(pair.verticalFacing().getAlias());
+        
+        if(hasStateVariation() && entity.getTier() == AbstractThrownTorchEntity.TIER_GONE)
+            path.append("_").append(getAltTextureName());
+        
+        if(hasAnimation())
+        {
+            final int index = entity.tickCount / getAnimationDurationTicks() % getTotalAnimationFrames() + TEXTURE_INDEX_CORRECTION_STD;
+            path.append("_").append(index);
+        }
+        
+        return CrispDefUtils.getModNamespacedLocation(path.append(TEXTURE_SUFFIX).toString());
+    }
+    
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull T entity)
-    {
-        final int TEXTURE_ANIMATION_INDEX = entity.tickCount / ANIMATION_DURATION_TICKS % ANIMATION_FRAMES_IN_TOTAL + TEXTURE_INDEX_CORRECTION_STD;
-        
-        String finalTexturePath = BASE_TEXTURE_PATH + TEXTURE_NAME;
-        
-        if(HAS_STATE_VARIATION && entity.getTier() == AbstractThrownTorchEntity.TIER_GONE)
-            finalTexturePath += "_" + ALT_TEXTURE_STATE_NAME;
-        
-        if(HAS_ANIMATION)
-            finalTexturePath += "_" + TEXTURE_ANIMATION_INDEX;
-        finalTexturePath += TEXTURE_SUFFIX;
-        
-        return ResourceLocation.fromNamespaceAndPath(NAMESPACE, finalTexturePath);
-    }
-    //endregion
+    public final @NotNull ResourceLocation getTextureLocation(@NotNull T entity)
+        { return CrispDefUtils.getModNamespacedLocation("No longer works for this renderer. See #getTextureLocation(T, FacingPair)."); }
     
-    //  region
-    //* Abstract parameter getters
-    protected abstract @NotNull String getNamespace();
     protected abstract @NotNull String getTextureName();
-    protected abstract @NotNull String getAltTextureName();
+    protected @NotNull String getAltTextureName() { return "dark"; }
     
-    protected abstract int getAnimationDurationTicks();
-    protected abstract int getTotalAnimationFrames();
+    protected int getAnimationDurationTicks() { return DEFAULT_ANIMATION_DURATION_TICKS; }
+    protected int getTotalAnimationFrames() { return DEFAULT_ANIMATION_FRAMES_IN_TOTAL; }
     
-    protected abstract float getTorchScale();
+    protected float getTorchScale() { return STANDARD_TORCH_SCALE; }
     
-    protected abstract boolean hasAnimation();
-    protected abstract boolean hasStateVariation();
-    //endregion
+    protected boolean hasAnimation() { return true; }
+    protected boolean hasStateVariation() { return true; }
+    
+    protected enum HorizontalFacing
+    {
+        FRONT,
+        SIDE;
+        
+        private final String alias;
+        
+        HorizontalFacing() { this.alias = this.name().toLowerCase(); }
+        
+        public @NotNull String getAlias() { return this.alias; }
+    }
+    
+    protected enum VerticalFacing
+    {
+        DIRECT,
+        TILT,
+        TOP,
+        BOTTOM;
+        
+        private final String alias;
+        
+        VerticalFacing() { this.alias = this.name().toLowerCase(); }
+        
+        public @NotNull String getAlias() { return this.alias; }
+    }
+    
+    protected record FacingPair(@NotNull HorizontalFacing horizontalFacing, @NotNull VerticalFacing verticalFacing, boolean flipHorizontal) { }
 }

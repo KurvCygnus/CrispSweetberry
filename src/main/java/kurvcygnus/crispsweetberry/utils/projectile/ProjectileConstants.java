@@ -1,8 +1,8 @@
-package kurvcygnus.crispsweetberry.utils.definitions;
+package kurvcygnus.crispsweetberry.utils.projectile;
 
 public final class ProjectileConstants
 {
-    private ProjectileConstants() { throw new IllegalAccessError(); }
+    private ProjectileConstants() { throw new IllegalAccessError("Class \"ProjectileConstants\" is not meant to be instantized!"); }
     
     public static final float PROJECTILE_SHOOT_Z_POS = 0.0F;
     public static final double X_NO_SPEED = 0.0D;

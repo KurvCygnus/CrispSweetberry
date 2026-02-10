@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 
 public final class CrispClientLiterals
 {
-    private CrispClientLiterals() { throw new IllegalAccessError(); }
+    private CrispClientLiterals() { throw new IllegalAccessError("Class \"CrispClientLiterals\" is not meant to be instantized!"); }
     
     @AutoI18n({
         "en_us -> Crisp Sweetberry-In Game Keymappings",

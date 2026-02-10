@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
@@ -37,9 +36,9 @@ public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporar
         )
     );
     
-    public AbstractTemporaryWallTorchBlock(@NotNull SimpleParticleType torchParticle, @NotNull Properties properties, @NotNull T behavior)
+    public AbstractTemporaryWallTorchBlock(@NotNull Properties properties, @NotNull T behavior)
     {
-        super(torchParticle, properties, behavior, true);
+        super(properties, behavior, true);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
     
