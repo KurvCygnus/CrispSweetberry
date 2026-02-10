@@ -8,6 +8,7 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -18,7 +19,7 @@ public final class TemporaryTorchBlock extends AbstractTemporaryTorchBlock<Tempo
 {
     private TemporaryTorchBlock(@Nullable Properties properties) { this(); }
     
-    public TemporaryTorchBlock() { super(BASIC_TEMP_TORCH_PROPERTIES, new TemporaryTorchBehavior(TTorchRegistries.TEMPORARY_TORCH.get())); }
+    public TemporaryTorchBlock() { super(BASIC_TEMP_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_TORCH))); }
     
     @Override
     protected void addExtraBlockStateDefinition(@NotNull StateDefinition.Builder<Block, BlockState> builder) {}

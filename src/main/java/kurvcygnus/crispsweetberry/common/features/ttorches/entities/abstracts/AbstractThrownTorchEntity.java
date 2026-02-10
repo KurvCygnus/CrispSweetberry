@@ -13,7 +13,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -71,11 +70,11 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     private static final double OFFSET_CALCULATE_CONSTANT = 0.5;
     
-    private static final SimpleParticleType[] DEFAULT_LONGER_PARTICLE_STATE_LIST = { ParticleTypes.DRIPPING_WATER, ParticleTypes.SMALL_FLAME, ParticleTypes.FLAME };
+    private static final ParticleOptions[] DEFAULT_LONGER_PARTICLE_STATE_LIST = { ParticleTypes.DRIPPING_WATER, ParticleTypes.SMALL_FLAME, ParticleTypes.FLAME };
     
     public static final EntityDataAccessor<Integer> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.INT);
     
-    protected final Map<Integer, SimpleParticleType> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
+    protected final Map<Integer, ParticleOptions> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
     
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder)
@@ -142,12 +141,30 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     {
         super.tick();
         
-        if(!this.level().isClientSide && shouldCheckLiquids())
+        final Level level = this.level();
+        
+        if(!level.isClientSide)
         {
-            if(this.isInLava())
-                changeTier(TIER_WILD, SoundEvents.LAVA_EXTINGUISH);
-            else if(this.isInWater())
-                changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
+            if(shouldCheckLiquids())
+            {
+                if(this.isInLava())
+                    changeTier(TIER_WILD, SoundEvents.LAVA_EXTINGUISH);
+                else if(this.isInWater())
+                    changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
+            }
+            
+            if(!this.isInLiquid())
+            {
+                final BlockState blockState = level.getBlockState(this.getOnPos());
+                
+                if(!blockState.is(Blocks.AIR) || blockState.is(TTorchRegistries.FAKE_LIGHT_BLOCK))
+                    return;
+                
+                final BlockState light = TTorchRegistries.FAKE_LIGHT_BLOCK.value().defaultBlockState().
+                    setValue(LIGHT_PROPERTY, getTier() == TIER_GONE ? TTorchConstants.LightState.DARK : TTorchConstants.LightState.FULL_BRIGHT);
+                
+                level.setBlockAndUpdate(this.getOnPos(), light);
+            }
         }
         else
         {
@@ -276,7 +293,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                 final double offsetY = this.random.nextDouble() * OFFSET_CALCULATE_CONSTANT;
                 final double offsetZ = (this.random.nextDouble() - OFFSET_CALCULATE_CONSTANT) * OFFSET_CALCULATE_CONSTANT;
                 
-                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, TTorchRegistries.THROWABLE_TORCH.value().getDefaultInstance()),
+                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, getDefaultItem().getDefaultInstance()),
                     this.getX() + offsetX,
                     this.getY() + offsetY,
                     this.getZ() + offsetZ,
@@ -313,9 +330,9 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         );
     }
     
-    private @NotNull Map<Integer, SimpleParticleType> processLongerParticleStateList(SimpleParticleType @NotNull ... states)
+    private @NotNull Map<Integer, ParticleOptions> processLongerParticleStateList(ParticleOptions @NotNull ... states)
     {
-        final Map<Integer, SimpleParticleType> longerParticleStateList = new HashMap<>();
+        final Map<Integer, ParticleOptions> longerParticleStateList = new HashMap<>();
         
         for(int index = 0; index < LONGER_PARTICLE_STATES; index++)
             longerParticleStateList.put(index, states[index]);
@@ -339,8 +356,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     //endregion
     
     //  region
-    //* Abstracts parameter getters
-    protected @NotNull SimpleParticleType[] getLongerParticleStateList() { return DEFAULT_LONGER_PARTICLE_STATE_LIST; }
+    //* Parameter getters
+    protected @NotNull ParticleOptions[] getLongerParticleStateList() { return DEFAULT_LONGER_PARTICLE_STATE_LIST; }
     
     protected int getLongerParticleFrequency() { return DEFAULT_LONGER_PARTICLE_FREQUENCY; }
     protected int getShorterParticleFrequency() { return DEFAULT_SHORTER_PARTICLE_FREQUENCY; }

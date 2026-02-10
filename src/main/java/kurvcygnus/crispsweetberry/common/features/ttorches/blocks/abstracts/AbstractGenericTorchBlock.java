@@ -78,15 +78,19 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
         this.addExtraBlockStateDefinition(builder);
     }
     
+    @Override
     protected final void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
         { this.behavior.onPlace(state, level, pos, oldState); }
     
+    @Override
     protected final void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
         { this.behavior.tick(oldState, level, pos, random); }
     
+    @Override
     public final void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
         { this.behavior.animateTick(state, level, pos, isWallTorch); }
     
+    @Override
     protected final @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
         @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
             { return this.behavior.useItemOn(stack, state, level, pos, player, hand); }

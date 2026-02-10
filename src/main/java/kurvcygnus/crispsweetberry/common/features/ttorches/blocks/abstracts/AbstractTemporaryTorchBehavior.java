@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -32,18 +33,19 @@ import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
 public abstract class AbstractTemporaryTorchBehavior
 {
-    private final AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior> torchBlock;
+    private AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior> torchBlock = null;
+    private final Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazy;
     private boolean isStateLengthLegal = false;
     
-    public <T extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> AbstractTemporaryTorchBehavior(@NotNull T torchBlock) 
+    public AbstractTemporaryTorchBehavior(@NotNull Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazy) 
     {
-        Objects.requireNonNull(torchBlock, "Param \"torchBlock\" must not be null!");
-        this.torchBlock = torchBlock;
+        Objects.requireNonNull(lazy, "Param \"lazy\" must not be null!");
+        this.lazy = lazy;
     }
     
     public void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState)
     {
-        final int stateLength = this.torchBlock.getStateLength();
+        final int stateLength = this.getTorchBlock().getStateLength();
         
         if(!isStateLengthLegal)
         {
@@ -58,13 +60,13 @@ public abstract class AbstractTemporaryTorchBehavior
         if(state.is(oldState.getBlock()))
             return;
         
-        level.scheduleTick(pos, this.torchBlock, stateLength);
+        level.scheduleTick(pos, this.getTorchBlock(), stateLength);
     }
     
     public @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
         @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand)
             {
-                if(!isRelitable() || torchBlock.isStillBright(state))
+                if(!isRelitable() || this.getTorchBlock().isStillBright(state))
                     return ItemInteractionResult.FAIL;
                 
                 final Item itemInHand = stack.getItem();
@@ -109,12 +111,12 @@ public abstract class AbstractTemporaryTorchBehavior
             level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, SoundConstants.NORMAL_SOUND_PITCH);
         }
         else
-            level.addParticle(torchBlock.getSubTorchParticle(), pos.getX(), pos.getY(), pos.getZ(),
+            level.addParticle(this.getTorchBlock().getSubTorchParticle(), pos.getX(), pos.getY(), pos.getZ(),
                 X_NO_SPEED, verticalParticleSpeed, Z_NO_SPEED
             );
         
         //* Wait for next state's change.
-        level.scheduleTick(pos, this.torchBlock, torchBlock.getStateLength());
+        level.scheduleTick(pos, this.getTorchBlock(), this.getTorchBlock().getStateLength());
     }
     
     public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, boolean isWallTorch)
@@ -138,9 +140,9 @@ public abstract class AbstractTemporaryTorchBehavior
         
         if(level.isClientSide)
         {
-            if(torchBlock.isStillBright(state))
-                level.addParticle(torchBlock.getTorchParticle(), xPos, yPos, zPos, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
-            level.addParticle(torchBlock.getSubTorchParticle(), xPos, yPos, zPos, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
+            if(this.getTorchBlock().isStillBright(state))
+                level.addParticle(this.getTorchBlock().getTorchParticle(), xPos, yPos, zPos, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
+            level.addParticle(this.getTorchBlock().getSubTorchParticle(), xPos, yPos, zPos, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
         }
     }
     
@@ -150,6 +152,17 @@ public abstract class AbstractTemporaryTorchBehavior
             stack.canPerformAction(ItemAbilities.FIRESTARTER_LIGHT) ||
             itemInHand instanceof FlintAndSteelItem ||
             itemInHand instanceof FireChargeItem;
+    }
+    
+    private AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior> getTorchBlock()
+    {
+        if(torchBlock == null)
+        {
+            this.torchBlock = this.lazy.get();
+            return this.torchBlock;
+        }
+        
+        return this.torchBlock;
     }
     
     protected abstract boolean isRelitable();

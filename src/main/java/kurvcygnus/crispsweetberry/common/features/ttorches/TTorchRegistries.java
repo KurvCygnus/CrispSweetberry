@@ -1,6 +1,7 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity;
@@ -51,8 +52,8 @@ public enum TTorchRegistries implements IRegistrant
     private static final DeferredRegister<EntityType<?>> THROWN_TORCH_REGISTER = DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.NAMESPACE);
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(
-        THROWABLE_TORCH_REGISTER,
         TEMPORARY_TORCH_REGISTER,
+        THROWABLE_TORCH_REGISTER,
         THROWN_TORCH_REGISTER
     );
     
@@ -74,6 +75,16 @@ public enum TTorchRegistries implements IRegistrant
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_wall_torch", 
         resourceLocation -> new TemporaryWallTorchBlock()
+    );
+    
+    @AutoI18n({
+        "en_us -> UwU",
+        "lol_us -> OwO",
+        "zh_cn -> QAQ"
+    })
+    public static final Holder<Block> FAKE_LIGHT_BLOCK = TEMPORARY_TORCH_REGISTER.register(
+        "fake_light_block",
+        resourceLocation -> new FakeLightBlock()
     );
     
     @RegisterToTab
