@@ -104,9 +104,7 @@ public final class SpyglassQuickZoomEvent
         if(instance.gameMode == null || player == null)
             return;
         
-        if(player.isUsingItem() && 
-            player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SpyglassItem &&
-            !(player.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof SpyglassItem))
+        if(player.isUsingItem() && player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SpyglassItem)
                 return;//! No repeat use.
         
         hotkeyPressed = SPYGLASS_ZOOM.isDown();
@@ -114,7 +112,7 @@ public final class SpyglassQuickZoomEvent
         hasSpyglass = player.getInventory().offhand.getFirst().is(Items.SPYGLASS) ||//! Slot match should be the later one, because it brings more performance penalty.
             player.getInventory().findSlotMatchingItem(Items.SPYGLASS.getDefaultInstance()) != NAN;
         
-        if(hotkeyPressed)
+        if(isZooming())
             switch(zoomState)
             {
                 case IDLE ->

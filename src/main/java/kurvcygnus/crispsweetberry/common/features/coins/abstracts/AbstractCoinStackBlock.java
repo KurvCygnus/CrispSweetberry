@@ -55,7 +55,7 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
     {
         super(Properties.of().
             strength(coinType.getStrength()).//! Oh my god, Minecraft API is terrible.
-            sound(initSound()).
+            sound(SoundType.CHAIN).
             isViewBlocking(getViewBlockingCondition()).
             pushReaction(PushReaction.DESTROY).//* "pushAction" stands for piston pushing.
             noOcclusion()//* This makes sure that the unfilled area is still transparent.
@@ -86,8 +86,6 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
     
     protected static @NotNull BlockBehaviour.StatePredicate getViewBlockingCondition()
         { return (state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8; }
-    
-    protected static SoundType initSound() { return SoundType.DRIPSTONE_BLOCK; }
     
     public final @NotNull C getCoinType() { return this.coinType; }
 }

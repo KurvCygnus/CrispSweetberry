@@ -86,6 +86,11 @@ public enum TTorchRegistries implements IRegistrant
         resourceLocation -> new TemporaryWallTorchBlock()
     );
     
+    /**
+     * @implNote This is not supposed to be appeared in game.<br>
+     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on 
+     * <u>{@link BlockItem}</u>, that's why we still implemented this.
+     */
     @AutoI18n({
         "en_us -> Thrown Torch",
         "lol_us -> fullee lite stik",
@@ -95,6 +100,11 @@ public enum TTorchRegistries implements IRegistrant
         () -> new BlockItem(TEMPORARY_TORCH.value(), new Item.Properties())
     );
     
+    /**
+     * @implNote This is not supposed to be appeared in game.<br>
+     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
+     * <u>{@link BlockItem}</u>, that's why we still implemented this.
+     */
     @AutoI18n({
         "en_us -> Thrown Torch",
         "lol_us -> fullee lite stik",
