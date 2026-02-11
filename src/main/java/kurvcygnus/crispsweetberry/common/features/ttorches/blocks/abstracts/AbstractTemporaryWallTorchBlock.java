@@ -69,9 +69,6 @@ public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporar
     }
     
     @Override
-    public final @NotNull String getDescriptionId() { return this.asItem().getDescriptionId(); }
-    
-    @Override
     protected final @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
         { return COLLUSION_BOX.get(state.getValue(FACING)); }
     

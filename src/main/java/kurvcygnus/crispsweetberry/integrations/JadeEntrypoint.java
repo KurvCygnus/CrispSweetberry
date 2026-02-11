@@ -21,13 +21,12 @@ public final class JadeEntrypoint implements IWailaPlugin
     @Override
     public void register(@NotNull IWailaCommonRegistration registration)
     {
-        //registration.registerBlockDataProvider(new JadeTTorchInfoProviders.BaseTemporaryTorchBlockInfoProvider(), AbstractGenericTorchBlock.class);
     }
     
     @Override
     public void registerClient(@NotNull IWailaClientRegistration registration)
     {
-        //registration.registerBlockComponent(new JadeTTorchInfoProviders.BaseTemporaryTorchBlockInfoProvider(), AbstractGenericTorchBlock.class);
         registration.hideTarget(TTorchRegistries.FAKE_LIGHT_BLOCK.value());
+        registration.hideTarget(TTorchRegistries.THROWN_TORCH.value());
     }
 }

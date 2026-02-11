@@ -24,6 +24,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
@@ -83,6 +84,24 @@ public enum TTorchRegistries implements IRegistrant
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_wall_torch", 
         resourceLocation -> new TemporaryWallTorchBlock()
+    );
+    
+    @AutoI18n({
+        "en_us -> Thrown Torch",
+        "lol_us -> fullee lite stik",
+        "zh_cn -> 投掷火把"
+    })
+    public static final Holder<Item> TEMPO_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_torch", 
+        () -> new BlockItem(TEMPORARY_TORCH.value(), new Item.Properties())
+    );
+    
+    @AutoI18n({
+        "en_us -> Thrown Torch",
+        "lol_us -> fullee lite stik",
+        "zh_cn -> 投掷火把"
+    })
+    public static final Holder<Item> TEMPO_WALL_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_wall_torch", 
+        () -> new BlockItem(TEMPORARY_WALL_TORCH.value(), new Item.Properties())
     );
     
     /**

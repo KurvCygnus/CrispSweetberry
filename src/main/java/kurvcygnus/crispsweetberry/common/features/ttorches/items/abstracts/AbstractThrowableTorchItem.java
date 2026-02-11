@@ -80,14 +80,14 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand)
     {
         final ItemStack itemstack = player.getItemInHand(hand);
-        final float THROW_SOUND_PITCH = 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F);
+        final float throwSoundPitch = 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F);
         
         player.startUsingItem(hand);
         player.swing(hand, true);//! Flag "updateSelf" forces animation to play when the last one hasn't ended, which makes sure anim plays normally.
         
         level.playSound(
             null, player.getX(), player.getY(), player.getZ(),
-            getThrowSound(), SoundSource.NEUTRAL, SoundConstants.QUIET_SOUND_VOLUME, THROW_SOUND_PITCH
+            getThrowSound(), SoundSource.NEUTRAL, SoundConstants.QUIET_SOUND_VOLUME, throwSoundPitch
         );
         
         if(!level.isClientSide)

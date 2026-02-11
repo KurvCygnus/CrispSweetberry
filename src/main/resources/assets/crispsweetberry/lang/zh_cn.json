@@ -8,6 +8,8 @@
   "block.crispsweetberry.gold_coin_stack": "金币堆",
   "block.crispsweetberry.diamond_coin_stack": "钻石币堆",
   
+  "item.crispsweetberry.temporary_torch": "投掷火把",
+  "item.crispsweetberry.temporary_wall_torch": "投掷火把",
   "item.crispsweetberry.throwable_torch": "投掷火把",
   "item.crispsweetberry.carry_crate": "搬运箱",
   "item.crispsweetberry.kiln": "窑炉",

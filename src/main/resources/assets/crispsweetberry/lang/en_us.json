@@ -8,6 +8,8 @@
   "block.crispsweetberry.gold_coin_stack": "Gold Coins",
   "block.crispsweetberry.diamond_coin_stack": "Diamond Coins",
   
+  "item.crispsweetberry.temporary_torch": "Thrown Torch",
+  "item.crispsweetberry.temporary_wall_torch": "Thrown Torch",
   "item.crispsweetberry.throwable_torch": "Throwable Torch",
   "item.crispsweetberry.carry_crate": "Carry Crate",
   "item.crispsweetberry.kiln": "Kiln",
