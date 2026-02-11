@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.qol.spyglass;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -21,21 +29,23 @@ public final class SpyglassClientRegistries
 {
     private static final Logger LOGGER = LogUtils.getLogger();
     
+    private static final String SPYGLASS_DESCRIPTION_KEY = "crispsweetberry.keybind.spyglass_zoom";
+    
     @AutoI18n({
         "en_us -> Spyglass Quick Zoom",
         "lol_us -> I C U KWIKE UwU",
         "zh_cn -> 望远镜快速使用"
     })
-    private static final Component SPYGLASS_DESCRIPTION_TEXT = Component.translatable("crispsweetberry.keybind.spyglass_zoom"); 
+    private static final Component SPYGLASS_DESCRIPTION_TEXT = Component.translatable(SPYGLASS_DESCRIPTION_KEY); 
     
     private SpyglassClientRegistries() { throw new IllegalAccessError(); }
     
     public static final KeyMapping SPYGLASS_ZOOM = new KeyMapping(
-        SPYGLASS_DESCRIPTION_TEXT.getString(),
+        SPYGLASS_DESCRIPTION_KEY,
         KeyConflictContext.IN_GAME,
         InputConstants.Type.KEYSYM,
         GLFW.GLFW_KEY_Z,
-        CrispClientLiterals.CRISP_CONTROL_MENU_CATEGORY.getString()
+        CrispClientLiterals.CRISP_CONTROL_MENU_CATEGORY_KEY
     );
     
     @SubscribeEvent

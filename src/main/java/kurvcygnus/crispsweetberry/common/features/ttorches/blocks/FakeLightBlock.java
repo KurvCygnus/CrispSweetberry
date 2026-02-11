@@ -1,6 +1,15 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
+import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -11,10 +20,22 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.LIGHT_PROPERTY;
 
+/**
+ * A simple invisible block for <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity Thrown Torch}</u>'s 
+ * "dynamic" light.<br><br>
+ * <i>If <u>{@link kurvcygnus.crispsweetberry.integrations.LambDynamicLightsInitializer Lamb Dynamic Light}</u> mod is loaded, this will be disabled and 
+ * use real dynamic light instead.</i>
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see AbstractThrownTorchEntity#tick() Usage
+ */
 public final class FakeLightBlock extends Block
 {
     public FakeLightBlock()
@@ -34,6 +55,10 @@ public final class FakeLightBlock extends Block
     public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.INVISIBLE; }
     
     @Override
+    protected @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
+        { return Shapes.empty(); }
+    
+    @Override
     public float getShadeBrightness(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos) { return 1F; }
     
     @Override
@@ -45,7 +70,7 @@ public final class FakeLightBlock extends Block
         if(state.is(oldState.getBlock()))
             return;
         
-        level.scheduleTick(pos, this, 1);
+        level.scheduleTick(pos, this, 2);
     }
     
     @Override

@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
 import net.minecraft.core.particles.ParticleTypes;
@@ -62,6 +70,10 @@ public final class TTorchConstants
     public static final int TEXTURE_INDEX_CORRECTION_STD = 1;
     public static final int DEFAULT_ANIMATION_DURATION_TICKS = 1;
     public static final int DEFAULT_ANIMATION_FRAMES_IN_TOTAL = 8;
+    //endregion
+    
+    //  region
+    //*:=== Entity Constants
     //endregion
     
     //  region

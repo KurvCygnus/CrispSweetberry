@@ -1,4 +1,4 @@
-![Mod Title.png](Mod%20Title.png)
+![Mod Title.png](mod_title.png)
 
 # **Crisp Sweetberry**
 
@@ -119,7 +119,14 @@ Every contributor is an important part of the community.
 
 ## License
 
-*The open-source license will be finalized before the first public release.*
+This project is licensed under the **GNU Lesser General Public License v3.0** (LGPLv3).
+
+- You are free to use, study, and share the mod.
+- You can develop extensions or add-ons (as libraries) without being forced to open-source your own private code, as
+  long as you don't modify the core files of Crisp Sweetberry itself.
+- If you modify and redistribute Crisp Sweetberry's source code, those changes must also be licensed under LGPLv3.
+
+For the full license text, please refer to the [LICENSE](LICENSE.txt) file in the repository.
 
 ---
 

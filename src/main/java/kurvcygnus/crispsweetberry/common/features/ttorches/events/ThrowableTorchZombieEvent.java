@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
@@ -62,11 +70,11 @@ final class ThrowableTorchZombieEvent
                 default -> count = random.nextInt(3) + 1;
             }
             
-            final ItemStack tTorch = TTorchRegistries.THROWABLE_TORCH.value().getDefaultInstance();
+            final ItemStack throwableTorch = TTorchRegistries.THROWABLE_TORCH.value().getDefaultInstance();
             
-            tTorch.setCount(count);
+            throwableTorch.setCount(count);
             
-            zombie.setItemInHand(InteractionHand.MAIN_HAND, tTorch);
+            zombie.setItemInHand(InteractionHand.MAIN_HAND, throwableTorch);
             zombie.setDropChance(EquipmentSlot.MAINHAND, 1F);
         }
     }

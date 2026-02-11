@@ -6,22 +6,21 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums;
+package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import org.jetbrains.annotations.ApiStatus;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
- * An internal enum used bu <u>{@link KilnBlockEntity}</u>.<br>
- * It is used to determine the final <u>{@link KilnBlockEntity.ProcessionState ProcessionState}</u> of <u>{@link KilnBlockEntity}</u>.
+ * This handles the lifecycle-related extensions method for <u>{@link AbstractGenericTorchBlock}</u>.
  * @since 1.0 Release
  * @author Kurv Cygnus
- * @see KilnBlockEntity BlockEntity
+ * @see AbstractGenericTorchBlock
+ * @see ITemporaryTorchVisualExtendsions Visual Extensions
  */
-@ApiStatus.Internal
-public enum InputState
+public interface ITemporaryTorchLifecycleExtensions
 {
-    ALL_EMPTY,
-    HAS_TIP,
-    VALID
+    @Range(from = 0, to = Integer.MAX_VALUE) int getStateLength();
+    boolean isStillBright(@NotNull BlockState state);
 }

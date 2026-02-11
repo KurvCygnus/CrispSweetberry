@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
@@ -22,9 +30,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
+import snownee.jade.api.IWailaClientRegistration;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * This registers everything that relates to throwable torch series.<br>
@@ -77,6 +85,10 @@ public enum TTorchRegistries implements IRegistrant
         resourceLocation -> new TemporaryWallTorchBlock()
     );
     
+    /**
+     * This block is hidden in jade's display.
+     * @see kurvcygnus.crispsweetberry.integrations.JadeEntrypoint#registerClient(IWailaClientRegistration) Hidden Implementation
+     */
     @AutoI18n({
         "en_us -> UwU",
         "lol_us -> OwO",
@@ -98,7 +110,6 @@ public enum TTorchRegistries implements IRegistrant
         resourceLocation -> new ThrowableTorchItem()
     );
     
-    @RegisterToTab
     @AutoI18n({
         "en_us -> Throwable Redstone Torch",
         "lol_us -> lite stewberi stik",
@@ -115,7 +126,7 @@ public enum TTorchRegistries implements IRegistrant
         "zh_ch -> 投掷火把"
     })
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownTorchEntity>> THROWN_TORCH = 
-        buildThrownTorch(ThrownTorchEntity::new, "thrown_torch");
+        getTypeHolder("thrown_torch", ThrownTorchEntity::new);
     
     @AutoI18n({
         "en_us -> Thrown Redstone Torch",
@@ -123,20 +134,16 @@ public enum TTorchRegistries implements IRegistrant
         "zh_ch -> 红石投掷火把"
     })
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownRedstoneTorchEntity>> THROWN_REDSTONE_TORCH = 
-        buildThrownTorch(ThrownRedstoneTorchEntity::new, "thrown_redstone_torch");
+        getTypeHolder("thrown_redstone_torch", ThrownRedstoneTorchEntity::new);
     
-    private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>> buildThrownTorch
-        (EntityType.EntityFactory<T> entityFactory, @NotNull String key)
-            {
-                Objects.requireNonNull(entityFactory, "Param \"entityFactory\" must not be null!");
-                Objects.requireNonNull(key, "Param \"key\" must not be null!");
-                
-                return THROWN_TORCH_REGISTER.register(
-                    key,
-                    () -> EntityType.Builder.of(entityFactory, MobCategory.MISC).
-                    sized(0.25F, 0.25F).
-                    updateInterval(10).
-                    noSummon().
-                    build(key));
-            }
+    private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>>
+    getTypeHolder(@NotNull String id, @NotNull EntityType.EntityFactory<T> factory)
+    {
+        return THROWN_TORCH_REGISTER.register(id, () -> EntityType.Builder.of(factory, MobCategory.MISC).
+                sized(0.25F, 0.25F).
+                updateInterval(10).
+                noSummon().
+                build(id)
+        );
+    }
 }

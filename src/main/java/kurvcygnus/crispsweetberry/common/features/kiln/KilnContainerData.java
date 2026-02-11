@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
@@ -24,42 +32,37 @@ public final class KilnContainerData implements ContainerData
     
     private final KilnBlockEntity kiln;
     
-    public KilnContainerData(KilnBlockEntity blockEntity) { this.kiln = blockEntity; }
+    public KilnContainerData(KilnBlockEntity kiln) { this.kiln = kiln; }
     
     /**
      * <b>Returns</b> the value of <b>the field specified by the index</b>.
-     *
-     * @param p_58431_ The field index<i>(obfuscated vanilla variable, likely <b></i>{@code dataIndex}</b><i>)</i>.
      * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity Variable Source
      */
     @Override
-    public int get(int p_58431_)
+    public int get(int index)
     {
-        return (int) switch(p_58431_)
+        return (int) switch(index)
         {
             case VISUAL_PROGRESS_INDEX -> kiln.model.getVisualProgress() * 10000;
             case PROGRESS_TREND_INDEX -> kiln.model.getProgressTrendIndex();
             case IGNITION_STATE_INDEX -> kiln.model.getIgnitionState();
-            default -> throw new IllegalArgumentException("Illegal value for p_58431_: " + p_58431_);
+            default -> throw new IllegalArgumentException("Illegal value for index: " + index);
         };
     }
     
     /**
      * <b>Sets</b> the value of <b>the field specified by the index</b>.
-     *
-     * @param p_58433_ The field index<i>(likely <b></i>{@code dataIndex}<i></b>)</i>
-     * @param p_58434_ The value to set
-     * @apiNote For progress cases, make sure the value of {@code p_58434_} is 10000 times size of the actual value.
+     * @apiNote For progress cases, make sure the value of {@code value} is 10000 times size of the actual value.
      */
     @Override
-    public void set(int p_58433_, int p_58434_)
+    public void set(int index, int value)
     {
-        switch(p_58433_)
+        switch(index)
         {
-            case VISUAL_PROGRESS_INDEX -> kiln.model.setVisualProgress((double) p_58434_ / 10000);
-            case PROGRESS_TREND_INDEX -> kiln.model.setProgressTrend(VisualTrend.toEnum(p_58434_));
-            case IGNITION_STATE_INDEX -> kiln.model.setIgnitionState(p_58434_);
-            default -> throw new IllegalArgumentException("Illegal value for p_58433_: " + p_58433_);
+            case VISUAL_PROGRESS_INDEX -> kiln.model.setVisualProgress((double) value / 10000);
+            case PROGRESS_TREND_INDEX -> kiln.model.setProgressTrend(VisualTrend.values()[value]);
+            case IGNITION_STATE_INDEX -> kiln.model.setIgnitionState(value);
+            default -> throw new IllegalArgumentException("Illegal value for index: " + index);
         }
     }
     

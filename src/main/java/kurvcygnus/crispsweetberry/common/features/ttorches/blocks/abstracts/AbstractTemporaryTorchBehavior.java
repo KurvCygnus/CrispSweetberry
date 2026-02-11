@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
@@ -18,6 +26,7 @@ import net.minecraft.world.item.FlintAndSteelItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.util.Lazy;
@@ -31,25 +40,42 @@ import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL
 import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
 import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
+/**
+ * This is an universal behavior component, which can be used both for <u>{@link AbstractTemporaryTorchBlock}</u> and <u>{@link AbstractTemporaryWallTorchBlock}</u>.
+ * <br>
+ * It'll determine the behavior automatically based on <u>{@link #torchBlock}</u>'s flag, {@code isWallTorch}.
+ * @implNote Since Minecraft is lifecycle-sensitive, directly use <u>{@link #torchBlock}</u> will end up getting a <u>{@link NullPointerException NPE}</u>, 
+ * so we used <u>{@link Lazy}</u> to avoid this.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see AbstractGenericTorchBlock Basic Torch Abstraction
+ * @see AbstractTemporaryTorchBlock Floor Torch implementation
+ * @see AbstractTemporaryWallTorchBlock Wall Torch implementation
+ */
 public abstract class AbstractTemporaryTorchBehavior
 {
     private AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior> torchBlock = null;
-    private final Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazy;
+    private final Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazyTorchBlock;
     private boolean isStateLengthLegal = false;
     
-    public AbstractTemporaryTorchBehavior(@NotNull Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazy) 
+    public AbstractTemporaryTorchBehavior(@NotNull Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazyTorchBlock) 
     {
-        Objects.requireNonNull(lazy, "Param \"lazy\" must not be null!");
-        this.lazy = lazy;
+        Objects.requireNonNull(lazyTorchBlock, "Param \"lazy\" must not be null!");
+        this.lazyTorchBlock = lazyTorchBlock;
     }
     
+    /**
+     * @implNote TTorch series' blocks all need burnout behavior. Using <u>{@link net.minecraft.world.level.block.EntityBlock EntityBlock}</u> with 
+     * <u>{@link net.minecraft.world.level.block.entity.BlockEntity BlockEntity}</u> is bad, and more importantly, brings extra performance penalty, 
+     * so we used <u>{@link Level#scheduleTick(BlockPos, Block, int)}</u> instead.
+     */
     public void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState)
     {
         final int stateLength = this.getTorchBlock().getStateLength();
         
         if(!isStateLengthLegal)
         {
-            //noinspection NonStrictComparisonCanBeEquality 
+            //noinspection NonStrictComparisonCanBeEquality
             CrispFunctionalUtils.throwIf(
                 stateLength <= 0,//! Defensive check.
                 () -> new IllegalArgumentException("The state length of tempo torches should be a positive integer! Current length: %d".formatted(stateLength))
@@ -146,7 +172,7 @@ public abstract class AbstractTemporaryTorchBehavior
         }
     }
     
-    private static boolean canLitStuff(@NotNull ItemStack stack, Item itemInHand)
+    protected static boolean canLitStuff(@NotNull ItemStack stack, Item itemInHand)
     {
         return stack.is(ItemTags.CREEPER_IGNITERS) ||
             stack.canPerformAction(ItemAbilities.FIRESTARTER_LIGHT) ||
@@ -154,11 +180,11 @@ public abstract class AbstractTemporaryTorchBehavior
             itemInHand instanceof FireChargeItem;
     }
     
-    private AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior> getTorchBlock()
+    protected AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior> getTorchBlock()
     {
         if(torchBlock == null)
         {
-            this.torchBlock = this.lazy.get();
+            this.torchBlock = this.lazyTorchBlock.get();
             return this.torchBlock;
         }
         

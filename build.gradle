@@ -31,6 +31,7 @@ repositories
         name = "Jared's maven"
         url = "https://maven.blamejared.com/"
     }
+    maven { url = "https://api.modrinth.com/maven" }
 }
 
 base 
@@ -116,10 +117,7 @@ neoForge
         // define mod <-> source bindings
         // these are used to tell the game which sources are for which mod
         // multi mod projects should define one per mod
-        "${mod_id}" 
-        {
-            sourceSet(sourceSets.main)
-        }
+        "${mod_id}" {sourceSet(sourceSets.main)}
     }
 }
 
@@ -156,6 +154,10 @@ dependencies
     compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.25.1.332")
     
     runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.25.1.332")
+    
+    compileOnly("maven.modrinth:jade:15.10.5+neoforge")
+
+    runtimeOnly("maven.modrinth:jade:15.10.5+neoforge")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -177,33 +179,22 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
     from "src/main/templates"
     into "build/generated/sources/modMetadata"
 }
-// Include the output of "generateModMetadata" as an input directory for the build
-// this works with both building through Gradle and the IDE.
+
 sourceSets.main.resources.srcDir generateModMetadata
-// To avoid having to run "generateModMetadata" manually, make it run on every project reload
 neoForge.ideSyncTask generateModMetadata
 
-// Example configuration to allow publishing using the maven-publish plugin
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        maven {
-            url "file://${project.projectDir}/repo"
-        }
-    }
+publishing
+{
+    publications {register('mavenJava', MavenPublication) {from components.java}}
+    repositories {maven {url "file://${project.projectDir}/repo"}}
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
+tasks.withType(JavaCompile).configureEach {options.encoding = 'UTF-8'}
 
-// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
-idea {
-    module {
+idea
+{
+    module
+    {
         downloadSources = true
         downloadJavadoc = true
     }

@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -25,21 +33,31 @@ import java.util.List;
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.*;
 
 /**
- * The <b>basic renderer</b> of all <b>thrown torches</b>.
+ * This is the <b>basic renderer</b> of all <b>thrown torches</b>.<br>
+ * It implements custom <b>DOOM-styled</b> muti-direction billboard sprite rendering for thrown torches.
+ *
  * @param <T> The thrown torch that it renders.
+ * @author Kurv Cygnus
  * @see ThrownTorchRenderer Basic implementation
  * @see ThrowableTorchesRendererRegisterEvent Registry
  * @since 1.0 Release
- * @author Kurv Cygnus
  */
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchEntity> extends EntityRenderer<T>
 {
+    private static final int HORIZONTAL_SIDE_DIRECTION_INDEX = -1;
+    
     private static final CrispIntRanger FRONT_GROUP_1 = CrispIntRanger.closed(0, 45);
     private static final CrispIntRanger FRONT_GROUP_2 = CrispIntRanger.openClosed(315, 360);
     private static final CrispIntRanger FLIPPED_FRONT_GROUP = CrispIntRanger.openClosed(135, 225);
     
     private static final List<CrispIntRanger> HORIZONTAL_FRONT_RANGERS = List.of(FRONT_GROUP_1, FRONT_GROUP_2, FLIPPED_FRONT_GROUP);
+    
+    private static final int VERTICAL_TOP_RANGE_INDEX = 0;
+    private static final int VERTICAL_BOTTOM_RANGE_INDEX = 1;
+    private static final int VERTICAL_UPPER_TILT_RANGE_INDEX = 2;
+    private static final int VERTICAL_DOWNER_TILT_RANGE_INDEX = 3;
+    private static final int VERTICAL_DIRECT_RANGE_INDEX = 4;
     
     private static final CrispIntRanger VERTICAL_TOP_RANGE = CrispIntRanger.closed(45, 90);
     private static final CrispIntRanger VERTICAL_BOTTOM_RANGE = CrispIntRanger.closed(-90, 45);
@@ -56,6 +74,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     );
     
     public AbstractThrownTorchRenderer(@NotNull EntityRendererProvider.Context context) { super(context); }
+    
     @Override
     public void render(@NotNull T entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight)
     {
@@ -71,10 +90,10 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         final PoseStack.Pose lastPose = poseStack.last();
         final Matrix4f poseMatrix = lastPose.pose();
         
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 0, 0, 1, relativeFacing.flipHorizontal);
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1.0F, 0, 1, 1, relativeFacing.flipHorizontal);
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1.0F, 1, 1, 0, relativeFacing.flipHorizontal);
-        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0.0F, 1, 0, 0, relativeFacing.flipHorizontal);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0, 0, 0, 1, relativeFacing.flipHorizontal);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1, 0, 1, 1, relativeFacing.flipHorizontal);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1, 1, 1, 0, relativeFacing.flipHorizontal);
+        createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0, 1, 0, 0, relativeFacing.flipHorizontal);
         
         poseStack.popPose();
         
@@ -98,7 +117,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         final HorizontalFacing horizontalFacing;
         final boolean flipHorizontal;
         
-        if(CrispIntRanger.inRangers(relativeYaw, HORIZONTAL_FRONT_RANGERS) != -1)
+        if(CrispIntRanger.inRangers(relativeYaw, HORIZONTAL_FRONT_RANGERS) != HORIZONTAL_SIDE_DIRECTION_INDEX)
         {
             horizontalFacing = HorizontalFacing.FRONT;
             flipHorizontal = false;
@@ -123,28 +142,33 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         
         switch(CrispIntRanger.inRangers(relativeVerticalDegree, VERTICAL_DIRECTION_RANGERS))
         {
-            case 0 -> verticalFacing = VerticalFacing.TOP;
-            case 1 -> verticalFacing = VerticalFacing.BOTTOM;
-            case 2, 3 -> verticalFacing = VerticalFacing.TILT;
-            case 4 -> verticalFacing = VerticalFacing.DIRECT;
+            case VERTICAL_TOP_RANGE_INDEX -> verticalFacing = VerticalFacing.TOP;
+            case VERTICAL_BOTTOM_RANGE_INDEX -> verticalFacing = VerticalFacing.BOTTOM;
+            case VERTICAL_UPPER_TILT_RANGE_INDEX, VERTICAL_DOWNER_TILT_RANGE_INDEX -> verticalFacing = VerticalFacing.TILT;
+            case VERTICAL_DIRECT_RANGE_INDEX -> verticalFacing = VerticalFacing.DIRECT;
             default -> throw new IllegalArgumentException("Get a impossible degree value: %d".formatted(relativeVerticalDegree));
         }
         
         return verticalFacing;
     }
     
-    private static void createVertex(@NotNull VertexConsumer consumer, Matrix4f pose, PoseStack.Pose lastPose, int lightmapUV, float x, int y, int u, int v, boolean flip)
-    {
-        final float correctedU = flip ? (1.0F - (float) u) : (float) u;
-        
-        consumer.addVertex(pose, x - 0.5F, (float) y - 0.25F, 0.0F).
-            setColor(255, 255, 255, 255).
-            setUv(correctedU, (float) v).
-            setOverlay(OverlayTexture.NO_OVERLAY).
-            setLight(lightmapUV).
-            setNormal(lastPose, 0.0F, 1.0F, 0.0F);
-    }
+    private static void createVertex(@NotNull VertexConsumer consumer, @NotNull Matrix4f pose, @NotNull PoseStack.Pose lastPose,
+        int lightmapUV, int x, int y, int u, int v, boolean flip)
+            {
+                final float correctedU = flip ? (1.0F - (float) u) : (float) u;
+                
+                consumer.addVertex(pose, x - 0.5F, (float) y - 0.25F, 0.0F).
+                    setColor(255, 255, 255, 255).
+                    setUv(correctedU, (float) v).
+                    setOverlay(OverlayTexture.NO_OVERLAY).
+                    setLight(lightmapUV).
+                    setNormal(lastPose, 0.0F, 1.0F, 0.0F);
+            }
     
+    /**
+     * New method for get throwable throw sprites. It replaces <u>{@link #getTextureLocation(AbstractThrownTorchEntity)}</u> from <u>{@link EntityRenderer}</u>,
+     * as it can't use {@link FacingPair}.
+     */
     protected @NotNull ResourceLocation getTextureLocation(@NotNull T entity, @NotNull FacingPair pair)
     {
         final StringBuilder path = new StringBuilder(BASE_TEXTURE_PATH).append(getTextureName());
@@ -164,19 +188,27 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         return CrispDefUtils.getModNamespacedLocation(path.append(TEXTURE_SUFFIX).toString());
     }
     
-    @Override
+    /**
+     * @deprecated This method can't support the demand of thrown torches' muti-direction sprites.<br>
+     * Use <u>{@link #getTextureLocation(AbstractThrownTorchEntity, FacingPair)}</u> instead.
+     */
+    @Contract(value = "_ -> fail", pure = true) @Override
+    @Deprecated(forRemoval = true)//! Can't be removed actually. This is used to tip for misuse with red errors.
     public final @NotNull ResourceLocation getTextureLocation(@NotNull T entity)
-        { return CrispDefUtils.getModNamespacedLocation("No longer works for this renderer. See #getTextureLocation(T, FacingPair)."); }
+    { throw new IllegalStateException("This is not supposed to be used by thrown torch renderers. Use #getTextureLocation(T, FacingPair) instead."); }
     
     protected abstract @NotNull String getTextureName();
+    
     protected @NotNull String getAltTextureName() { return "dark"; }
     
     protected int getAnimationDurationTicks() { return DEFAULT_ANIMATION_DURATION_TICKS; }
+    
     protected int getTotalAnimationFrames() { return DEFAULT_ANIMATION_FRAMES_IN_TOTAL; }
     
     protected float getTorchScale() { return STANDARD_TORCH_SCALE; }
     
     protected boolean hasAnimation() { return true; }
+    
     protected boolean hasStateVariation() { return true; }
     
     protected enum HorizontalFacing
@@ -205,5 +237,6 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         public @NotNull String getAlias() { return this.alias; }
     }
     
-    protected record FacingPair(@NotNull HorizontalFacing horizontalFacing, @NotNull VerticalFacing verticalFacing, boolean flipHorizontal) { }
+    protected record FacingPair(@NotNull HorizontalFacing horizontalFacing, @NotNull VerticalFacing verticalFacing,
+                                boolean flipHorizontal) { }
 }

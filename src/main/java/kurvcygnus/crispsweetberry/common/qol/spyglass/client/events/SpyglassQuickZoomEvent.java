@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.qol.spyglass.client.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
@@ -96,8 +104,10 @@ public final class SpyglassQuickZoomEvent
         if(instance.gameMode == null || player == null)
             return;
         
-        if(player.isUsingItem() && player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SpyglassItem)
-            return;//! No repeat use.
+        if(player.isUsingItem() && 
+            player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SpyglassItem &&
+            !(player.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof SpyglassItem))
+                return;//! No repeat use.
         
         hotkeyPressed = SPYGLASS_ZOOM.isDown();
         
@@ -133,7 +143,7 @@ public final class SpyglassQuickZoomEvent
     @SubscribeEvent
     static void zoom(@NotNull ComputeFovModifierEvent event)
     {
-        if(zoomState != ZoomState.ZOOMING) 
+        if(!isZooming()) 
             return;
         
         final Minecraft instance = Minecraft.getInstance();

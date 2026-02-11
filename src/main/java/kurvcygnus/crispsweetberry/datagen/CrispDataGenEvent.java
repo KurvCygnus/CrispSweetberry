@@ -1,7 +1,16 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.datagen;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n;
@@ -109,7 +118,7 @@ public final class CrispDataGenEvent
                                 case null, default -> {}
                             }
                         }
-                        case Component component -> key = component.getString();
+                        case Component component -> key = CrispDefUtils.unwrapTextKey(component);
                         default -> throw new IllegalArgumentException(
                             "Key happens to be empty since it matches none of objects that carries key. Current Entry: %s".formatted
                                 (value.getClass().getName())

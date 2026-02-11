@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates;
 
 import com.mojang.logging.LogUtils;
@@ -534,7 +542,9 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             getOrDefault(stackInSlot.getItem(), noRecipeList()).getFirst();
     }
     
-    public ContainerData getData() { return this.data; }
+    public @NotNull ContainerData getData() { return this.data; }
+    
+    public @NotNull NonNullList<ItemStack> getContainerItems() { return this.containerItems; }
     
     private void configDebug(String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_BE_DEBUG.get()).debug(message, args); }
     //endregion

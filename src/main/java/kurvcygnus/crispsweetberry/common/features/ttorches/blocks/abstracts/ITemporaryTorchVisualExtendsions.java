@@ -6,10 +6,21 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
+package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
+
+import net.minecraft.core.particles.ParticleOptions;
+import org.jetbrains.annotations.NotNull;
+
 /**
- * This package contains helpers that generates resources information, like blockstates, model, recipe, etc.
- * <b>It is only used during data generation and MUST NOT be referenced at runtime</b>.
- * @implNote DO NOT add {@link javax.annotation.ParametersAreNonnullByDefault @ParametersAreNonnullByDefault} in package-infos,
- * this will lead to potential issues, errors, and footguns.
+ * This handles the visual-related extension methods for <u>{@link AbstractGenericTorchBlock}</u>.
+ *
+ * @author Kurv Cygnus
+ * @see AbstractGenericTorchBlock
+ * @since 1.0 Release
+ * @see ITemporaryTorchLifecycleExtensions Lifecycle Extensions
  */
-package kurvcygnus.crispsweetberry.datagen;
+public interface ITemporaryTorchVisualExtendsions
+{
+    @NotNull ParticleOptions getTorchParticle();
+    @NotNull ParticleOptions getSubTorchParticle();
+}

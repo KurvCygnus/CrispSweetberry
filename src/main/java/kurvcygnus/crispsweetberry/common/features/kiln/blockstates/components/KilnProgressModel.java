@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import com.mojang.logging.LogUtils;
@@ -5,6 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.en
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -70,6 +79,8 @@ public final class KilnProgressModel
     public double getVisualProgress() { return this.visualProgress; }
     
     public int getProgressTrendIndex() { return this.trend.ordinal(); }
+    
+    public @NotNull VisualTrend getTrend() { return this.trend; }
     
     public int getIgnitionState() { return this.isIgnited ? TRUE : FALSE; }
     

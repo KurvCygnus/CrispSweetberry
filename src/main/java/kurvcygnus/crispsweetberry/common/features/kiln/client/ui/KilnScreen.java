@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants;
@@ -82,7 +90,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         
         final double progress = KilnContainerData.toStandardProgress(menu.data.get(VISUAL_PROGRESS_INDEX));
-        final VisualTrend trend = VisualTrend.toEnum(menu.data.get(PROGRESS_TREND_INDEX));
+        final VisualTrend trend = VisualTrend.values()[menu.data.get(PROGRESS_TREND_INDEX)];
         final boolean isIgnited = KilnContainerData.toStandardIgnitionState(menu.data.get(IGNITION_STATE_INDEX));
         
         if(isIgnited)

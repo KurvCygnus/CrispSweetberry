@@ -1,3 +1,11 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
 import com.mojang.serialization.MapCodec;
@@ -50,11 +58,14 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstant
  *         this impacts synchronization aspect. This class has fixed these issues up.
  *     </li>
  * </ul>
+ * @see AbstractTemporaryTorchBehavior Behavior Abstraction
+ * @see AbstractTemporaryTorchBlock Floor Torch implementation
+ * @see AbstractTemporaryWallTorchBlock Wall Torch implementation
  * @param <T> The detailed behavior of this torch block will bound to.
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorchBehavior> extends TorchBlock implements ITemporaryTorchVisual, ITemporaryTorchLifecycle
+public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorchBehavior> extends TorchBlock implements ITemporaryTorchVisualExtendsions, ITemporaryTorchLifecycleExtensions
 {
     protected final boolean isWallTorch;
     protected final T behavior;

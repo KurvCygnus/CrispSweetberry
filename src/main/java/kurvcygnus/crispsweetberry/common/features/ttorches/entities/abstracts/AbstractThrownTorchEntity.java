@@ -1,13 +1,22 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -41,7 +50,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.mojang.logging.LogUtils.getLogger;
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.LIGHT_PROPERTY;
+import static kurvcygnus.crispsweetberry.utils.log.MarkLogger.markedLogger;
 import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
 
 /**
@@ -54,11 +65,12 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
 {
     //  region
     //* Constants, Fields & Data Basics
-    public static final int TIER_GONE = 0;//* The tier for water contraction, named "GONE" as the fire is gone.
-    public static final int TIER_NORM = 1;//* The tier for standard case, the torch will be this tier as long as nothing special happens.
-    public static final int TIER_WILD = 2;//* The tier for lava contraction, named "WILD" since the fire will go wild as it torches lava.
+    public static final byte TIER_GONE = 0;//* The tier for water contraction, named "GONE" as the fire is gone.
+    public static final byte TIER_NORM = 1;//* The tier for standard case, the torch will be this tier as long as nothing special happens.
+    public static final byte TIER_WILD = 2;//* The tier for lava contraction, named "WILD" since the fire will go wild as it torches lava.
     public static final int HIT_STD_EXTEND_FIRE_TICKS = 30;
     public static final int HIT_STD_MAX_TICKS = 100;
+    
     private static final int LONGER_PARTICLE_STATES = 3;
     private static final int DEFAULT_LONGER_PARTICLE_FREQUENCY = 5;
     private static final int DEFAULT_SHORTER_PARTICLE_FREQUENCY = 3;
@@ -72,9 +84,12 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     private static final ParticleOptions[] DEFAULT_LONGER_PARTICLE_STATE_LIST = { ParticleTypes.DRIPPING_WATER, ParticleTypes.SMALL_FLAME, ParticleTypes.FLAME };
     
-    public static final EntityDataAccessor<Integer> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.INT);
+    //! EntityDataAccessor doesn't support Enum, so we use byte instead.
+    public static final EntityDataAccessor<Byte> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.BYTE);
     
-    protected final Map<Integer, ParticleOptions> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
+    private static final MarkLogger LOGGER = markedLogger(getLogger(), "THROWN_TORCH");
+    
+    protected final Map<Byte, ParticleOptions> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
     
     @Override
     protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder)
@@ -142,36 +157,53 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         super.tick();
         
         final Level level = this.level();
-        
-        if(!level.isClientSide)
+        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("TICK"))
         {
-            if(shouldCheckLiquids())
+            if(!level.isClientSide)
             {
-                if(this.isInLava())
-                    changeTier(TIER_WILD, SoundEvents.LAVA_EXTINGUISH);
-                else if(this.isInWater())
-                    changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
+                if(shouldCheckLiquids())
+                {
+                    try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("LIQUID_CHECK"))
+                    {
+                        if(this.isInLava())
+                        {
+                            LOGGER.debug("In lava. Tier switched to WILD.");
+                            changeTier(TIER_WILD, SoundEvents.LAVA_EXTINGUISH);
+                        }
+                        else if(this.isInWater())
+                        {
+                            LOGGER.debug("In water. Tier switched to GONE.");
+                            changeTier(TIER_GONE, SoundEvents.FIRE_EXTINGUISH);
+                        }
+                    }
+                }
+                
+                if(!this.isInLiquid())
+                {
+                    handle.changeMarker("LIGHT_FUNC");
+                    final BlockState blockState = level.getBlockState(this.getOnPos());
+                    
+                    if(this.onGround() || this.horizontalCollision || this.verticalCollision)
+                        return;
+                    
+                    if(!blockState.is(Blocks.AIR) || blockState.is(TTorchRegistries.FAKE_LIGHT_BLOCK))
+                        return;
+                    
+                    final BlockState light = TTorchRegistries.FAKE_LIGHT_BLOCK.value().defaultBlockState().
+                        setValue(LIGHT_PROPERTY, getTier() == TIER_GONE ? TTorchConstants.LightState.DARK : TTorchConstants.LightState.FULL_BRIGHT);
+                    
+                    LOGGER.debug("Current isn't in any liquid, emulate lighting.");
+                    
+                    level.setBlockAndUpdate(this.getOnPos(), light);
+                }
             }
-            
-            if(!this.isInLiquid())
+            else
             {
-                final BlockState blockState = level.getBlockState(this.getOnPos());
+                displayParticle(getLongerParticleFrequency(), longerParticleStateList.get(getTier()));
                 
-                if(!blockState.is(Blocks.AIR) || blockState.is(TTorchRegistries.FAKE_LIGHT_BLOCK))
-                    return;
-                
-                final BlockState light = TTorchRegistries.FAKE_LIGHT_BLOCK.value().defaultBlockState().
-                    setValue(LIGHT_PROPERTY, getTier() == TIER_GONE ? TTorchConstants.LightState.DARK : TTorchConstants.LightState.FULL_BRIGHT);
-                
-                level.setBlockAndUpdate(this.getOnPos(), light);
+                if(!(getTier() == TIER_GONE && shouldShowNoSmokeWhenBurnedOut()))
+                    displayParticle(getShorterParticleFrequency(), ParticleTypes.SMOKE);
             }
-        }
-        else
-        {
-            displayParticle(getLongerParticleFrequency(), longerParticleStateList.get(getTier()));
-            
-            if(!(getTier() == TIER_GONE && shouldShowNoSmokeWhenBurnedOut()))
-                displayParticle(getShorterParticleFrequency(), ParticleTypes.SMOKE);
         }
     }
     
@@ -183,72 +215,107 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         
         final boolean shouldExtendBurnTicks = entity.getRemainingFireTicks() <= HIT_STD_MAX_TICKS * getTier();
         
-        final int hitResult = shouldCheckFireResistMob() ? 1 :
+        final int hitDamage = shouldCheckFireResistMob() ? 1 :
             (entity instanceof Blaze || entity instanceof MagmaCube || entity instanceof Zoglin) ?
             HIT_RESULT_NO_DAMAGE : HIT_RESULT_DO_DAMAGE;
         
-        if(getTier() != TIER_GONE && hitResult == HIT_RESULT_DO_DAMAGE && shouldExtendBurnTicks && shouldLitMob())
-            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + HIT_STD_EXTEND_FIRE_TICKS * getTier());//OH↑ MY↓ GOD→, I'm fired!!!(＃°Д°)
+        if(getTier() != TIER_GONE && hitDamage == HIT_RESULT_DO_DAMAGE && shouldExtendBurnTicks && shouldLitMob())
+            entity.setRemainingFireTicks(entity.getRemainingFireTicks() + HIT_STD_EXTEND_FIRE_TICKS * getTier());
         
         //! Yes, although the damage might be zero, we still need to do damage to make knockbacks, it's how vanilla works.
-        entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitResult);
+        entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitDamage);
     }
     
-    /**
-     * The variation method of the <b>hit result process</b>, whose target is a <b>block</b>.
-     */
+    @Override
     protected void onHitBlock(@NotNull BlockHitResult result)
     {
         super.onHitBlock(result);
+        
         if(this.level().isClientSide)
             return;
         
-        if(getTier() == TIER_WILD || this.isInLiquid())
+        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("HIT_BLOCK"))
         {
-            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.NORMAL_SOUND_VOLUME);
-            displayDestroyParticle();
-            displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
+            if(getTier() == TIER_WILD || this.isInLiquid())
+            {
+                handle.changeMarker("HIT_FAILURE");
+                playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.NORMAL_SOUND_VOLUME);
+                displayDestroyParticle();
+                displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
+                LOGGER.debug("{}", getTier() == TIER_WILD ?
+                    "Torch is too hot to be placed, shattered instead." :
+                    "Torch is in liquid and can't be placed. Shattered."
+                );
+                
+                return;
+            }
             
-            return;
-        }
-        
-        final BlockPos hitPos = result.getBlockPos();
-        final Direction hitSide = result.getDirection();
-        final @Nullable BlockPos placementPos;
-        
-        switch(hitSide)
-        {
-            case Direction.UP -> placementPos = hitPos.above();
-            case Direction.DOWN -> placementPos = null;
-            default -> placementPos = hitPos.relative(hitSide);
-        }
-        
-        @Nullable BlockState stateToPlace = null;
-        
-        if(hitSide == Direction.UP)
-            stateToPlace = TTorchRegistries.TEMPORARY_TORCH.value().defaultBlockState();
-        else if(hitSide != Direction.DOWN)
-            stateToPlace = TTorchRegistries.TEMPORARY_WALL_TORCH.value().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
-        
-        if(stateToPlace != null && getTier() == TIER_GONE)
-            stateToPlace.setValue(LIGHT_PROPERTY, TTorchConstants.LightState.DARK);
-        
-        if(stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
-            playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
-        else
-        {
-            playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
-            displayDestroyParticle();
+            final BlockPos hitPos = result.getBlockPos();
+            final Direction hitSide = result.getDirection();
+            final @Nullable BlockPos placementPos;
+            final @Nullable BlockState stateToPlace;
+            
+            try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("DIRECTION_PICK"))
+            {
+                switch(hitSide)
+                {
+                    case Direction.UP ->
+                    {
+                        placementPos = hitPos.above();
+                        stateToPlace = TTorchRegistries.TEMPORARY_TORCH.value().defaultBlockState();
+                    }
+                    case Direction.DOWN ->
+                    {
+                        placementPos = null;
+                        stateToPlace = null;
+                    }
+                    default ->
+                    {
+                        placementPos = hitPos.relative(hitSide);
+                        stateToPlace = TTorchRegistries.TEMPORARY_WALL_TORCH.value().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
+                    }
+                }
+                
+                LOGGER.when(placementPos != null).
+                    debug(() -> "Legal Direction & State Confirmed. Direction: {}, State: {}", () -> new Object[] { placementPos, stateToPlace });
+                LOGGER.when(placementPos == null).debug(() -> "Illegal Direction. Both Direction and State are set to null.");
+            }
+            
+            if(stateToPlace != null && getTier() == TIER_GONE)
+            {
+                LOGGER.debug("Torch is dark, the final placed block is also set to dark.");
+                stateToPlace.setValue(LIGHT_PROPERTY, TTorchConstants.LightState.DARK);
+            }
+            
+            if(stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
+                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+            else
+            {
+                playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+                displayDestroyParticle();
+            }
         }
     }
     
     protected boolean tryPlaceTorch(@NotNull BlockState state, @NotNull BlockPos pos)
     {
-        if(!(state.canSurvive(this.level(), pos) && canBeActuallyPlaced(pos)))
-            return false;
-        
-        this.level().setBlockAndUpdate(pos, state);
-        return true;
+        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("PLACE_TORCH"))
+        {
+            if(!(state.canSurvive(this.level(), pos) && canBeActuallyPlaced(pos)))
+            {
+                LOGGER.debug(
+                    "Can't place torch. Placement check fails at {}.",
+                    !state.canSurvive(this.level(), pos) ? 
+                        "the survive check of block itself" :
+                        "method #canBeActuallyPlaced()"
+                );
+                return false;
+            }
+            
+            LOGGER.debug("Placement succeed.");
+            this.level().setBlockAndUpdate(pos, state);
+            return true;
+        }
     }
     
     protected boolean canBeActuallyPlaced(@NotNull BlockPos pos)
@@ -256,15 +323,14 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         final Block posBlock = this.level().getBlockState(pos).getBlock();
         final BlockState posBlockState = this.level().getBlockState(pos);
         
-        if(posBlock instanceof AbstractTemporaryTorchBlock || posBlock instanceof AbstractTemporaryWallTorchBlock &&
-            (posBlockState.getValue(LIGHT_PROPERTY).ordinal() <= TTorchConstants.LightState.DIM.ordinal()))
-        {//* If the state is too dark, of course the torch can be replaced.
+        if(posBlock instanceof AbstractGenericTorchBlock<?> && (posBlockState.getValue(LIGHT_PROPERTY).ordinal() <= TTorchConstants.LightState.DIM.ordinal()))
+        {
             this.level().levelEvent(LEVEL_BLOCK_DESTROY_EVENT_ID, pos, Block.getId(posBlockState));
             return true;
         }
         
         //! If the block isn't a child of Temporary Torches, then check whether the block can be replaced by vanilla tags.
-        return posBlock == Blocks.AIR || posBlockState.is(BlockTags.REPLACEABLE);
+        return posBlock == Blocks.AIR || posBlock instanceof FakeLightBlock || posBlockState.is(BlockTags.REPLACEABLE);
     }
     
     /**
@@ -321,28 +387,28 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         if(this.tickCount % frequency != 0)
             return;
         
-        final double PARTICLE_SPEED = (this.random.nextDouble() * 2.0D - 1.0D) * 0.03D;
+        final double particleSpeed = (this.random.nextDouble() * 2.0D - 1.0D) * 0.03D;
         
         this.level().addParticle(
             particle,
             this.getX(), this.getY(), this.getZ(),
-            PARTICLE_SPEED, PARTICLE_SPEED, PARTICLE_SPEED
+            particleSpeed, particleSpeed, particleSpeed
         );
     }
     
-    private @NotNull Map<Integer, ParticleOptions> processLongerParticleStateList(ParticleOptions @NotNull ... states)
+    private @NotNull Map<Byte, ParticleOptions> processLongerParticleStateList(ParticleOptions @NotNull ... states)
     {
-        final Map<Integer, ParticleOptions> longerParticleStateList = new HashMap<>();
+        final Map<Byte, ParticleOptions> longerParticleStateList = new HashMap<>();
         
         for(int index = 0; index < LONGER_PARTICLE_STATES; index++)
-            longerParticleStateList.put(index, states[index]);
+            longerParticleStateList.put((byte) index, states[index]);
         
         return longerParticleStateList;
     }
     
-    public final int getTier() { return this.getEntityData().get(FIRE_TIER_ID); }
+    public final byte getTier() { return this.getEntityData().get(FIRE_TIER_ID); }
     
-    private void changeTier(int goalTier, @NotNull SoundEvent sound)
+    private void changeTier(byte goalTier, @NotNull SoundEvent sound)
     {
         if(getTier() == goalTier)
             return;

@@ -31,7 +31,7 @@ Welcome to Crisp Sweetberry's basic code style and documentation guidelines! Thi
    For unavoidable API issues (e.g. `datafixer` parameters), `null` will be used, but we recommend it being accompanied by:
 
    ```java
-   @SuppressWarnings("ConstantConditions")//* Reason with explanation...
+   @SuppressWarnings("ConstantConditions")//! Reason with explanation...
    SomeObject.someFunc(null);
    ```
 
@@ -51,8 +51,8 @@ Welcome to Crisp Sweetberry's basic code style and documentation guidelines! Thi
 
    The following tags are strongly recommended:
 
-   * `@since [mod version]`
-   * `@author [your name]`
+   * `@since ${mod version}`
+   * `@author ${your name}`
 
    This is your contribution — take ownership of it.
 
@@ -80,11 +80,14 @@ Welcome to Crisp Sweetberry's basic code style and documentation guidelines! Thi
 
    **This will help everyone to understand the code easier, and faster**.
 
-6. For codes that are not too complicated, espacially the simple inheritance implementation of a class, we don't force you to strictly follow the rules above, except the fifth rule, we believe that code should always be clean and readable. 
+6. For codes that are not too complicated, especially the simple inheritance implementation of a class, we don't force you to strictly follow the rules above, except the fifth rule, we believe that code should always be clean and readable. 
 
-   *Don't forget to leave `@since + [Mod Version]` and `@author + [Your Name]`. This is your contribution!*
+   *Don't forget to leave `@since + ${Mod Version}` and `@author + ${Your Name}`. This is your contribution!*
 
-7. When in doubt in these aspects, the maintainer’s judgment prevails.
+7. Temporary messy code are acceptable, as long as it doesn't break boundaries we have declared in out `package-info`s and its complexity is not serious.
+   However, **any code that breaks any of these boundaries will be directly refused.**
+
+8. When in doubt in these aspects, the maintainer’s judgment prevails.
 
 ## Cooperation Principles
 
