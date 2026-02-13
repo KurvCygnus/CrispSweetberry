@@ -132,18 +132,13 @@ public enum KilnRegistries implements IRegistrant
         "lol_us = big warn bokz",
         "zh_cn = 窑炉"
         },
-        key = "kiln"
+        key = "kiln",
+        group = "csb:kiln"
     )
     public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
     
     @RegisterToTab
-    @AutoI18n(value = {
-        "en_us = Kiln",
-        "lol_us = big warn bokz",
-        "zh_cn = 窑炉"
-        },
-        key = "kiln"
-    )
+    @AutoI18n(key = "kiln", group = "csb:kiln")
     public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register("kiln", resourceLocation ->
         new BlockItem(KILN_BLOCK.value(), new Item.Properties())
     );

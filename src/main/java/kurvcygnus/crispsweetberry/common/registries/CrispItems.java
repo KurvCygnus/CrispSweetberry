@@ -49,11 +49,7 @@ public enum CrispItems implements IRegistrant
     );
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us -> Carry Crate",
-        "lol_us -> hoom",
-        "zh_cn -> 搬运箱"
-    })
+    @AutoI18n(group = "csb:carry_crate")
     public static final Holder<Item> CARRY_CRATE = CRISP_ITEM_REGISTER.register("carry_crate", resourceLocation ->
         new BlockItem(CrispBlocks.CARRY_CRATE.value(), new Item.Properties())
     );

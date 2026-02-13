@@ -35,10 +35,12 @@ public enum CrispBlocks implements IRegistrant
     
     public static final DeferredRegister<Block> CRISP_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
     
-    @AutoI18n({
-        "en_us -> Carry Crate",
-        "lol_us -> hoom",
-        "zh_cn -> 搬运箱"
-    })
+    @AutoI18n(value = {
+        "en_us = Carry Crate",
+        "lol_us = hoom",
+        "zh_cn = 搬运箱"
+        },
+        group = "csb:carry_crate"
+    )
     public static final Holder<Block> CARRY_CRATE = CRISP_BLOCK_REGISTER.register("carry_crate", resourceLocation -> new CarryCrateBlock());
 }

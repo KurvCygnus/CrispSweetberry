@@ -143,7 +143,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     //*:=== Container Basics
     @Override
-    protected @NotNull Component getDefaultName() { return KILN_CONTAINER_TITLE; }
+    protected @NotNull Component getDefaultName() { return CONTAINER__KILN; }
     
     @Override
     protected @NotNull NonNullList<ItemStack> getItems() { return this.containerItems; }

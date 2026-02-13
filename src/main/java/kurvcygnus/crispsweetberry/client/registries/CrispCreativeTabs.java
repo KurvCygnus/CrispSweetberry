@@ -50,7 +50,6 @@ public enum CrispCreativeTabs implements IRegistrant
         CrispDefUtils.getModNamespacedLocation("crisp_tab")
     );
     
-    @SuppressWarnings("unused")
     @AutoI18n(value = {
         "en_us = Crisp Sweetberry",
         "lol_us = TA2TY FRUT",

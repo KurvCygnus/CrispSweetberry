@@ -169,8 +169,8 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
      */
     private static final class KilnInfoWidget extends AbstractWidget
     {
-        static final Tooltip COOLDOWN_TIP = Tooltip.create(KilnConstants.KILN_WIDGET_COOLDOWN_TIP);
-        static final Tooltip BLAST_TIP = Tooltip.create(KilnConstants.KILN_WIDGET_BLAST_TIP);
+        static final Tooltip COOLDOWN_TIP = Tooltip.create(KilnConstants.UI__WIDGET__KILN_INFO_COOLDOWN);
+        static final Tooltip BLAST_TIP = Tooltip.create(KilnConstants.UI__WIDGET__KILN_TIP_BLAST);
         static final Tooltip EMPTY_TIP = Tooltip.create(Component.empty());
         
         private static final int HIGHLIGHT_COLOR = 0x80FFFFFF;

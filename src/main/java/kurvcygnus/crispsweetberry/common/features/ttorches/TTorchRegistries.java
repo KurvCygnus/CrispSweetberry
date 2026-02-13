@@ -66,21 +66,19 @@ public enum TTorchRegistries implements IRegistrant
         THROWN_TORCH_REGISTER
     );
     
-    @AutoI18n({
+    @AutoI18n(value = {
         "en_us = Thrown Torch",
         "lol_us = fullee lite stik",
         "zh_cn = 投掷火把"
-    })
+        },
+        group = "csb:temporary_torch"
+    )
     public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_torch",
         resourceLocation -> new TemporaryTorchBlock()
     );
     
-    @AutoI18n({
-        "en_us = Thrown Torch",
-        "lol_us = fullee lite stik",
-        "zh_cn = 投掷火把"
-    })
+    @AutoI18n(group = "csb:temporary_torch")
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_wall_torch", 
         resourceLocation -> new TemporaryWallTorchBlock()
@@ -91,11 +89,7 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on 
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
-    @AutoI18n({
-        "en_us = Thrown Torch",
-        "lol_us = fullee lite stik",
-        "zh_cn = 投掷火把"
-    })
+    @AutoI18n(group = "csb:temporary_torch")
     public static final Holder<Item> TEMPORARY_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_torch", 
         () -> new BlockItem(TEMPORARY_TORCH.value(), new Item.Properties())
     );
@@ -105,11 +99,7 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
-    @AutoI18n({
-        "en_us = Thrown Torch",
-        "lol_us = fullee lite stik",
-        "zh_cn = 投掷火把"
-    })
+    @AutoI18n(group = "csb:temporary_torch")
     public static final Holder<Item> TEMPORARY_WALL_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_wall_torch", 
         () -> new BlockItem(TEMPORARY_WALL_TORCH.value(), new Item.Properties())
     );
@@ -118,11 +108,13 @@ public enum TTorchRegistries implements IRegistrant
      * This block is hidden in jade's display.
      * @see kurvcygnus.crispsweetberry.integrations.JadeEntrypoint#registerClient(IWailaClientRegistration) Hidden Implementation
      */
-    @AutoI18n({
+    @AutoI18n(value = {
         "en_us = UwU",
         "lol_us = OwO",
         "zh_cn = QAQ"
-    })
+        },
+        group = "csb:lol"
+    )
     public static final Holder<Block> FAKE_LIGHT_BLOCK = TEMPORARY_TORCH_REGISTER.register(
         "fake_light_block",
         resourceLocation -> new FakeLightBlock()

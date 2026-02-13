@@ -34,37 +34,64 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 
+/**
+ * This is the processor of annotation <u>{@link AutoI18n}</u>, it iterates, checks, collects, and finally generates 
+ * the language files.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see AutoI18n Annotation
+ */
 @SupportedAnnotationTypes("kurvcygnus.crispsweetberry.utils.registry.annotations.AutoI18n")
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class I18nProcessor extends AbstractProcessor
 {
-    private static final int HOLDER_INDEX = 0;
-    private static final int ITEM_INDEX = 1;
-    private static final int BLOCK_INDEX = 2;
-    private static final int ENTITY_TYPE_INDEX = 3;
-    private static final int CREATIVE_TAB_INDEX = 4;
-    private static final int ENCHANTMENT_INDEX = 5;
-    private static final int STATUS_EFFECT_INDEX = 6;
-    private static final int ATTRIBUTE_INDEX = 7;
-    private static final int COMPONENT_INDEX = 8;
-    private static final int RESOURCE_LOCATION_INDEX = 9;
-    private static final int SUPPLIER_INDEX = 10;
-    
+    /**
+     * <u>{@link Messager}</u> is the logger of Compile-Time.<br><br>
+     * Different from normal coding, <u>{@link AbstractProcessor annotation processor}</u> can't use loggers because 
+     * context passing issues, and more importantly, <u>{@link Messager#printMessage(Diagnostic.Kind, CharSequence)}</u> can 
+     * terminate compile and throw error when <u>{@link javax.tools.Diagnostic.Kind Diagnostic Kind}</u> is <u>{@link javax.tools.Diagnostic.Kind#ERROR ERROR}</u>, 
+     * this is essential in <u>{@link AbstractProcessor annotation processor}</u>, despite directly use {@code throw new SomeExpr} will also terminate the compile, 
+     * however, it will splat a lot of garbage error stack traces to make your head explode in the end.<br><br>
+     * Thus, using <u>{@link Messager}</u> to log stuff is basically a must in <u>{@link AbstractProcessor annotation processor}</u>.
+     */
     private Messager messager;
     private Filer filer;
+    
+    /**
+     * <u>{@link Types}</u> is the utility of <u>{@link TypeMirror}</u>, it is a must in deducing detailed types.
+     * @see Types
+     */
     private Types typeUtil;
+    
+    /**
+     * <u>{@link Elements}</u> is the utility of <u>{@link TypeMirror}</u>, it is a must in getting detailed types.
+     * @see Elements
+     */
     private Elements elementUtil;
     private @Nullable String namespace;
     private TypeMirror object;
+    
+    /**
+     * All actually nullable. This can be caused by incorrect configuration of dependency, and other reasons.<br>
+     * In <u>{@link #getTypeMirrorWithClass(Class)}</u>, we replaced null with <u>{@link Object}</u>'s <u>{@link TypeMirror}</u> to make sure helper methods
+     * are safe to use.
+     */
+    private List<TypeMirror> types;
     private final HashMap<String, ArrayList<TranslationContentPair>> groups = new HashMap<>();
-    private final ArrayList<TranslationPair> translationTable = new ArrayList<>();
+    private final ArrayList<TranslationPair> translationLookUp = new ArrayList<>();
+    private final HashMap<AutoI18n.Lang, HashMap<String, String>> translationTable = new HashMap<>();
+    private boolean generated = false;
     
     @Override
-    public synchronized void init(ProcessingEnvironment processingEnv)
+    public synchronized void init(@NotNull ProcessingEnvironment processingEnv)
     {
         super.init(processingEnv);
         this.messager = processingEnv.getMessager();
@@ -73,12 +100,29 @@ public final class I18nProcessor extends AbstractProcessor
         this.elementUtil = processingEnv.getElementUtils();
         this.namespace = processingEnv.getOptions().get("modid");
         this.object = elementUtil.getTypeElement("java.lang.Object").asType();
-    }
-    
-    @Override
-    public boolean process(@NotNull Set<? extends TypeElement> annotations, @NotNull RoundEnvironment roundEnv)
-    {
+        this.types = this.getTypesWithClasses(
+            Holder.class,
+            Item.class,
+            Block.class,
+            EntityType.class,
+            CreativeModeTab.class,
+            Enchantment.class,
+            MobEffect.class,
+            Attribute.class,
+            Component.class,
+            ResourceLocation.class,
+            Supplier.class
+        );
+        
+        for(int index = 0, typeMirrorsSize = types.size(); index < typeMirrorsSize; index++)
+        {
+            final TypeMirror typeMirror = types.get(index);
+            if(typeUtil.isSameType(typeMirror, this.object))
+                throw new IllegalStateException("Processing error: Unknown type -> supposed to be \"%s\".".formatted(ProcessableType.values()[index].name()));
+        }
+        
         if(namespace == null || namespace.isBlank() || namespace.equals("unknown"))
+        {
             messager.printMessage(
                 Diagnostic.Kind.ERROR,
                 """
@@ -94,17 +138,27 @@ public final class I18nProcessor extends AbstractProcessor
                     ```
                     """
             );
-        
-        if(roundEnv.processingOver())
+            
+            throw new IllegalArgumentException("Namespace is illegal.");
+        }
+    }
+    
+    @Override
+    public boolean process(@NotNull Set<? extends TypeElement> annotations, @NotNull RoundEnvironment roundEnv)
+    {
+        if(roundEnv.processingOver() && !generated)
         {
-            //? TODO: Json logic
+            generated = true;
+            generateJSON();
             return false;
         }
         
         if(annotations.isEmpty())
             return false;
         
-        for(final Element element: roundEnv.getElementsAnnotatedWith(AutoI18n.class))
+        final Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(AutoI18n.class);
+        
+        for(final Element element: elements)
         {
             if(element.getKind() != ElementKind.FIELD)
                 messager.printMessage(
@@ -118,19 +172,19 @@ public final class I18nProcessor extends AbstractProcessor
             if(autoI18n == null)
             {
                 messager.printMessage(
-                    Diagnostic.Kind.NOTE,
+                    Diagnostic.Kind.WARNING,
                     "Processing expr: The AutoI18n annotation of %s seems to be null. Skipped.".
                         formatted(element.getSimpleName().toString()),
                     element
                 );
                 
-                continue;
+                continue;//* Theoretically unachievable.
             }
             
             final String group = autoI18n.group();
             final String[] translations = autoI18n.value();
             final String key = autoI18n.key().isBlank() ?
-                element.getSimpleName().toString() :
+                element.getSimpleName().toString().toLowerCase().replace("__", ".") :
                 autoI18n.key();
             
             final String fullKeyScope = parseKeyScope(element, element.asType(), key);
@@ -157,46 +211,100 @@ public final class I18nProcessor extends AbstractProcessor
         return true;
     }
     
+    private void generateJSON()
+    {
+        for(final TranslationPair pair: translationLookUp)
+        {
+            final String key = pair.key;
+            final List<TranslationContentPair> contentPairs = pair.content;
+            
+            for(final TranslationContentPair contentPair: contentPairs)
+            {
+                final AutoI18n.Lang lang = contentPair.lang;
+                final String content = contentPair.content;
+                
+                final HashMap<String, String> map = translationTable.computeIfAbsent(lang, l -> new HashMap<>());
+                
+                if(map.containsKey(key))
+                    messager.printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "Processing error: Duplicated translation key -> key: %s".
+                            formatted(key)
+                    );
+                
+                map.put(key, content);
+            }
+        }
+        
+        translationTable.forEach((l, t) ->
+            {
+                try
+                {
+                    final FileObject output = filer.createResource(
+                        StandardLocation.CLASS_OUTPUT,
+                        "",
+                        "assets/%s/lang/%s.json".formatted(this.namespace, l.getCode())
+                    );
+                    
+                    try(final Writer writer = output.openWriter())
+                    {
+                        writer.write("{\n");
+                        final List<String> keys = new ArrayList<>(t.keySet());
+                        keys.sort(String::compareTo);
+                        
+                        for(int index = 0; index < keys.size(); index++)
+                        {
+                            final String key = keys.get(index);
+                            final String content = t.get(key);
+                            final String entry = "\"%s\": \"%s\"".formatted(key, escape(content));
+                            writer.write(entry);
+                            
+                            if(index < keys.size() - 1)
+                                writer.write(",");
+                            writer.write("\n");
+                        }
+                        
+                        writer.write("}");
+                        messager.printMessage(
+                            Diagnostic.Kind.NOTE,
+                            "Generating %s.json...".
+                                formatted(l.name())
+                        );
+                    }
+                }
+                catch(IOException e)
+                {
+                    messager.printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "Processing error: Can't create JSON file. Details: %s".formatted(e.getMessage())
+                    );
+                }
+            }
+        );
+    }
+    
+    private static @NotNull String escape(@NotNull String text)
+    {
+        return text.replace("\\", "\\\\").
+            replace("\"", "\\\"").
+            replace("\n", "\\n").
+            replace("\r", "\\r").
+            replace("\t", "\\t");
+    }
+    
     private @NotNull String parseKeyScope(@NotNull Element element, @NotNull TypeMirror elementType, @NotNull String key)
     {
-        //! All actually nullable. This can be caused by incorrect configuration of dependency, and other reasons.
-        //! In #getTypeMirrorWithClass(Class<?>), we replaced null with Object's TypeMirror to make sure helper methods
-        //! are safe to use.
-        final TypeMirror MC_HOLDER = getTypeMirrorWithClass(Holder.class);
-        final TypeMirror MC_ITEM = getTypeMirrorWithClass(Item.class);
-        final TypeMirror MC_BLOCK = getTypeMirrorWithClass(Block.class);
-        final TypeMirror MC_ENTITY_TYPE = getTypeMirrorWithClass(EntityType.class);
-        final TypeMirror MC_CREATIVE_TAB = getTypeMirrorWithClass(CreativeModeTab.class);
-        final TypeMirror MC_ENCHANTMENT = getTypeMirrorWithClass(Enchantment.class);
-        final TypeMirror MC_STATUS_EFFECT = getTypeMirrorWithClass(MobEffect.class);
-        final TypeMirror MC_ATTRIBUTE = getTypeMirrorWithClass(Attribute.class);
-        final TypeMirror MC_COMPONENT = getTypeMirrorWithClass(Component.class);
-        final TypeMirror MC_RESOURCE_LOCATION = getTypeMirrorWithClass(ResourceLocation.class);
-        final TypeMirror JAVA_SUPPLIER = getTypeMirrorWithClass(Supplier.class);
+        final ProcessableType type = ProcessableType.getType(inTypes(elementType, types));
         
-        final List<TypeMirror> TYPE_MIRRORS = List.of(
-            MC_HOLDER,
-            MC_ITEM,
-            MC_BLOCK,
-            MC_ENTITY_TYPE,
-            MC_CREATIVE_TAB,
-            MC_ENCHANTMENT,
-            MC_STATUS_EFFECT,
-            MC_ATTRIBUTE,
-            MC_COMPONENT,
-            MC_RESOURCE_LOCATION,
-            JAVA_SUPPLIER
-        );
-        
-        switch(inTypes(elementType, TYPE_MIRRORS))
+        switch(type)
         {
-            case -1 -> messager.printMessage(
+            case UNSUPPORTED -> messager.printMessage(
                 Diagnostic.Kind.ERROR,
                 "Can't deduce the type of %s. Go check dependency configuration.".
                     formatted(element.getSimpleName().toString()),
                 element
             );
-            case HOLDER_INDEX, SUPPLIER_INDEX ->
+            case HOLDER, SUPPLIER ->
             {
                 if(elementType instanceof DeclaredType declaredType)
                 {
@@ -212,7 +320,7 @@ public final class I18nProcessor extends AbstractProcessor
                     
                     final TypeMirror rawArg = args.getFirst();
                     
-                    for(final TypeMirror typeMirror: TYPE_MIRRORS)
+                    for(final TypeMirror typeMirror: types)
                     {
                         if(typeUtil.isAssignable(rawArg, typeMirror))
                             return parseKeyScope(element, rawArg, key);
@@ -232,19 +340,20 @@ public final class I18nProcessor extends AbstractProcessor
                     element
                 );
             }
-            case ITEM_INDEX -> { return "item.%s.%s".formatted(namespace, key); }
-            case BLOCK_INDEX -> { return "block.%s.%s".formatted(namespace, key); }
-            case ENTITY_TYPE_INDEX -> { return "entity.%s.%s".formatted(namespace, key); }
-            case CREATIVE_TAB_INDEX -> { return "%s.creativetab.%s".formatted(namespace, key); }
-            case ENCHANTMENT_INDEX -> { return "enchantment.%s.%s".formatted(namespace, key); }
-            case STATUS_EFFECT_INDEX -> { return "effect.%s.%s".formatted(namespace, key); }
-            case ATTRIBUTE_INDEX -> { return "attribute.%s.%s".formatted(namespace, key); }
-            case RESOURCE_LOCATION_INDEX -> { return key; }
-            case COMPONENT_INDEX -> 
+            case ITEM -> { return "item.%s.%s".formatted(namespace, key); }
+            case BLOCK -> { return "block.%s.%s".formatted(namespace, key); }
+            case ENTITY_TYPE -> { return "entity.%s.%s".formatted(namespace, key); }
+            case CREATIVE_MODE_TAB -> { return "%s.creativetab.%s".formatted(namespace, key); }
+            case ENCHANTMENT -> { return "enchantment.%s.%s".formatted(namespace, key); }
+            case MOB_EFFECT -> { return "effect.%s.%s".formatted(namespace, key); }
+            case ATTRIBUTE -> { return "attribute.%s.%s".formatted(namespace, key); }
+            case RESOURCE_LOCATION -> { return key; }
+            case COMPONENT -> 
             {
-                if(key.contains(Objects.requireNonNull(namespace)))
+                if(key.contains("%s.".formatted(Objects.requireNonNull(namespace))))
                     return key;
                 
+                //* Add namespaces if the original key doesn't have one.
                 return "%s.%s".formatted(namespace, key);
             }
             default -> messager.printMessage(
@@ -255,7 +364,7 @@ public final class I18nProcessor extends AbstractProcessor
             );
         }
         
-        return key;//* Actually, this is theoretically unachievable.
+        throw new AssertionError("Can't deduce the type of %s.".formatted(element.getSimpleName().toString()));
     }
     
     private void parseTranslations(@NotNull Element element, String @Nullable [] translations, @NotNull String key, @Nullable String group)
@@ -281,24 +390,40 @@ public final class I18nProcessor extends AbstractProcessor
                 final String content = matcher.group(2);
                 
                 if(!hasContent(lang))
+                {
                     messager.printMessage(
                         Diagnostic.Kind.ERROR,
                         "Processing error: Language is empty -> at %s, index %d".
                             formatted(element.getSimpleName().toString(), index),
                         element
                     );
+                    
+                    throw new IllegalArgumentException();
+                }
                 
                 if(!hasContent(content))
+                {
                     messager.printMessage(
                         Diagnostic.Kind.ERROR,
                         "Processing error: Content is empty -> at %s, index %d".
                             formatted(element.getSimpleName().toString(), index),
                         element
                     );
+                    
+                    throw new IllegalArgumentException();
+                }
                 
-                final AutoI18n.Lang language = AutoI18n.Lang.parse(lang);
+                final Optional<AutoI18n.Lang> language = AutoI18n.Lang.parse(lang);
                 
-                translationContentPairs.add(new TranslationContentPair(language, content));
+                if(language.isPresent())
+                    translationContentPairs.add(new TranslationContentPair(language.get(), content));
+                else
+                    messager.printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "Processing error: Language %s doesn't exist!".
+                            formatted(lang),
+                        element
+                    );
             }
         }
         
@@ -331,7 +456,16 @@ public final class I18nProcessor extends AbstractProcessor
             }
         }
         
-        translationTable.add(new TranslationPair(key, translationContentPairs));
+        if(translationLookUp.stream().anyMatch(pair -> pair.key.equals(key)))
+            messager.printMessage(
+                Diagnostic.Kind.ERROR,
+                "Processing error: Key %s has been defined for multiple times!".
+                    formatted(key),
+                element
+            );
+        
+        //* Neither this parsed content belongs to a group, it should always be added to table.
+        translationLookUp.add(new TranslationPair(key, translationContentPairs));
     }
     
     @Contract(value = "null -> false", pure = true)
@@ -358,6 +492,17 @@ public final class I18nProcessor extends AbstractProcessor
         return typeElement != null ? typeElement.asType() : object;
     }
     
+    @SuppressWarnings("SameParameterValue")//! Util shouldn't inline detailed paras.
+    private @NotNull List<TypeMirror> getTypesWithClasses(Class<?> @NotNull ... clazzArray)
+    {
+        final List<TypeMirror> types = new ArrayList<>();
+        
+        for(final Class<?> clazz: clazzArray)
+            types.add(getTypeMirrorWithClass(clazz));
+        
+        return types;
+    }
+    
     private int inTypes(@NotNull TypeMirror mirror, @NotNull List<TypeMirror> typeMirrors)
     {
         for(int index = 0; index < typeMirrors.size(); index++)
@@ -367,8 +512,8 @@ public final class I18nProcessor extends AbstractProcessor
             if(typeUtil.isSameType(typeMirror, object))
             {
                 messager.printMessage(
-                    Diagnostic.Kind.WARNING,
-                    "The type at index %d seems to be null. Stopping procession.".
+                    Diagnostic.Kind.ERROR,
+                    "Processing error: The type at index %d seems to be null. Stopping procession.".
                         formatted(index)
                 );
                 return -1;
@@ -381,7 +526,38 @@ public final class I18nProcessor extends AbstractProcessor
         return -1;
     }
     
-    private record TranslationContentPair(@Nullable AutoI18n.Lang lang, @NotNull String content) { }
+    private record TranslationContentPair(@NotNull AutoI18n.Lang lang, @NotNull String content) { }
     
     private record TranslationPair(@NotNull String key, @NotNull List<TranslationContentPair> content) { }
+    
+    private enum ProcessableType
+    {
+        HOLDER,
+        ITEM,
+        BLOCK,
+        ENTITY_TYPE,
+        CREATIVE_MODE_TAB,
+        ENCHANTMENT,
+        MOB_EFFECT,
+        ATTRIBUTE,
+        COMPONENT,
+        RESOURCE_LOCATION,
+        SUPPLIER,
+        UNSUPPORTED(-1);
+        
+        private final int index;
+        
+        ProcessableType() { this.index = ordinal(); }
+        
+        ProcessableType(int index) { this.index = index; }
+        
+        public static @NotNull ProcessableType getType(int index)
+        {
+            for(final ProcessableType type: ProcessableType.values())
+                if(index == type.index)
+                    return type;
+            
+            return ProcessableType.UNSUPPORTED;
+        }
+    }
 }

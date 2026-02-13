@@ -14,6 +14,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -27,11 +28,11 @@ import java.util.regex.Pattern;
  * also, please remember going to {@code build.gradle} and add this:
  * <pre>{@code 
  *  java {
- *     tasks.withType(JavaCompile).configureEach {
- *         options.compilerArgs.add
- *             ("-Amodid=" + (project.findProperty('mod_id') ?: 'unknown'))
- *     }
- * }
+ *      tasks.withType(JavaCompile).configureEach {
+ *          options.compilerArgs.add
+ *              ("-Amodid=" + (project.findProperty('mod_id') ?: 'unknown'))
+ *      }
+ *  }
  * }</pre>
  * <b>This makes sure that the <u>{@link kurvcygnus.crispsweetberry.utils.registry.annotations.processors.I18nProcessor processor}</u> will get your 
  * mod's namespace, and process correctly(Thus, you don't need to write your mod's namespace in field, or <u>{@link #key()}</u>'s name).</b>
@@ -48,13 +49,15 @@ import java.util.regex.Pattern;
  *  <span style="color: 79a85d">// Basic usage: Note that the field name 'BLOCK__DIRT' translates to 'block.dirt'.</span>
  *  <span style="color: a7f8e7">&#64;AutoI18n</span>({
  *      <span style="color: 79a85d">"en_us = Dirt"</span>,
- *      <span style="color: 79a85d">"zh_cn = 泥土"</span>
+ *      <span style="color: 79a85d">"lol_us= Cofee Blok UwU"</span>,
+ *      <span style="color: 79a85d">"zh_cn =泥土"</span>
  *  })
  *  <span style="color: 927dcb"><i>private static final</i></span> Holder&lt;Block&gt; BLOCK__DIRT = ...
  *
  *  <span style="color: 79a85d">// Reusable groups: Define translations once and apply them elsewhere via 'group'</span>
  *  <span style="color: a7f8e7">&#64;AutoI18n</span>({
- *      <span style="color: 79a85d">"en_us = Sweetberry"</span>,
+ *      <span style="color: 79a85d">"en_us=Sweetberry"</span>,
+ *      <span style="color: 79a85d">"lol_us = TA2Y FRU1T"</span>
  *      <span style="color: 79a85d">"zh_cn = 甜莓"</span>
  *      }, 
  *      <span style="color: cdd6f4">group</span> = <span style="color: 79a85d">"BerryBase"</span>
@@ -63,13 +66,16 @@ import java.util.regex.Pattern;
  * 
  *  <span style="color: a7f8e7">&#64;AutoI18n</span>(
  *      <span style="color: cdd6f4">group</span> = <span style="color: 79a85d">"BerryBase"</span>,<span style="color: 79a85d">// Inherits all translations from the "BerryBase" group.</span>
- *      <span style="color: cdd6f4">key</span> = <span style="color: 79a85d">"sweetberry_bush"// Forces using trans key "sweetberry_bush".</span>
+ *      <span style="color: cdd6f4">key</span> = <span style="color: 79a85d">"sweetberry_bush"// Forces using trans key "${modid}.sweetberry_bush".</span>
  *  )
  *  <span style="color: 927dcb"><i>private static final</i></span> Holder&lt;Block&gt; SWEETBERRY_BLOCK = ...
  * 
  *  <span style="color: 79a85d">// Grammar: "${Language Code} = ${Translation Text}"</span>
  *  <span style="color: 79a85d">// 1. Field naming: Use '__' to represent '.' in the translation key.</span>
  *  <span style="color: 79a85d">// 2. Format: Whitespace around '=' is ignored. Only one '=' is allowed per string.</span>
+ *  <span style="color: 79a85d">// 3. Special case: Component's modid(aka namespace) is optional. 
+ *  //    If it doesn't contains namespace, processor will add it, 
+ *  //    just like the SWEETBERRY_BLOCK above.</span>
  * </pre>
  *  
  * @since 1.0 Release
@@ -98,12 +104,12 @@ public @interface AutoI18n
         
         Lang() { this.code = this.name().toLowerCase(); }
         
-        public @NotNull String getCode() { return code; }
+        public @NotNull String getCode() { return this.code; }
         
-        public static Lang parse(@NotNull String prefix) 
+        public static @NotNull Optional<Lang> parse(@NotNull String prefix) 
         {
-            try { return Lang.valueOf(prefix.toUpperCase()); }
-            catch(IllegalArgumentException e) { throw new IllegalArgumentException("Unknown language: %s. Details: %s".formatted(prefix, e)); }
+            try { return Optional.of(Lang.valueOf(prefix.toUpperCase())); }
+            catch(IllegalArgumentException e) { return Optional.empty(); }
         }
     }
 }
