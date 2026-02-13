@@ -25,6 +25,28 @@ import static java.util.Objects.requireNonNull;
  * This is a simple wrapper for SLF4J's <u>{@link Logger}</u>. It reduces the verbosity of passing <u>{@link Marker}</u> to log functions.
  * @apiNote We recommend using {@code SCREAMING_SNAKE_CASE} for <u>{@link Marker}</u>, because it is more attractive, and easy to search.<br>
  * <b>This logger uses <u>{@link ThreadLocal}</u>. Do not leak <u>{@link MarkerHandle MarkerHandle}</u> across async boundaries</b>.
+ * <br>
+ * If you are using IDEA, you can generate a template with typing keyword {@code mls}, {@code mdl} and {@code mws}</b>.
+ * <br>
+ * <br>
+ * Templates: <pre>{@code 
+ *  // mls:
+ *  private static final MarkLogger LOGGER = MarkLogger.marklessLogger(
+ *      LogUtils.getLogger()
+ *  );
+ *  
+ *  // mdl:
+ *  private static final MarkLogger LOGGER = MarkLogger.markedLogger(
+ *      LogUtils.getLogger(),
+ *      "${Class Name}$"
+ *  );
+ *  
+ *  // mws:
+ *  private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(
+ *      LogUtils.getLogger(),
+ *      "${Class Name}$"
+ *  );
+ * }</pre>
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
@@ -39,19 +61,19 @@ public final class MarkLogger
     private final @NotNull Logger logger;
     
     /**
-     * The <u>{@link Marker}</u> used for logging. At non-error and non-warn cases, and with no overrides, it 
+     * The <u>{@link Marker}</u> used for logging. At non-error and non-warn cases, and with no key, it 
      * is the marker that will be used for display.
      */
     private final @Nullable Marker defaultMarker;
     
     /**
-     * The <u>{@link Marker}</u> exclusively used for error level logging. With no overrides, it 
+     * The <u>{@link Marker}</u> exclusively used for error level logging. With no key, it 
      * is the marker that will be used for display.
      */
     private final @Nullable Marker errorMarker;
     
     /**
-     * The <u>{@link Marker}</u> exclusively used for warn level logging. With no overrides, it
+     * The <u>{@link Marker}</u> exclusively used for warn level logging. With no key, it
      * is the marker that will be used for display.
      */
     private final @Nullable Marker warnMarker;
@@ -272,7 +294,7 @@ public final class MarkLogger
         private MarkerHandle(@NotNull MarkLogger logger) { this.logger = logger; }
         
         /**
-         * Changes the temporary marker that overrides the default one.
+         * Changes the temporary marker that key the default one.
          * @apiNote This should be used in the key of 
          * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>,
          * which is started by <u>{@link #pushMarker(Marker)}</u>, or <u>{@link #pushMarker(String)}</u>.
@@ -296,7 +318,7 @@ public final class MarkLogger
         }
         
         /**
-         * Changes the temporary marker that overrides the default one.
+         * Changes the temporary marker that key the default one.
          *
          * @apiNote This should be used in the key of
          * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>,

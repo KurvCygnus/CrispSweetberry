@@ -22,23 +22,23 @@ public final class KilnConstants
     private KilnConstants() { throw new IllegalAccessError("Class \"KilnConstants\" is not meant to be instantized!"); }
     
     @AutoI18n({
-        "en_us -> Kiln",
-        "lol_us -> IN DA WARM BOKZ",
-        "zh_cn -> 窑炉"
+        "en_us = Kiln",
+        "lol_us = IN DA WARM BOKZ",
+        "zh_cn = 窑炉"
     })
     public static final Component KILN_CONTAINER_TITLE = Component.translatable("crispsweetberry.container.kiln");
     
     @AutoI18n({
-        "en_us -> Total heat changed. Rebalancing heat distribution...",
-        "lol_us -> DA BIG BOKZ IZ TRYIN' 2 BEE NOT OP",
-        "zh_cn -> 总输入热量改变. 正在重分配热量..."
+        "en_us = Total heat changed. Rebalancing heat distribution...",
+        "lol_us = DA BIG BOKZ IZ TRYIN' 2 BEE NOT OP",
+        "zh_cn = 总输入热量改变. 正在重分配热量..."
     })
     public static final Component KILN_WIDGET_COOLDOWN_TIP = Component.translatable("crispsweetberry.ui.widget.kiln_info_cooldown");
     
     @AutoI18n({
-        "en_us -> Some materials are blasting recipe.\nKiln can't process such items that requires high heat.",
-        "lol_us -> BIG BOKZ KIN'T TAK THIZ!!!",
-        "zh_cn -> 部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料."
+        "en_us = Some materials are blasting recipe.\nKiln can't process such items that requires high heat.",
+        "lol_us = BIG BOKZ KIN'T TAK THIZ!!!",
+        "zh_cn = 部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料."
     })
     public static final Component KILN_WIDGET_BLAST_TIP = Component.translatable("crispsweetberry.ui.widget.kiln_tip_blast");
     

@@ -10,8 +10,11 @@ package kurvcygnus.crispsweetberry.common.features.kiln.integration;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -20,15 +23,41 @@ import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
+import snownee.jade.api.ui.IElement;
+import snownee.jade.api.ui.IElementHelper;
 
 public enum KilnBlockInfoProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor>
 {
     INSTANCE;
     
+    private static final ResourceLocation UNIQUE_JADE_KILN_ID = CrispDefUtils.getModNamespacedLocation("integration.jade.kiln");
+    private static final String VISUAL_PROGRESS = "visualProgress";
+    private static final String VISUAL_ARROW = "visualArrow";
+    private static final String CONTENT = "content";
+    
     @Override
-    public void appendTooltip(ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig)
+    public void appendTooltip(ITooltip tooltip, @NotNull BlockAccessor accessor, IPluginConfig config)
     {
+        final CompoundTag syncTag = accessor.getServerData();
         
+        if(!syncTag.contains(VISUAL_PROGRESS) || !syncTag.contains(VISUAL_ARROW) || !syncTag.contains(CONTENT))
+            return;
+        
+        final IElementHelper elementHelper = IElementHelper.get();
+        
+        final double visualProgress = syncTag.getDouble(VISUAL_PROGRESS);
+        final VisualTrend visualArrow = VisualTrend.values()[syncTag.getByte(VISUAL_ARROW)];
+        final ListTag content = syncTag.getList("content", Tag.TAG_COMPOUND);
+        
+        for(int index = 0; index < content.size(); index++)
+        {
+            final CompoundTag tag = content.getCompound(index);
+            final ItemStack currentStack = ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag);
+            final IElement itemIcon = elementHelper.item(currentStack, 0.5F);
+            itemIcon.message(null);
+            
+            tooltip.add(itemIcon);
+        }
     }
     
     @Override
@@ -40,18 +69,28 @@ public enum KilnBlockInfoProvider implements IBlockComponentProvider, IServerDat
         final double visualProgress = kilnBlockEntity.model.getVisualProgress();
         final VisualTrend visualArrow = kilnBlockEntity.model.getTrend();
         
-        compoundTag.putDouble("visualProgress", visualProgress);
-        compoundTag.putByte("visualArrow", (byte) visualArrow.ordinal());
+        compoundTag.putDouble(VISUAL_PROGRESS, visualProgress);
+        compoundTag.putByte(VISUAL_ARROW, (byte) visualArrow.ordinal());
         
-        for(final ItemStack stack: content)
+        final ListTag listTag = new ListTag();
+        
+        for(int index = 0, contentSize = content.size(); index < contentSize; index++)
         {
+            final ItemStack stack = content.get(index);
             
+            if(stack.isEmpty())
+                continue;
+            
+            final CompoundTag tag = new CompoundTag();
+            
+            tag.putByte("slot_index", (byte) index);
+            stack.save(blockAccessor.getLevel().registryAccess(), tag);
+            listTag.add(index, tag);
         }
+        
+        compoundTag.put(CONTENT, listTag);
     }
     
     @Override
-    public @NotNull ResourceLocation getUid()
-    {
-        return null;
-    }
+    public @NotNull ResourceLocation getUid() { return UNIQUE_JADE_KILN_ID; }
 }

@@ -35,7 +35,7 @@ public final class CrispRecipeProvider extends RecipeProvider
     @Override
     protected void buildRecipes(@NotNull RecipeOutput output)
     {
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, KilnRegistries.KILN.value()).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, KilnRegistries.KILN_BLOCK_ITEM.value()).
             pattern("TTT").
             pattern("TFT").
             pattern("BCB").
@@ -46,7 +46,7 @@ public final class CrispRecipeProvider extends RecipeProvider
             unlockedBy("kiln_unlocked", has(Items.FURNACE)). //? TODO
             save(output, "kiln_std");
         
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, KilnRegistries.KILN.value()).//? Use this dumb impl for now.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, KilnRegistries.KILN_BLOCK_ITEM.value()).//? Use this dumb impl for now.
             pattern("TTT").
             pattern("TFT").
             pattern("BCB").

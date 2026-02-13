@@ -51,7 +51,7 @@ public enum TTorchRegistries implements IRegistrant
     public boolean isFeature() { return true; }
     
     @Override
-    public @NotNull String getJob() { return "Temporary Torches"; }
+    public @NotNull String getJob() { return "T Torches"; }
     
     @Override
     public int getPriority() { return 6; }
@@ -67,9 +67,9 @@ public enum TTorchRegistries implements IRegistrant
     );
     
     @AutoI18n({
-        "en_us -> Thrown Torch",
-        "lol_us -> fullee lite stik",
-        "zh_cn -> 投掷火把"
+        "en_us = Thrown Torch",
+        "lol_us = fullee lite stik",
+        "zh_cn = 投掷火把"
     })
     public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_torch",
@@ -77,9 +77,9 @@ public enum TTorchRegistries implements IRegistrant
     );
     
     @AutoI18n({
-        "en_us -> Thrown Torch",
-        "lol_us -> fullee lite stik",
-        "zh_cn -> 投掷火把"
+        "en_us = Thrown Torch",
+        "lol_us = fullee lite stik",
+        "zh_cn = 投掷火把"
     })
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_wall_torch", 
@@ -92,11 +92,11 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
     @AutoI18n({
-        "en_us -> Thrown Torch",
-        "lol_us -> fullee lite stik",
-        "zh_cn -> 投掷火把"
+        "en_us = Thrown Torch",
+        "lol_us = fullee lite stik",
+        "zh_cn = 投掷火把"
     })
-    public static final Holder<Item> TEMPO_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_torch", 
+    public static final Holder<Item> TEMPORARY_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_torch", 
         () -> new BlockItem(TEMPORARY_TORCH.value(), new Item.Properties())
     );
     
@@ -106,11 +106,11 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
     @AutoI18n({
-        "en_us -> Thrown Torch",
-        "lol_us -> fullee lite stik",
-        "zh_cn -> 投掷火把"
+        "en_us = Thrown Torch",
+        "lol_us = fullee lite stik",
+        "zh_cn = 投掷火把"
     })
-    public static final Holder<Item> TEMPO_WALL_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_wall_torch", 
+    public static final Holder<Item> TEMPORARY_WALL_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_wall_torch", 
         () -> new BlockItem(TEMPORARY_WALL_TORCH.value(), new Item.Properties())
     );
     
@@ -119,9 +119,9 @@ public enum TTorchRegistries implements IRegistrant
      * @see kurvcygnus.crispsweetberry.integrations.JadeEntrypoint#registerClient(IWailaClientRegistration) Hidden Implementation
      */
     @AutoI18n({
-        "en_us -> UwU",
-        "lol_us -> OwO",
-        "zh_cn -> QAQ"
+        "en_us = UwU",
+        "lol_us = OwO",
+        "zh_cn = QAQ"
     })
     public static final Holder<Block> FAKE_LIGHT_BLOCK = TEMPORARY_TORCH_REGISTER.register(
         "fake_light_block",
@@ -130,9 +130,9 @@ public enum TTorchRegistries implements IRegistrant
     
     @RegisterToTab
     @AutoI18n({
-        "en_us -> Throwable Torch",
-        "lol_us -> chuk da lite stik",
-        "zh_cn -> 投掷火把"
+        "en_us = Throwable Torch",
+        "lol_us = chuk da lite stik",
+        "zh_cn = 投掷火把"
     })
     public static final Holder<Item> THROWABLE_TORCH = THROWABLE_TORCH_REGISTER.register(
         "throwable_torch",
@@ -140,9 +140,9 @@ public enum TTorchRegistries implements IRegistrant
     );
     
     @AutoI18n({
-        "en_us -> Throwable Redstone Torch",
-        "lol_us -> lite stewberi stik",
-        "zh_cn -> 红石投掷火把"
+        "en_us = Throwable Redstone Torch",
+        "lol_us = lite stewberi stik",
+        "zh_cn = 红石投掷火把"
     })
     public static final Holder<Item> THROWABLE_REDSTONE_TORCH = THROWABLE_TORCH_REGISTER.register(
         "throwable_redstone_torch",
@@ -150,17 +150,16 @@ public enum TTorchRegistries implements IRegistrant
     );
     
     @AutoI18n({
-        "en_us -> Thrown Torch",
-        "lol_us -> Spinn' Stik",
-        "zh_ch -> 投掷火把"
+        "en_us = Thrown Torch",
+        "lol_us = Spinn' Stik",
+        "zh_cn = 投掷火把"
     })
-    public static final DeferredHolder<EntityType<?>, EntityType<ThrownTorchEntity>> THROWN_TORCH = 
-        getTypeHolder("thrown_torch", ThrownTorchEntity::new);
+    public static final DeferredHolder<EntityType<?>, EntityType<ThrownTorchEntity>> THROWN_TORCH = getTypeHolder("thrown_torch", ThrownTorchEntity::new);
     
     @AutoI18n({
-        "en_us -> Thrown Redstone Torch",
-        "lol_us -> Spinn' Stewberi Stik",
-        "zh_ch -> 红石投掷火把"
+        "en_us = Thrown Redstone Torch",
+        "lol_us = Spinn' Stewberi Stik",
+        "zh_cn = 红石投掷火把"
     })
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownRedstoneTorchEntity>> THROWN_REDSTONE_TORCH = 
         getTypeHolder("thrown_redstone_torch", ThrownRedstoneTorchEntity::new);

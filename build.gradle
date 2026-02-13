@@ -199,3 +199,9 @@ idea
         downloadJavadoc = true
     }
 }
+
+java {
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.add("-Amodid=" + (project.findProperty('mod_id') ?: 'unknown'))
+    }
+}

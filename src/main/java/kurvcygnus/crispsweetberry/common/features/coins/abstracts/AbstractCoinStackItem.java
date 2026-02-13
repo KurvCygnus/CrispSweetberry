@@ -42,7 +42,7 @@ public abstract class AbstractCoinStackItem<C extends ICoinType<C>> extends Bloc
     @SuppressWarnings("unused")//! Only for vanilla CODEC.
     private AbstractCoinStackItem(@Nullable Block block, @Nullable Properties properties) { this(); }
     
-    @SuppressWarnings("DataFlowIssue")//! To avoid footgun, we use lazy load with overrides.
+    @SuppressWarnings("DataFlowIssue")//! To avoid footgun, we use lazy load with key.
     protected AbstractCoinStackItem() { super(null, new Properties().stacksTo(16)); }
     
     /**

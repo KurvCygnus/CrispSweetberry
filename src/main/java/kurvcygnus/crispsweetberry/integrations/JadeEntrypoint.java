@@ -21,6 +21,7 @@ public final class JadeEntrypoint implements IWailaPlugin
     @Override
     public void register(@NotNull IWailaCommonRegistration registration)
     {
+        //registration.registerBlockDataProvider(KilnBlockInfoProvider.INSTANCE, KilnBlock.class);
     }
     
     @Override
@@ -28,5 +29,6 @@ public final class JadeEntrypoint implements IWailaPlugin
     {
         registration.hideTarget(TTorchRegistries.FAKE_LIGHT_BLOCK.value());
         registration.hideTarget(TTorchRegistries.THROWN_TORCH.value());
+        //registration.registerBlockComponent(KilnBlockInfoProvider.INSTANCE, KilnBlock.class);
     }
 }

@@ -54,9 +54,9 @@ public final class CrispBlockstateProvider extends BlockStateProvider
                 }
             );
         
-        assert KilnRegistries.KILN.getKey() != null;
+        assert KilnRegistries.KILN_BLOCK_ITEM.getKey() != null;
         
-        itemModels().getBuilder(KilnRegistries.KILN.getKey().location().getPath()).
+        itemModels().getBuilder(KilnRegistries.KILN_BLOCK_ITEM.getKey().location().getPath()).
             parent(kilnOn).
                 override().
                 predicate(modLoc("lit"), 0F).

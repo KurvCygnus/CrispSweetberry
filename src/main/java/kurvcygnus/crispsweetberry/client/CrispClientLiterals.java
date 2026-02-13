@@ -17,10 +17,12 @@ public final class CrispClientLiterals
     
     public static final String CRISP_CONTROL_MENU_CATEGORY_KEY = "crispsweetberry.menu.control.title";
     
-    @AutoI18n({
-        "en_us -> Crisp Sweetberry-In Game Keymappings",
-        "lol_us -> TAZTY FRUT IN GAYM BUTTONZ",
-        "zh_cn -> 澄莓物语-游戏按键"
-    })
+    @AutoI18n(value = {
+        "en_us = Crisp Sweetberry-In Game Keymappings",
+        "lol_us = TAZTY FRUT IN GAYM BUTTONZ",
+        "zh_cn = 澄莓物语-游戏按键"
+        },
+        key = CRISP_CONTROL_MENU_CATEGORY_KEY
+    )
     public static final Component CRISP_CONTROL_MENU_CATEGORY = Component.translatable(CRISP_CONTROL_MENU_CATEGORY_KEY);
 }

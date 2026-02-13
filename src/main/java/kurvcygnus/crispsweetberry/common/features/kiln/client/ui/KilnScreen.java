@@ -61,10 +61,10 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     private static final ResourceLocation BACKGROUND_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/background.png");
     
     private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/lit_campfire");
-    private static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/progress_arrow");
-    private static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_decrease_arrow");
-    private static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_increase_arrow");
-    private static final ResourceLocation TIP_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/tip_arrow");
+    public static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/progress_arrow");
+    public static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_decrease_arrow");
+    public static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_increase_arrow");
+    public static final ResourceLocation TIP_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/tip_arrow");
     
     private final KilnInfoWidget widget = new KilnInfoWidget(TIP_X_POS, TIP_Y_POS, TIP_WIDTH, TIP_HEIGHT);
     

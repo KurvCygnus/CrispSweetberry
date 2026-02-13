@@ -100,7 +100,7 @@ public enum KilnRegistries implements IRegistrant
     {
         event.enqueueWork(() ->
             ItemProperties.register(
-                KilnRegistries.KILN.value(),
+                KilnRegistries.KILN_BLOCK_ITEM.value(),
                 CrispDefUtils.getModNamespacedLocation("lit"),
                 (stack, level, entity, seed) ->
                 {
@@ -127,20 +127,24 @@ public enum KilnRegistries implements IRegistrant
     @SubscribeEvent
     static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KilnRegistries.KILN_MENU.get(), KilnScreen::new); }
     
-    @AutoI18n({
-        "en_us -> Kiln",
-        "lol_us -> big warn bokz",
-        "zh_cn -> 窑炉"
-    })
+    @AutoI18n(value = {
+        "en_us = Kiln",
+        "lol_us = big warn bokz",
+        "zh_cn = 窑炉"
+        },
+        key = "kiln"
+    )
     public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us -> Kiln",
-        "lol_us -> big warn bokz",
-        "zh_cn -> 窑炉"
-    })
-    public static final Holder<Item> KILN = KILN_ITEM_REGISTER.register("kiln", resourceLocation ->
+    @AutoI18n(value = {
+        "en_us = Kiln",
+        "lol_us = big warn bokz",
+        "zh_cn = 窑炉"
+        },
+        key = "kiln"
+    )
+    public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register("kiln", resourceLocation ->
         new BlockItem(KILN_BLOCK.value(), new Item.Properties())
     );
     
@@ -161,9 +165,9 @@ public enum KilnRegistries implements IRegistrant
     );
     
     @AutoI18n({
-        "en_us -> Interactions with Kiln",
-        "lol_us -> HAW MANI TIMZ DID U GO 2 DA WARM BOKZ",
-        "zh_cn -> 与窑炉的交互次数"
+        "en_us = Interactions with Kiln",
+        "lol_us = HAW MANI TIMZ DID U GO 2 DA WARM BOKZ",
+        "zh_cn = 与窑炉的交互次数"
     })
     public static final Holder<ResourceLocation> INTERACT_WITH_KILN = KILN_STAT_REGISTER.register("interact_with_kiln", () -> 
         CrispDefUtils.getModNamespacedLocation("interact_with_kiln")

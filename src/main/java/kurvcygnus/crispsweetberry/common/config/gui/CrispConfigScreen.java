@@ -33,15 +33,15 @@ public final class CrispConfigScreen extends Screen
     private final @NotNull Screen lastScreen;
     
     @AutoI18n({
-        "en_us -> Crisp Sweetberry Config Menu",
-        "lol_us -> TA2TY FRUT XDAFF",
-        "zh_cn -> 澄莓物语: 配置菜单"
+        "en_us = Crisp Sweetberry Config Menu",
+        "lol_us = TA2TY FRUT XDAFF",
+        "zh_cn = 澄莓物语: 配置菜单"
     })
-    private static final Component CRISP_CONFIG_TITLE = Component.translatable("crispsweetberry.config.title");
+    private static final Component CRISPSWEETBERRY__CONFIG__TITLE = Component.translatable("crispsweetberry.config.title");
     
     public CrispConfigScreen(@NotNull Screen lastScreen)
     {
-        super(CRISP_CONFIG_TITLE);
+        super(CRISPSWEETBERRY__CONFIG__TITLE);
         this.lastScreen = lastScreen;
     }
     

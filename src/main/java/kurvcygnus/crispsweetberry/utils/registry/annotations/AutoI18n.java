@@ -19,44 +19,73 @@ import java.util.regex.Pattern;
 /**
  * This is a simple annotation used for data generation, <b>specially on internationalization(i18n)</b>.
  * @apiNote This annotation only works on field that holds a key of a content(e.g. <u>{@link net.minecraft.world.item.Item Item}</u>, 
- * <u>{@link net.minecraft.world.level.block.Block Block}</u>),
- * as fields that hold no key is actually can't be i18n-ized.<br>
+ * <u>{@link net.minecraft.world.level.block.Block Block}</u>, <u>{@link net.minecraft.network.chat.Component Component}</u>, etc.),
+ * as fields that hold no key is actually can't be i18n-ized.
+ * <br><br>
+ * <b>NOTE: Please makes sure that the field name matches the translation key(For {@code .} literals, use {@code __} instead), 
+ * or else the <u>{@link kurvcygnus.crispsweetberry.utils.registry.annotations.processors.I18nProcessor processor}</u> will throw an error</b>, 
+ * also, please remember going to {@code build.gradle} and add this:
+ * <pre>{@code 
+ *  java {
+ *     tasks.withType(JavaCompile).configureEach {
+ *         options.compilerArgs.add
+ *             ("-Amodid=" + (project.findProperty('mod_id') ?: 'unknown'))
+ *     }
+ * }
+ * }</pre>
+ * <b>This makes sure that the <u>{@link kurvcygnus.crispsweetberry.utils.registry.annotations.processors.I18nProcessor processor}</u> will get your 
+ * mod's namespace, and process correctly(Thus, you don't need to write your mod's namespace in field, or <u>{@link #key()}</u>'s name).</b>
+ * <br><br>
  * <b>Also, if you are using IDEA, you can generate a template with typing keyword {@code i18n}</b>.<br><br>
  * Template:<br><pre>
  *  <span style="color: a7f8e7">&#64;AutoI18n</span>({
- *      <span style="color: 79a85d">"en_us -></span> <span style="color: e47087">$TRANS1$</span><span style="color: 79a85d">"</span>,
- *      <span style="color: 79a85d">"lol_us -></span> <span style="color: e47087">$TRANS2$</span><span style="color: 79a85d">"</span>,
- *      <span style="color: 79a85d">"zh_cn -></span> <span style="color: e47087">$TRANS3$</span><span style="color: 79a85d">"</span>
+ *      <span style="color: 79a85d">"en_us =</span> <span style="color: e47087">$TRANS1$</span><span style="color: 79a85d">"</span>,
+ *      <span style="color: 79a85d">"lol_us =</span> <span style="color: e47087">$TRANS2$</span><span style="color: 79a85d">"</span>,
+ *      <span style="color: 79a85d">"zh_cn =</span> <span style="color: e47087">$TRANS3$</span><span style="color: 79a85d">"</span>
  *  })
  * </pre>
  * @implSpec <pre>
+ *  <span style="color: 79a85d">// Basic usage: Note that the field name 'BLOCK__DIRT' translates to 'block.dirt'.</span>
  *  <span style="color: a7f8e7">&#64;AutoI18n</span>({
- *      <span style="color: 79a85d">"en_us -> Foo"</span>,// In English, this is "Foo".
- *      <span style="color: 79a85d">"lol_us->UwU OwO"</span>,// In da catz languiage, thiz iz happi!!!
- *      <span style="color: 79a85d">"zh_cn-> 甲"</span>,// 在中文语言中, 这个对应"甲".
- *      <span style="color: 79a85d">"ja_jp ->あ"</span>// 日本語では「あ」です.
+ *      <span style="color: 79a85d">"en_us = Dirt"</span>,
+ *      <span style="color: 79a85d">"zh_cn = 泥土"</span>
  *  })
- *  private static final Holder&lt;Item&gt; Foo = ...
- *  
- *  // Grammar: "<span style="color: e47087">${Language}</span> -> <span style="color: e47087">${Translation}</span>"
- *  // The spaces around arrow `->` is optional.
- *  // There can only exist one arrow in translation, or else parser will throw an <u>{@link IllegalArgumentException expr}</u>.
- *  
- *  // <i>Some comments of the usage example above are machine-translated.</i> 
+ *  <span style="color: 927dcb"><i>private static final</i></span> Holder&lt;Block&gt; BLOCK__DIRT = ...
+ *
+ *  <span style="color: 79a85d">// Reusable groups: Define translations once and apply them elsewhere via 'group'</span>
+ *  <span style="color: a7f8e7">&#64;AutoI18n</span>({
+ *      <span style="color: 79a85d">"en_us = Sweetberry"</span>,
+ *      <span style="color: 79a85d">"zh_cn = 甜莓"</span>
+ *      }, 
+ *      <span style="color: cdd6f4">group</span> = <span style="color: 79a85d">"BerryBase"</span>
+ *  )
+ *  <span style="color: 927dcb"><i>private static final</i></span> Holder&lt;Item&gt; SWEETBERRY_ITEM = ...
+ * 
+ *  <span style="color: a7f8e7">&#64;AutoI18n</span>(
+ *      <span style="color: cdd6f4">group</span> = <span style="color: 79a85d">"BerryBase"</span>,<span style="color: 79a85d">// Inherits all translations from the "BerryBase" group.</span>
+ *      <span style="color: cdd6f4">key</span> = <span style="color: 79a85d">"sweetberry_bush"// Forces using trans key "sweetberry_bush".</span>
+ *  )
+ *  <span style="color: 927dcb"><i>private static final</i></span> Holder&lt;Block&gt; SWEETBERRY_BLOCK = ...
+ * 
+ *  <span style="color: 79a85d">// Grammar: "${Language Code} = ${Translation Text}"</span>
+ *  <span style="color: 79a85d">// 1. Field naming: Use '__' to represent '.' in the translation key.</span>
+ *  <span style="color: 79a85d">// 2. Format: Whitespace around '=' is ignored. Only one '=' is allowed per string.</span>
  * </pre>
- * Doing this and data generation will do rest works.
+ *  
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see AutoI18n.Lang Supported Languages
- * @see kurvcygnus.crispsweetberry.datagen.CrispDataGenEvent DataGen Process Implementation
+ * @see kurvcygnus.crispsweetberry.utils.registry.annotations.processors.I18nProcessor Processor Implementation
  */
 @Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface AutoI18n
 {
-    @NotNull String[] value();
+    @NotNull String[] value() default "";
+    @NotNull String key() default "";
+    @NotNull String group() default "";
     
-    Pattern TRANSLATION_PATTERN = Pattern.compile("^\\s*([a-zA-Z._]+)\\s*->\\s*(.+?)\\s*$");
+    Pattern TRANSLATION_PATTERN = Pattern.compile("^\\s*([a-zA-Z._]+)\\s*=\\s*(.+?)\\s*$");
     
     enum Lang
     {
@@ -73,7 +102,7 @@ public @interface AutoI18n
         
         public static Lang parse(@NotNull String prefix) 
         {
-            try { return Lang.valueOf(prefix.toUpperCase().trim()); }
+            try { return Lang.valueOf(prefix.toUpperCase()); }
             catch(IllegalArgumentException e) { throw new IllegalArgumentException("Unknown language: %s. Details: %s".formatted(prefix, e)); }
         }
     }

@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts;
 
+import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
@@ -50,9 +51,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.mojang.logging.LogUtils.getLogger;
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.LIGHT_PROPERTY;
-import static kurvcygnus.crispsweetberry.utils.log.MarkLogger.markedLogger;
 import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
 
 /**
@@ -65,9 +64,20 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
 {
     //  region
     //* Constants, Fields & Data Basics
-    public static final byte TIER_GONE = 0;//* The tier for water contraction, named "GONE" as the fire is gone.
-    public static final byte TIER_NORM = 1;//* The tier for standard case, the torch will be this tier as long as nothing special happens.
-    public static final byte TIER_WILD = 2;//* The tier for lava contraction, named "WILD" since the fire will go wild as it torches lava.
+    /**
+     * The tier for water contraction, named "GONE" as the fire is gone.
+     */
+    public static final byte TIER_GONE = 0;
+    
+    /**
+     * The tier for standard case, the torch will be this tier as long as nothing special happens.
+     */
+    public static final byte TIER_NORM = 1;
+    
+    /**
+     * The tier for lava contraction, named "WILD" since the fire will go wild as it torches lava.
+     */
+    public static final byte TIER_WILD = 2;
     public static final int HIT_STD_EXTEND_FIRE_TICKS = 30;
     public static final int HIT_STD_MAX_TICKS = 100;
     
@@ -82,12 +92,16 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     private static final double OFFSET_CALCULATE_CONSTANT = 0.5;
     
+    /**
+     * The list used for tick participle display.<br>
+     * Each particle's index corresponds the index constants of tiers above.
+     */
     private static final ParticleOptions[] DEFAULT_LONGER_PARTICLE_STATE_LIST = { ParticleTypes.DRIPPING_WATER, ParticleTypes.SMALL_FLAME, ParticleTypes.FLAME };
     
     //! EntityDataAccessor doesn't support Enum, so we use byte instead.
     public static final EntityDataAccessor<Byte> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.BYTE);
     
-    private static final MarkLogger LOGGER = markedLogger(getLogger(), "THROWN_TORCH");
+    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "THROWN_TORCH");
     
     protected final Map<Byte, ParticleOptions> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
     
@@ -130,8 +144,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      * @see net.minecraft.world.entity.projectile.ThrowableItemProjectile
      */
     public AbstractThrownTorchEntity(@NotNull EntityType<? extends AbstractThrownTorchEntity> childrenClazzValue, 
-        double x, double y, double z, @NotNull Level level)
-            { super(childrenClazzValue, x, y, z, level); }
+        double x, double y, double z, @NotNull Level level) { super(childrenClazzValue, x, y, z, level); }
     
     /**
      * The construct method for <b>dispenser's usage.<br><br>
@@ -145,8 +158,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      * @see net.minecraft.world.entity.projectile.ThrowableItemProjectile
      */
     public AbstractThrownTorchEntity(@NotNull EntityType<? extends AbstractThrownTorchEntity> childrenClazzValue,
-        @NotNull LivingEntity shooter, @NotNull Level level)
-            { super(childrenClazzValue, shooter, level); }
+        @NotNull LivingEntity shooter, @NotNull Level level) { super(childrenClazzValue, shooter, level); }
     //endregion
     
     //  region
@@ -278,7 +290,9 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                 
                 LOGGER.when(placementPos != null).
                     debug(() -> "Legal Direction & State Confirmed. Direction: {}, State: {}", () -> new Object[] { placementPos, stateToPlace });
-                LOGGER.when(placementPos == null).debug(() -> "Illegal Direction. Both Direction and State are set to null.");
+                
+                LOGGER.when(placementPos == null).
+                    debug(() -> "Illegal Direction. Both Direction and State are set to null.");
             }
             
             if(stateToPlace != null && getTier() == TIER_GONE)
@@ -346,7 +360,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     }
     
     /**
-     * The method which overrides the super method in order to <b>make <u>{@link #displayDestroyParticle()}</u> work</b>.
+     * The method which key the super method in order to <b>make <u>{@link #displayDestroyParticle()}</u> work</b>.
      */
     @Override
     public final void handleEntityEvent(byte id)
@@ -391,8 +405,12 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         
         this.level().addParticle(
             particle,
-            this.getX(), this.getY(), this.getZ(),
-            particleSpeed, particleSpeed, particleSpeed
+            this.getX(),
+            this.getY(),
+            this.getZ(),
+            particleSpeed,
+            particleSpeed,
+            particleSpeed
         );
     }
     
@@ -417,7 +435,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         playSound(sound, SoundSource.AMBIENT, SoundConstants.LOUD_SOUND_VOLUME);
     }
     
-    protected final void playSound(SoundEvent sound, SoundSource soundSource, float volume)
+    protected final void playSound(@NotNull SoundEvent sound, @NotNull SoundSource soundSource, float volume)
         { this.level().playSound(null, getOnPos(), sound, soundSource, volume, SoundConstants.NORMAL_SOUND_PITCH); }
     //endregion
     

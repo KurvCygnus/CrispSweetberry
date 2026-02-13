@@ -32,13 +32,6 @@ public enum CrispCreativeTabs implements IRegistrant
 {
     INSTANCE;
     
-    @AutoI18n({
-        "en_us -> Crisp Sweetberry",
-        "lol_us -> TA2TY FRUT",
-        "zh_cn -> 澄莓物语"
-    })
-    private static final Component CRISP_CREATIVE_TAB_TITLE = Component.translatable("crispsweetberry.creativetab.tabtitle");
-    
     @Override
     public void register(@NotNull IEventBus bus) { CRISP_TAB_REGISTER.register(bus); }
     
@@ -58,8 +51,15 @@ public enum CrispCreativeTabs implements IRegistrant
     );
     
     @SuppressWarnings("unused")
+    @AutoI18n(value = {
+        "en_us = Crisp Sweetberry",
+        "lol_us = TA2TY FRUT",
+        "zh_cn = 澄莓物语"
+        },
+        key = "tabtitle"
+    )
     public static final Holder<CreativeModeTab> CSB_TAB = CRISP_TAB_REGISTER.register("crisp_tab", CreativeModeTab.builder().
-        title(CRISP_CREATIVE_TAB_TITLE).
+        title(Component.translatable("crispsweetberry.creativetab.tabtitle")).
         withTabsBefore(CreativeModeTabs.COMBAT).
         icon(() -> new ItemStack(Items.SWEET_BERRIES))::build
     );
