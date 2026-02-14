@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation 'org.jetbrains:annotations:24.1.0'
+}
+
+group = mod_group_id
+version = mod_id
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': 'Crisp Sweetberry I18n Processor',
+                'Implementation-Version': project.version
+        )
+    }
+}

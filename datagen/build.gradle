@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.140'
+}
+
+dependencies {
+    implementation project(':core')
+}
+
+group = mod_group_id
+version = mod_id
+
+neoForge {
+    version = project.neo_version
+
+    runs {
+        data {
+            data()
+            programArguments.addAll '--mod', mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('../core/src/main/resources/').getAbsolutePath()
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
