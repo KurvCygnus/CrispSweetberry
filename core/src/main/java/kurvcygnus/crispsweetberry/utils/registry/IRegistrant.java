@@ -55,13 +55,13 @@ public interface IRegistrant
     /**
      * Used for order sensitive registries.
      *
-     * @apiNote Higher number has higher property.
+     * @apiNote Smaller number has higher property.
      */
     @NotNull PriorityPair getPriority();
     
     default int getFullPriority() { return getPriority().priorityRange().getPriority() + getPriority().priority; }
     
-    record PriorityPair(@NotNull PriorityRange priorityRange, @Range(from = 1, to = 99) int priority) {}
+    record PriorityPair(@NotNull PriorityRange priorityRange, @Range(from = 1, to = 999) int priority) {}
     
     enum PriorityRange
     {
@@ -71,7 +71,7 @@ public interface IRegistrant
         
         private final int priority;
         
-        PriorityRange() { this.priority = (this.ordinal() + 1) * 100; }
+        PriorityRange() { this.priority = (this.ordinal() + 1) * 1000; }
         
         public int getPriority() { return this.priority; }
     }

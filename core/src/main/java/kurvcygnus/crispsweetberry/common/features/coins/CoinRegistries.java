@@ -51,7 +51,7 @@ public enum CoinRegistries implements IRegistrant
     public @NotNull String getJob() { return "Coin"; }
     
     @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 70); }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 3); }
     
     private static final DeferredRegister<Item> COIN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<Block> COIN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);

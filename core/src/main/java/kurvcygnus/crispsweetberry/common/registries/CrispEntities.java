@@ -33,7 +33,7 @@ public enum CrispEntities implements IRegistrant
     public @NotNull String getJob() { return "Misc Entities"; }
     
     @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 70); }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 3); }
     
     public static final DeferredRegister<EntityType<?>> CRISP_ENTITY_TYPE_REGISTER =
         DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.NAMESPACE);

@@ -460,28 +460,30 @@ public final class I18nProcessor extends AbstractProcessor
         
         if(group != null)
         {
+            final String fullGroup = "%s:%s".formatted(namespace, group);
+            
             if(!translationContentPairs.isEmpty())//* Initialize group case.
             {
-                if(groups.containsKey(group))
+                if(groups.containsKey(fullGroup))
                     messager.printMessage(
                         Diagnostic.Kind.ERROR,
                         "Group %s has been defined for multiple times!".
-                            formatted(group)
+                            formatted(fullGroup)
                     );
                 
-                groups.put("%s:%s".formatted(namespace, group), translationContentPairs);
+                groups.put(fullGroup, translationContentPairs);
             }
             else//* Use group case.
             {
-                if(!groups.containsKey(group))
+                if(!groups.containsKey(fullGroup))
                     messager.printMessage(
                         Diagnostic.Kind.ERROR,
                         "Group \"%s\" doesn't exist in cached groups!".
-                            formatted(group),
+                            formatted(fullGroup),
                         element
                     );
                     
-                translationContentPairs = groups.get(group);
+                translationContentPairs = groups.get(fullGroup);
             }
         }
         

@@ -28,7 +28,9 @@ public final class JadeEntrypoint implements IWailaPlugin
     public void registerClient(@NotNull IWailaClientRegistration registration)
     {
         registration.hideTarget(TTorchRegistries.FAKE_LIGHT_BLOCK.value());
-        registration.hideTarget(TTorchRegistries.THROWN_TORCH.value());
+        
+        TTorchRegistries.ENTITY_HIDE_LIST.forEach(e -> registration.hideTarget(e.value()));
+        
         //registration.registerBlockComponent(KilnBlockInfoProvider.INSTANCE, KilnBlock.class);
     }
 }

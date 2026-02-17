@@ -182,8 +182,8 @@ public final class MarkLogger
      * }</pre>
      * Produces these markers:
      * <pre>{@code 
-     *  //foo -> foo_err(For error log funcs)
-     *  //BAR -> BAR_WARN(For warn log funcs)
+     *  // foo -> foo_err(For error log funcs)
+     *  // BAR -> BAR_WARN(For warn log funcs)
      * }</pre>
      * <i>Current suffix conversion is quite simple, since we don't think it needs to support all text cases.</i>
      * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
@@ -212,8 +212,8 @@ public final class MarkLogger
      * }</pre>
      * Produces these markers:
      * <pre>{@code
-     *  //foo -> foo_err(For error log funcs)
-     *  //BAR -> BAR_WARN(For warn log funcs)
+     *  // foo -> foo_err(For error log funcs)
+     *  // BAR -> BAR_WARN(For warn log funcs)
      * }</pre>
      * <i>Current suffix conversion is quite simple, since we don't think it needs to support all text cases.</i>
      * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}

@@ -9,8 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +19,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,6 +65,13 @@ public final class TTorchConstants
         noCollission().
         instabreak().
         ignitedByLava();
+    
+    public static final int REDSTONE_MAX_BRIGHTNESS = 7;
+    public static final int REDSTONE_MIN_BRIGHTNESS = 0;
+    public static final int REDSTONE_TORCH_SIGNAL_SEND_DELAY = 2;
+    
+    public static final BooleanProperty REDSTONE_LIT = BooleanProperty.create("lit");
+    public static final ToIntFunction<BlockState> REDSTONE_BRIGHTNESS_FORMULA = bs -> bs.getValue(REDSTONE_LIT) ? REDSTONE_MAX_BRIGHTNESS : REDSTONE_MIN_BRIGHTNESS;
     //endregion
     
     //  region
@@ -76,8 +84,10 @@ public final class TTorchConstants
     public static final int DEFAULT_ANIMATION_DURATION_TICKS = 1;
     public static final int DEFAULT_ANIMATION_FRAMES_IN_TOTAL = 8;
     
-    public static final TextureAtlasSprite SOUL_FIRE_0 = new Material
-        (InventoryMenu.BLOCK_ATLAS, ResourceLocation.withDefaultNamespace("block/soul_fire_0")).sprite();
+    public static final ResourceLocation SOUL_FIRE_0 = ResourceLocation.withDefaultNamespace("block/soul_fire_0");
+    
+    public static @NotNull TextureAtlasSprite getTextureByResourceLocation(@NotNull ResourceLocation resourceLocation) 
+        { return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(resourceLocation); }
     //endregion
     
     //  region

@@ -31,7 +31,7 @@ public enum CrispBlocks implements IRegistrant
     public @NotNull String getJob() { return "Misc Blocks"; }
     
     @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 90); }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 1); }
     
     public static final DeferredRegister<Block> CRISP_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
     
@@ -40,7 +40,7 @@ public enum CrispBlocks implements IRegistrant
         "lol_us = hoom",
         "zh_cn = 搬运箱"
         },
-        group = "csb:carry_crate"
+        group = "carry_crate"
     )
     public static final Holder<Block> CARRY_CRATE = CRISP_BLOCK_REGISTER.register("carry_crate", resourceLocation -> new CarryCrateBlock());
 }

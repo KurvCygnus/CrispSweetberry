@@ -13,6 +13,8 @@ import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TemporaryRedstoneTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TemporaryRedstoneWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity;
@@ -58,7 +60,7 @@ public enum TTorchRegistries implements IRegistrant
     public @NotNull String getJob() { return "T Torches"; }
     
     @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 80); }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 2); }
     
     private static final DeferredRegister<Item> THROWABLE_TORCH_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<Block> TEMPORARY_TORCH_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
@@ -71,9 +73,9 @@ public enum TTorchRegistries implements IRegistrant
     );
     
     @AutoI18n(value = {
-        "en_us = Thrown Torch",
-        "lol_us = fullee lite stik",
-        "zh_cn = 投掷火把"
+            "en_us = Thrown Torch",
+            "lol_us = fullee lite stik",
+            "zh_cn = 投掷火把"
         },
         group = "temporary_torch"
     )
@@ -89,9 +91,9 @@ public enum TTorchRegistries implements IRegistrant
     );
     
     @AutoI18n(value = {
-        "en_us -> Thrown Soul Torch",
-        "lol_us -> Gatling Barrel",
-        "zh_cn -> 投掷灵魂火把"
+            "en_us = Thrown Soul Torch",
+            "lol_us = Gatling Barrel",
+            "zh_cn = 投掷灵魂火把"
         },
         group = "temporary_soul_torch"
     )
@@ -102,8 +104,26 @@ public enum TTorchRegistries implements IRegistrant
     
     @AutoI18n(group = "temporary_soul_torch")
     public static final DeferredHolder<Block, TemporarySoulWallTorchBlock> TEMPORARY_SOUL_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temprorary_soul_wall_torch",
+        "temporary_soul_wall_torch",
         resourceLocation -> new TemporarySoulWallTorchBlock()
+    );
+    
+    @AutoI18n(value = {
+            "en_us = Temporary Redstone Torch",
+            "lol_us = fullee stewberi stik",
+            "zh_cn = 投掷红石火把"
+        },
+        group = "temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> TEMPORARY_REDSTONE_TORCH = TEMPORARY_TORCH_REGISTER.register(
+        "temporary_redstone_torch",
+        resourceLocation -> new TemporaryRedstoneTorchBlock()
+    );
+    
+    @AutoI18n(group = "temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> TEMPORARY_REDSTONE_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
+        "temporary_redstone_wall_torch",
+        resourceLocation -> new TemporaryRedstoneWallTorchBlock()
     );
     
     /**
@@ -111,8 +131,9 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on 
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
-    @AutoI18n(group = "temporary_torch")
-    public static final Holder<Item> TEMPORARY_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_torch", 
+    @AutoI18n(group = "temporary_torch", key = "temporary_torch")
+    private static final Holder<Item> _TEMPORARY_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "temporary_torch", 
         () -> new BlockItem(TEMPORARY_TORCH.value(), new Item.Properties())
     );
     
@@ -121,9 +142,54 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
-    @AutoI18n(group = "temporary_torch")
-    public static final Holder<Item> TEMPORARY_WALL_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_wall_torch", 
+    @AutoI18n(group = "temporary_torch", key = "temporary_wall_torch")
+    private static final Holder<Item> _TEMPORARY_WALL_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "temporary_wall_torch", 
         () -> new BlockItem(TEMPORARY_WALL_TORCH.value(), new Item.Properties())
+    );
+    
+    /**
+     * @implNote This is not supposed to be appeared in game.<br>
+     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
+     * <u>{@link BlockItem}</u>, that's why we still implemented this.
+     */
+    @AutoI18n(group = "temporary_soul_torch", key = "temporary_soul_torch")
+    private static final Holder<Item> _TEMPORARY_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "temporary_soul_torch",
+        () -> new BlockItem(TEMPORARY_SOUL_TORCH.value(), new Item.Properties())
+    );
+    
+    /**
+     * @implNote This is not supposed to be appeared in game.<br>
+     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
+     * <u>{@link BlockItem}</u>, that's why we still implemented this.
+     */
+    @AutoI18n(group = "temporary_soul_torch", key = "temporary_soul_wall_torch")
+    private static final Holder<Item> _TEMPORARY_SOUL_WALL_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "temporary_soul_wall_torch",
+        () -> new BlockItem(TEMPORARY_SOUL_WALL_TORCH.value(), new Item.Properties())
+    );
+    
+    /**
+     * @implNote This is not supposed to be appeared in game.<br>
+     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
+     * <u>{@link BlockItem}</u>, that's why we still implemented this.
+     */
+    @AutoI18n(group = "temporary_redstone_torch", key = "temporary_redstone_torch")
+    public static final Holder<Item> _TEMPORARY_REDSTONE_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "temporary_redstone_torch",
+        () -> new BlockItem(TEMPORARY_REDSTONE_TORCH.value(), new Item.Properties())
+    );
+    
+    /**
+     * @implNote This is not supposed to be appeared in game.<br>
+     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
+     * <u>{@link BlockItem}</u>, that's why we still implemented this.
+     */
+    @AutoI18n(group = "temporary_redstone_torch", key = "temporary_redstone_wall_torch")
+    public static final Holder<Item> _TEMPORARY_REDSTONE_WALL_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "temporary_redstone_wall_torch",
+        () -> new BlockItem(TEMPORARY_REDSTONE_WALL_TORCH.value(), new Item.Properties())
     );
     
     /**
@@ -131,9 +197,9 @@ public enum TTorchRegistries implements IRegistrant
      * @see kurvcygnus.crispsweetberry.integrations.JadeEntrypoint#registerClient(IWailaClientRegistration) Hidden Implementation
      */
     @AutoI18n(value = {
-        "en_us = UwU",
-        "lol_us = OwO",
-        "zh_cn = QAQ"
+            "en_us = UwU",
+            "lol_us = OwO",
+            "zh_cn = QAQ"
         },
         group = "lol"
     )
@@ -163,13 +229,14 @@ public enum TTorchRegistries implements IRegistrant
         resourceLocation -> new ThrowableRedstoneTorchItem()
     );
     
+    @RegisterToTab
     @AutoI18n({
         "en_us = Throwable Soul Torch",
         "lol_us = COOL GATLING BARREL",
         "zh_cn = 灵魂投掷火把"
     })
     public static final Holder<Item> THROWABLE_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "thorwable_soul_torch",
+        "throwable_soul_torch",
         resourceLocation -> new ThrowableSoulTorchItem()
     );
     
@@ -195,6 +262,12 @@ public enum TTorchRegistries implements IRegistrant
     })
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownSoulTorchEntity>> THROWN_SOUL_TORCH = 
         getTypeHolder("thrown_soul_torch", ThrownSoulTorchEntity::new);
+    
+    public static final List<DeferredHolder<EntityType<?>, ? extends EntityType<? extends AbstractThrownTorchEntity>>> ENTITY_HIDE_LIST = List.of(
+        THROWN_TORCH,
+        THROWN_REDSTONE_TORCH,
+        THROWN_SOUL_TORCH
+    );
     
     private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>>
     getTypeHolder(@NotNull String id, @NotNull EntityType.EntityFactory<T> factory)

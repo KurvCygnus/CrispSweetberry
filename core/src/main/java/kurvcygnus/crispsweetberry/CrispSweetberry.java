@@ -42,11 +42,12 @@ import java.util.function.Supplier;
 public final class CrispSweetberry
 {
     public static final String NAMESPACE = "crispsweetberry";
+    
     private static final List<String> ANNOTATIONS = List.of(
         RegisterToTab.class.getName()
     );
     
-    private static final CrispIntRanger LEGAL_PRIORITY_RANGE = CrispIntRanger.closed(1, 99);
+    private static final CrispIntRanger LEGAL_PRIORITY_RANGE = CrispIntRanger.closed(1, 999);
     
     public static final Map<ResourceKey<CreativeModeTab>, List<TabEntry>> TAB_LOOKUP = new HashMap<>();
     
@@ -73,17 +74,17 @@ public final class CrispSweetberry
                 
                 field.setAccessible(true);
                 
-                final @Nullable RegisterToTab anno = field.getAnnotation(RegisterToTab.class);
+                final @Nullable RegisterToTab registerToTab = field.getAnnotation(RegisterToTab.class);
                 
-                if(anno == null) 
+                if(registerToTab == null) 
                     continue;
                 
                 final Object value = field.get(null);
                 final Supplier<? extends Item> supplier = wrapToSupplier(value);
                 
                 if(supplier != null)
-                    TAB_LOOKUP.computeIfAbsent(anno.tabGroup().toCreativeTab(), ignored -> new ArrayList<>()).
-                        add(new TabEntry(supplier, anno.tabGroup().toCreativeTab(), anno.registerCondition()));
+                    TAB_LOOKUP.computeIfAbsent(registerToTab.tabGroup().toCreativeTab(), ignored -> new ArrayList<>()).
+                        add(new TabEntry(supplier, registerToTab.tabGroup().toCreativeTab(), registerToTab.registerCondition()));
             }
             catch(Exception e) { LOGGER.error("Failed to pre-cache tab entry. Details: ", e); }
         }
@@ -116,7 +117,7 @@ public final class CrispSweetberry
                         final IRegistrant registrant = (IRegistrant) clazz.getEnumConstants()[0];
                         
                         CrispFunctionalUtils.throwIf(
-                            LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()), () ->
+                            !LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()), () ->
                                 new IllegalArgumentException(String.format("Invalid priority: %s", registrant.getPriority().priority()))
                         );
                         
@@ -137,7 +138,7 @@ public final class CrispSweetberry
                 }
             }
         ).filter(Objects::nonNull).
-            sorted(Comparator.comparingInt(IRegistrant::getFullPriority).reversed()).
+            sorted(Comparator.comparingInt(IRegistrant::getFullPriority)).
             toList();
         
         LOGGER.info("Registries sort completed!");
@@ -151,7 +152,7 @@ public final class CrispSweetberry
         LOGGER.info("CrispSweetberry has been initialized!");
     }
     
-    @SuppressWarnings("unchecked")//! As you can see, the casting is actually reliable.
+    @SuppressWarnings("unchecked")//! As you can see, this casting is actually reliable.
     private @Nullable Supplier<? extends Item> wrapToSupplier(@Nullable Object value)
     {
         return switch(value)

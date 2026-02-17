@@ -13,10 +13,8 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -24,19 +22,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.SOUL_FIRE_0;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.getTextureByResourceLocation;
 
 @Mixin(EntityRenderDispatcher.class)
 public final class SoulFireVisualEffectInjection
 {
     @Unique
-    private static final TextureAtlasSprite SOUL_FIRE_1 = new Material
-        (InventoryMenu.BLOCK_ATLAS, ResourceLocation.withDefaultNamespace("block/soul_fire_1")).sprite();
+    private static final ResourceLocation SOUL_FIRE_1 = ResourceLocation.withDefaultNamespace("block/soul_fire_1");
     
     @ModifyVariable(method = "renderFlame", at = @At("STORE"), ordinal = 0)
     private TextureAtlasSprite modifyFireSprite0(TextureAtlasSprite textureatlassprite, PoseStack poseStack, MultiBufferSource buffer, @NotNull Entity entity)
     {
         if(entity.getPersistentData().contains(TTorchConstants.SOUL_FIRE_PERSISTENT_TAG))
-            return SOUL_FIRE_0;
+            return getTextureByResourceLocation(SOUL_FIRE_0);
             
         return textureatlassprite;
     }
@@ -45,7 +43,7 @@ public final class SoulFireVisualEffectInjection
     private TextureAtlasSprite soulFireOverlayAlt(TextureAtlasSprite textureatlassprite1, PoseStack poseStack, MultiBufferSource buffer, @NotNull Entity entity)
     {
         if(entity.getPersistentData().contains(TTorchConstants.SOUL_FIRE_PERSISTENT_TAG))
-            return SOUL_FIRE_1;
+            return getTextureByResourceLocation(SOUL_FIRE_1);
         
         return textureatlassprite1;
     }

@@ -67,7 +67,7 @@ public enum KilnRegistries implements IRegistrant
     public @NotNull String getJob() { return "Kiln"; }
     
     @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 90); }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 1); }
     
     private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(NAMESPACE);
     public static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(NAMESPACE);
@@ -113,30 +113,31 @@ public enum KilnRegistries implements IRegistrant
         );
     }
     
-    @SubscribeEvent
-    static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
-    
     /**
      * This event bounds <u>{@link KilnScreen Screen}</u> to corresponded <u>{@link KilnMenu Menu}</u>.<br>
      * <b><i>This is a must to make custom screen working</b></i>.
-     * @since 1.0 Release
+     *
      * @author Kurv Cygnus
+     * @since 1.0 Release
      */
     @SubscribeEvent
-    static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KilnRegistries.KILN_MENU.get(), KilnScreen::new); }
+    static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KILN_MENU.get(), KilnScreen::new); }
+    
+    @SubscribeEvent
+    static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
     
     @AutoI18n(value = {
-        "en_us = Kiln",
-        "lol_us = big warn bokz",
-        "zh_cn = 窑炉"
+            "en_us = Kiln",
+            "lol_us = big warn bokz",
+            "zh_cn = 窑炉"
         },
         key = "kiln",
-        group = "csb:kiln"
+        group = "kiln"
     )
     public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
     
     @RegisterToTab
-    @AutoI18n(key = "kiln", group = "csb:kiln")
+    @AutoI18n(key = "kiln", group = "kiln")
     public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register("kiln", resourceLocation ->
         new BlockItem(KILN_BLOCK.value(), new Item.Properties())
     );
@@ -158,9 +159,9 @@ public enum KilnRegistries implements IRegistrant
     );
     
     @AutoI18n(value = {
-        "en_us = Interactions with Kiln",
-        "lol_us = HAW MANI TIMZ DID U GO 2 DA WARM BOKZ",
-        "zh_cn = 与窑炉的交互次数"
+            "en_us = Interactions with Kiln",
+            "lol_us = HAW MANI TIMZ DID U GO 2 DA WARM BOKZ",
+            "zh_cn = 与窑炉的交互次数"
         },
         key = "stat.crispsweetberry.interact_with_kiln"
     )

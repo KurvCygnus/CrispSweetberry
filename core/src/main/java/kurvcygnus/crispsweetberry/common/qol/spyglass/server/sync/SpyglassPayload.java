@@ -25,6 +25,5 @@ public record SpyglassPayload(boolean isPressed) implements CustomPacketPayload
         SpyglassPayload::new
     );
     
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
+    @Override public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
 }

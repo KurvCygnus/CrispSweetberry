@@ -34,7 +34,7 @@ public enum CrispItems implements IRegistrant
     public @NotNull String getJob() { return "Misc Items"; }
     
     @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 80); }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 2); }
     
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     
