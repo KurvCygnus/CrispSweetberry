@@ -23,6 +23,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.en
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
+import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -531,14 +532,14 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     /**
      * Helper methods to check item validation.
      */
-    public boolean canSmelt(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getKilnCachedRecipes().containsKey(itemstack.getItem()); }
+    public boolean canSmelt(@NotNull ItemStack itemstack) { return KilnRecipeManager.INSTANCE.getRecipes().containsKey(itemstack.getItem()); }
     
-    public boolean isBanned(@NotNull ItemStack itemstack) { return KilnRecipeCacheEvent.getBannedRecipes().containsKey(itemstack.getItem()); }
+    public boolean isBanned(@NotNull ItemStack itemstack) { return KilnRecipeManager.INSTANCE.getBannedRecipes().containsKey(itemstack.getItem()); }
     
     private static KilnRecipe getKilnRecipe(@NotNull ItemStack stackInSlot)
     {
         //? TODO: Polymorph support
-        return KilnRecipeCacheEvent.getKilnCachedRecipes().
+        return KilnRecipeManager.INSTANCE.getRecipes().
             getOrDefault(stackInSlot.getItem(), noRecipeList()).getFirst();
     }
     

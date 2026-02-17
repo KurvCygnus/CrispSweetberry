@@ -53,7 +53,7 @@ public final class TTorchConstants
     
     public static final ToIntFunction<BlockState> DEFAULT_BRIGHTNESS_FORMULA = bs -> bs.getValue(LIGHT_PROPERTY).toBrightness();
     
-    public static final BlockBehaviour.Properties BASIC_TEMP_TORCH_PROPERTIES = BlockBehaviour.Properties.of().
+    public static final BlockBehaviour.Properties STANDARD_TEMPORARY_TORCH_PROPERTIES = BlockBehaviour.Properties.of().
         noLootTable().
         sound(SoundType.WOOD).
         ignitedByLava().
@@ -61,7 +61,7 @@ public final class TTorchConstants
         instabreak().
         lightLevel(DEFAULT_BRIGHTNESS_FORMULA);
     
-    public static final BlockBehaviour.Properties TEMP_TORCH_BASE_PROPERTIES = BlockBehaviour.Properties.of().
+    public static final BlockBehaviour.Properties BASIC_TEMP_TORCH_PROPERTIES = BlockBehaviour.Properties.of().
         noCollission().
         instabreak().
         ignitedByLava();

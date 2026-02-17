@@ -34,7 +34,7 @@ public final class TemporaryRedstoneWallTorchBlock extends AbstractTemporaryWall
     public TemporaryRedstoneWallTorchBlock()
     {
         super(
-            TEMP_TORCH_BASE_PROPERTIES.lightLevel(REDSTONE_BRIGHTNESS_FORMULA),
+            BASIC_TEMP_TORCH_PROPERTIES.lightLevel(REDSTONE_BRIGHTNESS_FORMULA),
             new TemporaryRedstoneTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_REDSTONE_WALL_TORCH))
         );
     }

@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul;
 
 import com.mojang.serialization.MapCodec;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
@@ -22,7 +23,13 @@ public final class TemporarySoulWallTorchBlock extends AbstractTemporaryWallTorc
 {
     private TemporarySoulWallTorchBlock(@Nullable Properties properties) { this(); }
     
-    public TemporarySoulWallTorchBlock() { super(Properties.of(), new TemporarySoulTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_SOUL_WALL_TORCH))); }
+    public TemporarySoulWallTorchBlock() 
+    {
+        super(
+            TTorchConstants.STANDARD_TEMPORARY_TORCH_PROPERTIES,
+            new TemporarySoulTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_SOUL_WALL_TORCH))
+        );
+    }
     
     @Override public @NotNull MapCodec<? extends AbstractGenericTorchBlock<TemporarySoulTorchBehavior>> codec() { return simpleCodec(TemporarySoulWallTorchBlock::new); }
     

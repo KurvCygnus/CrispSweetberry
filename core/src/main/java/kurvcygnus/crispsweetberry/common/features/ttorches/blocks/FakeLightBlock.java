@@ -70,7 +70,7 @@ public final class FakeLightBlock extends Block
         if(state.is(oldState.getBlock()))
             return;
         
-        level.scheduleTick(pos, this, 2);
+        level.scheduleTick(pos, this, 5);
     }
     
     @Override

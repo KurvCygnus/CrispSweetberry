@@ -13,6 +13,7 @@ import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
+import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.NonNullList;
@@ -38,14 +39,12 @@ import java.util.HashMap;
  * @author Kurv Cygnus
  * @see KilnBlockEntity Main Usage
  * @see KilnRecipe Recipe Implementation
+ * @see KilnRecipeManager Kiln's own Recipe Manager
  * @since 1.0 Release
  */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class KilnRecipeCacheEvent
 {
-    private static final HashMap<Item, NonNullList<KilnRecipe>> KILN_CACHED_RECIPES = new HashMap<>();
-    private static final HashMap<Item, NonNullList<BlastingRecipe>> BANNED_RECIPES = new HashMap<>();
-    
     private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     
     /**
@@ -53,7 +52,6 @@ public final class KilnRecipeCacheEvent
      * @implNote We pick this event as the <u>{@link RecipeManager}</u> has fully stitched together all JSON recipes from
      * mods and datapacks. This ensures our cache doesn't miss entries that are registered
      * late in the loading cycle.
-     * <br>
      */
     @SubscribeEvent
     static void getKilnRecipes(final @NotNull ServerStartedEvent event) { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
@@ -92,12 +90,12 @@ public final class KilnRecipeCacheEvent
         final StopWatch time = new StopWatch();
         time.start();
         
+        final HashMap<Item, NonNullList<KilnRecipe>> kilnCachedRecipes = new HashMap<>();
+        final HashMap<Item, NonNullList<BlastingRecipe>> bannedRecipes = new HashMap<>();
+        
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("CACHE_START"))
         {
             LOGGER.info("Getting Kiln Recipes...");
-            
-            KILN_CACHED_RECIPES.clear();
-            BANNED_RECIPES.clear();
             
             final HashMap<Item, NonNullList<SmokingRecipe>> tempSmokingRecipes = new HashMap<>();
             final HashMap<Item, NonNullList<SmeltingRecipe>> tempKilnRecipes = new HashMap<>();
@@ -109,8 +107,8 @@ public final class KilnRecipeCacheEvent
             
             handle.changeMarker("BLAST_PHASE");
             LOGGER.info("Collecting Blast Furnace(Banned) Recipes...");
-            streamRecipes(BANNED_RECIPES, manager, RecipeType.BLASTING);
-            configDebug("Collection ended, {} entries in total, content: {}", BANNED_RECIPES.size(), BANNED_RECIPES);
+            streamRecipes(bannedRecipes, manager, RecipeType.BLASTING);
+            configDebug("Collection ended, {} entries in total, content: {}", bannedRecipes.size(), bannedRecipes);
             
             
             handle.changeMarker("INITIAL_FILTER");
@@ -124,7 +122,7 @@ public final class KilnRecipeCacheEvent
                         {
                             final Item item = stack.getItem();
                             
-                            if(BANNED_RECIPES.containsKey(item))
+                            if(bannedRecipes.containsKey(item))
                             {
                                 configDebug("Filtered item \"{}\", reason: Belongs to Banned Recipes", stack.getDisplayName());
                                 continue;
@@ -152,10 +150,12 @@ public final class KilnRecipeCacheEvent
             handle.changeMarker("RECIPE_CACHE");
             configDebug("Conversion finished. Continue to put recipes into the map...");
             
-            KILN_CACHED_RECIPES.putAll(completedKilnRecipesCacheList);
+            kilnCachedRecipes.putAll(completedKilnRecipesCacheList);
             
             handle.changeMarker("EVENT_FINISHED");
             LOGGER.info("Kiln recipe caching finished in {} ms!", time.getTime());
+            
+            KilnRecipeManager.INSTANCE.updateRecipes(kilnCachedRecipes, bannedRecipes);
         }
     }
     
@@ -240,10 +240,6 @@ public final class KilnRecipeCacheEvent
         
         return factor;
     }
-    
-    public static @NotNull HashMap<Item, NonNullList<KilnRecipe>> getKilnCachedRecipes() { return KILN_CACHED_RECIPES; }
-    
-    public static @NotNull HashMap<Item, NonNullList<BlastingRecipe>> getBannedRecipes() { return BANNED_RECIPES; }
     
     private static void configDebug(@NotNull String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_EVENT_DEBUG.get()).debug(message, args); }
 }

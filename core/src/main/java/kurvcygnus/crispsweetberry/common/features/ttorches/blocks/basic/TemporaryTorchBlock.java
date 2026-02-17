@@ -32,7 +32,7 @@ public final class TemporaryTorchBlock extends AbstractTemporaryTorchBlock<Tempo
 {
     private TemporaryTorchBlock(@Nullable Properties properties) { this(); }
     
-    public TemporaryTorchBlock() { super(BASIC_TEMP_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_TORCH))); }
+    public TemporaryTorchBlock() { super(STANDARD_TEMPORARY_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_TORCH))); }
     
     @Override
     public @NotNull MapCodec<? extends AbstractGenericTorchBlock<TemporaryTorchBehavior>> codec() { return simpleCodec(TemporaryTorchBlock::new); }

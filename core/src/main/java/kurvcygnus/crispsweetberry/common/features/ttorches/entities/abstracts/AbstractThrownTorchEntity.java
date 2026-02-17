@@ -196,12 +196,13 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                 if(!this.isInLiquid())
                 {
                     handle.changeMarker("LIGHT_FUNC");
-                    final BlockState blockState = level.getBlockState(this.getOnPos());
                     
                     if(this.onGround() || this.horizontalCollision || this.verticalCollision)
                         return;
                     
-                    if(!blockState.is(Blocks.AIR) || blockState.is(TTorchRegistries.FAKE_LIGHT_BLOCK))
+                    final @Nullable BlockPos pos = pickPos(level, this.getOnPos());
+                    
+                    if(pos == null)
                         return;
                     
                     final BlockState light = TTorchRegistries.FAKE_LIGHT_BLOCK.value().defaultBlockState().
@@ -209,17 +210,34 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     
                     LOGGER.debug("Current isn't in any liquid, emulate lighting.");
                     
-                    level.setBlockAndUpdate(this.getOnPos(), light);
+                    level.setBlock(pos, light, Block.UPDATE_CLIENTS);
                 }
             }
             else
             {
-                displayParticle(getLongerParticleFrequency(), longerParticleStateList.get(getTier()));
+                final byte longerParticleIndex = shouldCheckLiquids() ? getTier() : 0;
+                
+                displayParticle(getLongerParticleFrequency(), longerParticleStateList.get(longerParticleIndex));
                 
                 if(!(getTier() == TIER_GONE && shouldShowNoSmokeWhenBurnedOut()))
                     displayParticle(getShorterParticleFrequency(), getShorterParticle());
             }
         }
+    }
+    
+    private @Nullable BlockPos pickPos(@NotNull Level level, @NotNull BlockPos pos)
+    {
+        final BlockPos[] candidates = { pos, pos.above(), pos.below() };
+        
+        for(final BlockPos candidate: candidates)
+        {
+            final BlockState state = level.getBlockState(candidate);
+            
+            if(state.isAir())
+                return candidate;
+        }
+        
+        return null;
     }
     
     @Override
@@ -424,7 +442,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         if(states.length != 1 && states.length != 3)
             throw new IllegalArgumentException("Invalid length of states: %d, it should be 1, or 3.".formatted(states.length));
         
-        final boolean duplicate = shouldCheckLiquids();
+        final boolean duplicate = !shouldCheckLiquids();
         
         final Map<Byte, ParticleOptions> longerParticleStateList = new HashMap<>(3);
         

@@ -33,7 +33,7 @@ public final class TemporaryWallTorchBlock extends AbstractTemporaryWallTorchBlo
 {
     private TemporaryWallTorchBlock(@Nullable Properties properties) { this(); }
     
-    public TemporaryWallTorchBlock() { super(BASIC_TEMP_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_WALL_TORCH))); }
+    public TemporaryWallTorchBlock() { super(STANDARD_TEMPORARY_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_WALL_TORCH))); }
     
     @Override public @NotNull MapCodec<? extends AbstractGenericTorchBlock<TemporaryTorchBehavior>> codec() { return simpleCodec(TemporaryWallTorchBlock::new); }
     
