@@ -12,4 +12,4 @@
  * @implNote DO NOT add {@link javax.annotation.ParametersAreNonnullByDefault @ParametersAreNonnullByDefault} in package-infos,
  * this will lead to potential issues, errors, and footguns.
  */
-package kurvcygnus.crispsweetberry.datagen;
+package kurvcygnus.crispsweetberry;

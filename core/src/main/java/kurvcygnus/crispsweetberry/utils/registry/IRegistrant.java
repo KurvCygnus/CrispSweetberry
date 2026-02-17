@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.utils.registry;
 
 import net.neoforged.bus.api.IEventBus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * This the core of automatic registration.
@@ -53,7 +54,25 @@ public interface IRegistrant
     
     /**
      * Used for order sensitive registries.
-     * @apiNote Lower number is higher property.
+     *
+     * @apiNote Higher number has higher property.
      */
-    int getPriority();
+    @NotNull PriorityPair getPriority();
+    
+    default int getFullPriority() { return getPriority().priorityRange().getPriority() + getPriority().priority; }
+    
+    record PriorityPair(@NotNull PriorityRange priorityRange, @Range(from = 1, to = 99) int priority) {}
+    
+    enum PriorityRange
+    {
+        MISC,
+        FEATURE,
+        REFERENCE_HOLDER;
+        
+        private final int priority;
+        
+        PriorityRange() { this.priority = (this.ordinal() + 1) * 100; }
+        
+        public int getPriority() { return this.priority; }
+    }
 }

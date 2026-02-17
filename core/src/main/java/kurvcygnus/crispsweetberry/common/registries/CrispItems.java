@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public enum CrispItems implements IRegistrant
 {
     INSTANCE;
+    
     @Override
     public void register(@NotNull IEventBus bus) { CRISP_ITEM_REGISTER.register(bus); }
     
@@ -33,7 +34,7 @@ public enum CrispItems implements IRegistrant
     public @NotNull String getJob() { return "Misc Items"; }
     
     @Override
-    public int getPriority() { return 1; }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 80); }
     
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     
@@ -49,7 +50,7 @@ public enum CrispItems implements IRegistrant
     );
     
     @RegisterToTab
-    @AutoI18n(group = "csb:carry_crate")
+    @AutoI18n(group = "carry_crate")
     public static final Holder<Item> CARRY_CRATE = CRISP_ITEM_REGISTER.register("carry_crate", resourceLocation ->
         new BlockItem(CrispBlocks.CARRY_CRATE.value(), new Item.Properties())
     );

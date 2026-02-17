@@ -67,7 +67,7 @@ public enum KilnRegistries implements IRegistrant
     public @NotNull String getJob() { return "Kiln"; }
     
     @Override
-    public int getPriority() { return 4; }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 90); }
     
     private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(NAMESPACE);
     public static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(NAMESPACE);

@@ -6,8 +6,9 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.datagen.shared;
+package kurvcygnus.crispsweetberry.shared;
 
+import kurvcygnus.crispsweetberry.CrispRecipeProvider;
 import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackItem;
@@ -30,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
  * @apiNote <b>DataGen only accepts one <u>{@link RecipeProvider}</u>, so it's recommend to do 
  * <a href="https://en.wikipedia.org/wiki/Composition_over_inheritance"><u>{@code Composition}</u></a>
  * at your own main <u>{@link RecipeProvider}</u>, then use <u>{@link BaseCoinRecipeProvider#buildRecipes}</u> in it</b>.
- * @see kurvcygnus.crispsweetberry.datagen.CrispRecipeProvider A good example
+ * @see CrispRecipeProvider A good example
  * @author Kurv Cygnus
  * @since 1.0 Release
  */

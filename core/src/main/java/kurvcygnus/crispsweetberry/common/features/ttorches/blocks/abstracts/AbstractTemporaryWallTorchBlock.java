@@ -118,5 +118,5 @@ public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporar
     protected final @NotNull BlockState mirror(@NotNull BlockState state, @NotNull Mirror mirror)
         { return this.rotate(state, mirror.getRotation(state.getValue(FACING))); }
     
-    protected abstract void addExtraStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder);
+    protected void addExtraStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {}
 }

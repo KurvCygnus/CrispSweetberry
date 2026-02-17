@@ -23,12 +23,17 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
+
+//? TODO: Relative path!
+//? TODO: Better cache data struct
+//? TODO: Fabric YarnMap Support?
+//? TODO: Group Translation Override Logic
 
 /**
  * This is the processor of annotation <u>{@link AutoI18n}</u>, it iterates, checks, collects, and finally generates 
@@ -53,6 +58,7 @@ public final class I18nProcessor extends AbstractProcessor
     private static final String COMPONENT = "net.minecraft.network.chat.Component";
     private static final String RESOURCE_LOCATION = "net.minecraft.resources.ResourceLocation";
     private static final String SUPPLIER = "java.util.function.Supplier";
+    private static final String VERSION = "v0.1";
     
     /**
      * <u>{@link Messager}</u> is the logger of Compile-Time.<br><br>
@@ -89,6 +95,7 @@ public final class I18nProcessor extends AbstractProcessor
     private final HashMap<String, ArrayList<TranslationContentPair>> groups = new HashMap<>();
     private final ArrayList<TranslationPair> translationLookUp = new ArrayList<>();
     private final HashMap<AutoI18n.Lang, HashMap<String, String>> translationTable = new HashMap<>();
+    private @Nullable String outputPath;
     private boolean generated = false;
     
     @Override
@@ -114,6 +121,7 @@ public final class I18nProcessor extends AbstractProcessor
             RESOURCE_LOCATION,
             SUPPLIER
         );
+        this.outputPath = processingEnv.getOptions().get("i18nPath");
         
         if(namespace == null || namespace.isBlank() || namespace.equals("unknown"))
         {
@@ -130,10 +138,36 @@ public final class I18nProcessor extends AbstractProcessor
                         }
                     }
                     ```
+                    Having other issues? Please feed back at %PLACEHOLDER%.
                     """
             );
-            
-            throw new IllegalArgumentException("Namespace is illegal.");
+        }
+        
+        if(outputPath == null || outputPath.isBlank() || outputPath.equals("default"))
+        {
+            messager.printMessage(
+                Diagnostic.Kind.NOTE,
+                """
+                    Current using default output path: "${targetModule}/build/generated/sources/annotationProcessor/java/main/assets/%s/lang/".
+                    
+                    We recommend using configured path to prevent the unnecessary manual work.
+                    Example:
+                    ```
+                    java {
+                        tasks.withType(JavaCompile).configureEach {
+                            options.compilerArgs.add("-Ai18nPath=" + (project.findProperty('i18n_path') ?: 'default'))
+                        }
+                    }
+                    ```
+                    Don't forget to add config to your gradle.properties:
+                    ```
+                    i18n_path=${your_path}
+                    // Use absolute path instead of relative path.
+                    // Also, don't leek your absolute path on github XD
+                    ```
+                    """.formatted(namespace)
+            );
+            outputPath = null;
         }
     }
     
@@ -142,7 +176,7 @@ public final class I18nProcessor extends AbstractProcessor
     {
         if(roundEnv.processingOver() && !generated)
         {
-            generated = true;
+            generated = true;//! Process only once.
             generateJSON();
             return false;
         }
@@ -150,9 +184,7 @@ public final class I18nProcessor extends AbstractProcessor
         if(annotations.isEmpty())
             return false;
         
-        final Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(AutoI18n.class);
-        
-        for(final Element element: elements)
+        for(final Element element: roundEnv.getElementsAnnotatedWith(AutoI18n.class))
         {
             if(element.getKind() != ElementKind.FIELD)
                 messager.printMessage(
@@ -161,7 +193,7 @@ public final class I18nProcessor extends AbstractProcessor
                     element
                 );
             
-            final AutoI18n autoI18n = element.getAnnotation(AutoI18n.class);
+            final @Nullable AutoI18n autoI18n = element.getAnnotation(AutoI18n.class);
             
             if(autoI18n == null)
             {
@@ -194,15 +226,7 @@ public final class I18nProcessor extends AbstractProcessor
             final boolean hasTranslation = hasContent(translations);
             final boolean hasGroup = hasContent(group);
             
-            if(hasTranslation)
-            {
-                if(hasGroup)
-                    this.parseTranslations(element, translations, fullKeyScope, group);
-                else
-                    this.parseTranslations(element, translations, fullKeyScope, null);
-            }
-            else if(hasGroup)
-                this.parseTranslations(element, null, fullKeyScope, group);
+            this.parseTranslations(element, hasTranslation ? translations : null, fullKeyScope, hasGroup ? group : null);
         }
         
         return true;
@@ -237,15 +261,9 @@ public final class I18nProcessor extends AbstractProcessor
             {
                 try
                 {
-                    final FileObject output = filer.createResource(
-                        StandardLocation.CLASS_OUTPUT,
-                        "",
-                        "assets/%s/lang/%s.json".formatted(this.namespace, l.getCode())
-                    );
-                    
-                    try(final Writer writer = output.openWriter())
+                    try(final Writer writer = getWriter(l))
                     {
-                        writer.write("{\n");
+                        writer.write("{\n    \"Generated by\": \"Crispsweetberry-i18n-processor:%s, DO NOT EDIT\",\n".formatted(VERSION));
                         final List<String> keys = new ArrayList<>(t.keySet());
                         keys.sort(String::compareTo);
                         
@@ -265,7 +283,7 @@ public final class I18nProcessor extends AbstractProcessor
                         messager.printMessage(
                             Diagnostic.Kind.NOTE,
                             "Generating %s.json...".
-                                formatted(l.name())
+                                formatted(l.getCode())
                         );
                     }
                 }
@@ -278,6 +296,30 @@ public final class I18nProcessor extends AbstractProcessor
                 }
             }
         );
+    }
+    
+    private @NotNull Writer getWriter(@NotNull AutoI18n.Lang lang) throws IOException
+    {
+        if(this.outputPath == null)
+        {
+            return filer.createResource(
+                StandardLocation.SOURCE_OUTPUT,
+                "",
+                "assets/%s/lang/%s.json".formatted(this.namespace, lang.getCode())
+            ).openWriter();
+        }
+        
+        final File dir = new File(this.outputPath, "assets/%s/lang/".formatted(this.namespace));
+        
+        if(!dir.exists() && !dir.mkdirs())
+            messager.printMessage(
+                Diagnostic.Kind.ERROR,
+                "Can't create directory: %s".formatted(this.outputPath)
+            );
+        
+        final File file = new File(dir, "%s.json".formatted(lang.getCode()));
+        
+        return new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(file.toPath()), StandardCharsets.UTF_8));
     }
     
     private static @NotNull String escape(@NotNull String text)
@@ -387,28 +429,20 @@ public final class I18nProcessor extends AbstractProcessor
                 final String content = matcher.group(2);
                 
                 if(!hasContent(lang))
-                {
                     messager.printMessage(
                         Diagnostic.Kind.ERROR,
                         "Language is empty -> at %s, index %d".
                             formatted(element.getSimpleName().toString(), index),
                         element
                     );
-                    
-                    throw new IllegalArgumentException();
-                }
                 
                 if(!hasContent(content))
-                {
                     messager.printMessage(
                         Diagnostic.Kind.ERROR,
                         "Content is empty -> at %s, index %d".
                             formatted(element.getSimpleName().toString(), index),
                         element
                     );
-                    
-                    throw new IllegalArgumentException();
-                }
                 
                 final Optional<AutoI18n.Lang> language = AutoI18n.Lang.parse(lang);
                 
@@ -435,7 +469,7 @@ public final class I18nProcessor extends AbstractProcessor
                             formatted(group)
                     );
                 
-                groups.put(group, translationContentPairs);
+                groups.put("%s:%s".formatted(namespace, group), translationContentPairs);
             }
             else//* Use group case.
             {
@@ -544,10 +578,7 @@ public final class I18nProcessor extends AbstractProcessor
         
         ProcessableType() { this.index = ordinal(); }
         
-        ProcessableType(int index) 
-        {
-            this.index = index;
-        }
+        ProcessableType(int index) { this.index = index; }
         
         public static @NotNull ProcessableType getType(int index)
         {

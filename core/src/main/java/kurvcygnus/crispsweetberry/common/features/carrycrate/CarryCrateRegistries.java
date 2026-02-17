@@ -29,5 +29,5 @@ public enum CarryCrateRegistries implements IRegistrant
     public @NotNull String getJob() { return "Carry Crate"; }
     
     @Override
-    public int getPriority() { return -1; }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 60); }
 }

@@ -106,11 +106,11 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
         @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
             { return this.behavior.useItemOn(stack, state, level, pos, player, hand); }
     
-    protected abstract void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder);
+    protected void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {}
     
-    public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getStateLength();
+    public @Range(from = 0, to = Integer.MAX_VALUE) int getStateLength() { return TTorchConstants.DEFAULT_LIFECYCLE_TICK; }
     
-    public abstract @NotNull MapCodec<? extends AbstractGenericTorchBlock<T>> codec();
+    public boolean isStillBright(@NotNull BlockState state) { return state.getValue(LIGHT_PROPERTY).ordinal() > TTorchConstants.LightState.DIM.ordinal(); }
     
-    public abstract boolean isStillBright(@NotNull BlockState state);
+    @Override public abstract @NotNull MapCodec<? extends AbstractGenericTorchBlock<T>> codec();
 }

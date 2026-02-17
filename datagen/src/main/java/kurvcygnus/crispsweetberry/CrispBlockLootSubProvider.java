@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.datagen;
+package kurvcygnus.crispsweetberry;
 
 import com.google.common.collect.Iterables;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-import static kurvcygnus.crispsweetberry.datagen.utils.CrispLootUtils.initLootPool;
+import static kurvcygnus.crispsweetberry.utils.CrispLootUtils.initLootPool;
 
 final class CrispBlockLootSubProvider extends BlockLootSubProvider
 {

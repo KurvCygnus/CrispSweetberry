@@ -8,9 +8,14 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
+import kurvcygnus.crispsweetberry.CrispSweetberry;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -70,10 +75,15 @@ public final class TTorchConstants
     public static final int TEXTURE_INDEX_CORRECTION_STD = 1;
     public static final int DEFAULT_ANIMATION_DURATION_TICKS = 1;
     public static final int DEFAULT_ANIMATION_FRAMES_IN_TOTAL = 8;
+    
+    public static final TextureAtlasSprite SOUL_FIRE_0 = new Material
+        (InventoryMenu.BLOCK_ATLAS, ResourceLocation.withDefaultNamespace("block/soul_fire_0")).sprite();
     //endregion
     
     //  region
     //*:=== Entity Constants
+    public static final String SOUL_FIRE_PERSISTENT_TAG = "%s:is_lit_by_soul_fire".formatted(CrispSweetberry.NAMESPACE);
+    
     //endregion
     
     //  region

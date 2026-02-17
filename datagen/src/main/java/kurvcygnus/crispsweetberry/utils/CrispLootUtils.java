@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.datagen.utils;
+package kurvcygnus.crispsweetberry.utils;
 
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;

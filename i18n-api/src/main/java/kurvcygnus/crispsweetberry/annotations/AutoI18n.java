@@ -24,11 +24,10 @@ import java.util.regex.Pattern;
  * For details, please see {@code GettingStarted.md}.
  * @implSpec <pre>
  *  &#64;AutoI18n(value = {
- *          "en_us = Dirt",
- *          "lol_us = Cofe Sdak",
- *          "zh_cn = 泥土"
- *      }
- *  )
+ *      "en_us = Dirt",
+ *      "lol_us = Cofe Sdak",
+ *      "zh_cn = 泥土"
+ *  })
  *  public static final Holder&lt;Block&gt; DIRT = ...
  *  // Creates `"block.${modid}.dirt": "Dirt"` in en_us.json.
  * </pre>
@@ -135,7 +134,8 @@ public @interface AutoI18n
      * @apiNote {@code group()} follows <u><a href="https://en.wikipedia.org/wiki/One_Definition_Rule">one definition rule</a></u>, 
      * <b>which means, you should only define it once</b>.
      * <br><br>
-     * Declaring a {@code group()} is simple: Write your <u>{@link #value() translations}</u> as usual, then put a group on it, that's all.<br>
+     * Declaring a {@code group()} is simple: Write your <u>{@link #value() translations}</u> as usual, then put a group on it, that's all, adding modId
+     * is not required, processor will handle this.<br>
      * Using {@code group()} is also simple: Do not write <u>{@link #value() translations}</u>, directly write {@code group()}, that's all.
      * <br><br>
      * {@code group()} is compatible with <u>{@link #key()}</u>.

@@ -31,7 +31,7 @@ public enum CrispBlocks implements IRegistrant
     public @NotNull String getJob() { return "Misc Blocks"; }
     
     @Override
-    public int getPriority() { return 0; }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 90); }
     
     public static final DeferredRegister<Block> CRISP_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
     

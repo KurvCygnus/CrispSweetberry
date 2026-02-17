@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.datagen;
+package kurvcygnus.crispsweetberry;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
@@ -89,6 +89,18 @@ public final class CrispRecipeProvider extends RecipeProvider
             unlockedBy("throwable_torch_unlocked_standard", has(Items.TORCH)).
             unlockedBy("throwable_torch_unlocked_nether_standard",  has(Items.SOUL_TORCH)).
             unlockedBy("throwable_torch_unlocked_from_loot", has(TTorchRegistries.THROWABLE_TORCH.value())).
+            save(output);
+        
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, TTorchRegistries.THROWABLE_SOUL_TORCH.value(), 9).
+            requires(ItemTags.COALS).
+            requires(ItemTags.COALS).
+            requires(Items.SOUL_SAND).
+            requires(Items.STICK).
+            unlockedBy("throwable_soul_torch_unlocked_standard", inventoryTrigger(
+                ItemPredicate.Builder.item().of(Items.SOUL_TORCH),
+                ItemPredicate.Builder.item().of(TTorchRegistries.THROWABLE_TORCH.value())
+            )).
+            unlockedBy("throwable_soul_torch_unlocked_from_loot", has(TTorchRegistries.THROWABLE_SOUL_TORCH.value())).
             save(output);
         
         coinRecipeProvider.buildRecipes(output);

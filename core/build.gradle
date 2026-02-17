@@ -15,16 +15,11 @@ base {
 }
 
 neoForge {
-    // Specify the version of NeoForge to use.
     version = project.neo_version
     parchment {
         mappingsVersion = project.parchment_mappings_version
         minecraftVersion = project.parchment_minecraft_version
     }
-    // This line is optional. Access Transformers are automatically detected
-    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
             client()
@@ -99,6 +94,8 @@ dependencies {
     compileOnly(project(':i18n-api'))
     
     annotationProcessor(project(':i18n-processor'))
+
+    compileOnly "org.jetbrains:annotations:24.1.0"
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
@@ -148,5 +145,6 @@ idea {
 java {
     tasks.withType(JavaCompile).configureEach {
         options.compilerArgs.add("-Amodid=" + (project.findProperty('mod_id') ?: 'unknown'))
+        options.compilerArgs.add("-Ai18nPath=" + (project.findProperty('i18n_path') ?: 'default'))
     }
 }

@@ -13,10 +13,14 @@ import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity;
+import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownSoulTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem;
+import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableSoulTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
@@ -54,7 +58,7 @@ public enum TTorchRegistries implements IRegistrant
     public @NotNull String getJob() { return "T Torches"; }
     
     @Override
-    public int getPriority() { return 6; }
+    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 80); }
     
     private static final DeferredRegister<Item> THROWABLE_TORCH_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<Block> TEMPORARY_TORCH_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
@@ -71,17 +75,35 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us = fullee lite stik",
         "zh_cn = 投掷火把"
         },
-        group = "csb:temporary_torch"
+        group = "temporary_torch"
     )
     public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_torch",
         resourceLocation -> new TemporaryTorchBlock()
     );
     
-    @AutoI18n(group = "csb:temporary_torch")
+    @AutoI18n(group = "temporary_torch")
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_wall_torch", 
         resourceLocation -> new TemporaryWallTorchBlock()
+    );
+    
+    @AutoI18n(value = {
+        "en_us -> Thrown Soul Torch",
+        "lol_us -> Gatling Barrel",
+        "zh_cn -> 投掷灵魂火把"
+        },
+        group = "temporary_soul_torch"
+    )
+    public static final DeferredHolder<Block, TemporarySoulTorchBlock> TEMPORARY_SOUL_TORCH = TEMPORARY_TORCH_REGISTER.register(
+        "temporary_soul_torch",
+        resourceLocation -> new TemporarySoulTorchBlock()
+    );
+    
+    @AutoI18n(group = "temporary_soul_torch")
+    public static final DeferredHolder<Block, TemporarySoulWallTorchBlock> TEMPORARY_SOUL_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
+        "temprorary_soul_wall_torch",
+        resourceLocation -> new TemporarySoulWallTorchBlock()
     );
     
     /**
@@ -89,7 +111,7 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on 
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
-    @AutoI18n(group = "csb:temporary_torch")
+    @AutoI18n(group = "temporary_torch")
     public static final Holder<Item> TEMPORARY_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_torch", 
         () -> new BlockItem(TEMPORARY_TORCH.value(), new Item.Properties())
     );
@@ -99,7 +121,7 @@ public enum TTorchRegistries implements IRegistrant
      * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
      * <u>{@link BlockItem}</u>, that's why we still implemented this.
      */
-    @AutoI18n(group = "csb:temporary_torch")
+    @AutoI18n(group = "temporary_torch")
     public static final Holder<Item> TEMPORARY_WALL_TORCH_BLOCK_ITEM = THROWABLE_TORCH_REGISTER.register("temporary_wall_torch", 
         () -> new BlockItem(TEMPORARY_WALL_TORCH.value(), new Item.Properties())
     );
@@ -113,7 +135,7 @@ public enum TTorchRegistries implements IRegistrant
         "lol_us = OwO",
         "zh_cn = QAQ"
         },
-        group = "csb:lol"
+        group = "lol"
     )
     public static final Holder<Block> FAKE_LIGHT_BLOCK = TEMPORARY_TORCH_REGISTER.register(
         "fake_light_block",
@@ -142,6 +164,16 @@ public enum TTorchRegistries implements IRegistrant
     );
     
     @AutoI18n({
+        "en_us = Throwable Soul Torch",
+        "lol_us = COOL GATLING BARREL",
+        "zh_cn = 灵魂投掷火把"
+    })
+    public static final Holder<Item> THROWABLE_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "thorwable_soul_torch",
+        resourceLocation -> new ThrowableSoulTorchItem()
+    );
+    
+    @AutoI18n({
         "en_us = Thrown Torch",
         "lol_us = Spinn' Stik",
         "zh_cn = 投掷火把"
@@ -155,6 +187,14 @@ public enum TTorchRegistries implements IRegistrant
     })
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownRedstoneTorchEntity>> THROWN_REDSTONE_TORCH = 
         getTypeHolder("thrown_redstone_torch", ThrownRedstoneTorchEntity::new);
+    
+    @AutoI18n({
+        "en_us = Throwable Soul Torch",
+        "lol_us = Spinn' Gatling Barrel",
+        "zh_cn = 灵魂投掷火把"
+    })
+    public static final DeferredHolder<EntityType<?>, EntityType<ThrownSoulTorchEntity>> THROWN_SOUL_TORCH = 
+        getTypeHolder("thrown_soul_torch", ThrownSoulTorchEntity::new);
     
     private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>>
     getTypeHolder(@NotNull String id, @NotNull EntityType.EntityFactory<T> factory)

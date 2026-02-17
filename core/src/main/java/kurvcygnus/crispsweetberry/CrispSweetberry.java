@@ -11,9 +11,11 @@ package kurvcygnus.crispsweetberry;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.registry.objects.TabEntry;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -43,6 +45,8 @@ public final class CrispSweetberry
     private static final List<String> ANNOTATIONS = List.of(
         RegisterToTab.class.getName()
     );
+    
+    private static final CrispIntRanger LEGAL_PRIORITY_RANGE = CrispIntRanger.closed(1, 99);
     
     public static final Map<ResourceKey<CreativeModeTab>, List<TabEntry>> TAB_LOOKUP = new HashMap<>();
     
@@ -102,30 +106,38 @@ public final class CrispSweetberry
         LOGGER.info("Start Registrations' sorting...");
         
         final List<? extends IRegistrant> sortedHelpers = registries.stream().map(
-                name ->
+            name ->
+            {
+                try
                 {
-                    try
+                    final Class<?> clazz = Class.forName(name);
+                    if(clazz.isEnum() && clazz.getEnumConstants().length == 1)
                     {
-                        final Class<?> clazz = Class.forName(name);
-                        if(clazz.isEnum() && clazz.getEnumConstants().length == 1)
-                            return (IRegistrant) clazz.getEnumConstants()[0];
+                        final IRegistrant registrant = (IRegistrant) clazz.getEnumConstants()[0];
                         
-                        LOGGER.warn("Skipped class \"{}\" because {}", 
-                            clazz.getName(), 
-                            clazz.isEnum() ? "it's not a singleton enum." : "it's not an enum. Did you forget it?"
+                        CrispFunctionalUtils.throwIf(
+                            LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()), () ->
+                                new IllegalArgumentException(String.format("Invalid priority: %s", registrant.getPriority().priority()))
                         );
                         
-                        return null;
+                        return registrant;
                     }
-                    catch(Exception e)
-                    {
-                        LOGGER.error("Failed to instantiate registry: {}", name, e);
-                        return null;
-                    }
+                    
+                    LOGGER.warn("Skipped class \"{}\" because {}", 
+                        clazz.getName(), 
+                        clazz.isEnum() ? "it's not a singleton enum." : "it's not an enum. Did you forget it?"
+                    );
+                    
+                    return null;
                 }
-            ).
-            filter(Objects::nonNull).
-            sorted(Comparator.comparingInt(IRegistrant::getPriority)).
+                catch(Exception e)
+                {
+                    LOGGER.error("Failed to instantiate registry: {}", name, e);
+                    return null;
+                }
+            }
+        ).filter(Objects::nonNull).
+            sorted(Comparator.comparingInt(IRegistrant::getFullPriority).reversed()).
             toList();
         
         LOGGER.info("Registries sort completed!");

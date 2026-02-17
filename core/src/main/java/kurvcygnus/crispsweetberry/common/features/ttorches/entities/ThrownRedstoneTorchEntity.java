@@ -9,6 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,6 +21,18 @@ import org.jetbrains.annotations.NotNull;
 public class ThrownRedstoneTorchEntity extends AbstractThrownTorchEntity
 {
     public ThrownRedstoneTorchEntity(@NotNull EntityType<? extends AbstractThrownTorchEntity> entityType, @NotNull Level level) { super(entityType, level); }
+    
+    @Override
+    protected @NotNull AbstractTemporaryTorchBlock<?> getFloorTorchBlock()
+    {
+        return null;
+    }
+    
+    @Override
+    protected @NotNull AbstractTemporaryWallTorchBlock<?> getWallTorchBlock()
+    {
+        return null;
+    }
     
     public ThrownRedstoneTorchEntity(double x, double y, double z, @NotNull Level level)
         { super(TTorchRegistries.THROWN_REDSTONE_TORCH.get(), x, y, z, level); }

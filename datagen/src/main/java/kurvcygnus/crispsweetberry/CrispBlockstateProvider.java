@@ -6,9 +6,8 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.datagen;
+package kurvcygnus.crispsweetberry;
 
-import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import net.minecraft.core.Direction;

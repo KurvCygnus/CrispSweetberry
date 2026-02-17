@@ -6,10 +6,10 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.datagen;
+package kurvcygnus.crispsweetberry;
 
+import kurvcygnus.crispsweetberry.api.AbstractCoinLootTableProvider;
 import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackBlock;
-import kurvcygnus.crispsweetberry.datagen.api.AbstractCoinLootTableProvider;
 import net.minecraft.core.HolderLookup;
 import org.jetbrains.annotations.NotNull;
 

@@ -13,6 +13,8 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
@@ -97,6 +99,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      * Each particle's index corresponds the index constants of tiers above.
      */
     private static final ParticleOptions[] DEFAULT_LONGER_PARTICLE_STATE_LIST = { ParticleTypes.DRIPPING_WATER, ParticleTypes.SMALL_FLAME, ParticleTypes.FLAME };
+    private static final ParticleOptions DEFAULT_SHORTER_PARTICLE = ParticleTypes.SMOKE;
     
     //! EntityDataAccessor doesn't support Enum, so we use byte instead.
     public static final EntityDataAccessor<Byte> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.BYTE);
@@ -214,7 +217,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                 displayParticle(getLongerParticleFrequency(), longerParticleStateList.get(getTier()));
                 
                 if(!(getTier() == TIER_GONE && shouldShowNoSmokeWhenBurnedOut()))
-                    displayParticle(getShorterParticleFrequency(), ParticleTypes.SMOKE);
+                    displayParticle(getShorterParticleFrequency(), getShorterParticle());
             }
         }
     }
@@ -233,6 +236,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         
         if(getTier() != TIER_GONE && hitDamage == HIT_RESULT_DO_DAMAGE && shouldExtendBurnTicks && shouldLitMob())
             entity.setRemainingFireTicks(entity.getRemainingFireTicks() + HIT_STD_EXTEND_FIRE_TICKS * getTier());
+        
+        this.onHitEntitySequence(entity);
         
         //! Yes, although the damage might be zero, we still need to do damage to make knockbacks, it's how vanilla works.
         entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitDamage);
@@ -253,7 +258,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                 handle.changeMarker("HIT_FAILURE");
                 playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.NORMAL_SOUND_VOLUME);
                 displayDestroyParticle();
-                displayParticle(NO_FREQUENCY, ParticleTypes.SMOKE);
+                displayParticle(NO_FREQUENCY, DEFAULT_SHORTER_PARTICLE);
                 LOGGER.debug("{}", getTier() == TIER_WILD ?
                     "Torch is too hot to be placed, shattered instead." :
                     "Torch is in liquid and can't be placed. Shattered."
@@ -274,7 +279,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     case Direction.UP ->
                     {
                         placementPos = hitPos.above();
-                        stateToPlace = TTorchRegistries.TEMPORARY_TORCH.value().defaultBlockState();
+                        stateToPlace = getFloorTorchBlock().defaultBlockState();
                     }
                     case Direction.DOWN ->
                     {
@@ -284,7 +289,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     default ->
                     {
                         placementPos = hitPos.relative(hitSide);
-                        stateToPlace = TTorchRegistries.TEMPORARY_WALL_TORCH.value().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
+                        stateToPlace = getWallTorchBlock().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
                     }
                 }
                 
@@ -416,10 +421,15 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     private @NotNull Map<Byte, ParticleOptions> processLongerParticleStateList(ParticleOptions @NotNull ... states)
     {
-        final Map<Byte, ParticleOptions> longerParticleStateList = new HashMap<>();
+        if(states.length != 1 && states.length != 3)
+            throw new IllegalArgumentException("Invalid length of states: %d, it should be 1, or 3.".formatted(states.length));
+        
+        final boolean duplicate = shouldCheckLiquids();
+        
+        final Map<Byte, ParticleOptions> longerParticleStateList = new HashMap<>(3);
         
         for(int index = 0; index < LONGER_PARTICLE_STATES; index++)
-            longerParticleStateList.put((byte) index, states[index]);
+            longerParticleStateList.put((byte) index, states[duplicate ? 0 : index]);
         
         return longerParticleStateList;
     }
@@ -440,8 +450,17 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     //endregion
     
     //  region
-    //* Parameter getters
-    protected @NotNull ParticleOptions[] getLongerParticleStateList() { return DEFAULT_LONGER_PARTICLE_STATE_LIST; }
+    //* Misc & Parameter getters
+    protected void onHitEntitySequence(@NotNull Entity entity) {}
+    
+    /**
+     * Get the list of Longer Particles.
+     * @apiNote Length of this array should be neither 1, or 3, 1 is only used in the case of <u>{@link #shouldCheckLiquids()}</u> always returns {@code false}.
+     */
+    protected @NotNull ParticleOptions @NotNull [] getLongerParticleStateList() { return DEFAULT_LONGER_PARTICLE_STATE_LIST; }
+    protected @NotNull ParticleOptions getShorterParticle() { return DEFAULT_SHORTER_PARTICLE; }
+    protected abstract @NotNull AbstractTemporaryTorchBlock<?> getFloorTorchBlock();
+    protected abstract @NotNull AbstractTemporaryWallTorchBlock<?> getWallTorchBlock();
     
     protected int getLongerParticleFrequency() { return DEFAULT_LONGER_PARTICLE_FREQUENCY; }
     protected int getShorterParticleFrequency() { return DEFAULT_SHORTER_PARTICLE_FREQUENCY; }

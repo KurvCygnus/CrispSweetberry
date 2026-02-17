@@ -9,6 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.ThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import net.minecraft.world.entity.EntityType;
@@ -33,4 +35,10 @@ public final class ThrownTorchEntity extends AbstractThrownTorchEntity
     
     @Override
     protected @NotNull Item getDefaultItem() { return TTorchRegistries.THROWABLE_TORCH.value(); }
+    
+    @Override
+    protected @NotNull AbstractTemporaryTorchBlock<?> getFloorTorchBlock() { return TTorchRegistries.TEMPORARY_TORCH.value(); }
+    
+    @Override
+    protected @NotNull AbstractTemporaryWallTorchBlock<?> getWallTorchBlock() { return TTorchRegistries.TEMPORARY_WALL_TORCH.value(); }
 }
