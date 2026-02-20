@@ -108,16 +108,8 @@ public final class SoulFireExtinguishInjection
         
         if(!entity.level().isClientSide && entity.getRemainingFireTicks() <= 0)
         {
+            //! Don't send packets here. This will cause CS competitive state, which behaves as flashing sprites.
             entity.getPersistentData().remove(SOUL_FIRE_PERSISTENT_TAG);
-            
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(
-                entity,
-                new SoulFireTagPayload(
-                    entity.getId(),
-                    false
-                )
-            );
-            
             return;
         }
         
