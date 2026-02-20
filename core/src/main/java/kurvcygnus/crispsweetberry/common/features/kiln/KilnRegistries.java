@@ -70,7 +70,7 @@ public enum KilnRegistries implements IRegistrant
     public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 1); }
     
     private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(NAMESPACE);
-    public static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(NAMESPACE);
+    private static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(NAMESPACE);
     private static final DeferredRegister<BlockEntityType<?>> KILN_BE_REGISTER = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, NAMESPACE);
     private static final DeferredRegister<RecipeType<?>> KILN_RECIPE_REGISTER = DeferredRegister.create(Registries.RECIPE_TYPE, NAMESPACE);
     private static final DeferredRegister<RecipeSerializer<?>> KILN_SERIALIZER_REGISTER = DeferredRegister.create(Registries.RECIPE_SERIALIZER, NAMESPACE);
@@ -121,7 +121,7 @@ public enum KilnRegistries implements IRegistrant
      * @since 1.0 Release
      */
     @SubscribeEvent
-    static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KILN_MENU.get(), KilnScreen::new); }
+    static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KILN_MENU_TYPE.get(), KilnScreen::new); }
     
     @SubscribeEvent
     static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
@@ -154,7 +154,7 @@ public enum KilnRegistries implements IRegistrant
     
     public static final DeferredHolder<RecipeSerializer<?>, KilnRecipeSerializer> KILN_SERIALIZER = KILN_SERIALIZER_REGISTER.register("kiln", KilnRecipeSerializer::new);
     
-    public static final Supplier<MenuType<KilnMenu>> KILN_MENU = KILN_MENU_REGISTER.register("kiln_menu", () ->
+    public static final Supplier<MenuType<KilnMenu>> KILN_MENU_TYPE = KILN_MENU_REGISTER.register("kiln_menu", () ->
         new MenuType<>(KilnMenu::new, FeatureFlags.DEFAULT_FLAGS)
     );
     

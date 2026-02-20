@@ -47,6 +47,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -454,9 +455,10 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     public final byte getTier() { return this.getEntityData().get(FIRE_TIER_ID); }
     
-    private void changeTier(byte goalTier, @NotNull SoundEvent sound)
+    private void changeTier(@MagicConstant(intValues = {TIER_GONE, TIER_NORM, TIER_WILD}) byte goalTier, @NotNull SoundEvent sound)
     {
-        if(getTier() == goalTier)
+        //noinspection MagicConstant
+        if(goalTier == getTier())//! MagicConstant is only used for giving warnings to external usage.
             return;
         
         this.getEntityData().set(FIRE_TIER_ID, goalTier);

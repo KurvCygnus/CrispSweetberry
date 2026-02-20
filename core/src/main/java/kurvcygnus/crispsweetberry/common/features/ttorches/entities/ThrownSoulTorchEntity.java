@@ -13,6 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayload;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +21,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public final class ThrownSoulTorchEntity extends AbstractThrownTorchEntity
@@ -34,15 +36,19 @@ public final class ThrownSoulTorchEntity extends AbstractThrownTorchEntity
     
     @Override
     protected void onHitEntitySequence(@NotNull Entity entity) 
-        { entity.getPersistentData().putByte(TTorchConstants.SOUL_FIRE_PERSISTENT_TAG, (byte) 1); }
+    {
+        if(!entity.level().isClientSide)
+            return;
+        
+        if(!entity.getPersistentData().contains(TTorchConstants.SOUL_FIRE_PERSISTENT_TAG))
+            PacketDistributor.sendToPlayersTrackingEntity(entity, new SoulFireTagPayload(entity.getId(), true));
+    }
     
-    @Override
-    protected @NotNull Item getDefaultItem() { return TTorchRegistries.THROWABLE_SOUL_TORCH.value(); }
+    @Override protected @NotNull Item getDefaultItem() { return TTorchRegistries.THROWABLE_SOUL_TORCH.value(); }
     
     @Override protected boolean shouldCheckLiquids() { return false; }
     
-    @Override
-    protected @NotNull ParticleOptions @NotNull[] getLongerParticleStateList() { return SOUL_LONGER_PARTICLE_STATE_LIST; }
+    @Override protected @NotNull ParticleOptions @NotNull[] getLongerParticleStateList() { return SOUL_LONGER_PARTICLE_STATE_LIST; }
     
     @Override protected @NotNull ParticleOptions getShorterParticle() { return ParticleTypes.SOUL; }
     

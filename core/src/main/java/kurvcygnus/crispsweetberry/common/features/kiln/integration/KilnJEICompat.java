@@ -40,9 +40,7 @@ public enum KilnJEICompat
     
     private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     
-    private @Nullable IJeiRuntime runtime;
-    
-    KilnJEICompat() { this.runtime = null; }
+    private @Nullable IJeiRuntime runtime = null;
     
     public void setRuntime(@NotNull IJeiRuntime runtime) { this.runtime = runtime; }
     

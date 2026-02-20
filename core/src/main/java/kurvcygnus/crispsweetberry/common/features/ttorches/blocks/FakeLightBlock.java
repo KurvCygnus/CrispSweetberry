@@ -30,8 +30,6 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstant
 /**
  * A simple invisible block for <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity Thrown Torch}</u>'s 
  * "dynamic" light.<br><br>
- * <i>If <u>{@link kurvcygnus.crispsweetberry.integrations.LambDynamicLightsInitializer Lamb Dynamic Light}</u> mod is loaded, this will be disabled and 
- * use real dynamic light instead.</i>
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see AbstractThrownTorchEntity#tick() Usage

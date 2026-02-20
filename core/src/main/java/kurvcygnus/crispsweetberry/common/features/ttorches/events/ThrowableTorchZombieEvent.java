@@ -29,6 +29,12 @@ import java.util.List;
 import static kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity.HIT_STD_EXTEND_FIRE_TICKS;
 import static kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity.HIT_STD_MAX_TICKS;
 
+/**
+ * This event makes zombie can summon with <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem Throwable Torch}</u>, 
+ * making the game experience more immersive.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 final class ThrowableTorchZombieEvent
 {

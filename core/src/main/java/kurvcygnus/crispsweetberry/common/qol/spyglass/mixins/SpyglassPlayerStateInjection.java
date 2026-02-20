@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * This mixin emulates the spyglass using state.
+ * This mixin emulates the spyglass using attachTag.
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see Player#isScoping() Source Target

@@ -39,16 +39,16 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants.NO_OFFSE
  */
 public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
 {
-    private static final int BG_WIDTH = 176;
-    private static final int BG_HEIGHT = 166;
+    public static final int BG_WIDTH = 176;
+    public static final int BG_HEIGHT = 166;
     
     private static final int CAMPFIRE_X_POS = 47;
     private static final int CAMPFIRE_Y_POS = 62;
     private static final int CAMPFIRE_WIDTH = 17;
     private static final int CAMPFIRE_HEIGHT = 16;
     
-    private static final int ARROW_X_POS = 79;
-    private static final int ARROW_Y_POS = 34;
+    public static final int ARROW_X_POS = 79;
+    public static final int ARROW_Y_POS = 34;
     private static final int ARROW_WIDTH = 24;
     private static final int ARROW_HEIGHT = 17;
     

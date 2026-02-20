@@ -15,6 +15,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -94,6 +95,7 @@ public final class TTorchConstants
     //*:=== Entity Constants
     public static final String SOUL_FIRE_PERSISTENT_TAG = "%s:is_lit_by_soul_fire".formatted(CrispSweetberry.NAMESPACE);
     
+    public static boolean isLitBySoulFire(@NotNull Entity entity) { return entity.getPersistentData().contains(SOUL_FIRE_PERSISTENT_TAG); }
     //endregion
     
     //  region
@@ -127,7 +129,7 @@ public final class TTorchConstants
         }
         
         /**
-         * The <b>essential method</b> for <b>registering the state names correctly</b>.
+         * The <b>essential method</b> for <b>registering the attachTag names correctly</b>.
          * @return The names of <b>corresponded states</b>.
          */
         @Override public @NotNull String getSerializedName() { return this.name().toLowerCase(); }

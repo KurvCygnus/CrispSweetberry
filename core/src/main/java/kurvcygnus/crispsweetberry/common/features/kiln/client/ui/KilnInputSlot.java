@@ -36,6 +36,6 @@ public final class KilnInputSlot extends Slot
         this.container = container;
     }
     
-    @Override//*                                                                                        ↓ For tip display.
-    public boolean mayPlace(@NotNull ItemStack stack) { return container.canSmelt(stack) || container.isBanned(stack); }
+    @Override
+    public boolean mayPlace(@NotNull ItemStack stack) { return container.getKilnRecipe(stack).isPresent(); }
 }

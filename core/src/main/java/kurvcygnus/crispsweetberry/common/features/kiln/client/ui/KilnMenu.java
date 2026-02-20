@@ -86,7 +86,7 @@ public final class KilnMenu extends AbstractContainerMenu
      */
     public KilnMenu(int containerId, Inventory inventory, KilnBlockEntity container)
     {
-        super(KilnRegistries.KILN_MENU.get(), containerId);
+        super(KilnRegistries.KILN_MENU_TYPE.get(), containerId);
         this.container = container;
         this.data = this.container.getData();
         
@@ -146,7 +146,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * </p>
      * <p>
      * <u>{@link AbstractContainerMenu#stillValid}</u> only <b>forwards</b> this check and is responsible
-     * for UI interaction, <b>not world state validation</b>.
+     * for UI interaction, <b>not world attachTag validation</b>.
      * </p>
      * <p>
      * Failing to override <u>{@link KilnBlockEntity#stillValid blockEntity.stillValid()}</u> in the container may cause
@@ -244,8 +244,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * @apiNote Don't forget flag {@code reverseDirection} is false in this overloaded method.
      * @see ExampleSlotConstants More details about these constants
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-//! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted") //! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.
     private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger)
         { return moveToSlotRange(interactStack, ranger, false); }
     //endregion

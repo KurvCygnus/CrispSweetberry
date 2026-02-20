@@ -45,10 +45,11 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
     public KilnRecipeSerializer()
     {
         this.mapCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Ingredient.CODEC.fieldOf("ingredient").forGetter(KilnRecipe::getIngredient),
-            ItemStack.CODEC.fieldOf("result").forGetter(KilnRecipe::getResult),
-            Codec.DOUBLE.fieldOf("cookTickRateMultiFactor").orElse(1D).forGetter(KilnRecipe::getProcessFactor),
-            Codec.FLOAT.fieldOf("experience").orElse(0F).forGetter(KilnRecipe::getExperience)
+            Ingredient.CODEC.fieldOf("ingredient").forGetter(KilnRecipe::ingredient),
+            ItemStack.CODEC.fieldOf("result").forGetter(KilnRecipe::result),
+            Codec.DOUBLE.fieldOf("cookTickRateMultiFactor").orElse(1D).forGetter(KilnRecipe::processFactor),
+            Codec.FLOAT.fieldOf("experience").orElse(0F).forGetter(KilnRecipe::experience),
+            Codec.BOOL.fieldOf("isBanned").orElse(true).forGetter(KilnRecipe::isBanned)
             ).apply(instance, KilnRecipe::new)
         );
         
@@ -66,10 +67,11 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
     //? TODO: Group implementation for JEI/REI compatibility.
     private void toNetwork(RegistryFriendlyByteBuf buffer, @NotNull KilnRecipe recipe)
     {
-        Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.getIngredient());
-        ItemStack.STREAM_CODEC.encode(buffer, recipe.getResult());
-        buffer.writeDouble(recipe.getProcessFactor());
-        buffer.writeFloat(recipe.getExperience());
+        Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.ingredient());
+        ItemStack.STREAM_CODEC.encode(buffer, recipe.result());
+        buffer.writeDouble(recipe.processFactor());
+        buffer.writeFloat(recipe.experience());
+        buffer.writeBoolean(recipe.isBanned());
     }
     
     private @NotNull KilnRecipe fromNetwork(RegistryFriendlyByteBuf buffer)
@@ -78,7 +80,8 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
         final ItemStack stack = ItemStack.STREAM_CODEC.decode(buffer);
         final double processFactor = buffer.readDouble();
         final float experience = buffer.readFloat();
+        final boolean isBanned = buffer.readBoolean();
         
-        return new KilnRecipe(ingredient, stack, processFactor, experience);
+        return new KilnRecipe(ingredient, stack, processFactor, experience, isBanned);
     }
 }

@@ -18,6 +18,7 @@ import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -29,6 +30,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * The event handler responsible for <b>populating and refreshing the Kiln's internal recipe cache.</b>
@@ -64,8 +66,7 @@ public final class KilnRecipeCacheEvent
      * from the initial server start, leading to "ghost recipes" or crashes when the underlying
      * recipe objects no longer exist in the manager.
      */
-    @SubscribeEvent
-    static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
+    @SubscribeEvent static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
     {
         event.addListener((
             preparationBarrier,
@@ -75,7 +76,7 @@ public final class KilnRecipeCacheEvent
             backgroundExecutor,
             gameExecutor
             ) ->
-            preparationBarrier.wait(net.minecraft.util.Unit.INSTANCE).thenRunAsync(() ->
+            preparationBarrier.wait(Unit.INSTANCE).thenRunAsync(() ->
                 collectRecipes(event.getServerResources().getRecipeManager(), event.getRegistryAccess()),
                 gameExecutor
             )
@@ -90,14 +91,12 @@ public final class KilnRecipeCacheEvent
         final StopWatch time = new StopWatch();
         time.start();
         
-        final HashMap<Item, NonNullList<KilnRecipe>> kilnCachedRecipes = new HashMap<>();
-        final HashMap<Item, NonNullList<BlastingRecipe>> bannedRecipes = new HashMap<>();
-        
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("CACHE_START"))
         {
             LOGGER.info("Getting Kiln Recipes...");
             
             final HashMap<Item, NonNullList<SmokingRecipe>> tempSmokingRecipes = new HashMap<>();
+            final HashMap<Item, NonNullList<BlastingRecipe>> tempBlastingRecipes = new HashMap<>();
             final HashMap<Item, NonNullList<SmeltingRecipe>> tempKilnRecipes = new HashMap<>();
             
             handle.changeMarker("SMOKER_PHASE");
@@ -107,8 +106,8 @@ public final class KilnRecipeCacheEvent
             
             handle.changeMarker("BLAST_PHASE");
             LOGGER.info("Collecting Blast Furnace(Banned) Recipes...");
-            streamRecipes(bannedRecipes, manager, RecipeType.BLASTING);
-            configDebug("Collection ended, {} entries in total, content: {}", bannedRecipes.size(), bannedRecipes);
+            streamRecipes(tempBlastingRecipes, manager, RecipeType.BLASTING);
+            configDebug("Collection ended, {} entries in total, content: {}", tempBlastingRecipes.size(), tempBlastingRecipes);
             
             
             handle.changeMarker("INITIAL_FILTER");
@@ -121,12 +120,6 @@ public final class KilnRecipeCacheEvent
                         for(final ItemStack stack: ingredient.getItems())
                         {
                             final Item item = stack.getItem();
-                            
-                            if(bannedRecipes.containsKey(item))
-                            {
-                                configDebug("Filtered item \"{}\", reason: Belongs to Banned Recipes", stack.getDisplayName());
-                                continue;
-                            }
                             
                             configDebug("Accepted item \"{}\" as smelting recipe", stack.getDisplayName());
                             
@@ -143,19 +136,15 @@ public final class KilnRecipeCacheEvent
             final HashMap<Item, NonNullList<KilnRecipe>> completedKilnRecipesCacheList = new HashMap<>();
             
             filterRecipes(completedKilnRecipesCacheList, tempKilnRecipes, registryAccess);
-            //* Smoker recipes are intentionally applied after smelting recipes to override them for the same input item.
-            //! This is NOT redundant. Some mod will add smoker-only recipes.
+            //* Smoker, and blaster recipes are intentionally applied after smelting recipes to override them for the same input item.
+            //! This is NOT redundant. Some mod will add smoker-only / blaster-only recipes.
             filterRecipes(completedKilnRecipesCacheList, tempSmokingRecipes, registryAccess);
-            
-            handle.changeMarker("RECIPE_CACHE");
-            configDebug("Conversion finished. Continue to put recipes into the map...");
-            
-            kilnCachedRecipes.putAll(completedKilnRecipesCacheList);
+            filterRecipes(completedKilnRecipesCacheList, tempBlastingRecipes, registryAccess);
             
             handle.changeMarker("EVENT_FINISHED");
             LOGGER.info("Kiln recipe caching finished in {} ms!", time.getTime());
             
-            KilnRecipeManager.INSTANCE.updateRecipes(kilnCachedRecipes, bannedRecipes);
+            KilnRecipeManager.INSTANCE.updateRecipes(completedKilnRecipesCacheList);
         }
     }
     
@@ -197,11 +186,19 @@ public final class KilnRecipeCacheEvent
     {
         convertMap.forEach((item, list) ->
             {
-                if(!list.isEmpty() && list.getFirst() instanceof SmokingRecipe)
+                if(!list.isEmpty())
                 {
-                    if(targetMap.containsKey(item))
+                    final String type;
+                    switch(RecipeSourceType.getSourceType(list.getFirst()))
                     {
-                        configDebug("Item {} found in cache, clearing old Smelting recipes to override with Smoking.", item);
+                        case SMOKING -> type = "Smoking";
+                        case BLASTING -> type = "Blasting";
+                        default -> type = "Skip";
+                    }
+                    
+                    if(!type.equals("Skip") && targetMap.containsKey(item))
+                    {
+                        configDebug("Item {} found in cache, clearing old Smelting recipes to override with {}.", item, type);
                         targetMap.get(item).clear();
                     }
                 }
@@ -213,8 +210,12 @@ public final class KilnRecipeCacheEvent
                         final KilnRecipe convertedRecipe = new KilnRecipe(
                             ingredient,
                             recipe.getResultItem(access),
-                            calculateProcessFactor(recipe.getCookingTime(), recipe instanceof SmokingRecipe),
-                            recipe.getExperience()
+                            calculateProcessFactor(
+                                recipe.getCookingTime(),
+                                RecipeSourceType.getSourceType(recipe)
+                            ),
+                            recipe.getExperience(),
+                            recipe instanceof BlastingRecipe
                         );
                         
                         targetMap.computeIfAbsent(item, i -> NonNullList.create()).
@@ -225,21 +226,60 @@ public final class KilnRecipeCacheEvent
         );
     }
     
-    private static double calculateProcessFactor(int cookingTime, boolean isSmokingRecipe)
+    private static double calculateProcessFactor(int cookingTime, @NotNull RecipeSourceType recipeSourceType)
     {
         //* Both Smoking and Smelting Recipe are hard-coded in vanilla Minecraft. 
-        final int standardTime = isSmokingRecipe ? MiscConstants.SMOKER_SMOKING_TIME : MiscConstants.FURNACE_SMELTING_TIME;
+        final int standardTime;
+        final double penaltyRate;
+        
+        switch(recipeSourceType)
+        {
+            case SMOKING ->
+            {
+                standardTime = MiscConstants.ADVANCED_HEATING_CONTAINER_TIME;
+                penaltyRate = 1.25D;
+            }
+            case BLASTING ->
+            {
+                standardTime = MiscConstants.ADVANCED_HEATING_CONTAINER_TIME;
+                penaltyRate = 2.5D;
+            }
+            default ->
+            {
+                standardTime = MiscConstants.FURNACE_SMELTING_TIME;
+                penaltyRate = 1D;
+            }
+        }
         
         //!                               Maybe some mod will introduce short cooking time recipes into the game,
         //!                             ↓ so we should make sure at least processFactor is always bigger than 0D.
-        final double factor = Math.max(0.05D, (double) cookingTime / standardTime) * (isSmokingRecipe ? 1.25D : 1D);
+        final double factor = Math.max(0.05D, (double) cookingTime / standardTime) * penaltyRate;
         
         configDebug("Type: {}, Time: {}, Factor: {}",
-            isSmokingRecipe ? "Smoking" : "Smelting", cookingTime, factor
+            recipeSourceType.name().toLowerCase(), cookingTime, factor
         );
         
         return factor;
     }
     
     private static void configDebug(@NotNull String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_EVENT_DEBUG.get()).debug(message, args); }
+    
+    private enum RecipeSourceType
+    {
+        FURNACE,
+        SMOKING,
+        BLASTING;
+        
+        static <T> @NotNull RecipeSourceType getSourceType(@NotNull T recipeSource)
+        {
+            Objects.requireNonNull(recipeSource, "Param \"recipeSource\" must not be null!");
+            
+            return switch(recipeSource)
+            {
+                case SmokingRecipe ignored -> SMOKING;
+                case BlastingRecipe ignored -> BLASTING;
+                default -> FURNACE;
+            };
+        }
+    }
 }

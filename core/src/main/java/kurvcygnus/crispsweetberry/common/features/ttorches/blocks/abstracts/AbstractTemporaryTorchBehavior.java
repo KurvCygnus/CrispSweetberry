@@ -78,7 +78,7 @@ public abstract class AbstractTemporaryTorchBehavior
             //noinspection NonStrictComparisonCanBeEquality
             CrispFunctionalUtils.throwIf(
                 stateLength <= 0,//! Defensive check.
-                () -> new IllegalArgumentException("The state length of tempo torches should be a positive integer! Current length: %d".formatted(stateLength))
+                () -> new IllegalArgumentException("The attachTag length of tempo torches should be a positive integer! Current length: %d".formatted(stateLength))
             );
             isStateLengthLegal = true;
         }
@@ -127,7 +127,7 @@ public abstract class AbstractTemporaryTorchBehavior
         final LightState oldLightState = oldState.getValue(LIGHT_PROPERTY);
         final BlockState newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());
         
-        //! Terminates this method if the state is already dark.
+        //! Terminates this method if the attachTag is already dark.
         if(oldLightState == LightState.DARK)
             return;
         
@@ -141,13 +141,13 @@ public abstract class AbstractTemporaryTorchBehavior
                 X_NO_SPEED, verticalParticleSpeed, Z_NO_SPEED
             );
         
-        //* Wait for next state's change.
+        //* Wait for next attachTag's change.
         level.scheduleTick(pos, this.getTorchBlock(), this.getTorchBlock().getStateLength());
     }
     
     public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, boolean isWallTorch)
     {
-        //! Dark state means the torch has already burned out, so of course wo should directly terminate this when the state is DARK.
+        //! Dark attachTag means the torch has already burned out, so of course wo should directly terminate this when the attachTag is DARK.
         if(state.getValue(LIGHT_PROPERTY) == LightState.DARK)
             return;
         

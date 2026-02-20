@@ -43,19 +43,19 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
  *         <b>Q: Why do we manually swap the spyglass to the off-hand instead of just simulating a use packet?</b><br>
  *         A: Minecraft's server is authoritative and stubborn. An item must be physically held in a hand to be "used". 
  *         We swap it to the off-hand to avoid interrupting the main-hand's interaction flow, but this requires 
- *         meticulous state tracking to return the item to its original slot once the key is released.
+ *         meticulous attachTag tracking to return the item to its original slot once the key is released.
  *    </li>
  *    <li>
  *         <b>Q: Why not just call <u>{@link net.minecraft.client.multiplayer.MultiPlayerGameMode#useItem MultiPlayerGameMode.useItem}</u> and be done with it?</b><br>
- *         A: Because the game's zoom FOV logic is detached from the "item using" state in a way that assumes the 
+ *         A: Because the game's zoom FOV logic is detached from the "item using" attachTag in a way that assumes the 
  *         Right-Click mouse button is being held. Even if the server thinks you are using the item, the client-side 
  *         camera won't zoom unless we manually override the FOV modifier and inject into the <u>{@link Player#isScoping()}</u> check.
  *    </li>
  *    <li>
- *         <b>Q: Why do we trigger sounds and state changes on the client immediately instead of waiting for a server response?</b><br>
+ *         <b>Q: Why do we trigger sounds and attachTag changes on the client immediately instead of waiting for a server response?</b><br>
  *         A: Input latency. In Minecraft, 1 tick is 50ms. If we send a packet and wait for the server to swap the item 
  *         and sync it back, the player perceives a "heavy" delay. We perform a "client-side prediction" of the 
- *         zoom state and sound to make the response feel instantaneous, even though the "real" inventory swap 
+ *         zoom attachTag and sound to make the response feel instantaneous, even though the "real" inventory swap 
  *         is happening on the server a few milliseconds later.
  *    </li>
  *    <li>

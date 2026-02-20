@@ -21,7 +21,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This handles player's using state declaration, and the logic of item exchange.
+ * This handles player's using attachTag declaration, and the logic of item exchange.
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle

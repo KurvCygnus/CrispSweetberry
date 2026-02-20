@@ -67,21 +67,10 @@ neoForge {
     }
 }
 
-var mappingsAttribute = Attribute.of("net.minecraft.mappings", String.class)
-
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    attributesSchema { attribute(mappingsAttribute) }
-
-    compileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.6.0+1.21.1") {
-        attributes { attribute(mappingsAttribute, "mojmap") }
-    }
-
-    runtimeOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.6.0+1.21.1") {
-        attributes { attribute(mappingsAttribute, "mojmap") }
-    }
 
     compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.25.1.332")
 
@@ -95,7 +84,7 @@ dependencies {
     
     annotationProcessor(project(':i18n-processor'))
 
-    compileOnly "org.jetbrains:annotations:24.1.0"
+    implementation("org.jetbrains:annotations:24.1.0")
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }

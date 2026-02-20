@@ -61,7 +61,7 @@ import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
 
 /**
  * The <b>physically interactable, seen</b> part of the Kiln Block.<br>
- * It mainly holds the <b>state</b>, <b>basic properties</b> and some <b>logical config</b> of an interactable block.
+ * It mainly holds the <b>attachTag</b>, <b>basic properties</b> and some <b>logical config</b> of an interactable block.
  *
  * @author Kurv Cygnus
  * @implNote Kiln currently won't support dye variants, since it'll make player's inventory exploded.<br>

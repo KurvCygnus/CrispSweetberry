@@ -24,6 +24,8 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.Ab
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableSoulTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayload;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloadHandler;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
@@ -34,6 +36,10 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +52,7 @@ import java.util.List;
  * <i>Since the first letter of this series' content are all {@code 'T'}, thus both registry and package are called {@code TTorch}.</i>
  * @since 1.0 Release
  */
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum TTorchRegistries implements IRegistrant
 {
     INSTANCE;
@@ -71,6 +78,18 @@ public enum TTorchRegistries implements IRegistrant
         THROWABLE_TORCH_REGISTER,
         THROWN_TORCH_REGISTER
     );
+    
+    @SubscribeEvent
+    static void registerPacket(@NotNull RegisterPayloadHandlersEvent event)
+    {
+        final PayloadRegistrar registrar = event.registrar("1.0 Release");
+        
+        registrar.playToClient(
+            SoulFireTagPayload.TYPE,
+            SoulFireTagPayload.CODEC,
+            SoulFireTagPayloadHandler::attachTag
+        );
+    }
     
     @AutoI18n(value = {
             "en_us = Thrown Torch",

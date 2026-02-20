@@ -41,16 +41,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.TRUE;
-import static kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe.*;
 
 /**
  * The <b>container part</b> of <b>Kiln Block</b>, which is responsible for <b>containment, sync and logical</b> things.
@@ -68,7 +69,6 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
 {
     //  region
     //* Constants & Fields
-    
     //*:=== Constants
     private static final int[] INPUT_SLOTS = {
         KILN_INPUT_SLOTS_RANGE.getMin(),
@@ -89,9 +89,18 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     private static final String NBT_TAG_BALANCE_TICK = "balanceTick";
     private static final String NBT_TAG_BALANCE_RATE = "balanceRate";
     
+    public static final KilnRecipe EMPTY_RECIPE = new KilnRecipe(
+        Ingredient.EMPTY,
+        ItemStack.EMPTY,
+        0D,
+        0F,
+        false
+    );
+    
     //*:=== Fields
     //*:== Slot Data
     private NonNullList<ItemStack> containerItems = NonNullList.withSize(KILN_DEFAULT_SIZE, ItemStack.EMPTY);
+    private final NonNullList<KilnRecipe> recipeCache = NonNullList.withSize(KILN_INPUT_SLOTS_RANGE.size(), EMPTY_RECIPE);
     
     //*:== Components
     /**
@@ -102,8 +111,6 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     private final KilnProgressCalculator calculator = new KilnProgressCalculator();
     
     private final ContainerData data = new KilnContainerData(this);
-    
-    private final KilnRecipe[] recipeCache = {noRecipe(), noRecipe(), noRecipe()};
     
     //*:== Logical Procession Data
     private InputState inputState = InputState.ALL_EMPTY;
@@ -190,7 +197,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     updateInputSlotsInfo();
                 }
                 
-                setChanged(level, worldPosition, this.getBlockState());//If the content in the container is changed, the data must markedLogger dirtied.
+                setChanged(level, worldPosition, this.getBlockState());// If the content in the container is changed, the data must markedLogger dirtied.
             }
         }
     }
@@ -222,7 +229,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                 );
                 
                 if(stackInSlot.isEmpty())
-                    recipeCache[cacheIndex] = noRecipe();
+                    recipeCache.set(slotIndex, EMPTY_RECIPE);
                 else if(canSmelt(stackInSlot))
                 {
                     if(inputState != InputState.VALID)
@@ -234,33 +241,42 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     }
                     
                     inputState = InputState.VALID;
-                    final KilnRecipe recipe = getKilnRecipe(stackInSlot);
+                    final Optional<KilnRecipe> optionalKilnRecipe = getKilnRecipe(stackInSlot);
                     
-                    recipeCache[cacheIndex] = (recipe != null && !isEmptyRecipe(recipe)) ? recipe : noRecipe();
+                    if(optionalKilnRecipe.isPresent())
+                    {
+                        final KilnRecipe kilnRecipe = optionalKilnRecipe.get();
+                        
+                        recipeCache.set(cacheIndex, kilnRecipe);
+                        
+                        if(kilnRecipe.isBanned())
+                        {
+                            //* Kiln doesn't support blasting recipes since they require huge heats, which can't afforded by kiln,
+                            //* and thus, we should tip players about this.
+                            inputState = InputState.HAS_TIP;
+                            break;
+                        }
+                    }
+                    else
+                        recipeCache.set(cacheIndex, EMPTY_RECIPE);
                     
                     handle.changeMarker("CACHE_WRITE");
                     configDebug("write cache[{}] from slot {} -> {}",
-                        cacheIndex, slotIndex, recipe
+                        cacheIndex, slotIndex, optionalKilnRecipe
                     );
-                }
-                else if(isBanned(stackInSlot))
-                {
-                    //* Kiln doesn't support blasting recipes since they require huge heats, which can't afforded by kiln,
-                    //* and thus, we should tip players about this.
-                    inputState = InputState.HAS_TIP;
-                    recipeCache[cacheIndex] = tipRecipe();
-                    break;
                 }
                 else
                 {
                     //* This is vanilla behavior: when something can't be processed in the container, the entire procession will be paused.
-                    recipeCache[cacheIndex] = noRecipe();
+                    recipeCache.set(cacheIndex, EMPTY_RECIPE);
                     break;
                 }
                 
+                final KilnRecipe cache = recipeCache.get(cacheIndex);
+                
                 handle.changeMarker("CACHE_CONFIRM");
                 configDebug("new cache at index {}: [Ingredient: {}, Result: {}]",
-                    slotIndex, recipeCache[cacheIndex].getIngredient(), recipeCache[cacheIndex].getResult()
+                    slotIndex, cache.ingredient(), cache.result()
                 );
             }
             
@@ -275,7 +291,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             configDebug(
                 "\"Calculator#setRecipesAndResultType\" called. inputState = {}, recipes = {}, nonWorkingLogicalResult = {}",
                 inputState,
-                Arrays.toString(recipeCache),
+                recipeCache.toString(),
                 nonWorkingLogicalResult.name()
             );
         }
@@ -337,7 +353,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     /**
      * @apiNote State <u>{@link LogicalResult#BALANCING BALANCING}</u>
      * is strictly considered as a special variation of
-     * <u>{@link ProcessionState#WORKING WORKING}</u>, instead of being an independent state,
+     * <u>{@link ProcessionState#WORKING WORKING}</u>, instead of being an independent attachTag,
      * it's deduced, only being used in
      * <u>{@link KilnProgressCalculator#calculateRates Calculation}</u>
      * and returned as a part of <u>{@link CalculationResult CalculationResult}</u>
@@ -356,7 +372,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         final ItemStack[] resultStacks = new ItemStack[3];
         
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
-            resultStacks[index] = blockEntity.recipeCache[index].getResultItem(level.registryAccess()).copy();
+            resultStacks[index] = blockEntity.recipeCache.get(index).getResultItem(level.registryAccess());
         
         //* Since the procession is complex, using emulation-then-apply strategy can sufficiently decrease the quantity of boundary cases.
         final NonNullList<ItemStack> emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
@@ -439,12 +455,12 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     private static boolean canMerge(ItemStack resultStack, ItemStack emulatedOutputStack)
     {
         return ItemStack.isSameItemSameComponents(resultStack, emulatedOutputStack) &&
-            emulatedOutputStack.getCount() <= emulatedOutputStack.getMaxStackSize();
+            emulatedOutputStack.getCount() < emulatedOutputStack.getMaxStackSize();
     }
     
     private static void addExp(@NotNull KilnBlockEntity blockEntity, int slotIndex)
     {
-        final float itemExperience = blockEntity.recipeCache[slotIndex].getExperience();
+        final float itemExperience = blockEntity.recipeCache.get(slotIndex).experience();
         blockEntity.experience += itemExperience;
     }
     
@@ -528,19 +544,21 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     //  region
     //* Helpers, Getters & Setters
-    
     /**
      * Helper methods to check item validation.
      */
-    public boolean canSmelt(@NotNull ItemStack itemstack) { return KilnRecipeManager.INSTANCE.getRecipes().containsKey(itemstack.getItem()); }
-    
-    public boolean isBanned(@NotNull ItemStack itemstack) { return KilnRecipeManager.INSTANCE.getBannedRecipes().containsKey(itemstack.getItem()); }
-    
-    private static KilnRecipe getKilnRecipe(@NotNull ItemStack stackInSlot)
+    public boolean canSmelt(@NotNull ItemStack itemstack) 
     {
-        //? TODO: Polymorph support
-        return KilnRecipeManager.INSTANCE.getRecipes().
-            getOrDefault(stackInSlot.getItem(), noRecipeList()).getFirst();
+        final Optional<KilnRecipe> recipe = getKilnRecipe(itemstack);
+        
+        return recipe.isPresent() && !recipe.get().isBanned();
+    }
+    
+    public @NotNull Optional<KilnRecipe> getKilnRecipe(@NotNull ItemStack stackInSlot)
+    {
+        final Optional<NonNullList<KilnRecipe>> list = Optional.ofNullable(KilnRecipeManager.INSTANCE.getRecipes().get(stackInSlot.getItem()));
+        
+        return list.map(List::getFirst);//? TODO: Polymorph support
     }
     
     public @NotNull ContainerData getData() { return this.data; }

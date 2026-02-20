@@ -9,18 +9,33 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ScreenEffectRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.SoulFireBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.*;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.SOUL_FIRE_0;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.getTextureByResourceLocation;
 
+/**
+ * This mixin belongs to a part of vanilla <u>{@link SoulFireBlock}</u>'s enhancement, 
+ * it proves the screen visual effect.
+ * <br><br>
+ * Btw, it's compatible with resource packs UwU.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see SoulFireBurnInjection Start Logic
+ * @see SoulFireExtinguishInjection Behave Logic
+ * @see SoulFireVisualEffectInjection Appearance Visual
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloadHandler#attachTag Sync Handle 
+ */
 @Mixin(ScreenEffectRenderer.class)
 public final class SoulFireScreenVisualInjection
 {
@@ -32,7 +47,7 @@ public final class SoulFireScreenVisualInjection
         if(player == null)
             return textureatlassprite;
         
-        if(player.getPersistentData().contains(SOUL_FIRE_PERSISTENT_TAG))
+        if(TTorchConstants.isLitBySoulFire(player))
             return getTextureByResourceLocation(SOUL_FIRE_0);
         
         return textureatlassprite;
