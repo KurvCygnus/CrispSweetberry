@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0 Release
  * @see ITemporaryTorchLifecycleExtensions Lifecycle Extensions
  */
-public interface ITemporaryTorchVisualExtendsions
+public interface ITemporaryTorchVisualExtensions
 {
     @NotNull ParticleOptions getTorchParticle();
     @NotNull ParticleOptions getSubTorchParticle();

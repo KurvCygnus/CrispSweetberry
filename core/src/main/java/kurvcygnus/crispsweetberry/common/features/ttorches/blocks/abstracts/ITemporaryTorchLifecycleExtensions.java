@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Range;
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see AbstractGenericTorchBlock
- * @see ITemporaryTorchVisualExtendsions Visual Extensions
+ * @see ITemporaryTorchVisualExtensions Visual Extensions
  */
 public interface ITemporaryTorchLifecycleExtensions
 {

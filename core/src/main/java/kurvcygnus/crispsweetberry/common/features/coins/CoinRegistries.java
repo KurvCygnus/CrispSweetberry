@@ -41,7 +41,7 @@ public enum CoinRegistries implements IRegistrant
 {
     INSTANCE;
     
-    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(bus::register); }
+    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
     @Override public boolean isFeature() { return true; }
     

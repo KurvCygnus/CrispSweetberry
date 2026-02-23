@@ -66,7 +66,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorchBehavior> extends TorchBlock implements ITemporaryTorchVisualExtendsions, ITemporaryTorchLifecycleExtensions
+public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorchBehavior> extends TorchBlock implements ITemporaryTorchVisualExtensions, ITemporaryTorchLifecycleExtensions
 {
     private final boolean isWallTorch;
     protected final T behavior;

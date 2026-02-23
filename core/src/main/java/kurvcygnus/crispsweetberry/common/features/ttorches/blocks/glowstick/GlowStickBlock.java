@@ -17,9 +17,11 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +36,7 @@ public final class GlowStickBlock extends AbstractTemporaryTorchBlock<GlowStickB
     private GlowStickBlock(@Nullable Properties properties) { this(); }
     
     public GlowStickBlock()
-    { 
+    {
         super(
             TTorchUtilCollection.BASIC_TEMP_TORCH_PROPERTIES.sound(SoundType.SLIME_BLOCK).lightLevel(GLOW_STICK_BRIGHTNESS_FORMULA),
             new GlowStickBehavior(Lazy.of(TTorchRegistries.GLOW_STICK_BLOCK))
@@ -49,6 +51,9 @@ public final class GlowStickBlock extends AbstractTemporaryTorchBlock<GlowStickB
         
         return this.defaultBlockState();
     }
+    
+    @Override protected void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) 
+        { builder.add(BlockStateProperties.WATERLOGGED); }
     
     @Override public @NotNull MapCodec<? extends AbstractGenericTorchBlock<GlowStickBehavior>> codec() { return simpleCodec(GlowStickBlock::new); }
     
