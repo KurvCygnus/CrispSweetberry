@@ -114,24 +114,20 @@ public final class KilnBlock extends BaseEntityBlock
         //this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, null));
     }
     
-    @Override
-    protected void createBlockStateDefinition(@NotNull StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, LIT); }
+    @Override protected void createBlockStateDefinition(@NotNull StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, LIT); }
     
     /**
      * @implNote <b>Directly inherits <u>{@link BaseEntityBlock}</u> won't render the appearance of block,
      * unless you specify its <u>{@link RenderShape}</u> like this.</b>
      */
-    @Override
-    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.MODEL; }
+    @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.MODEL; }
     
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
+    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
     //endregion
     
     //  region
     //*: World Logic & Life Cycles
-    @Override
-    public void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
+    @Override public void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
     {
         if(oldState.is(state.getBlock()))
             return;
@@ -142,8 +138,7 @@ public final class KilnBlock extends BaseEntityBlock
         super.onPlace(state, level, pos, oldState, isMoving);
     }
     
-    @Override
-    public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
+    @Override public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
     {
         final BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
         
@@ -160,20 +155,18 @@ public final class KilnBlock extends BaseEntityBlock
         return state.setValue(LIT, isLit);
     }
     
-    @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction direction, @NotNull BlockState neighborState,
+    @Override public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction direction, @NotNull BlockState neighborState,
         @NotNull LevelAccessor level, @NotNull BlockPos currentPos, @NotNull BlockPos neighborPos)
-    {
-        if(state.getValue(LIT) && level.getFluidState(currentPos).is(FluidTags.WATER))
-        {
-            level.playSound(null, currentPos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, QUIET_SOUND_VOLUME, 2.6F);
-            return state.setValue(LIT, false);
-        }
-        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
-    }
+            {
+                if(state.getValue(LIT) && level.getFluidState(currentPos).is(FluidTags.WATER))
+                {
+                    level.playSound(null, currentPos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, QUIET_SOUND_VOLUME, 2.6F);
+                    return state.setValue(LIT, false);
+                }
+                return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+            }
     
-    @Override
-    public void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving)
+    @Override public void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving)
     {
         if(state.is(newState.getBlock()))
             return;
@@ -185,19 +178,24 @@ public final class KilnBlock extends BaseEntityBlock
             Containers.dropContents(level, pos, kiln);
             level.updateNeighbourForOutputSignal(pos, this);
         }
+        
         super.onRemove(state, level, pos, newState, isMoving);
     }
     
-    @Override
-    public @NotNull ItemStack getCloneItemStack(@NotNull BlockState state, @NotNull HitResult target, @NotNull LevelReader level, @NotNull BlockPos pos, @NotNull Player player)
+    @Override public @NotNull ItemStack getCloneItemStack(
+        @NotNull BlockState state,
+        @NotNull HitResult target,
+        @NotNull LevelReader level,
+        @NotNull BlockPos pos,
+        @NotNull Player player
+    )
     {
         final ItemStack stack = new ItemStack(this);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         return stack;
     }
     
-    @Override
-    public @NotNull List<ItemStack> getDrops(@NotNull BlockState state, LootParams.@NotNull Builder params)
+    @Override public @NotNull List<ItemStack> getDrops(@NotNull BlockState state, LootParams.@NotNull Builder params)
     {
         final List<ItemStack> drops = super.getDrops(state, params);
         
@@ -211,8 +209,8 @@ public final class KilnBlock extends BaseEntityBlock
     
     //  region
     //*: Block Entity Linking
-    @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> serverBlockEntityType)
+    @Override public <T extends BlockEntity> @Nullable BlockEntityTicker<T>
+    getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> serverBlockEntityType)
     {
         if(level.isClientSide)//! Tick is handled by server, client shouldn't touch this.
             return null;
@@ -220,15 +218,13 @@ public final class KilnBlock extends BaseEntityBlock
             return createTickerHelper(serverBlockEntityType, KilnRegistries.KILN_BLOCK_ENTITY.get(), KilnBlockEntity::serverTick);
     }
     
-    @Override
-    @Contract("_, _ -> new")
+    @Override @Contract("_, _ -> new")
     public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) { return new KilnBlockEntity(pos, state); }
     //endregion
     
     //  region
     //*: Interaction Basics
-    @Override
-    protected @NotNull InteractionResult useWithoutItem
+    @Override protected @NotNull InteractionResult useWithoutItem
     (@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult)
     {
         if(level.isClientSide)
@@ -246,8 +242,7 @@ public final class KilnBlock extends BaseEntityBlock
         }
     }
     
-    @Override
-    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
+    @Override protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
         @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
             {
                 if(state.getValue(LIT))
@@ -283,8 +278,7 @@ public final class KilnBlock extends BaseEntityBlock
     //  region
     //*: Visual Display & Helpers
     //? TODO: Particle Pos Adjust
-    @Override
-    public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
+    @Override public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
         final double X_POS = (double) pos.getX() + SOUND_HORIZONTICAL_OFFSET;
         final double Y_POS = pos.getY();

@@ -11,6 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.kiln.api;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * This is a interface of {@code KilnRecipe}, providing all utilities that can, and should be used by externals.
@@ -28,9 +29,9 @@ public interface IKilnRecipeView
      * Get the {@code processFactor} of a recipe.
      * @apiNote 1D stands as a normal recipe, the bigger it is, the process speed is slower.
      */
-    double processFactor();
+    @Range(from = 0, to = (long) Double.MAX_VALUE) double processFactor();
     
-    float experience();
+    @Range(from = 0, to = (long) Float.MAX_VALUE) float experience();
     
     boolean isBanned();
     

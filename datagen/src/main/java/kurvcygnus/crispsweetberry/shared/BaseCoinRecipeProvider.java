@@ -9,10 +9,10 @@
 package kurvcygnus.crispsweetberry.shared;
 
 import kurvcygnus.crispsweetberry.CrispRecipeProvider;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackBlock;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackItem;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.ICoinType;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackBlock;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackItem;
+import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;

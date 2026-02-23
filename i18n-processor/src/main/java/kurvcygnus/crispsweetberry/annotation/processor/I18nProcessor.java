@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 
-//? TODO: Relative path!
 //? TODO: Better cache data struct
 //? TODO: Fabric YarnMap Support?
 //? TODO: Group Translation Override Logic
@@ -57,6 +56,7 @@ public final class I18nProcessor extends AbstractProcessor
     private static final String ATTRIBUTE = "net.minecraft.world.entity.ai.attributes.Attribute";
     private static final String COMPONENT = "net.minecraft.network.chat.Component";
     private static final String RESOURCE_LOCATION = "net.minecraft.resources.ResourceLocation";
+    private static final String KEY_MAPPING = "net.minecraft.client.KepMapping";
     private static final String SUPPLIER = "java.util.function.Supplier";
     private static final String VERSION = "v0.1";
     
@@ -98,8 +98,7 @@ public final class I18nProcessor extends AbstractProcessor
     private @Nullable String outputPath;
     private boolean generated = false;
     
-    @Override
-    public synchronized void init(@NotNull ProcessingEnvironment processingEnv)
+    @Override public synchronized void init(@NotNull ProcessingEnvironment processingEnv)
     {
         super.init(processingEnv);
         this.messager = processingEnv.getMessager();
@@ -119,6 +118,7 @@ public final class I18nProcessor extends AbstractProcessor
             ATTRIBUTE,
             COMPONENT,
             RESOURCE_LOCATION,
+            KEY_MAPPING,
             SUPPLIER
         );
         this.outputPath = processingEnv.getOptions().get("i18nPath");
@@ -146,8 +146,7 @@ public final class I18nProcessor extends AbstractProcessor
         if(outputPath == null || outputPath.isBlank() || outputPath.equals("default"))
         {
             messager.printMessage(
-                Diagnostic.Kind.NOTE,
-                """
+                Diagnostic.Kind.NOTE, """
                     Current using default output path: "${targetModule}/build/generated/sources/annotationProcessor/java/main/assets/%s/lang/".
                     
                     We recommend using configured path to prevent the unnecessary manual work.
@@ -171,8 +170,7 @@ public final class I18nProcessor extends AbstractProcessor
         }
     }
     
-    @Override
-    public boolean process(@NotNull Set<? extends TypeElement> annotations, @NotNull RoundEnvironment roundEnv)
+    @Override public boolean process(@NotNull Set<? extends TypeElement> annotations, @NotNull RoundEnvironment roundEnv)
     {
         if(roundEnv.processingOver() && !generated)
         {
@@ -257,7 +255,8 @@ public final class I18nProcessor extends AbstractProcessor
             }
         }
         
-        translationTable.forEach((l, t) ->
+        translationTable.forEach(
+            (l, t) ->
             {
                 try
                 {
@@ -282,7 +281,7 @@ public final class I18nProcessor extends AbstractProcessor
                         writer.write("}");
                         messager.printMessage(
                             Diagnostic.Kind.NOTE,
-                            "Generating %s.json...".
+                            "Generated %s.json.".
                                 formatted(l.getCode())
                         );
                     }
@@ -387,7 +386,7 @@ public final class I18nProcessor extends AbstractProcessor
             case MOB_EFFECT -> { return "effect.%s.%s".formatted(namespace, key); }
             case ATTRIBUTE -> { return "attribute.%s.%s".formatted(namespace, key); }
             case RESOURCE_LOCATION -> { return key; }
-            case COMPONENT -> 
+            case COMPONENT, KEY_MAPPING ->
             {
                 if(key.contains("%s.".formatted(Objects.requireNonNull(namespace))))
                     return key;
@@ -500,7 +499,7 @@ public final class I18nProcessor extends AbstractProcessor
     }
     
     @Contract(value = "null -> false", pure = true)
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! Inverting name makes meaning of this method confusing.
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! Inverting name will make meaning of this method confusing.
     private static boolean hasContent(@Nullable String string) { return string != null && !string.isBlank(); }
     
     @Contract(value = "null -> false", pure = true)
@@ -573,6 +572,7 @@ public final class I18nProcessor extends AbstractProcessor
         ATTRIBUTE,
         COMPONENT,
         RESOURCE_LOCATION,
+        KEY_MAPPING,
         SUPPLIER,
         UNSUPPORTED(-1);
         

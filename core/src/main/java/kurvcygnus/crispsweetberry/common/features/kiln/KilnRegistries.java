@@ -58,16 +58,13 @@ public enum KilnRegistries implements IRegistrant
 {
     INSTANCE;
     
-    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(register -> register.register(bus)); }
+    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(bus::register); }
     
-    @Override
-    public boolean isFeature() { return true; }
+    @Override public boolean isFeature() { return true; }
     
-    @Override
-    public @NotNull String getJob() { return "Kiln"; }
+    @Override public @NotNull String getJob() { return "Kiln"; }
     
-    @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 1); }
+    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 1); }
     
     private static final DeferredRegister<Item> KILN_ITEM_REGISTER = DeferredRegister.createItems(NAMESPACE);
     private static final DeferredRegister<Block> KILN_BLOCK_REGISTER = DeferredRegister.createBlocks(NAMESPACE);
@@ -93,8 +90,7 @@ public enum KilnRegistries implements IRegistrant
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    @SubscribeEvent
-    static void kilnItemDynamicSpriteEvent(@NotNull FMLClientSetupEvent event)
+    @SubscribeEvent static void kilnItemDynamicSpriteEvent(@NotNull FMLClientSetupEvent event)
     {
         event.enqueueWork(() ->
             ItemProperties.register(
@@ -120,11 +116,9 @@ public enum KilnRegistries implements IRegistrant
      * @author Kurv Cygnus
      * @since 1.0 Release
      */
-    @SubscribeEvent
-    static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KILN_MENU_TYPE.get(), KilnScreen::new); }
+    @SubscribeEvent static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KILN_MENU_TYPE.get(), KilnScreen::new); }
     
-    @SubscribeEvent
-    static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
+    @SubscribeEvent static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
     
     @AutoI18n(value = {
             "en_us = Kiln",
@@ -136,13 +130,12 @@ public enum KilnRegistries implements IRegistrant
     )
     public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
     
-    @RegisterToTab
-    @AutoI18n(key = "kiln", group = "kiln")
-    public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register("kiln", resourceLocation ->
-        new BlockItem(KILN_BLOCK.value(), new Item.Properties())
+    @RegisterToTab @AutoI18n(key = "kiln", group = "kiln") public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register(
+        "kiln", 
+        resourceLocation -> new BlockItem(KILN_BLOCK.value(), new Item.Properties())
     );
     
-    @SuppressWarnings("ConstantConditions") //* https://docs.neoforged.net/docs/1.21.1/blockentities/ You can find the reason of suppression here.
+    @SuppressWarnings("ConstantConditions")//! https://docs.neoforged.net/docs/1.21.1/blockentities/ You can find the reason of suppression here.
     public static final Supplier<BlockEntityType<KilnBlockEntity>> KILN_BLOCK_ENTITY = KILN_BE_REGISTER.register("kiln_block_entity", () ->
         BlockEntityType.Builder.of(KilnBlockEntity::new, KilnRegistries.KILN_BLOCK.value()).
             build(null)//* Build using null; vanilla does some datafixer with the parameter that we don't need.

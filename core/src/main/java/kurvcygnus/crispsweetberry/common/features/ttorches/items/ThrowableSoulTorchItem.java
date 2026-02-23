@@ -17,6 +17,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
 
+/**
+ * This is the entity part of ttorch series, soul fire variant.
+ *
+ * @author Kurv Cygnus
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulTorchBlock Floor Torch
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulWallTorchBlock Wall Torch
+ * @see ThrownSoulTorchEntity Entity
+ * @since 1.0 Release
+ */
 public final class ThrowableSoulTorchItem extends AbstractThrowableTorchItem<ThrownSoulTorchEntity>
 {
     public ThrowableSoulTorchItem() { super(new Properties()); }

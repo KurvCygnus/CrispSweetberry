@@ -8,9 +8,12 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.api;
 
+import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
@@ -34,16 +37,13 @@ public final class KilnRecipeAboutToUpdateEvent extends Event
     
     public @NotNull HashMap<Item, NonNullList<IKilnRecipeView>> getKilnRecipes() { return kilnRecipes; }
     
-    @CheckReturnValue
-    public @NotNull Optional<HashMap<Item, NonNullList<IKilnRecipeView>>>
-    getAllRecipesWithTag(@NotNull HashMap<Item, NonNullList<IKilnRecipeView>> collection, @NotNull TagKey<Item> tag)
+    @CheckReturnValue public @NotNull Optional<HashMap<Item, NonNullList<IKilnRecipeView>>> getAllRecipesWithTag(@NotNull TagKey<Item> tag)
     {
-        Objects.requireNonNull(collection, "Param \"collection\" must not be null!");
         Objects.requireNonNull(tag, "Param \"tag\" must not be null!");
         
         final HashMap<Item, NonNullList<IKilnRecipeView>> filtered = new HashMap<>();
         
-        collection.forEach((i, l) ->
+        getKilnRecipes().forEach((i, l) ->
             {
                 if(!i.getDefaultInstance().is(tag))
                     return;
@@ -55,18 +55,19 @@ public final class KilnRecipeAboutToUpdateEvent extends Event
         if(filtered.isEmpty())
             return Optional.empty();
         
+        new KilnRecipe(Ingredient.EMPTY, ItemStack.EMPTY, -1, -1, true);
+        
         return Optional.of(filtered);
     }
     
     @SafeVarargs @CheckReturnValue public final @NotNull Optional<HashMap<Item, NonNullList<IKilnRecipeView>>>
-    getAllRecipesWithTag(@NotNull HashMap<Item, NonNullList<IKilnRecipeView>> collection, @NotNull TagKey<Item> @NotNull ... tags)
+    getAllRecipesWithTag(@NotNull TagKey<Item> @NotNull ... tags)
     {
-        Objects.requireNonNull(collection, "Param \"collection\" must not be null!");
         Objects.requireNonNull(tags, "Param \"tag\" must not be null!");
         
         final HashMap<Item, NonNullList<IKilnRecipeView>> filtered = new HashMap<>();
         
-        collection.forEach((i, l) ->
+        getKilnRecipes().forEach((i, l) ->
             {
                 for(int index = 0, tagsLength = tags.length; index < tagsLength; index++)
                 {

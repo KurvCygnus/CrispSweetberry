@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.qol.spyglass.mixins;
 
 import kurvcygnus.crispsweetberry.common.qol.spyglass.client.events.SpyglassQuickZoomEvent;
-import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloads;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * @see SpyglassPlayerStateInjection Essential Input Emulation
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassUsePoseInjection Visual Essential Mixin
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemDegreeFixInjection Item Model Degree Fix
- * @see SpyglassPayloadHandler#handleData  Serverside stuff
+ * @see SpyglassPayloads Serverside stuff
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
  */
 @Mixin(Minecraft.class)
@@ -43,28 +43,32 @@ public final class SpyglassItemUsingInjection
     @Shadow public MultiPlayerGameMode gameMode;
     
     @Inject(method = "startUseItem", at = @At("HEAD"), cancellable = true)
-    private void interceptInteract(@NotNull CallbackInfo cbi)
+    private void interceptInteract(@NotNull CallbackInfo callbackInfo)
     {
-        if(SpyglassQuickZoomEvent.isZooming())
-            cbi.cancel();
+        if(!SpyglassQuickZoomEvent.isZooming())
+            return;
+        
+        callbackInfo.cancel();
     }
     
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
-    private void interceptAttack(CallbackInfoReturnable<Boolean> cir)
+    private void interceptAttack(CallbackInfoReturnable<Boolean> callbackInfoReturnable)
     {
-        if(SpyglassQuickZoomEvent.isZooming())
-            cir.setReturnValue(false);
+        if(!SpyglassQuickZoomEvent.isZooming())
+            return;
+        
+        callbackInfoReturnable.setReturnValue(false);
     }
     
     @Inject(method = "continueAttack", at = @At("HEAD"), cancellable = true)
-    private void onContinueAttack(boolean leftClick, CallbackInfo ci)
+    private void onContinueAttack(boolean leftClick, CallbackInfo callbackInfo)
     {
-        if(SpyglassQuickZoomEvent.isZooming())
-        {
-            if(gameMode != null)
-                gameMode.stopDestroyBlock();
-            
-            ci.cancel();
-        }
+        if(!SpyglassQuickZoomEvent.isZooming())
+            return;
+        
+        if(gameMode != null)
+            gameMode.stopDestroyBlock();
+        
+        callbackInfo.cancel();
     }
 }

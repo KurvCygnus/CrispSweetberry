@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.coins.datagen;
+package kurvcygnus.crispsweetberry.common.features.coins.api.datagen;
 
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.coins.CoinRegistries;

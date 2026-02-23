@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * This is the base of the existence of the whole kiln recipe.<br>
@@ -59,10 +60,10 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.0 Release
  */
 public record KilnRecipe(
-    Ingredient ingredient,
-    ItemStack result,
-    double processFactor,
-    float experience,
+    @NotNull Ingredient ingredient,
+    @NotNull ItemStack result,
+    @Range(from = 0, to = (long) Double.MAX_VALUE) double processFactor,
+    @Range(from = 0, to = (long) Float.MAX_VALUE) float experience,
     boolean isBanned
 ) implements Recipe<KilnRecipeInput>, IKilnRecipeView
 {
@@ -74,17 +75,9 @@ public record KilnRecipe(
     /**
      * The contractor method for <b>creating a recipe</b>, and <b>serialization</b>.
      */
-    public KilnRecipe(@NotNull Ingredient ingredient, @NotNull ItemStack result, double processFactor, float experience, boolean isBanned)
-    {
-        this.ingredient = ingredient;
-        this.result = result;
-        this.processFactor = processFactor;
-        this.experience = experience;
-        this.isBanned = isBanned;
-    }
+    public KilnRecipe {}
     
-    @Override
-    public @NotNull KilnRecipe withBanned()
+    @Override public @NotNull KilnRecipe withBanned()
     {
         return new KilnRecipe(
             this.ingredient,
@@ -95,8 +88,7 @@ public record KilnRecipe(
         );
     }
     
-    @Override
-    public @NotNull KilnRecipe unBanned()
+    @Override public @NotNull KilnRecipe unBanned()
     {
         return new KilnRecipe(
             this.ingredient,
@@ -107,27 +99,19 @@ public record KilnRecipe(
         );
     }
     
-    @Override
-    public boolean matches(@NotNull KilnRecipeInput input, @NotNull Level level) { return this.ingredient.test(input.stack()); }
+    @Override public boolean matches(@NotNull KilnRecipeInput input, @NotNull Level level) { return this.ingredient.test(input.stack()); }
     
-    @Override
-    public @NotNull ItemStack assemble(@NotNull KilnRecipeInput input, HolderLookup.@NotNull Provider registries) { return this.result.copy(); }
+    @Override public @NotNull ItemStack assemble(@NotNull KilnRecipeInput input, HolderLookup.@NotNull Provider registries) { return this.result.copy(); }
     
-    @Override
-    public boolean canCraftInDimensions(int width, int height) { return true; }
+    @Override public boolean canCraftInDimensions(int width, int height) { return true; }
     
-    @Override
-    public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider registries) { return this.result.copy(); }
+    @Override public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider registries) { return this.result.copy(); }
     
-    @Override
-    public @NotNull RecipeSerializer<?> getSerializer() { return KilnRegistries.KILN_SERIALIZER.get(); }
+    @Override public @NotNull RecipeSerializer<?> getSerializer() { return KilnRegistries.KILN_SERIALIZER.get(); }
     
-    @Override
-    public @NotNull RecipeType<?> getType() { return KilnRecipeType.INSTANCE; }
+    @Override public @NotNull RecipeType<?> getType() { return KilnRecipeType.INSTANCE; }
     
-    @Override
-    public @NotNull Ingredient ingredient() { return this.ingredient; }
+    @Override public @NotNull Ingredient ingredient() { return this.ingredient; }
     
-    @Override
-    public @NotNull ItemStack result() { return this.result.copy(); }
+    @Override public @NotNull ItemStack result() { return this.result.copy(); }
 }

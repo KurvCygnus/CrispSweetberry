@@ -18,14 +18,12 @@ import snownee.jade.api.WailaPlugin;
 @WailaPlugin
 public final class JadeEntrypoint implements IWailaPlugin
 {
-    @Override
-    public void register(@NotNull IWailaCommonRegistration registration)
+    @Override public void register(@NotNull IWailaCommonRegistration registration)
     {
         //registration.registerBlockDataProvider(KilnBlockInfoProvider.INSTANCE, KilnBlock.class);
     }
     
-    @Override
-    public void registerClient(@NotNull IWailaClientRegistration registration)
+    @Override public void registerClient(@NotNull IWailaClientRegistration registration)
     {
         registration.hideTarget(TTorchRegistries.FAKE_LIGHT_BLOCK.value());
         

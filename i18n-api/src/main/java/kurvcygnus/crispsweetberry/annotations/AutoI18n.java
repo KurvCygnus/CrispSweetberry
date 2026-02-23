@@ -97,15 +97,15 @@ public @interface AutoI18n
      *         <b>However, both two follow the following principles</b>.
      *     </li>
      *     <li>
-     *         <b>Most types are not required modId explicitly in their field names, expect {@code ResourceLocation} and 
-     *         {@code Component}</b>.
+     *         <b>Most types are not required modId explicitly in their field names, expect {@code ResourceLocation},  
+     *         {@code Component} and {@code KeyMapping}</b>.
      *         <ul>
      *             <li>
      *                 {@code ResourceLocation} can be {@code Stat}, 
      *                 sprite holder or custom stuffs, thus can't be deduced, you have to type full qualified key.
      *             </li>
      *             <li>
-     *                 {@code Component} is special.<br>
+     *                 {@code Component} and {@code KeyMapping} are both special.<br>
      *                 <b>Whether having modId explicitly in name doesn't matter.</b> If have, 
      *                 processor won't do anything. 
      *                 If have not, processor will add 

@@ -13,6 +13,12 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownSoulTo
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The renderer of ttorch series, soul fire variant.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see ThrownSoulTorchEntity Render Target
+ */
 public final class ThrownSoulTorchRenderer extends AbstractThrownTorchRenderer<ThrownSoulTorchEntity>
 {
     public ThrownSoulTorchRenderer(EntityRendererProvider.@NotNull Context context) { super(context); }

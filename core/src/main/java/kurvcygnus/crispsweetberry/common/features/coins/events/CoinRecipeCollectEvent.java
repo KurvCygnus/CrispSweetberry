@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.coins.events;
 import com.google.common.collect.HashBiMap;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.Item;
@@ -41,8 +41,7 @@ public final class CoinRecipeCollectEvent
     @SubscribeEvent
     static void collectCoinRecipes(final @NotNull ServerAboutToStartEvent event) { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
     
-    @SubscribeEvent
-    static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
+    @SubscribeEvent static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
     {
         event.addListener((
             preparationBarrier,

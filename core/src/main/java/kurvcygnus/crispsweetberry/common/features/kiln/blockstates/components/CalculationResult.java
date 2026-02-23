@@ -13,6 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.en
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * A simple value object for <u>{@link KilnProgressCalculator}</u>.
@@ -20,10 +21,15 @@ import org.jetbrains.annotations.NotNull;
  * @author Kurv Cygnus
  */
 @ApiStatus.Internal
-public record CalculationResult(double currentRealProgress, double currentVisualProgress, LogicalResult logicalResult, VisualTrend trend)
+public record CalculationResult(
+    @Range(from = 0, to = 1) double currentRealProgress,
+    @Range(from = 0, to = 1) double currentVisualProgress, 
+    @NotNull LogicalResult logicalResult,
+    @NotNull VisualTrend trend
+)
 {
     @Contract("_, _ -> new")
-    public static @NotNull CalculationResult unexpectedResult(double currentRealProgress, double currentVisualProgress)
+    public static @NotNull CalculationResult unexpectedResult(@Range(from = 0, to = 1) double currentRealProgress, @Range(from = 0, to = 1) double currentVisualProgress)
     {
         return new CalculationResult(
             currentRealProgress,

@@ -29,6 +29,5 @@ public final class KilnDummyBlockEntity extends KilnBlockEntity
 {
     public KilnDummyBlockEntity() { super(BlockPos.ZERO, KilnRegistries.KILN_BLOCK.value().defaultBlockState()); }
     
-    @Override
-    public boolean stillValid(@NotNull Player player) { return true; }
+    @Override public boolean stillValid(@NotNull Player player) { return true; }
 }

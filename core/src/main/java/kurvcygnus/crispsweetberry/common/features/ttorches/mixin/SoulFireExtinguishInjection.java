@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.mixin;
 
-import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayload;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.SoulFireBlock;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.SOUL_FIRE_PERSISTENT_TAG;
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.isLitBySoulFire;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.SOUL_FIRE_PERSISTENT_TAG;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.isLitBySoulFire;
 
 /**
  * This mixin belongs to a part of vanilla <u>{@link SoulFireBlock}</u>'s enhancement, 
@@ -31,7 +31,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstant
  * @see SoulFireBurnInjection Start Logic
  * @see SoulFireScreenVisualInjection Screen Visual
  * @see SoulFireVisualEffectInjection Appearance Visual
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloadHandler#attachTag Sync Handle 
+ * @see SoulFireTagPayloads.SoulFireTagPayloadHandler#attachTag Sync Handle 
  */
 @Mixin(Entity.class)
 public final class SoulFireExtinguishInjection
@@ -53,7 +53,7 @@ public final class SoulFireExtinguishInjection
 
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(
                 entity,
-                new SoulFireTagPayload(
+                new SoulFireTagPayloads.SoulFireTagPayload(
                     entity.getId(),
                     false
                 )
@@ -84,18 +84,18 @@ public final class SoulFireExtinguishInjection
     {
         final Entity entity = (Entity)(Object) this;
         
-        if(!entity.level().isClientSide && entity.getRemainingFireTicks() <= 0)
-        {
-            entity.getPersistentData().remove(SOUL_FIRE_PERSISTENT_TAG);
-            
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(
-                entity,
-                new SoulFireTagPayload(
-                    entity.getId(),
-                    false
-                )
-            );
-        }
+        if(entity.level().isClientSide || entity.getRemainingFireTicks() > 0)
+            return;
+        
+        entity.getPersistentData().remove(SOUL_FIRE_PERSISTENT_TAG);
+        
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(
+            entity,
+            new SoulFireTagPayloads.SoulFireTagPayload(
+                entity.getId(),
+                false
+            )
+        );
     }
     
     @Inject(method = "setRemainingFireTicks", at = @At("HEAD"), cancellable = true)

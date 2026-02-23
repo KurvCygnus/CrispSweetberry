@@ -10,8 +10,8 @@ package kurvcygnus.crispsweetberry.common.features.coins;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
-import kurvcygnus.crispsweetberry.common.features.coins.datagen.IsCrunchingCondition;
-import kurvcygnus.crispsweetberry.common.features.coins.datagen.SetCoinCountFunction;
+import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.IsCrunchingCondition;
+import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.SetCoinCountFunction;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
@@ -41,17 +41,13 @@ public enum CoinRegistries implements IRegistrant
 {
     INSTANCE;
     
-    @Override
-    public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(register -> register.register(bus)); }
+    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(bus::register); }
     
-    @Override
-    public boolean isFeature() { return true; }
+    @Override public boolean isFeature() { return true; }
     
-    @Override
-    public @NotNull String getJob() { return "Coin"; }
+    @Override public @NotNull String getJob() { return "Coin"; }
     
-    @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 3); }
+    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 3); }
     
     private static final DeferredRegister<Item> COIN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<Block> COIN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);

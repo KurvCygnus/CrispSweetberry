@@ -17,7 +17,7 @@ import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.*;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.*;
 
 /**
  * The simple implementation of <u>{@link AbstractTemporaryWallTorchBlock}</u>.

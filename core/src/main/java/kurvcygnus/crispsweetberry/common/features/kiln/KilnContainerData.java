@@ -11,6 +11,9 @@ package kurvcygnus.crispsweetberry.common.features.kiln;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import net.minecraft.world.inventory.ContainerData;
+import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * The modified ContainerData for Kiln Block.<br>
@@ -32,14 +35,13 @@ public final class KilnContainerData implements ContainerData
     
     private final KilnBlockEntity kiln;
     
-    public KilnContainerData(KilnBlockEntity kiln) { this.kiln = kiln; }
+    public KilnContainerData(@NotNull KilnBlockEntity kiln) { this.kiln = kiln; }
     
     /**
      * <b>Returns</b> the value of <b>the field specified by the index</b>.
      * @see kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity Variable Source
      */
-    @Override
-    public int get(int index)
+    @Override public int get(@Range(from = 0, to = 2) @MagicConstant(intValues = {VISUAL_PROGRESS_INDEX, PROGRESS_TREND_INDEX, IGNITION_STATE_INDEX}) int index)
     {
         return (int) switch(index)
         {
@@ -54,8 +56,10 @@ public final class KilnContainerData implements ContainerData
      * <b>Sets</b> the value of <b>the field specified by the index</b>.
      * @apiNote For progress cases, make sure the value of {@code value} is 10000 times size of the actual value.
      */
-    @Override
-    public void set(int index, int value)
+    @Override public void set(
+        @Range(from = 0, to = 2) @MagicConstant(intValues = {VISUAL_PROGRESS_INDEX, PROGRESS_TREND_INDEX, IGNITION_STATE_INDEX}) int index,
+        int value
+    )
     {
         switch(index)
         {
@@ -70,10 +74,10 @@ public final class KilnContainerData implements ContainerData
      * Returns the <b>number of fields in this {@code ContainerData}</b>.<br>
      * <i>Hard-coded for performance reasons, probably.</i>
      */
-    @Override
-    public int getCount() { return 3; }
+    @Override public int getCount() { return 3; }
     
     public static double toStandardProgress(int progress) { return (double) progress / 10000; }
     
-    public static boolean toStandardIgnitionState(int ignitionState) { return ignitionState == TRUE; }
+    public static boolean toStandardIgnitionState(int ignitionState)
+        { return ignitionState == TRUE; }
 }

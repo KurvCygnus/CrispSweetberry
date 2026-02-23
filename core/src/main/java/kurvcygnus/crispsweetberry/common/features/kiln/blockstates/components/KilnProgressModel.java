@@ -15,6 +15,7 @@ import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 
@@ -30,8 +31,8 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.
  */
 public final class KilnProgressModel
 {
-    private double realProgress;
-    private double visualProgress;
+    private @Range(from = 0, to = 1) double realProgress;
+    private @Range(from = 0, to = 1) double visualProgress;
     private VisualTrend trend;
     private boolean isIgnited;
     
@@ -84,9 +85,9 @@ public final class KilnProgressModel
     
     public int getIgnitionState() { return this.isIgnited ? TRUE : FALSE; }
     
-    public void setVisualProgress(double visualProgress) { this.visualProgress = visualProgress; }
+    public void setVisualProgress(@Range(from = 0, to = 1) double visualProgress) { this.visualProgress = visualProgress; }
     
-    public void setProgressTrend(VisualTrend trend) { this.trend = trend; }
+    public void setProgressTrend(@NotNull VisualTrend trend) { this.trend = trend; }
     
-    public void setIgnitionState(int state) { this.isIgnited = (state == TRUE); }
+    public void setIgnitionState(@Range(from = 0, to = 1) int state) { this.isIgnited = (state == TRUE); }
 }

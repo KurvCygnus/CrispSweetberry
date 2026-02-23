@@ -39,11 +39,9 @@ public enum JEIEntrypoint implements IModPlugin
 {
     INSTANCE;
     
-    @Override
-    public @NotNull ResourceLocation getPluginUid() { return CrispDefUtils.getModNamespacedLocation("jei_integration"); }
+    @Override public @NotNull ResourceLocation getPluginUid() { return CrispDefUtils.getModNamespacedLocation("jei_integration"); }
     
-    @Override
-    public void registerRecipes(@NotNull IRecipeRegistration registration)
+    @Override public void registerRecipes(@NotNull IRecipeRegistration registration)
     {
     }
     

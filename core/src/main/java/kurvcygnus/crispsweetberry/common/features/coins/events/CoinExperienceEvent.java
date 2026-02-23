@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.coins.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
 import net.minecraft.server.level.ServerLevel;
@@ -48,27 +48,25 @@ public final class CoinExperienceEvent
     private static final CrispIntRanger INVENTORY_INPUT_SLOTS_RANGE = CrispIntRanger.closed(INVENTORY_INPUT_SLOT_START_INDEX, INVENTORY_INPUT_SLOT_END_INDEX);
     private static final CrispIntRanger CRAFTING_TABLE_INPUT_SLOTS_RANGE = CrispIntRanger.closed(CRAFTING_TABLE_INPUT_SLOT_START_INDEX, CRAFTING_TABLE_INPUT_SLOT_END_INDEX);
     
-    @SubscribeEvent
-    static void craftPreCheck(@NotNull PlayerContainerEvent event)
+    @SubscribeEvent static void craftPreCheck(@NotNull PlayerContainerEvent event)
     {
         final AbstractContainerMenu menu = event.getContainer();
         
-        if(menu instanceof InventoryMenu || menu instanceof CraftingMenu)
+        if(!(menu instanceof InventoryMenu) && !(menu instanceof CraftingMenu))
+            return;
+        
+        final Item resultItem = event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).getItem().getItem();
+        
+        if(CoinRecipeCollectEvent.getCoinCraftRecipes().containsKey(resultItem) && resultItem instanceof AbstractCoinItem<?> coinItem)
         {
-            final ItemStack result = event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).getItem();
+            final Player player = event.getEntity();
             
-            if(result.getItem() instanceof AbstractCoinItem<?> coinItem)
-            {
-                final Player player = event.getEntity();
-                
-                if(player.totalExperience < coinItem.getCoinType().getExperience())//? TODO: Tip players about this.
-                    event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).set(ItemStack.EMPTY);//* If player has not enough exp for coin, hide result.
-            }
+            if(player.totalExperience < coinItem.getCoinType().getExperience())//? TODO: Tip players about this.
+                event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).set(ItemStack.EMPTY);//* If player has not enough exp for coin, hide result.
         }
     }
     
-    @SubscribeEvent
-    static void craftCheck(@NotNull PlayerEvent.ItemCraftedEvent event)
+    @SubscribeEvent static void craftCheck(@NotNull PlayerEvent.ItemCraftedEvent event)
     {
         final Item item = event.getCrafting().getItem();
         final Player player = event.getEntity();
@@ -85,7 +83,6 @@ public final class CoinExperienceEvent
             case CraftingMenu ignored -> checkSlotsAndDispenseExp(event, CRAFTING_TABLE_INPUT_SLOTS_RANGE);
             default -> {}
         }
-        
     }
     
     private static void checkSlotsAndDispenseExp(@NotNull PlayerEvent.ItemCraftedEvent event, @NotNull CrispIntRanger ranger)
@@ -93,14 +90,15 @@ public final class CoinExperienceEvent
         final ItemStack result = event.getInventory().getItem(UNIVERSAL_RESULT_SLOT_INDEX);
         int coinCount = 0;
         
-        for(final int inputIndex: ranger)
+        for(int inputIndex = ranger.getMin(); ranger.inRange(inputIndex); inputIndex++)
         {
             final ItemStack material = event.getInventory().getItem(inputIndex);
             
             if(material.getItem() instanceof AbstractCoinItem<?> coin)
             {
                 coinCount++;
-                if(inputIndex == ranger.getMax() && coinCount == 1 && result.getItem() == coin.getCoinType().nuggetItem())//? TODO: Refactor this with recipe check.
+                
+                if(inputIndex == ranger.getMax() && coinCount == 1 && CoinRecipeCollectEvent.getCoinDisassembleRecipes().containsKey(result.getItem()))
                 {
                     final Player player = event.getEntity();
                     final ServerLevel level = (ServerLevel) player.level();

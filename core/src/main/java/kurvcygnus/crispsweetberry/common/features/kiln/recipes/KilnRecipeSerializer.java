@@ -58,11 +58,9 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
         this.streamCodec = StreamCodec.of(this::toNetwork, this::fromNetwork);
     }
     
-    @Override
-    public @NotNull MapCodec<KilnRecipe> codec() { return this.mapCodec; }
+    @Override public @NotNull MapCodec<KilnRecipe> codec() { return this.mapCodec; }
     
-    @Override
-    public @NotNull StreamCodec<RegistryFriendlyByteBuf, KilnRecipe> streamCodec() { return this.streamCodec; }
+    @Override public @NotNull StreamCodec<RegistryFriendlyByteBuf, KilnRecipe> streamCodec() { return this.streamCodec; }
     
     //? TODO: Group implementation for JEI/REI compatibility.
     private void toNetwork(RegistryFriendlyByteBuf buffer, @NotNull KilnRecipe recipe)

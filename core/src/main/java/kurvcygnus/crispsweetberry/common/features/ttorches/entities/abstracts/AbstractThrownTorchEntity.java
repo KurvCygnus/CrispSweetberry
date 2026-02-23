@@ -9,8 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts;
 
 import com.mojang.logging.LogUtils;
-import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.LIGHT_PROPERTY;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.LIGHT_PROPERTY;
 import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
 
 /**
@@ -114,6 +114,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     {
         super.defineSynchedData(builder);
         builder.define(FIRE_TIER_ID, TIER_NORM);
+        addNewSynchedData(builder);
     }
     
     /**
@@ -207,7 +208,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                         return;
                     
                     final BlockState light = TTorchRegistries.FAKE_LIGHT_BLOCK.value().defaultBlockState().
-                        setValue(LIGHT_PROPERTY, getTier() == TIER_GONE ? TTorchConstants.LightState.DARK : TTorchConstants.LightState.FULL_BRIGHT);
+                        setValue(LIGHT_PROPERTY, getTier() == TIER_GONE ? TTorchUtilCollection.LightState.DARK : TTorchUtilCollection.LightState.FULL_BRIGHT);
                     
                     LOGGER.debug("Current isn't in any liquid, emulate lighting.");
                     
@@ -262,8 +263,9 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         entity.hurt(this.damageSources().thrown(this, this.getOwner()), hitDamage);
     }
     
-    @Override
-    protected void onHitBlock(@NotNull BlockHitResult result)
+    protected void onHitEntitySequence(@NotNull Entity entity) {}
+    
+    @Override protected void onHitBlock(@NotNull BlockHitResult result)
     {
         super.onHitBlock(result);
         
@@ -298,7 +300,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     case Direction.UP ->
                     {
                         placementPos = hitPos.above();
-                        stateToPlace = getFloorTorchBlock().defaultBlockState();
+                        stateToPlace = getFloorInitState();
                     }
                     case Direction.DOWN ->
                     {
@@ -308,32 +310,37 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     default ->
                     {
                         placementPos = hitPos.relative(hitSide);
-                        stateToPlace = getWallTorchBlock().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, hitSide);
+                        stateToPlace = getWallInitState(hitSide);
                     }
                 }
                 
                 LOGGER.when(placementPos != null).
-                    debug(() -> "Legal Direction & State Confirmed. Direction: {}, State: {}", () -> new Object[] { placementPos, stateToPlace });
+                    debug(() -> "Legal Direction & Block Confirmed. Direction: {}, Block: {}", () -> new Object[] { placementPos, stateToPlace });
                 
                 LOGGER.when(placementPos == null).
-                    debug(() -> "Illegal Direction. Both Direction and State are set to null.");
+                    debug(() -> "Illegal Direction. Both Direction and Block are set to null.");
             }
             
             if(stateToPlace != null && getTier() == TIER_GONE)
             {
                 LOGGER.debug("Torch is dark, the final placed block is also set to dark.");
-                stateToPlace.setValue(LIGHT_PROPERTY, TTorchConstants.LightState.DARK);
+                stateToPlace.setValue(LIGHT_PROPERTY, TTorchUtilCollection.LightState.DARK);
             }
             
             if(stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
-                playSound(SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+                playSound(getPlaceSound(), SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
             else
             {
-                playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+                playSound(getDestroySound(), SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
                 displayDestroyParticle();
             }
         }
     }
+    
+    protected @NotNull BlockState getFloorInitState() { return this.getFloorTorchBlock().defaultBlockState(); }
+    
+    protected @NotNull BlockState getWallInitState(@NotNull Direction direction) 
+        { return this.getWallTorchBlock().defaultBlockState().setValue(TemporaryWallTorchBlock.FACING, direction); }
     
     protected boolean tryPlaceTorch(@NotNull BlockState state, @NotNull BlockPos pos)
     {
@@ -361,7 +368,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         final Block posBlock = this.level().getBlockState(pos).getBlock();
         final BlockState posBlockState = this.level().getBlockState(pos);
         
-        if(posBlock instanceof AbstractGenericTorchBlock<?> && (posBlockState.getValue(LIGHT_PROPERTY).ordinal() <= TTorchConstants.LightState.DIM.ordinal()))
+        if(isReplaceable(posBlock, posBlockState))
         {
             this.level().levelEvent(LEVEL_BLOCK_DESTROY_EVENT_ID, pos, Block.getId(posBlockState));
             return true;
@@ -374,20 +381,18 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     /**
      * @apiNote This method will always be called no matter what things did entity hit.
      */
-    @Override
-    protected final void onHit(@NotNull HitResult result)
+    @Override protected final void onHit(@NotNull HitResult result)
     {
         super.onHit(result);
         
-        if(!this.level().isClientSide)
+        if(shouldDiscard(result))
             this.discard();
     }
     
     /**
      * The method which key the super method in order to <b>make <u>{@link #displayDestroyParticle()}</u> work</b>.
      */
-    @Override
-    public final void handleEntityEvent(byte id)
+    @Override public final void handleEntityEvent(byte id)
     {
         if(id == ENTITY_DESTROY_EVENT_ID && this.level().isClientSide)
         {
@@ -412,14 +417,14 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     //  region
     //* Utils
-    private void displayDestroyParticle() { this.level().broadcastEntityEvent(this, (byte) ENTITY_DESTROY_EVENT_ID); }
+    protected void displayDestroyParticle() { this.level().broadcastEntityEvent(this, (byte) ENTITY_DESTROY_EVENT_ID); }
     
     /**
      * The method that <b>simplifies <u>{@link net.minecraft.world.level.Level#addParticle(ParticleOptions, double, double, double, double, double, double) addParticle()}</u> method</b>.
      * @param frequency The frequency of the particle. To simple, <b>every second the particle will display</b>
      *                  [<b>20(A single second to tick) ÷ frequency</b>] <b>times</b>.
      */
-    private void displayParticle(int frequency, @NotNull ParticleOptions particle)
+    protected void displayParticle(int frequency, @NotNull ParticleOptions particle)
     {
         //! Checks whether the current tick matches the frequency.
         if(this.tickCount % frequency != 0)
@@ -470,9 +475,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     //endregion
     
     //  region
-    //* Misc & Parameter getters
-    protected void onHitEntitySequence(@NotNull Entity entity) {}
-    
+    //* Misc & Hooks
     /**
      * Get the list of Longer Particles.
      * @apiNote Length of this array should be neither 1, or 3, 1 is only used in the case of <u>{@link #shouldCheckLiquids()}</u> always returns {@code false}.
@@ -484,6 +487,19 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected int getLongerParticleFrequency() { return DEFAULT_LONGER_PARTICLE_FREQUENCY; }
     protected int getShorterParticleFrequency() { return DEFAULT_SHORTER_PARTICLE_FREQUENCY; }
+    
+    protected @NotNull SoundEvent getPlaceSound() { return SoundEvents.WOOD_PLACE; }
+    protected @NotNull SoundEvent getDestroySound() { return SoundEvents.SCAFFOLDING_BREAK; }
+    
+    protected boolean isReplaceable(@NotNull Block posBlock, @NotNull BlockState posBlockState)
+    {
+        return posBlock instanceof AbstractGenericTorchBlock<?> && 
+               posBlockState.getValue(LIGHT_PROPERTY).ordinal() <= TTorchUtilCollection.LightState.DIM.ordinal();
+    }
+    
+    protected boolean shouldDiscard(@NotNull HitResult result) { return !this.level().isClientSide; }
+    
+    protected void addNewSynchedData(SynchedEntityData.@NotNull Builder builder) {}
     
     protected boolean shouldCheckLiquids() { return true; }
     protected boolean shouldShowNoSmokeWhenBurnedOut() { return true; }

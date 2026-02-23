@@ -37,8 +37,7 @@ public final class KilnOutputSlot extends Slot
         this.container = container;
     }
     
-    @Override
-    public void onTake(@NotNull Player player, @NotNull ItemStack stack)
+    @Override public void onTake(@NotNull Player player, @NotNull ItemStack stack)
     {
         super.onTake(player, stack);
         
@@ -47,6 +46,5 @@ public final class KilnOutputSlot extends Slot
     }
     
     
-    @Override
-    public boolean mayPlace(@NotNull ItemStack stack) { return false; }
+    @Override public boolean mayPlace(@NotNull ItemStack stack) { return false; }
 }

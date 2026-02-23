@@ -8,10 +8,10 @@
 
 package kurvcygnus.crispsweetberry.api;
 
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackBlock;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.ICoinType;
-import kurvcygnus.crispsweetberry.common.features.coins.datagen.IsCrunchingCondition;
-import kurvcygnus.crispsweetberry.common.features.coins.datagen.SetCoinCountFunction;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackBlock;
+import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
+import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.IsCrunchingCondition;
+import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.SetCoinCountFunction;
 import kurvcygnus.crispsweetberry.utils.CrispLootUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
@@ -78,8 +78,7 @@ public abstract class AbstractCoinLootTableProvider extends BlockLootSubProvider
         );
     }
     
-    @Override
-    protected final void generate()
+    @Override protected final void generate()
     {
         for(final Block block: getKnownBlocks())
         {
@@ -91,6 +90,5 @@ public abstract class AbstractCoinLootTableProvider extends BlockLootSubProvider
         }
     }
     
-    @Override
-    protected final @NotNull Iterable<Block> getKnownBlocks() { return initCoinBlockLists().stream().collect(Collectors.toUnmodifiableList()); }
+    @Override protected final @NotNull Iterable<Block> getKnownBlocks() { return initCoinBlockLists().stream().collect(Collectors.toUnmodifiableList()); }
 }

@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry;
 
 import kurvcygnus.crispsweetberry.api.AbstractCoinLootTableProvider;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackBlock;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackBlock;
 import net.minecraft.core.HolderLookup;
 import org.jetbrains.annotations.NotNull;
 

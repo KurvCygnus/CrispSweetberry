@@ -6,12 +6,12 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.coins.datagen;
+package kurvcygnus.crispsweetberry.common.features.coins.api.datagen;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import kurvcygnus.crispsweetberry.common.features.coins.CoinRegistries;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackBlock;
+import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackBlock;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;

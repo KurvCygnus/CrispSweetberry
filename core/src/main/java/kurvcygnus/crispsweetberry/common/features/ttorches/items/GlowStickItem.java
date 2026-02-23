@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.items;
 
-import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownTorchEntity;
+import kurvcygnus.crispsweetberry.common.features.ttorches.entities.GlowStickEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.projectile.ITriProjectileFunction;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,22 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
 
-/**
- * This is the entity part of ttorch series, basic variant.
- *
- * @author Kurv Cygnus
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock Floor Torch
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock Wall Torch
- * @see ThrownTorchEntity Entity
- * @since 1.0 Release
- */
-public final class ThrowableTorchItem extends AbstractThrowableTorchItem<ThrownTorchEntity>
+public final class GlowStickItem extends AbstractThrowableTorchItem<GlowStickEntity>
 {
-    public ThrowableTorchItem() { super(new Properties()); }
+    public GlowStickItem() { super(new Properties()); }
     
-    @Override
-    protected @NotNull BiFunction<LivingEntity, Level, ThrownTorchEntity> getPlayerUsedProjectile() { return ThrownTorchEntity::new; }
+    @Override protected @NotNull BiFunction<LivingEntity, Level, GlowStickEntity> getPlayerUsedProjectile() { return GlowStickEntity::new; }
     
-    @Override
-    protected @NotNull ITriProjectileFunction<ThrownTorchEntity> getDispenserUsedProjectile() { return ThrownTorchEntity::new; }
+    @Override protected @NotNull ITriProjectileFunction<GlowStickEntity> getDispenserUsedProjectile() { return GlowStickEntity::new; }
 }

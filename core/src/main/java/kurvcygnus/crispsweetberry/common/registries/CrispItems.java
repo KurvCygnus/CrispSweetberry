@@ -9,12 +9,9 @@
 package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -24,17 +21,13 @@ public enum CrispItems implements IRegistrant
 {
     INSTANCE;
     
-    @Override
-    public void register(@NotNull IEventBus bus) { CRISP_ITEM_REGISTER.register(bus); }
+    @Override public void register(@NotNull IEventBus bus) { CRISP_ITEM_REGISTER.register(bus); }
     
-    @Override
-    public boolean isFeature() { return false; }
+    @Override public boolean isFeature() { return false; }
     
-    @Override
-    public @NotNull String getJob() { return "Misc Items"; }
+    @Override public @NotNull String getJob() { return "Misc Items"; }
     
-    @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 2); }
+    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 2); }
     
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     
@@ -47,11 +40,5 @@ public enum CrispItems implements IRegistrant
                     build()
                 )
         )
-    );
-    
-    @RegisterToTab
-    @AutoI18n(group = "carry_crate")
-    public static final Holder<Item> CARRY_CRATE = CRISP_ITEM_REGISTER.register("carry_crate", resourceLocation ->
-        new BlockItem(CrispBlocks.CARRY_CRATE.value(), new Item.Properties())
     );
 }

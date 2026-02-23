@@ -9,7 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ScreenEffectRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -21,8 +22,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.SOUL_FIRE_0;
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.getTextureByResourceLocation;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.SOUL_FIRE_0;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.getTextureByResourceLocation;
 
 /**
  * This mixin belongs to a part of vanilla <u>{@link SoulFireBlock}</u>'s enhancement, 
@@ -34,7 +35,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstant
  * @see SoulFireBurnInjection Start Logic
  * @see SoulFireExtinguishInjection Behave Logic
  * @see SoulFireVisualEffectInjection Appearance Visual
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloadHandler#attachTag Sync Handle 
+ * @see SoulFireTagPayloads.SoulFireTagPayloadHandler#attachTag Sync Handle 
  */
 @Mixin(ScreenEffectRenderer.class)
 public final class SoulFireScreenVisualInjection
@@ -47,7 +48,7 @@ public final class SoulFireScreenVisualInjection
         if(player == null)
             return textureatlassprite;
         
-        if(TTorchConstants.isLitBySoulFire(player))
+        if(TTorchUtilCollection.isLitBySoulFire(player))
             return getTextureByResourceLocation(SOUL_FIRE_0);
         
         return textureatlassprite;

@@ -10,8 +10,7 @@ package kurvcygnus.crispsweetberry.common.qol.spyglass.client.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
-import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayload;
-import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloads;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -73,7 +72,7 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
  *         effectively "mute" standard interactions while the quick-zoom is active.
  *    </li>
  * </ul>
- * @see SpyglassPayloadHandler#handleData Serverside stuff
+ * @see SpyglassPayloads Serverside stuff
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Input Intercept
  * @see SpyglassPlayerStateInjection Essential Input Emulation
@@ -95,8 +94,7 @@ public final class SpyglassQuickZoomEvent
         RELEASED
     }
     
-    @SubscribeEvent
-    static void spyglassZoom(@NotNull ClientTickEvent.Post event)
+    @SubscribeEvent static void spyglassZoom(@NotNull ClientTickEvent.Post event)
     {
         final Minecraft instance = Minecraft.getInstance();
         final LocalPlayer player = instance.player;
@@ -118,7 +116,7 @@ public final class SpyglassQuickZoomEvent
                 case IDLE ->
                 {
                     player.playSound(SoundEvents.SPYGLASS_USE, NORMAL_SOUND_VOLUME, NORMAL_SOUND_PITCH);
-                    PacketDistributor.sendToServer(new SpyglassPayload(true));
+                    PacketDistributor.sendToServer(new SpyglassPayloads.SpyglassPayload(true));
                     instance.gameMode.useItem(player, InteractionHand.OFF_HAND);
                     zoomState = ZoomState.ZOOMING;
                 }
@@ -131,15 +129,14 @@ public final class SpyglassQuickZoomEvent
             {
                 player.playSound(SoundEvents.SPYGLASS_STOP_USING, NORMAL_SOUND_VOLUME, NORMAL_SOUND_PITCH);
                 zoomState = ZoomState.RELEASED;
-                PacketDistributor.sendToServer(new SpyglassPayload(false));
+                PacketDistributor.sendToServer(new SpyglassPayloads.SpyglassPayload(false));
             }
             case RELEASED -> zoomState = ZoomState.IDLE;
             default -> { }
         }
     }
     
-    @SubscribeEvent
-    static void zoom(@NotNull ComputeFovModifierEvent event)
+    @SubscribeEvent static void zoom(@NotNull ComputeFovModifierEvent event)
     {
         if(!isZooming()) 
             return;
@@ -152,8 +149,7 @@ public final class SpyglassQuickZoomEvent
         event.setNewFovModifier(SpyglassItem.ZOOM_FOV_MODIFIER);
     }
     
-    @SubscribeEvent
-    static void speedEdit(@NotNull MovementInputUpdateEvent event)//? TODO: Behavior mismatch. Vanilla won't stop sprinting immediately after using.
+    @SubscribeEvent static void speedEdit(@NotNull MovementInputUpdateEvent event)//? TODO: Behavior mismatch. Vanilla won't stop sprinting immediately after using.
     {
         if(!isZooming())
             return;

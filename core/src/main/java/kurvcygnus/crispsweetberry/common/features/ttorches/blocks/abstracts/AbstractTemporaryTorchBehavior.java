@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.*;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.*;
 import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_PITCH;
 import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_VOLUME;
 import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
@@ -44,13 +44,14 @@ import static net.minecraft.world.level.block.WallTorchBlock.FACING;
  * This is an universal behavior component, which can be used both for <u>{@link AbstractTemporaryTorchBlock}</u> and <u>{@link AbstractTemporaryWallTorchBlock}</u>.
  * <br>
  * It'll determine the behavior automatically based on <u>{@link #torchBlock}</u>'s flag, {@code isWallTorch}.
- * @implNote Since Minecraft is lifecycle-sensitive, directly use <u>{@link #torchBlock}</u> will end up getting a <u>{@link NullPointerException NPE}</u>, 
- * so we used <u>{@link Lazy}</u> to avoid this.
- * @since 1.0 Release
+ *
  * @author Kurv Cygnus
+ * @implNote Since Minecraft is lifecycle-sensitive, directly use <u>{@link #torchBlock}</u> will end up getting a <u>{@link NullPointerException NPE}</u>,
+ * so we used <u>{@link Lazy}</u> to avoid this.
  * @see AbstractGenericTorchBlock Basic Torch Abstraction
  * @see AbstractTemporaryTorchBlock Floor Torch implementation
  * @see AbstractTemporaryWallTorchBlock Wall Torch implementation
+ * @since 1.0 Release
  */
 public abstract class AbstractTemporaryTorchBehavior
 {
@@ -58,15 +59,15 @@ public abstract class AbstractTemporaryTorchBehavior
     private final Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazyTorchBlock;
     private boolean isStateLengthLegal = false;
     
-    public AbstractTemporaryTorchBehavior(@NotNull Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazyTorchBlock) 
+    public AbstractTemporaryTorchBehavior(@NotNull Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazyTorchBlock)
     {
         Objects.requireNonNull(lazyTorchBlock, "Param \"lazy\" must not be null!");
         this.lazyTorchBlock = lazyTorchBlock;
     }
     
     /**
-     * @implNote TTorch series' blocks all need burnout behavior. Using <u>{@link net.minecraft.world.level.block.EntityBlock EntityBlock}</u> with 
-     * <u>{@link net.minecraft.world.level.block.entity.BlockEntity BlockEntity}</u> is bad, and more importantly, brings extra performance penalty, 
+     * @implNote TTorch series' blocks all need burnout behavior. Using <u>{@link net.minecraft.world.level.block.EntityBlock EntityBlock}</u> with
+     * <u>{@link net.minecraft.world.level.block.entity.BlockEntity BlockEntity}</u> is bad, and more importantly, brings extra performance penalty,
      * so we used <u>{@link Level#scheduleTick(BlockPos, Block, int)}</u> instead.
      */
     public void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState)
@@ -87,38 +88,42 @@ public abstract class AbstractTemporaryTorchBehavior
             return;
         
         level.scheduleTick(pos, this.getTorchBlock(), stateLength);
+        
+        this.onPlaceSequence(state, level, pos, oldState);
     }
     
+    protected void onPlaceSequence(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState) { }
+    
     public @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
-        @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand)
-            {
-                if(!isRelitable() || this.getTorchBlock().isStillBright(state))
-                    return ItemInteractionResult.FAIL;
-                
-                final Item itemInHand = stack.getItem();
-                
-                if(!canLitStuff(stack, itemInHand))
-                    return ItemInteractionResult.FAIL;
-                
-                final boolean isDamageable = stack.isDamageableItem();
-                final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
-                
-                level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
-                    SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
-                );
-                
-                if(!level.isClientSide)
-                {
-                    level.setBlockAndUpdate(pos, state.setValue(LIGHT_PROPERTY, LightState.FULL_BRIGHT));
-                    
-                    if(isDamageable)
-                        stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
-                    else
-                        stack.consume(1, player);
-                }
-                
-                return ItemInteractionResult.sidedSuccess(level.isClientSide);
-            }
+    @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand)
+    {
+        if(!isRelitable() || this.getTorchBlock().isStillBright(state))
+            return ItemInteractionResult.FAIL;
+        
+        final Item itemInHand = stack.getItem();
+        
+        if(!canLitStuff(stack, itemInHand))
+            return ItemInteractionResult.FAIL;
+        
+        final boolean isDamageable = stack.isDamageableItem();
+        final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
+        
+        level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
+            SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
+        );
+        
+        if(!level.isClientSide)
+        {
+            level.setBlockAndUpdate(pos, state.setValue(LIGHT_PROPERTY, LightState.FULL_BRIGHT));
+            
+            if(isDamageable)
+                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+            else
+                stack.consume(1, player);
+        }
+        
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+    }
     
     public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
@@ -191,5 +196,7 @@ public abstract class AbstractTemporaryTorchBehavior
         return this.torchBlock;
     }
     
-    protected abstract boolean isRelitable();
+    protected boolean isRelitable() { return true; }
+    
+    protected abstract @NotNull Item getThrowableTorchItem();
 }

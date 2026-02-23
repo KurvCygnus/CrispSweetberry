@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.coins.events;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.HolderSet;
@@ -38,7 +39,7 @@ import java.util.function.Supplier;
  * @since Release 1.0
  * @author Kurv Cygnus
  * @see Tags.Items#NUGGETS Tag
- * @apiNote This can be used as a template for custom <u>{@link kurvcygnus.crispsweetberry.common.features.coins.abstracts.ICoinType CoinType}</u>'s validation and 
+ * @apiNote This can be used as a template for custom <u>{@link ICoinType CoinType}</u>'s validation and 
  * existence determination.
  */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
@@ -49,8 +50,7 @@ public final class NuggetItemCheckEvent
     public static Supplier<Item> copperNuggetSupplier = () -> Items.AIR;
     public static Supplier<Item> diamondNuggetSupplier = () -> Items.AIR;
     
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    static void onTagsUpdated(@NotNull TagsUpdatedEvent event)
+    @SubscribeEvent(priority = EventPriority.LOWEST) static void onTagsUpdated(@NotNull TagsUpdatedEvent event)
     {
         if(!event.shouldUpdateStaticData())
             return;

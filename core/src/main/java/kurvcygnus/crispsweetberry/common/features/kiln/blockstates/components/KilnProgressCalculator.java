@@ -17,6 +17,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.NonNullList;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.*;
 
 import java.util.Objects;
@@ -37,7 +38,7 @@ public final class KilnProgressCalculator
     private static final double STANDARD_PROCESS_FACTOR = 1D;
     private static final int BALANCE_STATE_STANDARD_TICKS = 40;
     
-    private @NotNull NonNullList<KilnRecipe> recipes = NonNullList.withSize(KILN_INPUT_SLOTS_RANGE.size(), KilnBlockEntity.EMPTY_RECIPE);
+    private NonNullList<KilnRecipe> recipes = NonNullList.withSize(KILN_INPUT_SLOTS_RANGE.size(), KilnBlockEntity.EMPTY_RECIPE);
     
     /**
      * We should use <u>{@link Double}</u> instead of primitive type {@code double},
@@ -45,7 +46,7 @@ public final class KilnProgressCalculator
      * {@code WORKING} variant, not {@code BALANCING}.</u>
      */
     private @Nullable Double lastProcessFactor = null;
-    private byte balanceTick = 0;
+    private @Range(from = 0, to = 40) @MagicConstant(intValues = BALANCE_STATE_STANDARD_TICKS) byte balanceTick = 0;
     private double balanceRate = 0D;
     private VisualTrend balanceTrend = VisualTrend.NORMAL;
     
@@ -54,7 +55,7 @@ public final class KilnProgressCalculator
      * It's named "nonWorking" since the standard procession is uncertain, due to BALANCE stuff.<br>
      * It is only reliable when <u>{@link KilnBlockEntity.ProcessionState}</u> is <u>{@link KilnBlockEntity.ProcessionState#COOLDOWN COOLDOWN}</u>.
      */
-    private @NotNull LogicalResult nonWorkingLogicalResult = LogicalResult.SKIP;
+    private LogicalResult nonWorkingLogicalResult = LogicalResult.SKIP;
     
     private boolean hasWarnedRecipeLengthMismatch = false;
     private boolean hasWarnedNullRecipe = false;
@@ -102,8 +103,7 @@ public final class KilnProgressCalculator
         this.balanceRate = balanceRate;
     }
     
-    @Contract("_, _, _ -> new")
-    @CheckReturnValue
+    @Contract("_, _, _ -> new") @CheckReturnValue
     public @NotNull CalculationResult calculateRates(double currentRealProgress, double currentVisualProgress, @NotNull KilnBlockEntity.ProcessionState processState)
     {
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("CALCULATION"))

@@ -9,7 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -22,8 +23,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.SOUL_FIRE_0;
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.getTextureByResourceLocation;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.SOUL_FIRE_0;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.getTextureByResourceLocation;
 
 /**
  * This mixin belongs to a part of vanilla <u>{@link SoulFireBlock}</u>'s enhancement, 
@@ -35,18 +36,17 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstant
  * @see SoulFireBurnInjection Start Logic
  * @see SoulFireExtinguishInjection Behave Logic
  * @see SoulFireScreenVisualInjection Screen Visual
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloadHandler#attachTag Sync Handle 
+ * @see SoulFireTagPayloads.SoulFireTagPayloadHandler#attachTag Sync Handle 
  */
 @Mixin(EntityRenderDispatcher.class)
 public final class SoulFireVisualEffectInjection
 {
-    @Unique
-    private static final ResourceLocation SOUL_FIRE_1 = ResourceLocation.withDefaultNamespace("block/soul_fire_1");
+    @Unique private static final ResourceLocation SOUL_FIRE_1 = ResourceLocation.withDefaultNamespace("block/soul_fire_1");
     
     @ModifyVariable(method = "renderFlame", at = @At("STORE"), ordinal = 0)
     private TextureAtlasSprite modifyFireSprite0(TextureAtlasSprite textureatlassprite, PoseStack poseStack, MultiBufferSource buffer, @NotNull Entity entity)
     {
-        if(TTorchConstants.isLitBySoulFire(entity))
+        if(TTorchUtilCollection.isLitBySoulFire(entity))
             return getTextureByResourceLocation(SOUL_FIRE_0);
             
         return textureatlassprite;
@@ -55,7 +55,7 @@ public final class SoulFireVisualEffectInjection
     @ModifyVariable(method = "renderFlame", at = @At(value = "STORE"), ordinal = 1)
     private TextureAtlasSprite soulFireOverlayAlt(TextureAtlasSprite textureatlassprite1, PoseStack poseStack, MultiBufferSource buffer, @NotNull Entity entity)
     {
-        if(TTorchConstants.isLitBySoulFire(entity))
+        if(TTorchUtilCollection.isLitBySoulFire(entity))
             return getTextureByResourceLocation(SOUL_FIRE_1);
         
         return textureatlassprite1;

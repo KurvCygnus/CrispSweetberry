@@ -14,7 +14,6 @@ import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.client.CrispClientLiterals;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -24,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 
+/**
+ * Registers keybind for spyglass's quick zoom function.
+ * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloads Server Registry
+ * @since 1.0 Release
+ */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
 public final class SpyglassClientRegistries
 {
@@ -31,15 +35,15 @@ public final class SpyglassClientRegistries
     
     private static final String SPYGLASS_DESCRIPTION_KEY = "crispsweetberry.keybind.spyglass_zoom";
     
-    @AutoI18n({
-        "en_us = Spyglass Quick Zoom",
-        "lol_us = I C U KWIKE UwU",
-        "zh_cn = 望远镜快速使用"
-    })
-    private static final Component SPYGLASS_DESCRIPTION_TEXT = Component.translatable(SPYGLASS_DESCRIPTION_KEY); 
-    
     private SpyglassClientRegistries() { throw new IllegalAccessError(); }
     
+    @AutoI18n(value = {
+            "en_us = Spyglass Quick Zoom",
+            "lol_us = I C U KWIKE UwU",
+            "zh_cn = 望远镜快速使用"
+        },
+        key = SPYGLASS_DESCRIPTION_KEY
+    )
     public static final KeyMapping SPYGLASS_ZOOM = new KeyMapping(
         SPYGLASS_DESCRIPTION_KEY,
         KeyConflictContext.IN_GAME,
@@ -48,8 +52,7 @@ public final class SpyglassClientRegistries
         CrispClientLiterals.CRISP_CONTROL_MENU_CATEGORY_KEY
     );
     
-    @SubscribeEvent
-    static void registerKeyBind(final @NotNull RegisterKeyMappingsEvent event)
+    @SubscribeEvent static void registerKeyBind(final @NotNull RegisterKeyMappingsEvent event)
     {
         LOGGER.info("Registering Spyglass Keybind...");
         event.register(SPYGLASS_ZOOM);

@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.LIGHT_PROPERTY;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.LIGHT_PROPERTY;
 
 /**
  * This is the new implementation of <u>{@link WallTorchBlock}</u>, which is enhanced and based on <u>{@link AbstractGenericTorchBlock}</u>.
@@ -59,7 +59,7 @@ public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporar
     public AbstractTemporaryWallTorchBlock(@NotNull Properties properties, @NotNull T behavior)
     {
         super(properties, behavior, true);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIGHT_PROPERTY, TTorchConstants.LightState.FULL_BRIGHT));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIGHT_PROPERTY, TTorchUtilCollection.LightState.FULL_BRIGHT));
     }
     
     protected final void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)

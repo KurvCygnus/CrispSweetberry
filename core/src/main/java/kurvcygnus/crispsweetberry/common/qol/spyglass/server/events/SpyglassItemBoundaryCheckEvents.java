@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.qol.spyglass.server.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
-import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler;
+import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloads;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,13 +22,13 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloadHandler.ORIGINAL_SLOT_TAG;
+import static kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloads.ORIGINAL_SLOT_TAG;
 
 /**
  * This makes sure player's item won't be corrupted when they touched boundary cases, like logout, or death.
  * @since 1.0 Release
  * @author Kurv Cygnus
- * @see SpyglassPayloadHandler#handleData Serverside stuff
+ * @see SpyglassPayloads Serverside stuff
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassItemUsingInjection Essential Input Intercept
  * @see SpyglassPlayerStateInjection Essential Input Emulation
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassUsePoseInjection Visual Essential Mixin
@@ -38,8 +38,7 @@ import static kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.Spyglas
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class SpyglassItemBoundaryCheckEvents
 {
-    @SubscribeEvent
-    static void deathCheck(@NotNull LivingDeathEvent event)
+    @SubscribeEvent static void deathCheck(@NotNull LivingDeathEvent event)
     {
         if(event.isCanceled())
             return;
@@ -52,8 +51,7 @@ public final class SpyglassItemBoundaryCheckEvents
         emergencyCleanup(player, player.getPersistentData().getInt(ORIGINAL_SLOT_TAG));
     }
     
-    @SubscribeEvent
-    static void logoutCheck(@NotNull PlayerEvent.PlayerLoggedOutEvent event)
+    @SubscribeEvent static void logoutCheck(@NotNull PlayerEvent.PlayerLoggedOutEvent event)
     {
         final Player player = event.getEntity();
         if(!player.getPersistentData().contains(ORIGINAL_SLOT_TAG))

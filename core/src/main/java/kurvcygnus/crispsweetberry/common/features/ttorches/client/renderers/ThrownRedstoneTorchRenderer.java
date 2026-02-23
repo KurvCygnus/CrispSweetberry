@@ -13,30 +13,25 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedsto
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The renderer of ttorch series, redstone variant.
+ *
+ * @author Kurv Cygnus
+ * @see ThrownRedstoneTorchEntity Render Target
+ * @since 1.0 Release
+ */
 public final class ThrownRedstoneTorchRenderer extends AbstractThrownTorchRenderer<ThrownRedstoneTorchEntity>
 {
     public ThrownRedstoneTorchRenderer(EntityRendererProvider.@NotNull Context context) { super(context); }
     
-//    @Override
-//    protected @NotNull ResourceLocation getTextureLocation(@NotNull ThrownRedstoneTorchEntity entity, @NotNull FacingPair pair)
-//    {
-//        final StringBuilder path = new StringBuilder(BASE_TEXTURE_PATH).append(getTextureName());
-//        
-//        path.append("_").append(pair.horizontalFacing().getAlias());
-//        path.append("_").append(pair.verticalFacing().getAlias());
-//        
-//        if(hasStateVariation() && entity.getTier() == AbstractThrownTorchEntity.TIER_GONE)
-//            path.append("_").append(getAltTextureName());
-//        
-//        if(hasAnimation())
-//        {
-//            final int index = entity.tickCount / getAnimationDurationTicks() % getTotalAnimationFrames() + TEXTURE_INDEX_CORRECTION_STD;
-//            path.append("_").append(index);
-//        }
-//        
-//        return CrispDefUtils.getModNamespacedLocation(path.append(TEXTURE_SUFFIX).toString());
-//    }
+    @Override protected void appendTextureName(@NotNull StringBuilder path, @NotNull ThrownRedstoneTorchEntity entity, @NotNull FacingPair pair)
+    {
+        path.append("_").append(entity.getOxidizeState().name());
+        path.append("_").append(pair.horizontalFacing().getAlias());
+        path.append("_").append(pair.verticalFacing().getAlias());
+    }
     
-    @Override
-    protected @NotNull String getTextureName() { return "thrown_redstone_torch"; }
+    @Override protected @NotNull String getTextureName() { return "thrown_redstone_torch"; }
+    
+    @Override protected boolean hasStateVariation() { return false; }
 }

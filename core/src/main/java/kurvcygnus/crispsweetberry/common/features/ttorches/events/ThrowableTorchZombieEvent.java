@@ -48,8 +48,7 @@ final class ThrowableTorchZombieEvent
         NORMAL_RANGE
     );
     
-    @SubscribeEvent
-    static void onNewZombieSpawn(@NotNull EntityJoinLevelEvent event)
+    @SubscribeEvent static void onNewZombieSpawn(@NotNull EntityJoinLevelEvent event)
     {
         if(event.isCanceled())
             return;
@@ -85,8 +84,7 @@ final class ThrowableTorchZombieEvent
         }
     }
     
-    @SubscribeEvent
-    static void throwableTorchLit(@NotNull LivingDamageEvent.Pre event)
+    @SubscribeEvent static void throwableTorchLit(@NotNull LivingDamageEvent.Pre event)
     {
         final Entity entity = event.getSource().getEntity();
         

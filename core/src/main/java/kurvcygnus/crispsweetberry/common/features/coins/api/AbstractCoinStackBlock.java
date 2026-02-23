@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.coins.abstracts;
+package kurvcygnus.crispsweetberry.common.features.coins.api;
 
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes;
@@ -17,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.Vec3;
@@ -56,7 +55,7 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
         super(Properties.of().
             strength(coinType.getStrength()).//! Oh my god, Minecraft API is terrible.
             sound(SoundType.CHAIN).
-            isViewBlocking(getViewBlockingCondition()).
+            isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8).
             pushReaction(PushReaction.DESTROY).//* "pushAction" stands for piston pushing.
             noOcclusion()//* This makes sure that the unfilled area is still transparent.
         );
@@ -64,8 +63,7 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
         this.coinType = coinType;
     }
     
-    @Override
-    public final @NotNull BlockState playerWillDestroy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Player player)
+    @Override public final @NotNull BlockState playerWillDestroy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Player player)
     {
         if(level.isClientSide || player.isCreative() || !player.isShiftKeyDown())
         {
@@ -83,9 +81,6 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
         super.playerWillDestroy(level, pos, state, player);
         return state;
     }
-    
-    protected static @NotNull BlockBehaviour.StatePredicate getViewBlockingCondition()
-        { return (state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8; }
     
     public final @NotNull C getCoinType() { return this.coinType; }
 }

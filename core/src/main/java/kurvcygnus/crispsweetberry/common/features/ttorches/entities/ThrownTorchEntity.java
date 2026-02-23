@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The <b>entity version</b> of the item <b>throwable torch</b>.
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock Floor Torch
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock Wall Torch
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem Item
  * @see ThrownTorchRenderer Renderer
  * @since 1.0 Release
  * @author Kurv Cygnus

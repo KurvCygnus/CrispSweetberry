@@ -9,11 +9,12 @@
 package kurvcygnus.crispsweetberry.common.features.coins.vanilla;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.*;
+import kurvcygnus.crispsweetberry.common.features.coins.api.*;
 import kurvcygnus.crispsweetberry.common.features.coins.events.NuggetItemCheckEvent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -35,21 +36,36 @@ public final class VanillaCoinTypes extends BaseCoinType<VanillaCoinTypes>
 {
     private final boolean isOptional;
     
-    private VanillaCoinTypes(@NotNull String id, @NotNull Supplier<? extends AbstractCoinStackBlock<VanillaCoinTypes>> blockSupplier,
-        @NotNull Supplier<? extends AbstractCoinStackItem<VanillaCoinTypes>> stackSupplier, @NotNull Supplier<? extends AbstractCoinItem<VanillaCoinTypes>> coinSupplier,
-        @NotNull Supplier<? extends Item> nuggetSupplier, int experience, float penaltyRate, float strength, boolean isOptional)
-            {
-                super(id, blockSupplier, stackSupplier, coinSupplier, nuggetSupplier, experience, penaltyRate, strength);
-                this.isOptional = isOptional;
-            }
+    private VanillaCoinTypes(
+        @NotNull String id,
+        @NotNull Supplier<? extends AbstractCoinStackBlock<VanillaCoinTypes>> blockSupplier,
+        @NotNull Supplier<? extends AbstractCoinStackItem<VanillaCoinTypes>> stackSupplier,
+        @NotNull Supplier<? extends AbstractCoinItem<VanillaCoinTypes>> coinSupplier,
+        @NotNull Supplier<? extends Item> nuggetSupplier,
+        @Range(from = 0, to = Integer.MAX_VALUE) int experience,
+        @Range(from = 0, to = 1) float penaltyRate,
+        @Range(from = 0, to = (long) Float.MAX_VALUE) float strength,
+        boolean isOptional
+    )
+    {
+        super(id, blockSupplier, stackSupplier, coinSupplier, nuggetSupplier, experience, penaltyRate, strength);
+        this.isOptional = isOptional;
+    }
     
-    private VanillaCoinTypes(@NotNull String id, @NotNull Supplier<? extends AbstractCoinStackBlock<VanillaCoinTypes>> blockSupplier,
-        @NotNull Supplier<? extends AbstractCoinStackItem<VanillaCoinTypes>> stackSupplier, @NotNull Supplier<? extends AbstractCoinItem<VanillaCoinTypes>> coinSupplier,
-        @NotNull Supplier<? extends Item> nuggetSupplier, int experience, float penaltyRate, float strength)
-            {
-                super(id, blockSupplier, stackSupplier, coinSupplier, nuggetSupplier, experience, penaltyRate, strength);
-                this.isOptional = false;
-            }
+    private VanillaCoinTypes(
+        @NotNull String id,
+        @NotNull Supplier<? extends AbstractCoinStackBlock<VanillaCoinTypes>> blockSupplier,
+        @NotNull Supplier<? extends AbstractCoinStackItem<VanillaCoinTypes>> stackSupplier,
+        @NotNull Supplier<? extends AbstractCoinItem<VanillaCoinTypes>> coinSupplier,
+        @NotNull Supplier<? extends Item> nuggetSupplier,
+        @Range(from = 0, to = Integer.MAX_VALUE) int experience,
+        @Range(from = 0, to = 1) float penaltyRate,
+        @Range(from = 0, to = (long) Float.MAX_VALUE) float strength
+    )
+    {
+        super(id, blockSupplier, stackSupplier, coinSupplier, nuggetSupplier, experience, penaltyRate, strength);
+        this.isOptional = false;
+    }
     
     public static final Predicate<Supplier<? extends Item>> DEFAULT_CONDITION = Objects::nonNull;
     public static final Predicate<Supplier<? extends Item>> OPTIONAL = (supplier) -> supplier.get() != Items.AIR;

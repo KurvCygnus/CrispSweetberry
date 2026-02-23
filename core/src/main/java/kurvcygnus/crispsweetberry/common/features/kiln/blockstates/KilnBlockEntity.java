@@ -127,8 +127,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     public KilnBlockEntity(BlockPos pos, BlockState blockState) { super(KilnRegistries.KILN_BLOCK_ENTITY.get(), pos, blockState); }
     
     //*:=== Hopper Support Essentials
-    @Override
-    public int @NotNull [] getSlotsForFace(@NotNull Direction side)
+    @Override public int @NotNull [] getSlotsForFace(@NotNull Direction side)
     {
         if(side == Direction.DOWN)
             return OUTPUT_SLOTS;
@@ -136,8 +135,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         return INPUT_SLOTS;
     }
     
-    @Override
-    public boolean canPlaceItemThroughFace(int slot, @NotNull ItemStack stack, Direction dir)
+    @Override public boolean canPlaceItemThroughFace(int slot, @NotNull ItemStack stack, Direction dir)
     {
         if(!KILN_INPUT_SLOTS_RANGE.inRange(slot))
             return false;
@@ -145,37 +143,30 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         return canSmelt(stack);
     }
     
-    @Override
-    public boolean canTakeItemThroughFace(int index, @NotNull ItemStack stack, @NotNull Direction direction)
-    { return direction == Direction.DOWN && KILN_OUTPUT_SLOTS_RANGE.inRange(index); }
+    @Override public boolean canTakeItemThroughFace(int index, @NotNull ItemStack stack, @NotNull Direction direction)
+        { return direction == Direction.DOWN && KILN_OUTPUT_SLOTS_RANGE.inRange(index); }
     
     //*:=== Container Basics
-    @Override
-    protected @NotNull Component getDefaultName() { return CONTAINER__KILN; }
+    @Override protected @NotNull Component getDefaultName() { return CONTAINER__KILN; }
     
-    @Override
-    protected @NotNull NonNullList<ItemStack> getItems() { return this.containerItems; }
+    @Override protected @NotNull NonNullList<ItemStack> getItems() { return this.containerItems; }
     
-    @Override
-    protected @NotNull AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory)
-    { return new KilnMenu(containerId, inventory, this); }
+    @Override protected @NotNull AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory)
+        { return new KilnMenu(containerId, inventory, this); }
     
-    @Override
-    public int getContainerSize() { return KILN_DEFAULT_SIZE; }
+    @Override public int getContainerSize() { return KILN_DEFAULT_SIZE; }
     //endregion
     
     //  region
     //* Block Entity Interaction Basics
-    @Override
-    protected void setItems(@NotNull NonNullList<ItemStack> items) { this.containerItems = items; }
+    @Override protected void setItems(@NotNull NonNullList<ItemStack> items) { this.containerItems = items; }
     
     /**
      * @implNote Do not add flags like {@code slotChanged} to make <u>{@link #updateInputSlotsInfo()}</u> event-driven based.
      * Neither <u>{@link ItemStack#isSameItem ItemStack#isSameItem()}</u> nor <u>{@link ItemStack#isSameItemSameComponents ItemStack#isSameItemSameComponents()}</u>
      * can fully cover boundary cases. Mixed other logics with them together mostly also won't settle these issues.
      */
-    @Override
-    public void setItem(int index, @NotNull ItemStack stack)
+    @Override public void setItem(int index, @NotNull ItemStack stack)
     {
         final ItemStack oldItemStack = containerItems.get(index);
         
@@ -202,8 +193,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         }
     }
     
-    @Override
-    public boolean canPlaceItem(int index, @NotNull ItemStack stack)
+    @Override public boolean canPlaceItem(int index, @NotNull ItemStack stack)
     {
         if(!KILN_INPUT_SLOTS_RANGE.inRange(index))
             return false;
@@ -351,7 +341,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     }
     
     /**
-     * @apiNote State <u>{@link LogicalResult#BALANCING BALANCING}</u>
+     * @apiNote Block <u>{@link LogicalResult#BALANCING BALANCING}</u>
      * is strictly considered as a special variation of
      * <u>{@link ProcessionState#WORKING WORKING}</u>, instead of being an independent attachTag,
      * it's deduced, only being used in
@@ -359,7 +349,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
      * and returned as a part of <u>{@link CalculationResult CalculationResult}</u>
      * for menu visual change.
      */
-    public ProcessionState deduceProcessState(boolean isIgnited)
+    private ProcessionState deduceProcessState(boolean isIgnited)
     {
         if(!isIgnited || this.inputState != InputState.VALID)
             return ProcessionState.COOLDOWN;
@@ -497,14 +487,12 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         return true;
     }
     
-    @Override
-    public boolean stillValid(@NotNull Player player) { return Container.stillValidBlockEntity(this, player); }
+    @Override public boolean stillValid(@NotNull Player player) { return Container.stillValidBlockEntity(this, player); }
     //endregion
     
     //  region
     //* Data Serialization
-    @Override
-    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    @Override protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
     {
         super.loadAdditional(tag, registries);
         
@@ -527,8 +515,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         this.updateInputSlotsInfo();
     }
     
-    @Override
-    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    @Override protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
     {
         super.saveAdditional(tag, registries);
         tag.putDouble(NBT_TAG_VISUAL_PROGRESS, this.model.getVisualProgress());

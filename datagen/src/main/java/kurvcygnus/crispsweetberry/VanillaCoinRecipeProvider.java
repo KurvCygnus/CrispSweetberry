@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry;
 
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.ICoinType;
+import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes;
 import kurvcygnus.crispsweetberry.shared.BaseCoinRecipeProvider;
 import net.minecraft.core.HolderLookup;

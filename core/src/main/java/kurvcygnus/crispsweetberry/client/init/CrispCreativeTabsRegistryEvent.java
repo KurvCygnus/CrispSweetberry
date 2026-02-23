@@ -10,8 +10,6 @@ package kurvcygnus.crispsweetberry.client.init;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinItem;
-import kurvcygnus.crispsweetberry.common.features.coins.abstracts.AbstractCoinStackItem;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.registry.objects.TabEntry;
@@ -35,14 +33,13 @@ public final class CrispCreativeTabsRegistryEvent
 {
     private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "TAB_REGISTRY");
     
-    @SubscribeEvent
-    public static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
+    @SubscribeEvent public static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
     {
         final List<TabEntry> entries = CrispSweetberry.TAB_LOOKUP.get(event.getTabKey());
         
         if(entries == null)
         {
-            try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("TAB_REGISTRY_FETAL")) { LOGGER.error("No registry entry exists. Terminating registration."); }
+            try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("TAB_REGISTRY_FETAL")) { LOGGER.warn("Registry entry is null. Skipped."); }
             return;
         }
         
@@ -55,18 +52,6 @@ public final class CrispCreativeTabsRegistryEvent
             }
             
             final Item item = entry.itemSupplier().get();
-            
-            if(item instanceof AbstractCoinItem<?> coin && !coin.getCoinType().shouldAppear())
-            {
-                LOGGER.debug("Skipped the registration of coin {} as it shouldn't appear.", coin.getDefaultInstance().getDisplayName());
-                continue;
-            }
-            
-            if(item instanceof AbstractCoinStackItem<?> stack && !stack.getCoinType().shouldAppear())
-            {
-                LOGGER.debug("Skipped the registration of coinStack {} as it shouldn't appear.", stack.getDefaultInstance().getDisplayName());
-                continue;
-            }
             
             if(entry.tab() == event.getTabKey())
             {

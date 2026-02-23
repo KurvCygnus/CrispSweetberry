@@ -76,7 +76,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * The constructor method for <b>client-side UI</b>, it makes sure that the <b>UI can be open normally</b>.<br>
      * <i>You can see the reason of using </i>{@code KilnDummyBlockEntity}<i> <u>{@link KilnDummyBlockEntity here}</u></i>.
      */
-    public KilnMenu(int containerId, Inventory inventory) { this(containerId, inventory, new KilnDummyBlockEntity()); }
+    public KilnMenu(int containerId, @NotNull Inventory inventory) { this(containerId, inventory, new KilnDummyBlockEntity()); }
     
     /**
      * The constructor method for <b>server-side</b>, it <b>settles the basic ghost block problem</b>.
@@ -84,7 +84,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * @implNote As mentioned above(see {@link #INPUT_SLOT_TOP_X_POS}), the layout shape of Kiln is pyramid shape,
      * <b>so DO NOT wrap "addSlots" to private methods to just make it visually more graceful, that's a bad code smell.</b>
      */
-    public KilnMenu(int containerId, Inventory inventory, KilnBlockEntity container)
+    public KilnMenu(int containerId, @NotNull Inventory inventory, @NotNull KilnBlockEntity container)
     {
         super(KilnRegistries.KILN_MENU_TYPE.get(), containerId);
         this.container = container;
@@ -153,14 +153,12 @@ public final class KilnMenu extends AbstractContainerMenu
      * <b>desynchronization or improper menu behavior</b>.
      * </p>
      */
-    @Override
-    public boolean stillValid(@NotNull Player player) { return this.container.stillValid(player); }
+    @Override public boolean stillValid(@NotNull Player player) { return this.container.stillValid(player); }
     
     /**
      * This method is called when the <b>server side shutdown</b> to make sure <b>container behaves correctly</b>.
      */
-    @Override
-    public void removed(@NotNull Player player)
+    @Override public void removed(@NotNull Player player)
     {
         super.removed(player);
         if(!player.level().isClientSide)
@@ -170,8 +168,7 @@ public final class KilnMenu extends AbstractContainerMenu
     
     //  region
     //* Interaction Logics
-    @Override
-    public @NotNull ItemStack quickMoveStack(@NotNull Player player, int index)
+    @Override public @NotNull ItemStack quickMoveStack(@NotNull Player player, int index)
     {
         final Slot slot = this.slots.get(index);
         

@@ -13,26 +13,27 @@ import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.glowstick.GlowStickBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TemporaryRedstoneTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TemporaryRedstoneWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulWallTorchBlock;
+import kurvcygnus.crispsweetberry.common.features.ttorches.entities.GlowStickEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownSoulTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
+import kurvcygnus.crispsweetberry.common.features.ttorches.items.GlowStickItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableSoulTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
-import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayload;
-import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloadHandler;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
@@ -46,6 +47,9 @@ import org.jetbrains.annotations.NotNull;
 import snownee.jade.api.IWailaClientRegistration;
 
 import java.util.List;
+import java.util.Map;
+
+import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.ITRedstoneTorchExtensions.*;
 
 /**
  * This registers everything that relates to throwable torch series.<br>
@@ -55,10 +59,12 @@ import java.util.List;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum TTorchRegistries implements IRegistrant
 {
+    //  region
+    //*:=== Registry Basics
     INSTANCE;
     
     @Override
-    public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(register ->  register.register(bus)); }
+    public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(bus::register); }
     
     @Override
     public boolean isFeature() { return true; }
@@ -78,19 +84,136 @@ public enum TTorchRegistries implements IRegistrant
         THROWABLE_TORCH_REGISTER,
         THROWN_TORCH_REGISTER
     );
+    //endregion
     
+    //  region
+    //*:=== Sync Packet Registry
     @SubscribeEvent
     static void registerPacket(@NotNull RegisterPayloadHandlersEvent event)
     {
         final PayloadRegistrar registrar = event.registrar("1.0 Release");
         
         registrar.playToClient(
-            SoulFireTagPayload.TYPE,
-            SoulFireTagPayload.CODEC,
-            SoulFireTagPayloadHandler::attachTag
+            SoulFireTagPayloads.SoulFireTagPayload.TYPE,
+            SoulFireTagPayloads.SoulFireTagPayload.CODEC,
+            SoulFireTagPayloads.SoulFireTagPayloadHandler::attachTag
         );
     }
+    //endregion
     
+    //  region
+    //*:=== Item Registries
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Throwable Torch",
+        "lol_us = chuk da lite stik",
+        "zh_cn = 投掷火把"
+    })
+    public static final Holder<Item> THROWABLE_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "throwable_torch",
+        resourceLocation -> new ThrowableTorchItem()
+    );
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Throwable Soul Torch",
+        "lol_us = COOL GATLING BARREL",
+        "zh_cn = 灵魂投掷火把"
+    })
+    public static final Holder<Item> THROWABLE_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(
+        "throwable_soul_torch",
+        resourceLocation -> new ThrowableSoulTorchItem()
+    );
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Throwable Redstone Torch",
+        "lol_us = lite stewberi stik",
+        "zh_cn = 红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> THROWABLE_REDSTONE_TORCH = 
+        getThrowableRedstoneTorch(OxidizeState.NORMAL, false);
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Waxed Throwable Redstone Torch",
+        "lol_us = shyni lite stewberi stik",
+        "zh_cn = 涂蜡红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_THROWABLE_REDSTONE_TORCH =
+        getThrowableRedstoneTorch(OxidizeState.NORMAL, true);
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Exposed Throwable Redstone Torch",
+        "lol_us = od lite stewberi stik",
+        "zh_cn = 斑驳红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> EXPOSED_THROWABLE_REDSTONE_TORCH = 
+        getThrowableRedstoneTorch(OxidizeState.EXPOSED, false);
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Waxed Exposed Throwable Redstone Torch",
+        "lol_us = od butt shyni lite stewberi stik",
+        "zh_cn = 涂蜡斑驳红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_EXPOSED_THROWABLE_REDSTONE_TORCH =
+        getThrowableRedstoneTorch(OxidizeState.EXPOSED, true);
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Exposed Throwable Redstone Torch",
+        "lol_us = ord lite stewberi stik",
+        "zh_cn = 锈蚀红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WEATHERED_THROWABLE_REDSTONE_TORCH = 
+        getThrowableRedstoneTorch(OxidizeState.WEATHERED, false);
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Waxed Exposed Throwable Redstone Torch",
+        "lol_us = ord butt shyni lite stewberi stik",
+        "zh_cn = 涂蜡锈蚀红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_WEATHERED_THROWABLE_REDSTONE_TORCH =
+        getThrowableRedstoneTorch(OxidizeState.WEATHERED, true);
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Oxidized Throwable Redstone Torch",
+        "lol_us = eww kat hite this stik",
+        "zh_cn = 氧化红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> OXIDIZED_THROWABLE_REDSTONE_TORCH = 
+        getThrowableRedstoneTorch(OxidizeState.OXIDIZED, false);
+    
+    @RegisterToTab
+    @AutoI18n({
+        "en_us = Waxed Oxidized Throwable Redstone Torch",
+        "lol_us = shyni butt eww kat hite this stik",
+        "zh_cn = 涂蜡氧化红石投掷火把"
+    })
+    public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_OXIDIZED_THROWABLE_REDSTONE_TORCH =
+        getThrowableRedstoneTorch(OxidizeState.OXIDIZED, true);
+    
+    @RegisterToTab
+    @AutoI18n(value = {
+        "en_us = Glowstick",
+        "lol_us = Bluberi stik",
+        "zh_cn = 荧光棒"
+        },
+        group = "glowstick",
+        key = "glowstick"
+    )
+    public static final Holder<Item> GLOWSTICK_ITEM = THROWABLE_TORCH_REGISTER.register(
+        "glowstick",
+        resourceLocation -> new GlowStickItem()
+    );
+    //endregion
+    
+    //  region
+    //*:=== Block Registries
     @AutoI18n(value = {
             "en_us = Thrown Torch",
             "lol_us = fullee lite stik",
@@ -105,15 +228,15 @@ public enum TTorchRegistries implements IRegistrant
     
     @AutoI18n(group = "temporary_torch")
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temporary_wall_torch", 
+        "temporary_wall_torch",
         resourceLocation -> new TemporaryWallTorchBlock()
     );
     
     @AutoI18n(value = {
-            "en_us = Thrown Soul Torch",
-            "lol_us = Gatling Barrel",
-            "zh_cn = 投掷灵魂火把"
-        },
+        "en_us = Thrown Soul Torch",
+        "lol_us = Gatling Barrel",
+        "zh_cn = 投掷灵魂火把"
+    },
         group = "temporary_soul_torch"
     )
     public static final DeferredHolder<Block, TemporarySoulTorchBlock> TEMPORARY_SOUL_TORCH = TEMPORARY_TORCH_REGISTER.register(
@@ -134,81 +257,179 @@ public enum TTorchRegistries implements IRegistrant
         },
         group = "temporary_redstone_torch"
     )
-    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> TEMPORARY_REDSTONE_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temporary_redstone_torch",
-        resourceLocation -> new TemporaryRedstoneTorchBlock()
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.NORMAL,
+        false,
+        THROWABLE_REDSTONE_TORCH
     );
     
     @AutoI18n(group = "temporary_redstone_torch")
-    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> TEMPORARY_REDSTONE_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temporary_redstone_wall_torch",
-        resourceLocation -> new TemporaryRedstoneWallTorchBlock()
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.NORMAL,
+        false,
+        THROWABLE_REDSTONE_TORCH
     );
     
-    /**
-     * @implNote This is not supposed to be appeared in game.<br>
-     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on 
-     * <u>{@link BlockItem}</u>, that's why we still implemented this.
-     */
-    @AutoI18n(group = "temporary_torch", key = "temporary_torch")
-    private static final Holder<Item> _TEMPORARY_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "temporary_torch", 
-        () -> new BlockItem(TEMPORARY_TORCH.value(), new Item.Properties())
+    @AutoI18n(value = {
+            "en_us = Waxed Temporary Redstone Torch",
+            "lol_us = shyni fullee stewberi stik",
+            "zh_cn = 涂蜡投掷红石火把"
+        },
+        group = "waxed_temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.NORMAL,
+        true,
+        WAXED_THROWABLE_REDSTONE_TORCH
     );
     
-    /**
-     * @implNote This is not supposed to be appeared in game.<br>
-     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
-     * <u>{@link BlockItem}</u>, that's why we still implemented this.
-     */
-    @AutoI18n(group = "temporary_torch", key = "temporary_wall_torch")
-    private static final Holder<Item> _TEMPORARY_WALL_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "temporary_wall_torch", 
-        () -> new BlockItem(TEMPORARY_WALL_TORCH.value(), new Item.Properties())
+    @AutoI18n(group = "waxed_temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.NORMAL,
+        true,
+        WAXED_THROWABLE_REDSTONE_TORCH
     );
     
-    /**
-     * @implNote This is not supposed to be appeared in game.<br>
-     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
-     * <u>{@link BlockItem}</u>, that's why we still implemented this.
-     */
-    @AutoI18n(group = "temporary_soul_torch", key = "temporary_soul_torch")
-    private static final Holder<Item> _TEMPORARY_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "temporary_soul_torch",
-        () -> new BlockItem(TEMPORARY_SOUL_TORCH.value(), new Item.Properties())
+    @AutoI18n(value = {
+            "en_us = Temporary Redstone Torch",
+            "lol_us = od fullee stewberi stik",
+            "zh_cn = 斑驳投掷红石火把"
+        },
+        group = "exposed_temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> EXPOSED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.EXPOSED,
+        false,
+        EXPOSED_THROWABLE_REDSTONE_TORCH
     );
     
-    /**
-     * @implNote This is not supposed to be appeared in game.<br>
-     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
-     * <u>{@link BlockItem}</u>, that's why we still implemented this.
-     */
-    @AutoI18n(group = "temporary_soul_torch", key = "temporary_soul_wall_torch")
-    private static final Holder<Item> _TEMPORARY_SOUL_WALL_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "temporary_soul_wall_torch",
-        () -> new BlockItem(TEMPORARY_SOUL_WALL_TORCH.value(), new Item.Properties())
+    @AutoI18n(group = "exposed_temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.EXPOSED,
+        false,
+        EXPOSED_THROWABLE_REDSTONE_TORCH
     );
     
-    /**
-     * @implNote This is not supposed to be appeared in game.<br>
-     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
-     * <u>{@link BlockItem}</u>, that's why we still implemented this.
-     */
-    @AutoI18n(group = "temporary_redstone_torch", key = "temporary_redstone_torch")
-    public static final Holder<Item> _TEMPORARY_REDSTONE_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "temporary_redstone_torch",
-        () -> new BlockItem(TEMPORARY_REDSTONE_TORCH.value(), new Item.Properties())
+    @AutoI18n(value = {
+            "en_us = Waxed Exposed Temporary Redstone Torch",
+            "lol_us = od butt shyni fullee stewberi stik",
+            "zh_cn = 涂蜡斑驳投掷红石火把"
+        },
+        group = "waxed_exposed_temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_EXPOSED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.EXPOSED,
+        true,
+        WAXED_EXPOSED_THROWABLE_REDSTONE_TORCH
     );
     
-    /**
-     * @implNote This is not supposed to be appeared in game.<br>
-     * <u>{@link kurvcygnus.crispsweetberry.integrations.JadeEntrypoint Jade}</u>'s block display implementation relies on
-     * <u>{@link BlockItem}</u>, that's why we still implemented this.
-     */
-    @AutoI18n(group = "temporary_redstone_torch", key = "temporary_redstone_wall_torch")
-    public static final Holder<Item> _TEMPORARY_REDSTONE_WALL_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "temporary_redstone_wall_torch",
-        () -> new BlockItem(TEMPORARY_REDSTONE_WALL_TORCH.value(), new Item.Properties())
+    @AutoI18n(group = "waxed_exposed_temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.EXPOSED,
+        true,
+        WAXED_EXPOSED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(value = {
+            "en_us = Temporary Redstone Torch",
+            "lol_us = ord fullee stewberi stik",
+            "zh_cn = 锈蚀投掷红石火把"
+        },
+        group = "weathered_temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WEATHERED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.WEATHERED,
+        false,
+        WEATHERED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(group = "weathered_temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.WEATHERED,
+        false,
+        WEATHERED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(value = {
+            "en_us = Waxed Weathered Temporary Redstone Torch",
+            "lol_us = ord butt shyni fullee stewberi stik",
+            "zh_cn = 涂蜡锈蚀投掷红石火把"
+        },
+        group = "waxed_weathered_temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_WEATHERED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.WEATHERED,
+        true,
+        WAXED_WEATHERED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(group = "waxed_weathered_temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.WEATHERED,
+        true,
+        WAXED_WEATHERED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(value = {
+            "en_us = Temporary Redstone Torch",
+            "lol_us = eww kat hite this stik",
+            "zh_cn = 氧化投掷红石火把"
+        },
+        group = "oxidized_temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> OXIDIZED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.OXIDIZED,
+        false,
+        OXIDIZED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(group = "oxidized_temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.OXIDIZED,
+        false,
+        OXIDIZED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(value = {
+            "en_us = Waxed Oxidized Temporary Redstone Torch",
+            "lol_us = shyni butt eww kat hite this stik",
+            "zh_cn = 涂蜡氧化投掷红石火把"
+        },
+        group = "waxed_oxidized_temporary_redstone_torch"
+    )
+    public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_OXIDIZED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.OXIDIZED,
+        true,
+        WAXED_OXIDIZED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(group = "waxed_oxidized_temporary_redstone_torch")
+    public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
+        TEMPORARY_TORCH_REGISTER,
+        OxidizeState.OXIDIZED,
+        true,
+        WAXED_OXIDIZED_THROWABLE_REDSTONE_TORCH
+    );
+    
+    @AutoI18n(group = "glowstick", key = "glowstick")
+    public static final DeferredHolder<Block, GlowStickBlock> GLOW_STICK_BLOCK = TEMPORARY_TORCH_REGISTER.register(
+        "glow_stick",
+        resourceLocation -> new GlowStickBlock()
     );
     
     /**
@@ -226,39 +447,10 @@ public enum TTorchRegistries implements IRegistrant
         "fake_light_block",
         resourceLocation -> new FakeLightBlock()
     );
+    //endregion
     
-    @RegisterToTab
-    @AutoI18n({
-        "en_us = Throwable Torch",
-        "lol_us = chuk da lite stik",
-        "zh_cn = 投掷火把"
-    })
-    public static final Holder<Item> THROWABLE_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "throwable_torch",
-        resourceLocation -> new ThrowableTorchItem()
-    );
-    
-    @AutoI18n({
-        "en_us = Throwable Redstone Torch",
-        "lol_us = lite stewberi stik",
-        "zh_cn = 红石投掷火把"
-    })
-    public static final Holder<Item> THROWABLE_REDSTONE_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "throwable_redstone_torch",
-        resourceLocation -> new ThrowableRedstoneTorchItem()
-    );
-    
-    @RegisterToTab
-    @AutoI18n({
-        "en_us = Throwable Soul Torch",
-        "lol_us = COOL GATLING BARREL",
-        "zh_cn = 灵魂投掷火把"
-    })
-    public static final Holder<Item> THROWABLE_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "throwable_soul_torch",
-        resourceLocation -> new ThrowableSoulTorchItem()
-    );
-    
+    //  region
+    //*:=== Entity Registries
     @AutoI18n({
         "en_us = Thrown Torch",
         "lol_us = Spinn' Stik",
@@ -282,10 +474,55 @@ public enum TTorchRegistries implements IRegistrant
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownSoulTorchEntity>> THROWN_SOUL_TORCH = 
         getTypeHolder("thrown_soul_torch", ThrownSoulTorchEntity::new);
     
+    @AutoI18n(group = "glowstick", key = "glowstick")
+    public static final DeferredHolder<EntityType<?>, EntityType<GlowStickEntity>> GLOW_STICK_ENTITY = getTypeHolder("glow_stick", GlowStickEntity::new);
+    //endregion
+    
+    //  region
+    //*:=== Misc & helpers
     public static final List<DeferredHolder<EntityType<?>, ? extends EntityType<? extends AbstractThrownTorchEntity>>> ENTITY_HIDE_LIST = List.of(
         THROWN_TORCH,
         THROWN_REDSTONE_TORCH,
-        THROWN_SOUL_TORCH
+        THROWN_SOUL_TORCH,
+        GLOW_STICK_ENTITY
+    );
+    
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> UNWAXED_REDSTONE_TTORCH_LOOKUP = Map.of(
+        OxidizeState.NORMAL, TEMPORARY_REDSTONE_TORCH,
+        OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_TORCH,
+        OxidizeState.WEATHERED, WEATHERED_TEMPORARY_REDSTONE_TORCH,
+        OxidizeState.OXIDIZED, OXIDIZED_TEMPORARY_REDSTONE_TORCH
+    );
+    
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> WAXED_REDSTONE_TTORCH_LOOKUP = Map.of(
+        OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_TORCH,
+        OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_TORCH,
+        OxidizeState.WEATHERED, WAXED_WEATHERED_TEMPORARY_REDSTONE_TORCH,
+        OxidizeState.OXIDIZED, WAXED_OXIDIZED_TEMPORARY_REDSTONE_TORCH
+    );
+    
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> UNWAXED_WALL_REDSTONE_TTORCH_LOOKUP = Map.of(
+        OxidizeState.NORMAL, TEMPORARY_REDSTONE_WALL_TORCH,
+        OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH,
+        OxidizeState.WEATHERED, WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH,
+        OxidizeState.OXIDIZED, OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH
+    );
+    
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> WAXED_WALL_REDSTONE_TTORCH_LOOKUP = Map.of(
+        OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_WALL_TORCH,
+        OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH,
+        OxidizeState.WEATHERED, WAXED_WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH,
+        OxidizeState.OXIDIZED, WAXED_OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH
+    );
+    
+    public static final Map<Boolean, Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>>> REDSTONE_TTORCH_LOOKUP = Map.of(
+        true, WAXED_REDSTONE_TTORCH_LOOKUP,
+        false, UNWAXED_REDSTONE_TTORCH_LOOKUP
+    );
+    
+    public static final Map<Boolean, Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>>> WALL_REDSTONE_TTORCH_LOOKUP = Map.of(
+        true, WAXED_WALL_REDSTONE_TTORCH_LOOKUP,
+        false, UNWAXED_WALL_REDSTONE_TTORCH_LOOKUP
     );
     
     private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>>
@@ -298,4 +535,13 @@ public enum TTorchRegistries implements IRegistrant
                 build(id)
         );
     }
+    
+    private static @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> getThrowableRedstoneTorch(@NotNull OxidizeState state, boolean waxed)
+    {
+        return THROWABLE_TORCH_REGISTER.register(
+            "%s%sthrowable_redstone_torch".formatted(waxed ? "waxed_" : "", state.equals(OxidizeState.NORMAL) ? "" : "%s_".formatted(state.name().toLowerCase())),
+            resourceLocation -> new ThrowableRedstoneTorchItem(state, waxed)
+        );
+    }
+    //endregion
 }

@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.coins.abstracts;
+package kurvcygnus.crispsweetberry.common.features.coins.api;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;

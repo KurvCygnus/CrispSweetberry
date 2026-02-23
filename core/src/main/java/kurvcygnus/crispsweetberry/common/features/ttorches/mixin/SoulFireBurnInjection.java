@@ -8,8 +8,8 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.mixin;
 
-import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
-import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayload;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
+import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -32,7 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * @see SoulFireExtinguishInjection Behave Logics
  * @see SoulFireScreenVisualInjection Screen Visual
  * @see SoulFireVisualEffectInjection Appearance Visual
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloadHandler#attachTag Sync handle 
+ * @see SoulFireTagPayloads.SoulFireTagPayloadHandler#attachTag Sync handle 
  */
 @Mixin(BaseFireBlock.class)
 public final class SoulFireBurnInjection
@@ -42,20 +42,17 @@ public final class SoulFireBurnInjection
     {
         final BaseFireBlock block = (BaseFireBlock)(Object) this;
         
-        if(!level.isClientSide && block instanceof SoulFireBlock)
-        {
-            if(!TTorchConstants.isLitBySoulFire(entity))
-            {
-                entity.getPersistentData().putByte(TTorchConstants.SOUL_FIRE_PERSISTENT_TAG, (byte) 1);
-                
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(
-                    entity,
-                    new SoulFireTagPayload(
-                        entity.getId(),
-                        true
-                    )
-                );
-            }
-        }
+        if(level.isClientSide || !(block instanceof SoulFireBlock) || TTorchUtilCollection.isLitBySoulFire(entity))
+            return;
+        
+        entity.getPersistentData().putByte(TTorchUtilCollection.SOUL_FIRE_PERSISTENT_TAG, (byte) 1);
+        
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(
+            entity,
+            new SoulFireTagPayloads.SoulFireTagPayload(
+                entity.getId(),
+                true
+            )
+        );
     }
 }

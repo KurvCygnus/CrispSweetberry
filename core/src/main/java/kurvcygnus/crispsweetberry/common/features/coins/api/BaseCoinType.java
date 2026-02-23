@@ -6,12 +6,13 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.coins.abstracts;
+package kurvcygnus.crispsweetberry.common.features.coins.api;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -44,34 +45,42 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
     protected final float strength;
     protected final @NotNull Predicate<Supplier<? extends Item>> enableCondition;
     
-    protected BaseCoinType(@NotNull String id, @NotNull Supplier<? extends AbstractCoinStackBlock<C>> blockSupplier,
-        @NotNull Supplier<? extends AbstractCoinStackItem<C>> stackSupplier, @NotNull Supplier<? extends AbstractCoinItem<C>> coinSupplier,
-        @NotNull Supplier<? extends Item> nuggetSupplier, int experience, float penaltyRate, float strength)
-            {
-                requireNonNull(initNamespace(), "Param \"namespace\" must not be null");
-                requireNonNull(id, "Param \"id\" must not be null!");
-                requireNonNull(blockSupplier, "Param \"blockSupplier\" must not be null!");
-                requireNonNull(stackSupplier, "Param \"stackSupplier\" must not be null!");
-                requireNonNull(coinSupplier, "Param \"coinSupplier\" must not be null!");
-                requireNonNull(nuggetSupplier, "Param \"nuggetSupplier\" must not be null!");
-                throwIf(experience <= 0, () -> new IllegalArgumentException("Param \"experience\" must be a positive integer!"));
-                throwIf(penaltyRate <= 0F || penaltyRate > 1F, () ->
-                    new IllegalArgumentException("Param \"penaltyRate\" must be in range of (0F, 1F]!")
-                );
-                throwIf(strength <= 0F, () -> new IllegalArgumentException("Param \"strength\" must be a positive float!"));
-                requireNonNull(initEnableCondition(), "Param \"enableCondition\" must not be null!");
-                
-                this.namespace = initNamespace();
-                this.id = id;
-                this.blockSupplier = blockSupplier;
-                this.stackSupplier = stackSupplier;
-                this.coinSupplier = coinSupplier;
-                this.nuggetSupplier = nuggetSupplier;
-                this.experience = experience;
-                this.penaltyRate = penaltyRate;
-                this.strength = strength;
-                this.enableCondition = initEnableCondition();
-            }
+    @SuppressWarnings("NonStrictComparisonCanBeEquality")//! Defensive check.
+    protected BaseCoinType(
+        @NotNull String id,
+        @NotNull Supplier<? extends AbstractCoinStackBlock<C>> blockSupplier,
+        @NotNull Supplier<? extends AbstractCoinStackItem<C>> stackSupplier,
+        @NotNull Supplier<? extends AbstractCoinItem<C>> coinSupplier,
+        @NotNull Supplier<? extends Item> nuggetSupplier,
+        @Range(from = 0, to = Integer.MAX_VALUE) int experience,
+        @Range(from = 0, to = 1) float penaltyRate,
+        @Range(from = 0, to = (long) Float.MAX_VALUE) float strength
+    )
+    {
+        requireNonNull(initNamespace(), "Param \"namespace\" must not be null");
+        requireNonNull(id, "Param \"id\" must not be null!");
+        requireNonNull(blockSupplier, "Param \"blockSupplier\" must not be null!");
+        requireNonNull(stackSupplier, "Param \"stackSupplier\" must not be null!");
+        requireNonNull(coinSupplier, "Param \"coinSupplier\" must not be null!");
+        requireNonNull(nuggetSupplier, "Param \"nuggetSupplier\" must not be null!");
+        throwIf(experience <= 0, () -> new IllegalArgumentException("Param \"experience\" must be a positive integer!"));
+        throwIf(penaltyRate <= 0F || penaltyRate > 1F, () ->
+                new IllegalArgumentException("Param \"penaltyRate\" must be in range of (0F, 1F]!")
+        );
+        throwIf(strength <= 0F, () -> new IllegalArgumentException("Param \"strength\" must be a positive float!"));
+        requireNonNull(initEnableCondition(), "Param \"enableCondition\" must not be null!");
+        
+        this.namespace = initNamespace();
+        this.id = id;
+        this.blockSupplier = blockSupplier;
+        this.stackSupplier = stackSupplier;
+        this.coinSupplier = coinSupplier;
+        this.nuggetSupplier = nuggetSupplier;
+        this.experience = experience;
+        this.penaltyRate = penaltyRate;
+        this.strength = strength;
+        this.enableCondition = initEnableCondition();
+    }
     
     protected @NotNull Predicate<Supplier<? extends Item>> initEnableCondition() { return Objects::nonNull; }
     
@@ -97,8 +106,7 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
     
     @Override public boolean shouldAppear() { return this.enableCondition.test(this.nuggetSupplier); }
     
-    @Override
-    public boolean equals(@Nullable Object object)
+    @Override public boolean equals(@Nullable Object object)
     {
         if(this == object)
             return true;

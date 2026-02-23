@@ -70,8 +70,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     
     public KilnScreen(@NotNull KilnMenu menu, @NotNull Inventory playerInventory, @NotNull Component title) { super(menu, playerInventory, title); }
     
-    @Override
-    public void init()
+    @Override public void init()
     {
         //! The value assignment of image's width and height should be ahead of `super.init()`.
         //! You can see the reason in the source code of that method.
@@ -84,8 +83,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         this.addRenderableWidget(widget);
     }
     
-    @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+    @Override public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         
@@ -133,8 +131,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
     
-    @Override
-    protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY)
+    @Override protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY)
         { guiGraphics.blit(BACKGROUND_TEXTURE, this.leftPos, this.topPos, NO_OFFSET, NO_OFFSET, BG_WIDTH, BG_HEIGHT, BG_WIDTH, BG_HEIGHT); }
     
     /**
@@ -185,8 +182,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
             this.setTooltip(EMPTY_TIP);
         }
         
-        @Override
-        protected void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
+        @Override protected void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
         {
             if(this.getTooltip() == EMPTY_TIP)//! No necessary, then no render.
                 return;
@@ -216,7 +212,6 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
             }
         }
         
-        @Override
-        protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput) { this.defaultButtonNarrationText(narrationElementOutput); }
+        @Override protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput) { this.defaultButtonNarrationText(narrationElementOutput); }
     }
 }

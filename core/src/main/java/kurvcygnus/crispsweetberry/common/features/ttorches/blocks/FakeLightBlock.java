@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks;
 
-import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants;
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -25,7 +25,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.LIGHT_PROPERTY;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.LIGHT_PROPERTY;
 
 /**
  * A simple invisible block for <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity Thrown Torch}</u>'s 
@@ -39,7 +39,7 @@ public final class FakeLightBlock extends Block
     public FakeLightBlock()
     {
         super(Properties.of().noCollission().noOcclusion().noLootTable().lightLevel(bs -> bs.getValue(LIGHT_PROPERTY).toBrightness()));
-        this.registerDefaultState(this.stateDefinition.getOwner().defaultBlockState().setValue(LIGHT_PROPERTY, TTorchConstants.LightState.DARK));
+        this.registerDefaultState(this.stateDefinition.getOwner().defaultBlockState().setValue(LIGHT_PROPERTY, TTorchUtilCollection.LightState.DARK));
     }
     
     @Override

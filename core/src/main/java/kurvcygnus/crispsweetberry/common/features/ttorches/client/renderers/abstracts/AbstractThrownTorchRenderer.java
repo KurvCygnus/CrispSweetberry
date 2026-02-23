@@ -30,7 +30,7 @@ import org.joml.Matrix4f;
 
 import java.util.List;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchConstants.*;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.*;
 
 /**
  * This is the <b>basic renderer</b> of all <b>thrown torches</b>.<br>
@@ -173,8 +173,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     {
         final StringBuilder path = new StringBuilder(BASE_TEXTURE_PATH).append(getTextureName());
         
-        path.append("_").append(pair.horizontalFacing().getAlias());
-        path.append("_").append(pair.verticalFacing().getAlias());
+        appendTextureName(path, entity, pair);
         
         if(hasStateVariation() && entity.getTier() == AbstractThrownTorchEntity.TIER_GONE)
             path.append("_").append(getAltTextureName());
@@ -186,6 +185,12 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         }
         
         return CrispDefUtils.getModNamespacedLocation(path.append(TEXTURE_SUFFIX).toString());
+    }
+    
+    protected void appendTextureName(@NotNull StringBuilder path, @NotNull T entity, @NotNull FacingPair pair)
+    {
+        path.append("_").append(pair.horizontalFacing().getAlias());
+        path.append("_").append(pair.verticalFacing().getAlias());
     }
     
     /**

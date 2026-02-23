@@ -6,10 +6,11 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.coins.abstracts;
+package kurvcygnus.crispsweetberry.common.features.coins.api;
 
-import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
-import net.minecraft.world.item.Item;
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,18 +18,20 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 /**
- * This is the basic of coin items, which can store experience, with penalty as costs.
- * @implNote The reason we keep <u>{@link AbstractCoinItem}</u> and <u>{@link VanillaCoinItem VanillaCoinItem}</u>
- * separated is that we are considering using annotation processors to solve boilerplate problems in future developing.
- * @see VanillaCoinItem Vanilla Implementation
- * @since 1.0 Release
+ * This is the basic of stacked coin items, it is only meant to be thrown away, destroyed or got placed, 
+ * it can't be disassembled into <u>{@link AbstractCoinItem coins}</u>.
+ *
  * @author Kurv Cygnus
+ * @implNote The reason we keep <u>{@link AbstractCoinStackItem}</u> and <u>{@link VanillaCoinStackItem VanillaCoinStackItem}</u>
+ * separated is that we are considering using annotation processors to solve boilerplate problems in future developing.
+ * @see VanillaCoinStackItem Universal Implementation
+ * @since 1.0 Release
  */
-public abstract class AbstractCoinItem<C extends ICoinType<C>> extends Item
+public abstract class AbstractCoinStackItem<C extends ICoinType<C>> extends BlockItem
 {
     private C coinType = null;
     
-     /**
+    /**
      * @apiNote Lazy initialization is required here to avoid registry order issues.<br>
      * {@link ICoinType} references Item/Block,
      * while Item/Block also need to resolve their CoinType.<br>
@@ -36,10 +39,17 @@ public abstract class AbstractCoinItem<C extends ICoinType<C>> extends Item
      */
     private final @NotNull Lazy<C> lazyCoinTypeSupplier = Lazy.of(this::initCoinType);
     
-    @SuppressWarnings("unused")//! Only for vanilla CODEC stuff.
-    private AbstractCoinItem(@Nullable Properties properties) { this(); }
+    @SuppressWarnings("unused")//! Only for vanilla CODEC.
+    private AbstractCoinStackItem(@Nullable Block block, @Nullable Properties properties) { this(); }
     
-    public AbstractCoinItem() { super(new Properties()); }
+    @SuppressWarnings("DataFlowIssue")//! To avoid footgun, we use lazy load with key.
+    protected AbstractCoinStackItem() { super(null, new Properties().stacksTo(16)); }
+    
+    /**
+     * @implNote  This method is used by <u>{@link BlockItem}</u> to markedLogger the instance of block.<br>
+     * We override this to implement lazy loading block to avoid footgun.
+     */
+    @Override public @NotNull Block getBlock() { return this.getCoinType().stackBlock(); }
     
     /**
      * @apiNote Lazy initialization is required here to avoid registry order issues.<br>
@@ -49,12 +59,12 @@ public abstract class AbstractCoinItem<C extends ICoinType<C>> extends Item
      */
     protected abstract @NotNull C initCoinType();
     
-    public final @NotNull C getCoinType()
+    public final @NotNull C getCoinType() 
     {
         if(this.coinType == null)
         {
             this.coinType = lazyCoinTypeSupplier.get();
-            return Objects.requireNonNull(coinType, "Field \"getCoinType\" is initialized as null!");
+            return Objects.requireNonNull(coinType, "Field \"coinType\" was initialized as null!");
         }
         
         return this.coinType;

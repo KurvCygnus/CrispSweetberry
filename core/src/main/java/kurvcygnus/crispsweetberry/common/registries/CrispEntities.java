@@ -20,20 +20,16 @@ public enum CrispEntities implements IRegistrant
 {
     INSTANCE;
     
-    @Override
-    public void register(@NotNull IEventBus bus) 
+    @Override public void register(@NotNull IEventBus bus) 
     {
         //CRISP_ENTITY_TYPE_REGISTER.register(bus);
     }
     
-    @Override
-    public boolean isFeature() { return false; }
+    @Override public boolean isFeature() { return false; }
     
-    @Override
-    public @NotNull String getJob() { return "Misc Entities"; }
+    @Override public @NotNull String getJob() { return "Misc Entities"; }
     
-    @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 3); }
+    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 3); }
     
     public static final DeferredRegister<EntityType<?>> CRISP_ENTITY_TYPE_REGISTER =
         DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.NAMESPACE);
