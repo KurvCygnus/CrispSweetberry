@@ -29,6 +29,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.ToIntFunction;
 
+/**
+ * This is the glowstick variant of ttorch series, features underwater lighting.<br>
+ * <b><i>Correspondingly, glowstick doesn't have a wall variant, since it can't be attached to the wall</i></b>.
+ * @author Kurv Cygnus
+ * @see GlowStickBehavior Logic Implementation
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.GlowStickEntity Entity
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.GlowStickItem Item
+ * @since 1.0 Release
+ */
 public final class GlowStickBlock extends AbstractTemporaryTorchBlock<GlowStickBehavior> implements SimpleWaterloggedBlock
 {
     private static final ToIntFunction<BlockState> GLOW_STICK_BRIGHTNESS_FORMULA = bs -> bs.getValue(BlockStateProperties.WATERLOGGED) ? 15 : 9;
@@ -52,8 +61,7 @@ public final class GlowStickBlock extends AbstractTemporaryTorchBlock<GlowStickB
         return this.defaultBlockState();
     }
     
-    @Override protected void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) 
-        { builder.add(BlockStateProperties.WATERLOGGED); }
+    @Override protected void addExtraProperties(StateDefinition.@NotNull Builder<Block, BlockState> builder) { builder.add(BlockStateProperties.WATERLOGGED); }
     
     @Override public @NotNull MapCodec<? extends AbstractGenericTorchBlock<GlowStickBehavior>> codec() { return simpleCodec(GlowStickBlock::new); }
     

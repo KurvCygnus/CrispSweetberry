@@ -77,8 +77,6 @@ dependencies {
     compileOnly(project(':i18n-api'))
     
     annotationProcessor(project(':i18n-processor'))
-
-    implementation("org.jetbrains:annotations:24.1.0")
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }

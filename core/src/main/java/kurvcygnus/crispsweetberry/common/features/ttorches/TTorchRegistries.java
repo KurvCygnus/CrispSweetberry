@@ -63,17 +63,13 @@ public enum TTorchRegistries implements IRegistrant
     //*:=== Registry Basics
     INSTANCE;
     
-    @Override
-    public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
+    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
-    @Override
-    public boolean isFeature() { return true; }
+    @Override public boolean isFeature() { return true; }
     
-    @Override
-    public @NotNull String getJob() { return "T Torches"; }
+    @Override public @NotNull String getJob() { return "T Torches"; }
     
-    @Override
-    public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 2); }
+    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 2); }
     
     private static final DeferredRegister<Item> THROWABLE_TORCH_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<Block> TEMPORARY_TORCH_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);

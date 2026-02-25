@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "kurvcygnus.crispsweetberry.common.features.carrycrate.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "StorageContainerBlockEntityCarryInjection",
+    "VanillaBrewingStandCarryInjection",
+    "VanillaFurnaceCarryInjection"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+  ]
+}

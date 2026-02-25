@@ -135,10 +135,10 @@ public enum KilnRegistries implements IRegistrant
         resourceLocation -> new BlockItem(KILN_BLOCK.value(), new Item.Properties())
     );
     
-    @SuppressWarnings("ConstantConditions")//! https://docs.neoforged.net/docs/1.21.1/blockentities/ You can find the reason of suppression here.
+    @SuppressWarnings("ConstantConditions")//! `build(Type<?>)`'s param is used for game save upgrade. Thus, this is unnecessary when your mod doesn't need to support it.
     public static final Supplier<BlockEntityType<KilnBlockEntity>> KILN_BLOCK_ENTITY = KILN_BE_REGISTER.register("kiln_block_entity", () ->
         BlockEntityType.Builder.of(KilnBlockEntity::new, KilnRegistries.KILN_BLOCK.value()).
-            build(null)//* Build using null; vanilla does some datafixer with the parameter that we don't need.
+            build(null)//* https://docs.neoforged.net/docs/1.21.1/blockentities/ Reference
     );
     
     public static final DeferredHolder<RecipeType<?>, KilnRecipeType> KILN_RECIPE_TYPE = KILN_RECIPE_REGISTER.register("kiln", () ->

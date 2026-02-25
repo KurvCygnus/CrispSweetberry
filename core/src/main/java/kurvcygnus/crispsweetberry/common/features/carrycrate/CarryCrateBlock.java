@@ -21,14 +21,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 //? TODO
-public class CarryCrateBlock extends HorizontalDirectionalBlock
+
+public final class CarryCrateBlock extends HorizontalDirectionalBlock
 {
-    public static final MapCodec<CarryCrateBlock> CODEC = simpleCodec(CarryCrateBlock::new);
-    
-    /// A **placeholder construct method, as its superclass demands to implement it**.
+    //! Only for CODC.
     public CarryCrateBlock(@Nullable Properties properties) { this(); }
     
-    /// This is the actual construct method for **block registry**.
     public CarryCrateBlock()
     {
         super(BlockBehaviour.Properties.of().
@@ -40,13 +38,10 @@ public class CarryCrateBlock extends HorizontalDirectionalBlock
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
     
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) { builder.add(FACING); }
+    @Override protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) { builder.add(FACING); }
     
-    @Override
-    public BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
+    @Override public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
         { return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
     
-    @Override
-    protected @NotNull MapCodec<? extends HorizontalDirectionalBlock> codec() { return CODEC; }
+    @Override protected @NotNull MapCodec<CarryCrateBlock> codec() { return simpleCodec(CarryCrateBlock::new); }
 }

@@ -14,11 +14,9 @@
 * [Mod Information](#mod-information)
 * [Installation](#installation)
 * User Section
-
   * [Feedback & Support](#feedback--support)
   * [About Us](#about-us)
 * Developer Section
-
   * [License](#license)
   * [Contributing](#contributing)
 
@@ -26,9 +24,10 @@
 
 ## Project Overview
 
-> **Crisp Sweetberry** is a **vanilla-focused QoL Minecraft mod** that aims to enhance and expand gameplay in exploration, combat, automation, and building — **with minimal stylistic intrusion**.
+> **Crisp Sweetberry** is a **vanilla-focused QoL Minecraft mod** that aims to enhance and expand gameplay in exploration, combat, automation, and building —
+  **with minimal stylistic intrusion**.
 
-Crisp Sweetberry is designed to be highly compatible with most vanilla-friendly mods.
+Crisp Sweetberry is designed to be highly compatible with most vanilla-friendly mods.\
 However, combining CSB with mods that heavily alter **core mechanics or progression systems** may lead to unexpected behavior.
 
 *This mod is currently under active development.*
@@ -66,17 +65,17 @@ Crisp Sweetberry primarily focuses on:
 
 Crisp Sweetberry is currently available **only** for:
 
-* **Minecraft 1.21.1**
+* **Minecraft 26.1**, and **Minecraft 1.21.1** as LTS
 * **NeoForge Mod Loader**
 
-Major updates will be released in **themed waves**, similar to official Minecraft updates.
+Major updates will be released in **themed waves**, similar to official Minecraft updates.\
 If certain extensible features become popular enough, they may be split into standalone library mods.
 
 ---
 
 ## Installation
 
-1. Download **NeoForge** for **Minecraft 1.21.1**.
+1. Download **NeoForge** for **Minecraft 26.1** / **Minecraft 1.21.1**.
    You can find detailed installation instructions in NeoForge’s official documentation:
    at [this link](https://docs.neoforged.net/user/docs/)
 
@@ -110,7 +109,7 @@ When reporting issues, please include:
 
 ## About Us
 
-Below are the contributors to Crisp Sweetberry.
+Below are the contributors to Crisp Sweetberry.\
 Every contributor is an important part of the community.
 
 *Placeholder UwU*
@@ -132,7 +131,7 @@ For the full license text, please refer to the [LICENSE](LICENSE.txt) file in th
 
 ## Contributing
 
-Crisp Sweetberry is still in an early development stage.
+Crisp Sweetberry is still in an early development stage.\
 Before the first stable release, we do **not** accept any contributions.
 
 However, we **welcome**:
@@ -160,5 +159,5 @@ We also welcome contributions in:
 
 Every form of contribution is respected.
 
-If you agree with these principles, you are already a great fit for Crisp Sweetberry — regardless of experience level.
+If you agree with these principles, you are already a great fit for Crisp Sweetberry — regardless of experience level.\
 If you have any interest in joining us, you can go further to our [contribution guidelines](CONTRIBUTING.md).

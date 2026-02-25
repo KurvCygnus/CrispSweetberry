@@ -19,6 +19,7 @@ import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -59,6 +60,7 @@ import org.jetbrains.annotations.Range;
  * @see KilnRecipeInput Recipe Input Part
  * @since 1.0 Release
  */
+@ApiStatus.Internal
 public record KilnRecipe(
     @NotNull Ingredient ingredient,
     @NotNull ItemStack result,

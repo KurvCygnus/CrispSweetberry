@@ -124,7 +124,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     
     //  region
     //* Constructor & Basic Info Declaration
-    public KilnBlockEntity(BlockPos pos, BlockState blockState) { super(KilnRegistries.KILN_BLOCK_ENTITY.get(), pos, blockState); }
+    public KilnBlockEntity(@NotNull BlockPos pos, @NotNull BlockState blockState) { super(KilnRegistries.KILN_BLOCK_ENTITY.get(), pos, blockState); }
     
     //*:=== Hopper Support Essentials
     @Override public int @NotNull [] getSlotsForFace(@NotNull Direction side)

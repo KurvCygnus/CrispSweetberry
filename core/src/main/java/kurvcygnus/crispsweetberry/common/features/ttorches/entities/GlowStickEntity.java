@@ -37,6 +37,17 @@ import org.jetbrains.annotations.Nullable;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries.*;
 
+/**
+ * This is the entity part of ttorch series, glowstick variant.
+ * <br><br>
+ * As the name itself implies, glowstick variant features unique physic logics, and underwater lighting support.
+ *
+ * @author Kurv Cygnus
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.glowstick.GlowStickBlock Glowstick Block
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.GlowStickItem Item
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.GlowstickRenderer Renderer
+ * @since 1.0 Release
+ */
 public final class GlowStickEntity extends AbstractThrownTorchEntity
 {
     private static final int MAX_BOUNCE_TIME = 8;
@@ -99,7 +110,11 @@ public final class GlowStickEntity extends AbstractThrownTorchEntity
             playSound(getPlaceSound(), SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
     }
     
-    @Override protected boolean shouldDiscard(@NotNull HitResult result) { return !this.level().isClientSide && getBounceCounter() >= MAX_BOUNCE_TIME; }
+    @Override protected boolean shouldDiscard(@NotNull HitResult result) 
+    {
+        return !this.level().isClientSide && 
+            ((result.getType().equals(HitResult.Type.BLOCK) && getBounceCounter() >= MAX_BOUNCE_TIME) || result.getType().equals(HitResult.Type.ENTITY));
+    }
     
     private byte getBounceCounter() { return this.entityData.get(BOUNCE_COUNTER); }
     

@@ -84,9 +84,8 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     
     @Override protected final void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
     {
-        super.createBlockStateDefinition(builder);
         builder.add(LIGHT_PROPERTY);
-        this.addExtraBlockStateDefinition(builder);
+        this.addExtraProperties(builder);
     }
     
     @Override protected final void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
@@ -104,10 +103,9 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     
     @Override public final @NotNull String getDescriptionId() { return getThrowableTorchItem().getDescriptionId(); }
     
-    @NotNull
-    public Item getThrowableTorchItem() { return this.behavior.getThrowableTorchItem(); }
+    @NotNull public Item getThrowableTorchItem() { return this.behavior.getThrowableTorchItem(); }
     
-    protected void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {}
+    protected void addExtraProperties(StateDefinition.@NotNull Builder<Block, BlockState> builder) {}
     
     public @Range(from = 0, to = Integer.MAX_VALUE) int getStateLength() { return TTorchUtilCollection.DEFAULT_LIFECYCLE_TICK; }
     

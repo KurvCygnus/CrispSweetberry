@@ -8,12 +8,9 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.api;
 
-import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
@@ -54,8 +51,6 @@ public final class KilnRecipeAboutToUpdateEvent extends Event
         
         if(filtered.isEmpty())
             return Optional.empty();
-        
-        new KilnRecipe(Ingredient.EMPTY, ItemStack.EMPTY, -1, -1, true);
         
         return Optional.of(filtered);
     }

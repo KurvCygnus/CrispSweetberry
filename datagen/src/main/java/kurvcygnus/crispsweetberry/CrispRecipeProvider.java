@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry;
 
+import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.registries.CrispItems;
@@ -57,7 +58,7 @@ public final class CrispRecipeProvider extends RecipeProvider
             unlockedBy("kiln_unlocked", has(Items.FURNACE)).
             save(output, "kiln_soul");
         
-        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, CrispItems.CARRY_CRATE.value(), 2).
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, CarryCrateRegistries.CARRY_CRATE_ITEM.value(), 2).
             pattern("PPP").
             pattern("PSP").
             pattern("PPP").

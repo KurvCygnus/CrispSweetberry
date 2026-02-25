@@ -15,10 +15,21 @@ import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This is the behavior of glowstick ttorch variant, which holds all behavior logics.
+ * <br><br>
+ * Major behavior differences are centered in
+ * <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.entities.GlowStickEntity GlowStickEntity}</u>.
+ *
+ * @author Kurv Cygnus
+ * @see GlowStickBlock Glowstick Block
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.GlowStickEntity Entity
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.GlowStickItem Item
+ * @since 1.0 Release
+ */
 public final class GlowStickBehavior extends AbstractTemporaryTorchBehavior
 {
-    public GlowStickBehavior(@NotNull Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazyTorchBlock)
-        { super(lazyTorchBlock); }
+    public GlowStickBehavior(@NotNull Lazy<? extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> lazyTorchBlock) { super(lazyTorchBlock); }
     
     @Override protected @NotNull Item getThrowableTorchItem() { return TTorchRegistries.GLOWSTICK_ITEM.value(); }
 }

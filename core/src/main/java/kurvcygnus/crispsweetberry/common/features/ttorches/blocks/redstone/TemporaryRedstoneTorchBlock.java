@@ -73,7 +73,7 @@ extends AbstractTemporaryTorchBlock<TemporaryRedstoneTorchBehavior> implements I
     
     @Override public @NotNull ParticleOptions getSubTorchParticle() { return DustParticleOptions.REDSTONE; }
     
-    @Override protected void addExtraBlockStateDefinition(@NotNull StateDefinition.Builder<Block, BlockState> builder) 
+    @Override protected void addExtraProperties(@NotNull StateDefinition.Builder<Block, BlockState> builder) 
         { builder.add(REDSTONE_LIT, OXIDIZE_STATE, WAXED); }
     
     @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getStateLength() { return REDSTONE_TORCH_SIGNAL_SEND_DELAY; }

@@ -11,9 +11,6 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBehavior;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.ITRedstoneTorchExtensions;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TemporaryRedstoneTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TemporaryRedstoneWallTorchBlock;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -24,11 +21,10 @@ import org.jetbrains.annotations.NotNull;
  * Major behavior differences are centered in 
  * <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownSoulTorchEntity ThrownSoulTorchEntity}</u>. 
  * @author Kurv Cygnus
- * @see ITRedstoneTorchExtensions Extension Interfaces
- * @see TemporaryRedstoneTorchBlock Floor Torch
- * @see TemporaryRedstoneWallTorchBlock Wall Torch
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity Entity
- * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem Item
+ * @see TemporarySoulTorchBlock Floor Torch
+ * @see TemporarySoulWallTorchBlock Wall Torch
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownSoulTorchEntity Entity
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableSoulTorchItem Item
  * @since 1.0 Release
  */
 public final class TemporarySoulTorchBehavior extends AbstractTemporaryTorchBehavior

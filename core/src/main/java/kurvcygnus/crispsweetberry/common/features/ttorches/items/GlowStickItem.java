@@ -17,6 +17,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
 
+/**
+ * This is the item part of ttorch series, glowstick variant.
+ * @author Kurv Cygnus
+ * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.glowstick.GlowStickBlock Glowstick Block
+ * @see GlowStickEntity Entity
+ * @since 1.0 Release
+ */
 public final class GlowStickItem extends AbstractThrowableTorchItem<GlowStickEntity>
 {
     public GlowStickItem() { super(new Properties()); }

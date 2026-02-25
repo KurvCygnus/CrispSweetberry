@@ -62,7 +62,7 @@ public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporar
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIGHT_PROPERTY, TTorchUtilCollection.LightState.FULL_BRIGHT));
     }
     
-    protected final void addExtraBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
+    protected final void addExtraProperties(StateDefinition.@NotNull Builder<Block, BlockState> builder)
     {
         builder.add(FACING);
         this.addExtraStateDefinition(builder);
