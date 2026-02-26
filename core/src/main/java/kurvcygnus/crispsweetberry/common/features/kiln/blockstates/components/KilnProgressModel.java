@@ -47,15 +47,17 @@ public final class KilnProgressModel
     }
     
     public void synchronize(double realProgress, double visualProgress, @Nullable VisualTrend trend, boolean isIgnited)
+        { this.synchronize(realProgress, visualProgress, trend, isIgnited, false); }
+    
+    public void synchronize(double realProgress, double visualProgress, @Nullable VisualTrend trend, boolean isIgnited, boolean isStateless)
     {
-        this.realProgress = Math.clamp(realProgress, 0D, 1D);
-        this.visualProgress = Math.clamp(visualProgress, 0D, 1D);
+        this.realProgress = isStateless ? Math.max(0D, realProgress) : Math.clamp(realProgress, 0D, 1D);
+        this.visualProgress = isStateless ? Math.max(0D, visualProgress) : Math.clamp(visualProgress, 0D, 1D);
         this.trend = Objects.requireNonNullElse(trend, VisualTrend.TIP);
         this.isIgnited = isIgnited;
     }
     
-    @CheckReturnValue
-    public boolean upgradeProgress()
+    @CheckReturnValue public boolean upgradeProgress(boolean isStateless)
     {
         if(this.realProgress >= 1D)
         {
@@ -66,8 +68,8 @@ public final class KilnProgressModel
                     MiscConstants.FEEDBACK_MESSAGE
                 );
             
-            this.realProgress = 0D;
-            this.visualProgress = 0D;
+            this.realProgress = isStateless ? this.realProgress % 1 : 0D;
+            this.visualProgress = isStateless ? this.realProgress % 1 : 0D;
             
             return true;
         }

@@ -11,6 +11,11 @@ package kurvcygnus.crispsweetberry.utils.projectile;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.level.Level;
 
+/**
+ * A functional interface that produces a projectile that is spawned by item.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
 @FunctionalInterface
 public interface ITriProjectileFunction<E extends ThrowableItemProjectile>
 {

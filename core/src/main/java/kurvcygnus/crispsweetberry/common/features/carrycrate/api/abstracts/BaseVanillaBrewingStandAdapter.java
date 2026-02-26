@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaBrewingStandAccessor.MAX_BREWING_TIME;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaBrewingStandAccessor.MAX_FUEL;
 
-public abstract class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity> extends AbstractBlockEntityCarryAdapter<E>
+public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity> extends AbstractBlockEntityCarryAdapter<E>
 {
     protected static final int OUTPUT_SLOT_START_INDEX = 0;
     protected static final int OUTPUT_SLOT_END_INDEX = 2;
@@ -34,7 +34,7 @@ public abstract class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlock
     
     public BaseVanillaBrewingStandAdapter(@NotNull E blockEntity) { super(blockEntity); }
     
-    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime)
+    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context)
     {
         final IVanillaBrewingStandAccessor accessor = getAccessor();
         

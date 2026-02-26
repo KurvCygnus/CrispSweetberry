@@ -23,6 +23,7 @@ import org.jetbrains.annotations.*;
 import java.util.Objects;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.KILN_INPUT_SLOTS_RANGE;
+import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCarriableExtensions.*;
 
 /**
  * This class makes sure that the balancing effect of kiln is visually acceptable.
@@ -32,11 +33,11 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.KILN
  * @since 1.0 Release
  */
 @ApiStatus.Internal
-public final class KilnProgressCalculator
+public final class KilnProgressCalculator implements IKilnCarriableCalculatorBridge
 {
     private static final double NORMAL_PROGRESS_RATE = 0.005D;
-    private static final double STANDARD_PROCESS_FACTOR = 1D;
-    private static final int BALANCE_STATE_STANDARD_TICKS = 40;
+    public static final double STANDARD_PROCESS_FACTOR = 1D;
+    public static final int BALANCE_STATE_STANDARD_TICKS = 40;
     
     private NonNullList<KilnRecipe> recipes = NonNullList.withSize(KILN_INPUT_SLOTS_RANGE.size(), KilnBlockEntity.EMPTY_RECIPE);
     
@@ -140,49 +141,14 @@ public final class KilnProgressCalculator
                     (remainingTicks, remainingTicks == 1 ? "s" : "", remainingTicks == 1 ? "" : "s") : ""
             );
             
-            final double currentProcessFactor;
-            double multipliedFactor = STANDARD_PROCESS_FACTOR;
-            double revaluateFactor = 0D;
-            boolean canUseAverageReward = true;
-            byte nonEmptyCount = 0;
+            final double currentProcessFactor = evaluateFactor();
             
-            handle.changeMarker("FACTOR_CAL");
-            for(final KilnRecipe recipe: recipes)
-            {
-                configDebug("Factor of recipe({}): {}",
-                    recipe, recipe.processFactor()
-                );
-                
-                //! Explanation: processFactor smaller than STANDARD_PROCESS_FACTOR means it is a recipe that processes faster than normal
-                //! process time, multiplying these value in such situation would lead to an imbalance.
-                //! Therefore, taking the average value of three small factors is the best solution.
-                //! Of course, this method will not be used if any of the value is greater than STANDARD_PROCESS_FACTOR.
-                if(recipe.processFactor() <= STANDARD_PROCESS_FACTOR)
-                    revaluateFactor += recipe.processFactor();
-                else
-                    canUseAverageReward = false;
-                
-                if(!Objects.equals(recipe, KilnBlockEntity.EMPTY_RECIPE))
-                {
-                    nonEmptyCount++;
-                    multipliedFactor *= recipe.processFactor();
-                }
-            }
-            
-            if(canUseAverageReward && nonEmptyCount == 0)
+            if(Double.isNaN(currentProcessFactor))
             {
                 handle.changeMarker("FACTOR_ERR");
                 LOGGER.error("Recipe collection happens to be all empty! Content: {}", recipes.toString());
                 return CalculationResult.unexpectedResult(currentRealProgress, currentVisualProgress);
             }
-            
-            currentProcessFactor = canUseAverageReward ? (revaluateFactor / nonEmptyCount) : multipliedFactor;
-            
-            handle.changeMarker("STRATEGY_SELECT");
-            configDebug("strategy = \"{}\", totalFactor = {}{}",
-                canUseAverageReward ? "Average" : "Multiply", currentProcessFactor,
-                canUseAverageReward ? ", non-empty recipes: %d".formatted(nonEmptyCount) : ""
-            );
             
             if(currentProcessFactor <= 0D)
             {
@@ -290,6 +256,110 @@ public final class KilnProgressCalculator
                 VisualTrend.NORMAL
             );
         }
+    }
+    
+    @Override public double onCarriedSequence()
+    {
+        final double currentProcessFactor = this.evaluateFactor();
+        
+        return NORMAL_PROGRESS_RATE / currentProcessFactor;
+    }
+    
+    @Override public @NotNull AtomicCalculationResult statelessCalculate(@NotNull CalculationContext context)
+    {
+        double realProgress = context.realProgress();
+        double visualProgress = context.visualProgress();
+        double carryingTime = context.carryingTime();
+        
+        if(context.state() != KilnBlockEntity.ProcessionState.WORKING)
+            return AtomicCalculationResult.withNoProduct(
+                Math.max(0, realProgress - NORMAL_PROGRESS_RATE * carryingTime),
+                Math.max(0, visualProgress - NORMAL_PROGRESS_RATE * carryingTime),
+                nonWorkingLogicalResult,
+                VisualTrend.NORMAL
+            );
+        
+        if(this.balanceTick > 0)
+        {
+            final boolean canFinishCooldown = carryingTime >= this.balanceTick;
+            
+            realProgress += context.realRate() * (canFinishCooldown ? this.balanceTick : carryingTime);
+            visualProgress += this.balanceRate * (canFinishCooldown ? this.balanceTick : carryingTime);
+            
+            if(!canFinishCooldown)
+                return AtomicCalculationResult.withNoProduct(
+                    realProgress,
+                    visualProgress,
+                    LogicalResult.BALANCING,
+                    this.balanceTrend
+                );
+            
+            carryingTime -= this.balanceTick;
+        }
+        
+        realProgress += context.realRate() * carryingTime;
+        visualProgress = realProgress;
+        
+        return new AtomicCalculationResult(
+            (int) realProgress,
+            new CalculationResult(
+                realProgress,//! No need to clear progress. It'll be used and reset in KilnProgressModel.
+                visualProgress,
+                LogicalResult.CONTINUE,
+                VisualTrend.NORMAL
+            )
+        );
+    }
+    
+    @CheckReturnValue private double evaluateFactor()
+    {
+        double multipliedFactor = STANDARD_PROCESS_FACTOR;
+        double revaluateFactor = 0D;
+        boolean canUseAverageReward = true;
+        byte nonEmptyCount = 0;
+        final double currentProcessFactor;
+        
+        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("FACTOR_CAL"))
+        {
+            for(final KilnRecipe recipe: recipes)
+            {
+                configDebug("Factor of recipe({}): {}",
+                    recipe, recipe.processFactor()
+                );
+                
+                //! Explanation: processFactor smaller than STANDARD_PROCESS_FACTOR means it is a recipe that processes faster than normal
+                //! process time, multiplying these value in such situation would lead to an imbalance.
+                //! Therefore, taking the average value of three small factors is the best solution.
+                //! Of course, this method will not be used if any of the value is greater than STANDARD_PROCESS_FACTOR.
+                if(recipe.processFactor() <= STANDARD_PROCESS_FACTOR)
+                    revaluateFactor += recipe.processFactor();
+                else
+                    canUseAverageReward = false;
+                
+                if(!Objects.equals(recipe, KilnBlockEntity.EMPTY_RECIPE))
+                {
+                    nonEmptyCount++;
+                    multipliedFactor *= recipe.processFactor();
+                }
+            }
+            
+            if(canUseAverageReward && nonEmptyCount == 0)
+            {
+                handle.changeMarker("FACTOR_ERR");
+                LOGGER.error("Recipe collection happens to be all empty! Content: {}", recipes.toString());
+                return Double.NaN;
+            }
+            
+            currentProcessFactor = canUseAverageReward ? (revaluateFactor / nonEmptyCount) : multipliedFactor;
+            
+            handle.changeMarker("STRATEGY_SELECT");
+            configDebug("strategy = \"{}\", totalFactor = {}{}",
+                canUseAverageReward ? "Average" : "Multiply", currentProcessFactor,
+                canUseAverageReward ? ", non-empty recipes: %d".formatted(nonEmptyCount) : ""
+            );
+        }
+        
+        return currentProcessFactor;
     }
     
     public byte getBalanceTick() { return balanceTick; }

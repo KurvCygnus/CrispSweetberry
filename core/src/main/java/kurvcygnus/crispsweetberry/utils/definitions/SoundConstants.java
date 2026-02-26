@@ -8,6 +8,9 @@
 
 package kurvcygnus.crispsweetberry.utils.definitions;
 
+/**
+ * @since 1.0 Release
+ */
 public final class SoundConstants
 {
     private SoundConstants() { throw new IllegalAccessError("Class \"SoundConstants\" is not meant to be instantized!"); }

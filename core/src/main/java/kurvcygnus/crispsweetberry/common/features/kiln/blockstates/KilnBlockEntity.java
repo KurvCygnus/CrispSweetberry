@@ -33,6 +33,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -45,13 +46,17 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.List;
 import java.util.Optional;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.TRUE;
+import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCarriableExtensions.*;
 
 /**
  * The <b>container part</b> of <b>Kiln Block</b>, which is responsible for <b>containment, sync and logical</b> things.
@@ -65,7 +70,8 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.
  * @see KilnRecipe Recipe Definition
  * @since 1.0 Release
  */
-public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements MenuProvider, WorldlyContainer permits KilnDummyBlockEntity
+public sealed class KilnBlockEntity extends BaseContainerBlockEntity 
+implements MenuProvider, WorldlyContainer, IKilnCarriableBlockEntityBridge permits KilnDummyBlockEntity
 {
     //  region
     //* Constants & Fields
@@ -117,6 +123,14 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     private float experience = 0F;
     
     public enum ProcessionState { WORKING, COOLDOWN }
+    
+    public record EmulateResult(boolean canProcess, float exp)
+    {
+        public static final @NotNull EmulateResult FAILED = new EmulateResult(false, 0F);
+        
+        public static @NotNull EmulateResult success(@Range(from = 0, to = (long) Float.MAX_VALUE) float exp)
+            { return new EmulateResult(true, exp); }
+    }
     
     //*:== Logger
     private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
@@ -310,34 +324,61 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         
         final ProcessionState currentState = blockEntity.deduceProcessState(isIgnited);
         
-        final CalculationResult result = blockEntity.calculator.
-            calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
+        final CalculationResult result = blockEntity.calculator.calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
         
-        blockEntity.model.synchronize(result.currentRealProgress(), result.currentVisualProgress(), result.trend(), isIgnited);
+        final boolean worldDirty = statelessTick(level, pos, blockEntity, result, isIgnited);
+        
+        if(worldDirty)
+            setChanged(level, pos, state);
+    }
+    
+    private static boolean statelessTick(
+        @NotNull Level level,
+        @NotNull BlockPos pos,
+        @NotNull KilnBlockEntity blockEntity,
+        @NotNull CalculationResult result,
+        boolean isIgnited
+    ) { return statelessTick(level, pos, blockEntity, result, isIgnited, 1, false); }
+    
+    private static boolean statelessTick(
+        @NotNull Level level,
+        @NotNull BlockPos pos,
+        @NotNull KilnBlockEntity blockEntity,
+        @NotNull CalculationResult result,
+        boolean isIgnited,
+        int processRound,
+        boolean isStateless
+    )
+    {
+        blockEntity.model.synchronize(result.currentRealProgress(), result.currentVisualProgress(), result.trend(), isIgnited, isStateless);
         
         switch(result.logicalResult())
         {
-            case CONTINUE, BALANCING -> { }
+            case CONTINUE, BALANCING -> {}
             case INVALID ->
             {
                 try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("UNEXPECTED_RESULT"))
                     { LOGGER.error("Received unexpected result \"{}\"", result.logicalResult().name()); }
             }
-            case SKIP -> { return; }
+            case SKIP -> { return false; }
         }
         
-        final boolean isFinishedProcession = blockEntity.model.upgradeProgress();
+        final boolean isFinishedProcession = blockEntity.model.upgradeProgress(isStateless);
         
         boolean worldDirty = false;
         
-        if(isFinishedProcession)
+        for(int round = 0; round < processRound && isFinishedProcession; round++)
         {
-            worldDirty |= processInputItems(blockEntity, level);
+            final EmulateResult processResult = processInputItems(blockEntity, level);
+            
+            worldDirty |= processResult.canProcess;
             worldDirty |= checkAndShrinkInputItems(blockEntity, level, pos);
+            
+            if(processResult.canProcess)
+                blockEntity.experience += processResult.exp;
         }
         
-        if(worldDirty)
-            setChanged(level, pos, state);
+        return worldDirty;
     }
     
     /**
@@ -349,7 +390,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
      * and returned as a part of <u>{@link CalculationResult CalculationResult}</u>
      * for menu visual change.
      */
-    private ProcessionState deduceProcessState(boolean isIgnited)
+    private @NotNull ProcessionState deduceProcessState(boolean isIgnited)
     {
         if(!isIgnited || this.inputState != InputState.VALID)
             return ProcessionState.COOLDOWN;
@@ -357,9 +398,9 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         return ProcessionState.WORKING;
     }
     
-    private static boolean processInputItems(KilnBlockEntity blockEntity, Level level)
+    private static @NotNull EmulateResult processInputItems(@NotNull KilnBlockEntity blockEntity, @NotNull Level level)
     {
-        final ItemStack[] resultStacks = new ItemStack[3];
+        final ItemStack[] resultStacks = new ItemStack[KILN_OUTPUT_SLOTS_RANGE.size()];
         
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
             resultStacks[index] = blockEntity.recipeCache.get(index).getResultItem(level.registryAccess());
@@ -367,8 +408,10 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         //* Since the procession is complex, using emulation-then-apply strategy can sufficiently decrease the quantity of boundary cases.
         final NonNullList<ItemStack> emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
         
-        if(!insertItemsToSlots(blockEntity, resultStacks, emulatedOutputSlots))
-            return false;
+        final EmulateResult insertResult = insertItemsToSlots(blockEntity, resultStacks, emulatedOutputSlots);
+        
+        if(!insertResult.canProcess)
+            return EmulateResult.FAILED;
         
         //* Emulation succeed, then apply emulated results.
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
@@ -377,7 +420,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
             blockEntity.containerItems.set(outputIndex, emulatedOutputSlots.get(index).copy());
         }
         
-        return true;
+        return EmulateResult.success(insertResult.exp);
     }
     
     /**
@@ -385,8 +428,14 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
      * only when both of three result item insertions are succeed, then the method will return {@code true} to tell
      * <u>{@link #processInputItems processInputItems()}</u> to apply emulated results.
      */
-    private static boolean insertItemsToSlots(KilnBlockEntity blockEntity, ItemStack[] resultStacks, NonNullList<ItemStack> emulatedOutputSlots)
+    private static @NotNull EmulateResult insertItemsToSlots(
+        @NotNull KilnBlockEntity blockEntity,
+        @NotNull ItemStack[] resultStacks,
+        @NotNull NonNullList<ItemStack> emulatedOutputSlots
+    )
     {
+        float exp = 0F;
+        
         for(int slotIndex = 0; slotIndex < KILN_SLOT_COUNT_FOR_EACH_TYPE; slotIndex++)
         {
             int invalidAttempts = 0;//! Both result mismatch with slot content and unable to stack to output slots are counted as invalid attempts.
@@ -403,7 +452,7 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                     
                     if(emptyStackIndex == null && emulatedOutputStack.isEmpty())
                         emptyStackIndex = attemptSlotIndex;//! Only assigns the earliest matched index to emptyStackIndex to make sure the merge
-                    //! behavior is same as vanilla.
+                                                           //! behavior is same as vanilla.
                     
                     if(invalidAttempts >= 3)
                     {
@@ -413,18 +462,17 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
                             break;
                         }
                         else
-                            return false;
+                            return EmulateResult.FAILED;
                     }
                     continue;
                 }
                 
-                addExp(blockEntity, slotIndex);
-                
+                exp += blockEntity.recipeCache.get(slotIndex).experience();
                 emulatedOutputStack.setCount(emulatedOutputStack.getCount() + 1);
             }
         }
         
-        return true;
+        return EmulateResult.success(exp);
     }
     
     private static @NotNull NonNullList<ItemStack> copyOutputSlots(NonNullList<ItemStack> outputStacks)
@@ -442,19 +490,13 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
         return copy;
     }
     
-    private static boolean canMerge(ItemStack resultStack, ItemStack emulatedOutputStack)
+    private static boolean canMerge(@NotNull ItemStack resultStack, @NotNull ItemStack emulatedOutputStack)
     {
         return ItemStack.isSameItemSameComponents(resultStack, emulatedOutputStack) &&
             emulatedOutputStack.getCount() < emulatedOutputStack.getMaxStackSize();
     }
     
-    private static void addExp(@NotNull KilnBlockEntity blockEntity, int slotIndex)
-    {
-        final float itemExperience = blockEntity.recipeCache.get(slotIndex).experience();
-        blockEntity.experience += itemExperience;
-    }
-    
-    private static boolean checkAndShrinkInputItems(@NotNull KilnBlockEntity blockEntity, Level level, BlockPos pos)
+    private static boolean checkAndShrinkInputItems(@NotNull KilnBlockEntity blockEntity, @Nullable Level level, @NotNull BlockPos pos)
     {
         if(level == null || level.isClientSide)
             return false;
@@ -530,11 +572,36 @@ public sealed class KilnBlockEntity extends BaseContainerBlockEntity implements 
     //endregion
     
     //  region
+    //*:=== Carry Crate Compat
+    @Override @CheckReturnValue public @NotNull KilnBlockEntityContext 
+    onCarriedSequence(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ServerPlayer player)
+    {
+        final boolean isLit = state.getValue(KilnBlock.LIT);
+        final double realRate = this.calculator.onCarriedSequence();
+        
+        return new KilnBlockEntityContext(isLit, realRate);
+    }
+    
+    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull KilnBlockEntityContext context, @NotNull BlockPos pos)
+    {
+        final AtomicCalculationResult result = this.calculator.statelessCalculate(new CalculationContext(
+            carryingTime,
+            this.model.getRealProgress(),
+            this.model.getVisualProgress(),
+            context.realRate(),
+            context.isLit() ? ProcessionState.WORKING : ProcessionState.COOLDOWN
+        ));
+        
+        statelessTick(level, pos, this, result.calculationResult(), context.isLit(), result.theoreticalProcessRound(), true);
+    }
+    //endregion
+    
+    //  region
     //* Helpers, Getters & Setters
     /**
      * Helper methods to check item validation.
      */
-    public boolean canSmelt(@NotNull ItemStack itemstack) 
+    private boolean canSmelt(@NotNull ItemStack itemstack) 
     {
         final Optional<KilnRecipe> recipe = getKilnRecipe(itemstack);
         

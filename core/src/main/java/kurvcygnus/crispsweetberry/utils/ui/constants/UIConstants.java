@@ -8,6 +8,9 @@
 
 package kurvcygnus.crispsweetberry.utils.ui.constants;
 
+/**
+ * @since 1.0 Release
+ */
 public final class UIConstants
 {
     private UIConstants() { throw new IllegalAccessError(); }

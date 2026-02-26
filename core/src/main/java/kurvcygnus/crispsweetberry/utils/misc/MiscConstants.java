@@ -8,6 +8,9 @@
 
 package kurvcygnus.crispsweetberry.utils.misc;
 
+/**
+ * @since 1.0 Release
+ */
 public final class MiscConstants
 {
     private MiscConstants() { throw new IllegalAccessError("Class \"MiscConstants\" is not meant to be instantized!"); }

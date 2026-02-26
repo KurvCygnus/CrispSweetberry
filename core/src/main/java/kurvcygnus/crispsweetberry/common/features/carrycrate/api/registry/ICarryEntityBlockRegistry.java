@@ -17,16 +17,21 @@ import java.util.List;
 
 public interface ICarryEntityBlockRegistry
 {
-    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> void register(
+    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> 
+    void register(
         @NotNull BlockEntityType<E> blockEntityType,
-        @NotNull ICarryAdapterFactory<E, A> carryAdapterFactory
+        @NotNull ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
     );
     
-    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> void registerUniversalBlockEntityAdapter(
-        @NotNull List<BlockEntityType<E>> blockEntityType,
-        @NotNull ICarryAdapterFactory<E, A> carryAdapterFactory
+    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> 
+    void registerUniversalBlockEntityAdapter(
+        @NotNull List<BlockEntityType<? extends E>> blockEntityType,
+        @NotNull ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
     );
     
-    @FunctionalInterface interface ICarryAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> 
-        { A create(E blockEntity); }
+    @FunctionalInterface 
+    interface ICarryAdapterBlockEntityFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> 
+    {
+        A create(@NotNull E blockEntity);
+    }
 }

@@ -52,30 +52,38 @@ public final class CrispUIUtils
      * All constants can be found at <u>{@link ExampleSlotConstants}</u>.
      * @throws IllegalArgumentException When {@code rows} and {@code cols} are non-positive integers.
      */
-    public static <C extends Container> void addGridSlots(@NotNull C container, int startIndex, int startX, int startY, int rows, int cols,
-        @NotNull IQuadSlotSupplier<C, ? extends Slot> slotFactory, @NotNull Consumer<Slot> consumer) throws IllegalArgumentException
+    public static <C extends Container> void addGridSlots(
+        @NotNull C container,
+        int startIndex,
+        int startX,
+        int startY,
+        int rows,
+        int cols,
+        @NotNull IQuadSlotSupplier<C, ? extends Slot> slotFactory,
+        @NotNull Consumer<Slot> consumer
+    ) throws IllegalArgumentException
+    {
+        requireNonNull(container, "Param \"container\" cannot be null!(1st param)");
+        requireNonNull(slotFactory, "Param \"slotFactory\" cannot be null!(7th param)");
+        requireNonNull(consumer, "Param \"consumer\" cannot be null!(8th param)");
+        
+        CrispFunctionalUtils.throwIf(
+            rows <= 0 || cols <= 0,
+            () -> new IllegalArgumentException(
+                "Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: %d, cols: %d".
+                    formatted(rows, cols))
+        );
+        
+        for(int row = 0; row < rows; row++)
+            for(int col = 0; col < cols; col++)
             {
-                requireNonNull(container, "Param \"container\" cannot be null!(1st param)");
-                requireNonNull(slotFactory, "Param \"slotFactory\" cannot be null!(7th param)");
-                requireNonNull(consumer, "Param \"consumer\" cannot be null!(8th param)");
+                final int slotIndex = startIndex + (col + row * cols);
+                final int xPos = startX + col * SLOT_GAP;
+                final int yPos = startY + row * SLOT_GAP;
                 
-                CrispFunctionalUtils.throwIf(
-                    rows <= 0 || cols <= 0,
-                    () -> new IllegalArgumentException(
-                        "Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: %d, cols: %d".
-                            formatted(rows, cols))
-                );
-                
-                for(int row = 0; row < rows; row++)
-                    for(int col = 0; col < cols; col++)
-                    {
-                        final int SLOT_INDEX = startIndex + (col + row * cols);
-                        final int X_POS = startX + col * SLOT_GAP;
-                        final int Y_POS = startY + row * SLOT_GAP;
-                        
-                        consumer.accept(slotFactory.create(container, SLOT_INDEX, X_POS, Y_POS));
-                    }
+                consumer.accept(slotFactory.create(container, slotIndex, xPos, yPos));
             }
+    }
     
     /**
      * A utility method to make {@code #moveItemStackTo()} in the <u>{@link net.minecraft.world.inventory.AbstractContainerMenu containers}</u> more simple.
@@ -87,13 +95,13 @@ public final class CrispUIUtils
      * @see ExampleSlotConstants Furnace Layout Index Reference
      * @see CrispIntRanger Ranger
      */
-    public static boolean moveStackByRanger
-        (@NotNull ItemStack interactStack, @NotNull CrispIntRanger ranger, boolean reverseDirection, @NotNull IQuadMoveStackPredicate predicate)
-            {
-                requireNonNull(interactStack, "Param \"interactStack\" cannot be null!(1st param)");
-                requireNonNull(ranger, "Param \"ranger\" cannot be null!(2nd param)");
-                requireNonNull(predicate, "Param \"predicate\" cannot be null!(4th param)");
-                
-                return predicate.test(interactStack, ranger.getMin(), ranger.getMax() + CORRECTION_INDEX, reverseDirection);
-            }
+    public static boolean 
+    moveStackByRanger(@NotNull ItemStack interactStack, @NotNull CrispIntRanger ranger, boolean reverseDirection, @NotNull IQuadMoveStackPredicate predicate)
+    {
+        requireNonNull(interactStack, "Param \"interactStack\" cannot be null!(1st param)");
+        requireNonNull(ranger, "Param \"ranger\" cannot be null!(2nd param)");
+        requireNonNull(predicate, "Param \"predicate\" cannot be null!(4th param)");
+        
+        return predicate.test(interactStack, ranger.getMin(), ranger.getMax() + CORRECTION_INDEX, reverseDirection);
+    }
 }

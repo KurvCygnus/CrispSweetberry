@@ -168,8 +168,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     //  region
     //* Lifecycles & Logics
-    @Override
-    public void tick()
+    @Override public void tick()
     {
         super.tick();
         
@@ -242,8 +241,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         return null;
     }
     
-    @Override
-    protected void onHitEntity(@NotNull EntityHitResult result)
+    @Override protected void onHitEntity(@NotNull EntityHitResult result)
     {
         final Entity entity = result.getEntity();
         super.onHitEntity(result);

@@ -9,9 +9,11 @@
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnScreen;
+import kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeSerializer;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
@@ -60,8 +62,6 @@ public enum KilnRegistries implements IRegistrant
     
     @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
-    @Override public boolean isFeature() { return true; }
-    
     @Override public @NotNull String getJob() { return "Kiln"; }
     
     @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 1); }
@@ -83,6 +83,8 @@ public enum KilnRegistries implements IRegistrant
         KILN_MENU_REGISTER,
         KILN_STAT_REGISTER
     );
+    
+    @SubscribeEvent static void registerCarry(@NotNull CarryAdapterRegisterEvent event) { event.register(KILN_BLOCK_ENTITY.get(), KilnBlockEntityCarryAdapter::new); }
     
     /**
      * This event assigns value to kiln item, depending on block's property <u>{@link KilnBlock#LIT}</u>.<br>

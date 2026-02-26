@@ -19,6 +19,9 @@ import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * @since 1.0 Release
+ */
 public final class CrispFunctionalUtils
 {
     private CrispFunctionalUtils() { throw new IllegalAccessError("Class \"CrispFunctionalUtils\" is not meant to be instantized!"); }

@@ -10,9 +10,10 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.BaseVanillaBrewingStandAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.BaseVanillaFurnaceSeriesAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.blockentity.VanillaBrewStandBlockEntityAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.blockentity.VanillaFurnaceBlockEntitySeriesAdapterCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.registry.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
@@ -39,8 +40,6 @@ public enum CarryCrateRegistries implements IRegistrant
     
     @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
-    @Override public boolean isFeature() { return true; }
-    
     @Override public @NotNull String getJob() { return "Carry Crate"; }
     
     @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 4); }
@@ -63,10 +62,28 @@ public enum CarryCrateRegistries implements IRegistrant
     
     @SubscribeEvent static void registerCarriables(@NotNull CarryAdapterRegisterEvent event)
     {
-        event.register(BlockEntityType.FURNACE, VanillaFurnaceBlockEntitySeriesAdapterCollection.FurnaceBlockEntityAdapter::new);
-        event.register(BlockEntityType.BLAST_FURNACE, VanillaFurnaceBlockEntitySeriesAdapterCollection.BlastFurnaceBlockEntityAdapter::new);
-        event.register(BlockEntityType.SMOKER, VanillaFurnaceBlockEntitySeriesAdapterCollection.SmokerBlockEntityAdapter::new);
-        event.register(BlockEntityType.BREWING_STAND, VanillaBrewStandBlockEntityAdapter::new);
+        event.registerUniversalBlockEntityAdapter(List.of(
+                BlockEntityType.FURNACE,
+                BlockEntityType.BLAST_FURNACE,
+                BlockEntityType.SMOKER
+            ),
+            BaseVanillaFurnaceSeriesAdapter::new
+        );
+        event.register(BlockEntityType.BREWING_STAND, BaseVanillaBrewingStandAdapter::new);
+        
+        //* EnderChest belongs to BlockEntity, which can't, and shouldn't be registered at here.
+        //* EnderChest's content stores on player, so we treat it as a normal block.
+        event.registerUniversalBlockEntityAdapter(List.of(
+                BlockEntityType.CHEST,
+                BlockEntityType.BARREL,
+                BlockEntityType.DISPENSER,
+                BlockEntityType.DROPPER,
+                BlockEntityType.HOPPER,
+                BlockEntityType.TRAPPED_CHEST,
+                BlockEntityType.CRAFTER//! Crafter relies on redstone signal to work, so here's no need to support its tick logic LLLLLLMAO
+            ),
+            SimpleContainerBlockEntityCarryAdapter::new
+        );
     }
     
     @AutoI18n(value = {

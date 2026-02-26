@@ -8,6 +8,9 @@
 
 package kurvcygnus.crispsweetberry.utils.projectile;
 
+/**
+ * @since 1.0 Release
+ */
 public final class ProjectileConstants
 {
     private ProjectileConstants() { throw new IllegalAccessError("Class \"ProjectileConstants\" is not meant to be instantized!"); }

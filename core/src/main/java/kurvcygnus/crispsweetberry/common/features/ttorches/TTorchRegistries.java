@@ -65,8 +65,6 @@ public enum TTorchRegistries implements IRegistrant
     
     @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
-    @Override public boolean isFeature() { return true; }
-    
     @Override public @NotNull String getJob() { return "T Torches"; }
     
     @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 2); }

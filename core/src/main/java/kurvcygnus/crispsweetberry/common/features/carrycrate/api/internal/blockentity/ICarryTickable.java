@@ -16,9 +16,9 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ICarryTickable
 {
-    default void onCarriedSequence(@NotNull ICarryTickable.CarriedContext context) {}
+    default void onCarriedSequence(@NotNull CarriedContext context) {}
     
-    void carryTick(@NotNull ServerLevel level, long carryingTime);
+    void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context);
     
     record CarriedContext(
         @NotNull ServerLevel level,

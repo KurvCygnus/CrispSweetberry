@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntity> extends AbstractBlockEntityCarryAdapter<E>
+public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntity> extends AbstractBlockEntityCarryAdapter<E>
 {
     protected static final int INPUT_SLOT_INDEX = 0;
     protected static final int FUEL_SLOT_INDEX = 1;
@@ -36,7 +36,8 @@ public abstract class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceB
     
     @Override public void onCarriedSequence(@NotNull CarriedContext context) { super.onCarriedSequence(context); }
     
-    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime)
+    
+    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context)
     {
         final IVanillaFurnaceSeriesAccessor accessor = getAccessor();
         final int maxStackSize = blockEntity.getMaxStackSize();

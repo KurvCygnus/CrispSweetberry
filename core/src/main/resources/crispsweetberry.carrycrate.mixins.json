@@ -4,7 +4,6 @@
   "package": "kurvcygnus.crispsweetberry.common.features.carrycrate.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "StorageContainerBlockEntityCarryInjection",
     "VanillaBrewingStandCarryInjection",
     "VanillaFurnaceCarryInjection"
   ],

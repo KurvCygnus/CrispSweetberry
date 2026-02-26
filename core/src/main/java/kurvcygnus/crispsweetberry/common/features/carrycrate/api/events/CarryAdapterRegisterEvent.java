@@ -25,11 +25,11 @@ public final class CarryAdapterRegisterEvent extends Event
     
     public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> void register(
         @NotNull BlockEntityType<E> blockEntityType,
-        @NotNull ICarryEntityBlockRegistry.ICarryAdapterFactory<E, A> carryAdapterSupplier
-    ) { this.entityBlockRegistry.register(blockEntityType, carryAdapterSupplier); }
+        @NotNull ICarryEntityBlockRegistry.ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
+    ) { this.entityBlockRegistry.register(blockEntityType, carryAdapterBlockEntityFactory); }
     
     public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> void registerUniversalBlockEntityAdapter(
-        @NotNull List<BlockEntityType<E>> blockEntityTypes,
-        @NotNull ICarryEntityBlockRegistry.ICarryAdapterFactory<E, A> carryAdapterFactory
-    ) { this.entityBlockRegistry.registerUniversalBlockEntityAdapter(blockEntityTypes, carryAdapterFactory); }
+        @NotNull List<BlockEntityType<? extends E>> blockEntityTypes,
+        @NotNull ICarryEntityBlockRegistry.ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
+    ) { this.entityBlockRegistry.registerUniversalBlockEntityAdapter(blockEntityTypes, carryAdapterBlockEntityFactory); }
 }

@@ -22,39 +22,41 @@ public enum CarryRegistryManager implements ICarryEntityBlockRegistry
 {
     INSTANCE;
     
-    private final HashMap<BlockEntityType<?>, ICarryAdapterFactory<?, ?>> blockEntityRegistry = new HashMap<>();
+    private final HashMap<BlockEntityType<?>, ICarryAdapterBlockEntityFactory<?, ?>> blockEntityRegistry = new HashMap<>();
     
     @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> void register(
         @NotNull BlockEntityType<E> blockEntityType,
-        @NotNull ICarryAdapterFactory<E, A> carryAdapterFactory
+        @NotNull ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
         Objects.requireNonNull(blockEntityType, "Param \"blockEntityType\" must not be null!");
-        Objects.requireNonNull(carryAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");
+        Objects.requireNonNull(carryAdapterBlockEntityFactory, "Param \"carryAdapterFactory\" must not be null!");
         
         if(blockEntityRegistry.containsKey(blockEntityType))
             throw new IllegalStateException("BlockEntity \"%s\" has already been bounded with an adapter!".formatted(blockEntityType.toString()));
         
-        blockEntityRegistry.put(blockEntityType, carryAdapterFactory);
+        blockEntityRegistry.put(blockEntityType, carryAdapterBlockEntityFactory);
     }
     
     @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> void registerUniversalBlockEntityAdapter(
-        @NotNull List<BlockEntityType<E>> blockEntityTypes,
-        @NotNull ICarryAdapterFactory<E, A> carryAdapterFactory
+        @NotNull List<BlockEntityType<? extends E>> blockEntityTypes,
+        @NotNull ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
         Objects.requireNonNull(blockEntityTypes, "Param \"blockEntityTypes\" must not be null!");
-        Objects.requireNonNull(carryAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");
+        Objects.requireNonNull(carryAdapterBlockEntityFactory, "Param \"carryAdapterFactory\" must not be null!");
         
-        for(final BlockEntityType<?> blockEntityType: blockEntityTypes)
+        for(int index = 0; index < blockEntityTypes.size(); index++)
         {
+            final BlockEntityType<?> blockEntityType = blockEntityTypes.get(index);
+            Objects.requireNonNull(blockEntityType, "Param \"blockEntityType\" must not be null! Null element start at %d".formatted(index));
+            
             if(blockEntityRegistry.containsKey(blockEntityType))
                 throw new IllegalStateException("BlockEntity \"%s\" has already been bounded with an adapter!".formatted(blockEntityType.toString()));
             
-            blockEntityRegistry.put(blockEntityType, carryAdapterFactory);
+            blockEntityRegistry.put(blockEntityType, carryAdapterBlockEntityFactory);
         }
     }
     
-    
-    public @NotNull HashMap<BlockEntityType<?>, ICarryAdapterFactory<?, ?>> getBlockEntityRegistry() { return blockEntityRegistry; }
+    public @NotNull HashMap<BlockEntityType<?>, ICarryAdapterBlockEntityFactory<?, ?>> getBlockEntityRegistry() { return blockEntityRegistry; }
 }

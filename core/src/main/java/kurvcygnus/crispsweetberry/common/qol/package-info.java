@@ -17,10 +17,9 @@
  * <li>Client-side visual feedback (nested under .client)</li>
  * </ul>
  * <b>QoL features should be self-contained and must NOT have direct hard dependencies
- * on the internal implementation of other QoL or gameplay features.</b>
+ * on the internal implementation of other QoL or features.</b>
  * <br>
- * <i>The goal is to keep these small improvements modular, making them easy to toggle,
- * maintain, or refactor without affecting the core gameplay mechanics.</i>
+ * <i>The goal is to keep these small improvements modular, making them easy to toggle, maintain.</i>
  * <br>
  * @implNote DO NOT add {@link javax.annotation.ParametersAreNonnullByDefault @ParametersAreNonnullByDefault} in package-infos,
  * this will lead to potential issues, errors, and footguns.

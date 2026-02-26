@@ -48,7 +48,7 @@ public interface IRegistrant
 {
     void register(@NotNull IEventBus bus);
     
-    boolean isFeature();
+    default boolean isFeature() { return true; }
     
     @NotNull String getJob();
     
