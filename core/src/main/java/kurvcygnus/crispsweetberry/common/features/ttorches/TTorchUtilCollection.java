@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
-import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.ParticleTypes;
@@ -85,7 +85,7 @@ public final class TTorchUtilCollection
     
     //  region
     //*:=== Entity Constants & Utils
-    public static final String SOUL_FIRE_PERSISTENT_TAG = "%s:is_lit_by_soul_fire".formatted(CrispSweetberry.NAMESPACE);
+    public static final String SOUL_FIRE_PERSISTENT_TAG = CrispDefUtils.createPersistentTag("is_lit_by_soul_fire");
     
     public static boolean isLitBySoulFire(@NotNull Entity entity) { return entity.getPersistentData().contains(SOUL_FIRE_PERSISTENT_TAG); }
     //endregion

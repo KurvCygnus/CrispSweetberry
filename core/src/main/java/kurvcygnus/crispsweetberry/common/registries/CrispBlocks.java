@@ -21,7 +21,7 @@ public enum CrispBlocks implements IRegistrant
     
     @Override public void register(@NotNull IEventBus bus) 
     {
-        //CRISP_BLOCK_REGISTER.register(bus);
+        //CRISP_BLOCK_REGISTER.registerUniversal(bus);
     }
     
     @Override public boolean isFeature() { return false; }

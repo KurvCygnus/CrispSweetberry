@@ -71,7 +71,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCa
  * @since 1.0 Release
  */
 public sealed class KilnBlockEntity extends BaseContainerBlockEntity 
-implements MenuProvider, WorldlyContainer, IKilnCarriableBlockEntityBridge permits KilnDummyBlockEntity
+implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyBlockEntity
 {
     //  region
     //* Constants & Fields
@@ -326,21 +326,21 @@ implements MenuProvider, WorldlyContainer, IKilnCarriableBlockEntityBridge permi
         
         final CalculationResult result = blockEntity.calculator.calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
         
-        final boolean worldDirty = statelessTick(level, pos, blockEntity, result, isIgnited);
+        final boolean worldDirty = internalTick(level, pos, blockEntity, result, isIgnited);
         
         if(worldDirty)
             setChanged(level, pos, state);
     }
     
-    private static boolean statelessTick(
+    private static boolean internalTick(
         @NotNull Level level,
         @NotNull BlockPos pos,
         @NotNull KilnBlockEntity blockEntity,
         @NotNull CalculationResult result,
         boolean isIgnited
-    ) { return statelessTick(level, pos, blockEntity, result, isIgnited, 1, false); }
+    ) { return internalTick(level, pos, blockEntity, result, isIgnited, 1, false); }
     
-    private static boolean statelessTick(
+    private static boolean internalTick(
         @NotNull Level level,
         @NotNull BlockPos pos,
         @NotNull KilnBlockEntity blockEntity,
@@ -376,6 +376,11 @@ implements MenuProvider, WorldlyContainer, IKilnCarriableBlockEntityBridge permi
             
             if(processResult.canProcess)
                 blockEntity.experience += processResult.exp;
+            
+            if(worldDirty)
+                continue;
+            
+            break;//! Early return, prevent extra performance penalty in stateless.
         }
         
         return worldDirty;
@@ -592,7 +597,7 @@ implements MenuProvider, WorldlyContainer, IKilnCarriableBlockEntityBridge permi
             context.isLit() ? ProcessionState.WORKING : ProcessionState.COOLDOWN
         ));
         
-        statelessTick(level, pos, this, result.calculationResult(), context.isLit(), result.theoreticalProcessRound(), true);
+        internalTick(level, pos, this, result.calculationResult(), context.isLit(), result.theoreticalProcessRound(), true);
     }
     //endregion
     

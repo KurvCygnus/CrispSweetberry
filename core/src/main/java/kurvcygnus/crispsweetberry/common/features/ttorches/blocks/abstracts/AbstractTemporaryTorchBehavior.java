@@ -106,10 +106,10 @@ public abstract class AbstractTemporaryTorchBehavior
             return ItemInteractionResult.FAIL;
         
         final boolean isDamageable = stack.isDamageableItem();
-        final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
+        final float damageableItemPitch = level.getRandom().nextFloat() * 0.4F + 0.8F;
         
         level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
-            SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
+            SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? damageableItemPitch : NORMAL_SOUND_PITCH
         );
         
         if(!level.isClientSide)

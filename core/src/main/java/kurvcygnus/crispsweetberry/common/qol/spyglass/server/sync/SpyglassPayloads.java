@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class SpyglassPayloads
 {
-    public static final String ORIGINAL_SLOT_TAG = "%s:spyglass_exchange_slot_index".formatted(CrispSweetberry.NAMESPACE);
+    public static final String ORIGINAL_SLOT_TAG = CrispDefUtils.createPersistentTag("spyglass_exchange_slot_index");
     
     /**
      * This is a custom packet, which is used for telling server to emulate player's item use state, and item exchange.

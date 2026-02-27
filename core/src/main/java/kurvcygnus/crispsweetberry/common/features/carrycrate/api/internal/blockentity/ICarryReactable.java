@@ -8,20 +8,14 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-public interface ICarryTickable
+public interface ICarryReactable
 {
-    default void onCarriedSequence(@NotNull CarriedContext context) {}
+    default void carryingTick(@NotNull ReactContext context) {}
     
-    void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context);
-    
-    record CarriedContext(
-        @NotNull ServerLevel level,
-        @NotNull BlockPos pos,
-        @NotNull ServerPlayer player
-    ) {}
+    record ReactContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull LivingEntity entity, int slotId) {}
 }

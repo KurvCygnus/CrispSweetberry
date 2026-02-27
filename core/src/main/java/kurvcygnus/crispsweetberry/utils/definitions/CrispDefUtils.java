@@ -34,12 +34,13 @@ public final class CrispDefUtils
     
     private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     
-    @Contract("_ -> new")
-    public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation) 
+    @Contract("_ -> new") public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation) 
     {
         requireNonNull(assetLocation, "Param \"assetLocation\" cannot be null!");
         return ResourceLocation.fromNamespaceAndPath(CrispSweetberry.NAMESPACE, assetLocation);
     }
+    
+    public static @NotNull String createPersistentTag(@NotNull String tagName) { return "%s.persistent_tags.%s".formatted(CrispSweetberry.NAMESPACE, tagName); }
     
     public static String unwrapTextKey(@NotNull Component component)
     {

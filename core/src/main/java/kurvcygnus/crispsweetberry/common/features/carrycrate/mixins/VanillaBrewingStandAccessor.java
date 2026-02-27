@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(BrewingStandBlockEntity.class)
-public abstract class VanillaBrewingStandCarryInjection implements IVanillaBrewingStandAccessor
+public abstract class VanillaBrewingStandAccessor implements IVanillaBrewingStandAccessor
 {
     @Accessor @Override public abstract @NotNull NonNullList<ItemStack> getItems();
     @Accessor @Override public abstract int getBrewTime();

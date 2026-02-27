@@ -6,8 +6,13 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.entity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity;
 
-public interface ICarriableEntity
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+
+public interface IBaseContainerAccessor
 {
+    @NotNull NonNullList<ItemStack> callGetItems();
 }

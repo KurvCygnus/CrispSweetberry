@@ -8,6 +8,9 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.block;
 
-public interface ICarriableBlock
+import org.jetbrains.annotations.Range;
+
+public interface ICarryStackable
 {
+    @Range(from = 0, to = Integer.MAX_VALUE) int getAcceptableCount();
 }

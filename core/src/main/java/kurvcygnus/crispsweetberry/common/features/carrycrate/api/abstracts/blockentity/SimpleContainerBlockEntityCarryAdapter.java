@@ -6,16 +6,20 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
 
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IBaseContainerAccessor;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import org.jetbrains.annotations.NotNull;
 
-//? TODO: BIG CHEST.
-public class SimpleContainerBlockEntityCarryAdapter<E extends BaseContainerBlockEntity> extends AbstractBlockEntityCarryAdapter<E>
+//? TODO: BIG CHEST TSET. NBT IO Logic may have issues.
+public class SimpleContainerBlockEntityCarryAdapter<E extends BaseContainerBlockEntity> 
+extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic
 {
     public SimpleContainerBlockEntityCarryAdapter(@NotNull E blockEntity) { super(blockEntity); }
     
@@ -30,4 +34,8 @@ public class SimpleContainerBlockEntityCarryAdapter<E extends BaseContainerBlock
     @Override public final void onCarriedSequence(@NotNull CarriedContext context) {}
     
     @Override public final void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context) {}
+    
+    protected final @NotNull IBaseContainerAccessor getAccessor() { return (IBaseContainerAccessor) this.blockEntity; }
+    
+    @Override public @NotNull NonNullList<ItemStack> getItems() { return getAccessor().callGetItems(); }
 }

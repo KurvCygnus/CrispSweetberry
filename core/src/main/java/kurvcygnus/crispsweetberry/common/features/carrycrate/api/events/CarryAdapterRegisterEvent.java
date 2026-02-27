@@ -8,28 +8,59 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.events;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.AbstractBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.registry.ICarryEntityBlockRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block.AbstractBlockCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.AbstractBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.entity.AbstractEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.registry.ICarryRegistry;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Set;
 
-public final class CarryAdapterRegisterEvent extends Event
+public final class CarryAdapterRegisterEvent extends Event implements ICarryRegistry
 {
-    private final ICarryEntityBlockRegistry entityBlockRegistry;
+    private final ICarryRegistry carryRegistry;
     
-    public CarryAdapterRegisterEvent(@NotNull ICarryEntityBlockRegistry entityBlockRegistry) { this.entityBlockRegistry = entityBlockRegistry; }
+    public CarryAdapterRegisterEvent(@NotNull ICarryRegistry carryRegistry) { this.carryRegistry = carryRegistry; }
     
-    public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> void register(
+    @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>>
+    void register(
         @NotNull BlockEntityType<E> blockEntityType,
-        @NotNull ICarryEntityBlockRegistry.ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
-    ) { this.entityBlockRegistry.register(blockEntityType, carryAdapterBlockEntityFactory); }
+        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
+    ) { this.carryRegistry.register(blockEntityType, carryAdapterBlockEntityFactory); }
     
-    public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> void registerUniversalBlockEntityAdapter(
-        @NotNull List<BlockEntityType<? extends E>> blockEntityTypes,
-        @NotNull ICarryEntityBlockRegistry.ICarryAdapterBlockEntityFactory<E, A> carryAdapterBlockEntityFactory
-    ) { this.entityBlockRegistry.registerUniversalBlockEntityAdapter(blockEntityTypes, carryAdapterBlockEntityFactory); }
+    @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> 
+    void registerUniversal(
+        @NotNull Set<BlockEntityType<? extends E>> blockEntityTypes,
+        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
+    ) { this.carryRegistry.registerUniversal(blockEntityTypes, carryAdapterBlockEntityFactory); }
+    
+    @Override public <B extends Block, A extends AbstractBlockCarryAdapter<B>> 
+    void register(
+        @NotNull B block,
+        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory
+    ) { this.carryRegistry.register(block, carryAdapterBlockAdapterFactory); }
+    
+    @Override public <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
+    void registerUniversal(
+        @NotNull Set<? extends B> blocks,
+        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory
+    ) { this.carryRegistry.registerUniversal(blocks, carryAdapterBlockAdapterFactory); }
+    
+    @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<E>>
+    void register(
+        @NotNull EntityType<E> entityType,
+        @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory
+    ) { this.carryRegistry.register(entityType, carryEntityAdapterFactory); }
+    
+    @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
+    void registerUniversal(
+        @NotNull Set<EntityType<? extends E>> entityTypes,
+        @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory
+    ) { this.carryRegistry.registerUniversal(entityTypes, carryEntityAdapterFactory); }
 }

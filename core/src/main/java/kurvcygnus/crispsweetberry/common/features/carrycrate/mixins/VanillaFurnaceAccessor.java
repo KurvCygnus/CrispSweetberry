@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.mixins;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.ICarryTickable;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaFurnaceSeriesAccessor;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -23,7 +22,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(AbstractFurnaceBlockEntity.class) 
-public abstract class VanillaFurnaceCarryInjection implements ICarryTickable, IVanillaFurnaceSeriesAccessor
+public abstract class VanillaFurnaceAccessor implements IVanillaFurnaceSeriesAccessor
 {
     @Invoker @Override public abstract boolean callIsLit();
     @Invoker @Override public abstract int callGetBurnDuration(@NotNull ItemStack fuel);

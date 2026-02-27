@@ -23,7 +23,7 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
 
 public final class KilnCarriableExtensions
 {
-    public interface IKilnCarriableBlockEntityBridge
+    public interface IBlockEntityBridge
     {
         @CheckReturnValue @NotNull KilnBlockEntityContext onCarriedSequence(
             @NotNull ServerLevel level,
@@ -35,7 +35,7 @@ public final class KilnCarriableExtensions
         void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull KilnBlockEntityContext context, @NotNull BlockPos pos);
     }
     
-    public interface IKilnCarriableCalculatorBridge
+    public interface ICalculatorBridge
     {
         @CheckReturnValue double onCarriedSequence();
         

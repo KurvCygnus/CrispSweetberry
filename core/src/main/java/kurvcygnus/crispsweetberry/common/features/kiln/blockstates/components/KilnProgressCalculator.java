@@ -33,7 +33,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCa
  * @since 1.0 Release
  */
 @ApiStatus.Internal
-public final class KilnProgressCalculator implements IKilnCarriableCalculatorBridge
+public final class KilnProgressCalculator implements ICalculatorBridge
 {
     private static final double NORMAL_PROGRESS_RATE = 0.005D;
     public static final double STANDARD_PROCESS_FACTOR = 1D;

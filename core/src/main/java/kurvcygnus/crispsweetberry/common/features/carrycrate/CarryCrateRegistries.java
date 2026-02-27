@@ -10,18 +10,21 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.BaseVanillaBrewingStandAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.BaseVanillaFurnaceSeriesAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.SimpleContainerBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block.SimpleBlockCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.BaseVanillaBrewingStandAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.BaseVanillaFurnaceSeriesAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.block.PowderSnowCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.registry.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -32,6 +35,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Set;
 
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryCrateRegistries implements IRegistrant
@@ -50,19 +54,22 @@ public enum CarryCrateRegistries implements IRegistrant
         Registries.BLOCK_ENTITY_TYPE,
         CrispSweetberry.NAMESPACE
     );
+    private static final DeferredRegister<MobEffect> OVERWEIGHT_EFFECT_REGISTER = DeferredRegister.create(Registries.MOB_EFFECT, CrispSweetberry.NAMESPACE);
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         CARRY_CRATE_BLOCK_REGISTER,
         CARRY_CRATE_ITEM_REGISTER,
-        CARRY_CRATE_BE_REGISTER
+        CARRY_CRATE_BE_REGISTER,
+        OVERWEIGHT_EFFECT_REGISTER
     );
     
     @SubscribeEvent static void postAdapterRegisterEvent(@NotNull FMLCommonSetupEvent event) 
         { event.enqueueWork(() -> NeoForge.EVENT_BUS.post(new CarryAdapterRegisterEvent(CarryRegistryManager.INSTANCE))); }
     
-    @SubscribeEvent static void registerCarriables(@NotNull CarryAdapterRegisterEvent event)
+    @SubscribeEvent static void registerInternalBasicCarriables(@NotNull CarryAdapterRegisterEvent event)
     {
-        event.registerUniversalBlockEntityAdapter(List.of(
+        event.registerUniversal(
+            Set.of(
                 BlockEntityType.FURNACE,
                 BlockEntityType.BLAST_FURNACE,
                 BlockEntityType.SMOKER
@@ -73,20 +80,38 @@ public enum CarryCrateRegistries implements IRegistrant
         
         //* EnderChest belongs to BlockEntity, which can't, and shouldn't be registered at here.
         //* EnderChest's content stores on player, so we treat it as a normal block.
-        event.registerUniversalBlockEntityAdapter(List.of(
+        event.registerUniversal(
+            Set.of(
                 BlockEntityType.CHEST,
                 BlockEntityType.BARREL,
                 BlockEntityType.DISPENSER,
                 BlockEntityType.DROPPER,
                 BlockEntityType.HOPPER,
                 BlockEntityType.TRAPPED_CHEST,
-                BlockEntityType.CRAFTER//! Crafter relies on redstone signal to work, so here's no need to support its tick logic LLLLLLMAO
+                BlockEntityType.CRAFTER//* Crafter relies on redstone signal to work, so here's no need to support its tick logic LLLLLLMAO
             ),
             SimpleContainerBlockEntityCarryAdapter::new
         );
+        
+        event.registerUniversal(
+            Set.of(
+                Blocks.ANVIL,
+                Blocks.ENCHANTING_TABLE,
+                Blocks.SMITHING_TABLE,
+                Blocks.CARTOGRAPHY_TABLE,
+                Blocks.FLETCHING_TABLE,
+                Blocks.CRAFTING_TABLE,
+                Blocks.ENDER_CHEST
+            ),
+            SimpleBlockCarryAdapter::new
+        );
+        
+        //! Vanilla's registry is using "Block" for all blocks, which is stupid, thus, PowderSnowCarryAdapter checks the type of bounded block inside.
+        event.register(Blocks.POWDER_SNOW, PowderSnowCarryAdapter::new);
     }
     
-    @AutoI18n(value = {
+    @AutoI18n(
+        value = {
             "en_us = Carry Crate",
             "lol_us = hoom",
             "zh_cn = 搬运箱"
@@ -101,7 +126,18 @@ public enum CarryCrateRegistries implements IRegistrant
     
     @RegisterToTab
     @AutoI18n(group = "carry_crate", key = "carry_crate")
-    public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register("carry_crate", resourceLocation ->
-        new BlockItem(CarryCrateRegistries.CARRY_CRATE_BLOCK.value(), new Item.Properties())
+    public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register(
+        "carry_crate",
+        resourceLocation -> new CarryCrateItem()
+    );
+    
+    @AutoI18n({
+        "en_us = Overweight",
+        "lol_us = fat cat lol",
+        "zh_cn = 超重"
+    })
+    public static final Holder<MobEffect> OVERWEIGHT = OVERWEIGHT_EFFECT_REGISTER.register(
+        "overweight",
+        () -> OverWeightEffect.register(OVERWEIGHT_EFFECT_REGISTER)
     );
 }

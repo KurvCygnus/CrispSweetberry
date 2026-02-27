@@ -6,10 +6,11 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaFurnaceSeriesAccessor;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +23,12 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntity> extends AbstractBlockEntityCarryAdapter<E>
+/**
+ * 
+ * @param <E>
+ */
+public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntity> 
+extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic
 {
     protected static final int INPUT_SLOT_INDEX = 0;
     protected static final int FUEL_SLOT_INDEX = 1;
@@ -238,4 +244,6 @@ public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntit
     protected final void resetProgress() { getAccessor().setCookingProgress(0); }
     
     protected final @NotNull IVanillaFurnaceSeriesAccessor getAccessor() { return (IVanillaFurnaceSeriesAccessor) this.blockEntity; }
+    
+    @Override public @NotNull NonNullList<ItemStack> getItems() { return getAccessor().callGetItems(); }
 }

@@ -22,7 +22,7 @@ public enum CrispEntities implements IRegistrant
     
     @Override public void register(@NotNull IEventBus bus) 
     {
-        //CRISP_ENTITY_TYPE_REGISTER.register(bus);
+        //CRISP_ENTITY_TYPE_REGISTER.registerUniversal(bus);
     }
     
     @Override public boolean isFeature() { return false; }
