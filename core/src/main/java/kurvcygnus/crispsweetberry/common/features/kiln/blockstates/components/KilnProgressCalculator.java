@@ -42,7 +42,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     private NonNullList<KilnRecipe> recipes = NonNullList.withSize(KILN_INPUT_SLOTS_RANGE.size(), KilnBlockEntity.EMPTY_RECIPE);
     
     /**
-     * We should use <u>{@link Double}</u> instead of primitive type {@code double},
+     * We should use <u>{@link Double}</u> instead of primitive componentExecutionType {@code double},
      * when it comes to cases like empty content, putting stuff inside should go to
      * {@code WORKING} variant, not {@code BALANCING}.</u>
      */

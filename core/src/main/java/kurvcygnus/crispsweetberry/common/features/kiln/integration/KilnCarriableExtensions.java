@@ -32,7 +32,7 @@ public final class KilnCarriableExtensions
             @NotNull ServerPlayer player
         );
         
-        void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull KilnBlockEntityContext context, @NotNull BlockPos pos);
+        void onPlacedProcess(@NotNull ServerLevel level, long carryingTime, @NotNull KilnBlockEntityContext context, @NotNull BlockPos pos);
     }
     
     public interface ICalculatorBridge

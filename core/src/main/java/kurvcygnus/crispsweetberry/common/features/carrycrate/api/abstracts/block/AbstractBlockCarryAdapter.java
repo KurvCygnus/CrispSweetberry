@@ -8,11 +8,12 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarriableLifecycle;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.block.ICarryStackable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.ICarryReactable;
+import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
@@ -25,19 +26,41 @@ import java.util.Objects;
  * @see SimpleBlockCarryAdapter Utility Adapter
  * @since 1.0 Release
  */
-public abstract class AbstractBlockCarryAdapter<B extends Block> implements ICarryStackable, ICarriableLifecycle, ICarryReactable
+public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter implements ICarryStackable
 {
-    protected final B block;
+    /**
+     * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter 
+     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
+     * <br><br>
+     * In a nutshell, <b>using {@code block} during <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> 
+     * will throw <u>{@link NullPointerException}</u></b>.
+     */
+    private final @Nullable B block;
     
-    public AbstractBlockCarryAdapter(@NotNull B block)
+    public AbstractBlockCarryAdapter(@Nullable B block) { this.block = block; }
+    
+    @Override public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate();
+    
+    @Override public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getAcceptableCount();
+    
+    /**
+     * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
+     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
+     * <br><br>
+     * In a nutshell, <b>using {@code #getBlock()} during <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>
+     * will throw <u>{@link NullPointerException}</u>, and you shouldn't use this at most cases.</b>
+     */
+    protected final @NotNull B getBlock() 
     {
-        Objects.requireNonNull(block, "Param \"block\" must not be null!");
-        this.block = block;
+        Objects.requireNonNull(
+            block,
+            """
+                Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
+                method is called at improper time, with improper param. %s
+                """.
+                formatted(MiscConstants.FEEDBACK_MESSAGE)
+        );
+        
+        return block;
     }
-    
-    @Override
-    public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate();
-    
-    @Override
-    public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getAcceptableCount();
 }

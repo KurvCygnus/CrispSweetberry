@@ -9,22 +9,17 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.block;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block.SimpleBlockCarryAdapter;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PowderSnowBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-public final class PowderSnowCarryAdapter extends SimpleBlockCarryAdapter<Block>
+public final class PowderSnowCarryAdapter extends SimpleBlockCarryAdapter<PowderSnowBlock>
 {
-    public PowderSnowCarryAdapter(@NotNull Block block) 
-    {
-        super(block);
-        
-        if(!(block instanceof PowderSnowBlock))
-            throw new IllegalArgumentException("This is for PowderSnow block only!");
-    }
+    public PowderSnowCarryAdapter(@NotNull PowderSnowBlock block) { super(block); }
     
     @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate() { return NO_PENALTY; }
     
     @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getAcceptableCount() { return 4; }
+    
+    @Override public boolean causesOverweight() { return false; }
 }

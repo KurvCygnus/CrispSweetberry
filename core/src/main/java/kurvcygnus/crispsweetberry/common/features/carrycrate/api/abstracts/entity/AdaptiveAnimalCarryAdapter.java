@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.enti
 
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends AbstractEntityCarryAdapter<E>
@@ -23,21 +23,26 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
     public static final double MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME = Math.pow(0.9D, 2) * 1.4D;
     private final int penaltyRate;
     
-    public AdaptiveAnimalCarryAdapter(@NotNull E entity) 
+    public AdaptiveAnimalCarryAdapter(@Nullable E entity) 
     {
         super(entity);
         
-        final AABB boundingBox = entity.getBoundingBox();
-        final double volume = boundingBox.getXsize() * boundingBox.getYsize() * boundingBox.getZsize();
-        
-        if(volume > MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
-            throw new IllegalArgumentException(
-                "Entity \"%s\" is too big to be boxed into Carry Crate QAQ! Volume: %f, Expected: Smaller than %f".
-                    formatted(entity.getName().getString(), volume, MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
-            );
-        
-        this.penaltyRate = (int) (DEFAULT_PENALTY_RATE / 
-            ((volume == 0D ? MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME : volume) / MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME));
+        if(entity != null)
+        {
+            final AABB boundingBox = entity.getBoundingBox();
+            final double volume = boundingBox.getXsize() * boundingBox.getYsize() * boundingBox.getZsize();
+            
+            if(volume > MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
+                throw new IllegalArgumentException(
+                    "Entity \"%s\" is too big to be boxed into Carry Crate QAQ! Volume: %f, Expected: Smaller than %f".
+                        formatted(entity.getName().getString(), volume, MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
+                );
+            
+            this.penaltyRate = (int) (DEFAULT_PENALTY_RATE /
+                ((volume == 0D ? MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME : volume) / MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME));
+        }
+        else//! The registry will grantee that this statement will only be used in the implementation.
+            this.penaltyRate = -1;
     }
     
     @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate() { return this.penaltyRate; }

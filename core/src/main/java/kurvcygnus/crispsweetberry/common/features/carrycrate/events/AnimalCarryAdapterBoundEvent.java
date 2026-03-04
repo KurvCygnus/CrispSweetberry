@@ -24,6 +24,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 final class AnimalCarryAdapterBoundEvent
 {
@@ -33,28 +35,46 @@ final class AnimalCarryAdapterBoundEvent
     @SubscribeEvent static void register(@NotNull ServerStartedEvent event)
     {
         final RegistryAccess access = event.getServer().registryAccess();
+        LOGGER.info("Start hooking entity registry...");
+        
         access.registryOrThrow(Registries.ENTITY_TYPE).stream().
-            filter(e -> 
+            filter(entityType -> 
                 {
-                    if(!e.getCategory().equals(MobCategory.CREATURE))
+                    if(!Objects.equals(entityType.getCategory(), MobCategory.CREATURE))
                         return false;
                     
-                    final AABB aabb = e.getSpawnAABB(0D, 0D, 0D);
+                    LOGGER.debug("Captured entity \"{}\" as friendly entity.", entityType.getDescriptionId());
                     
-                    return aabb.getXsize() * aabb.getYsize() * aabb.getZsize() <= AdaptiveAnimalCarryAdapter.MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME;
+                    final AABB aabb = entityType.getSpawnAABB(0D, 0D, 0D);
+                    final double entityVolume = aabb.getXsize() * aabb.getYsize() * aabb.getZsize();
+                    final boolean isAcceptable = entityVolume <= AdaptiveAnimalCarryAdapter.MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME;
+                    
+                    LOGGER.debug(
+                        "Entity \"{}\" {}.",
+                        entityType.getDescriptionId(),
+                        isAcceptable ? 
+                            "accepted" :
+                            "rejected. Its volume doesn't meet the condition. Volume: %f".
+                                formatted(entityVolume)
+                    );
+                    
+                    return isAcceptable;
                 }
             ).
             forEach(
-                e -> 
+                entityType ->
                 {
                     try
                     {
-                        final EntityType<? extends Animal> animal = (EntityType<? extends Animal>) e;
+                        final EntityType<? extends Animal> animal = (EntityType<? extends Animal>) entityType;
                         
                         CarryRegistryManager.INSTANCE.register(animal, AdaptiveAnimalCarryAdapter::new);
+                        LOGGER.debug("Accepted animal \"{}\".", entityType.getDescriptionId());
                     }
-                    catch(ClassCastException exception) { LOGGER.debug("Entity \"{}\" is not an animal. Skipped.", e.getDescriptionId(), exception); }
+                    catch(ClassCastException exception) { LOGGER.debug("Entity \"{}\" is not an animal. Skipped.", entityType.getDescriptionId(), exception); }
                 }
             );
+        
+        LOGGER.info("Finished hooking entity registry.");
     }
 }

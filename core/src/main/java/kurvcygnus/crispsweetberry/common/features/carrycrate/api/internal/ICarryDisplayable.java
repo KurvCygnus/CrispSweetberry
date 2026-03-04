@@ -6,16 +6,14 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import org.jetbrains.annotations.NotNull;
 
-public interface ICarryReactable
+public interface ICarryDisplayable
 {
-    default void carryingTick(@NotNull ReactContext context) {}
+    default void initRenderComponents(@NotNull ClientTooltipComponent... components) {}
     
-    record ReactContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull LivingEntity entity, int slotId) {}
+    default void display() {}
 }

@@ -31,4 +31,6 @@ public interface ICarriableLifecycle
     int NO_PENALTY = 0;
     
     @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate();
+    
+    default boolean causesOverweight() { return true; }
 }

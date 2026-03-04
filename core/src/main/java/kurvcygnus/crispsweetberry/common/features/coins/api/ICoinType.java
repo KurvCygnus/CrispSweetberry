@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  * Without it, CoinItem / CoinStackItem / CoinStackBlock may reference different CoinType instances, causing silent logic corruption
  * that cannot be detected at compile time.
  * @param <C> <u>{@link ICoinType}</u> itself, here used <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">{@code F-bounded quantification}</a>
- * technique to make sure that a series of coin's detailed type must be same.
+ * technique to make sure that a series of coin's detailed componentExecutionType must be same.
  * @since 1.0 Release
  * @author Kurv Cygnus
  */

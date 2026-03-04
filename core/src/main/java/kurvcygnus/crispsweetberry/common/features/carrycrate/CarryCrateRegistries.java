@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
+import com.mojang.serialization.Codec;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block.SimpleBlockCarryAdapter;
@@ -16,21 +17,29 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.block.PowderSnowCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.registry.CarryRegistryManager;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateBlock;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverWeightEffect;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.PowderSnowBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,12 +64,17 @@ public enum CarryCrateRegistries implements IRegistrant
         CrispSweetberry.NAMESPACE
     );
     private static final DeferredRegister<MobEffect> OVERWEIGHT_EFFECT_REGISTER = DeferredRegister.create(Registries.MOB_EFFECT, CrispSweetberry.NAMESPACE);
+    private static final DeferredRegister<DataComponentType<?>> CARRY_CRATE_DATA_COMPONENT_REGISTER = DeferredRegister.create(
+        Registries.DATA_COMPONENT_TYPE,
+        CrispSweetberry.NAMESPACE
+    );
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         CARRY_CRATE_BLOCK_REGISTER,
         CARRY_CRATE_ITEM_REGISTER,
         CARRY_CRATE_BE_REGISTER,
-        OVERWEIGHT_EFFECT_REGISTER
+        OVERWEIGHT_EFFECT_REGISTER,
+        CARRY_CRATE_DATA_COMPONENT_REGISTER
     );
     
     @SubscribeEvent static void postAdapterRegisterEvent(@NotNull FMLCommonSetupEvent event) 
@@ -107,7 +121,7 @@ public enum CarryCrateRegistries implements IRegistrant
         );
         
         //! Vanilla's registry is using "Block" for all blocks, which is stupid, thus, PowderSnowCarryAdapter checks the type of bounded block inside.
-        event.register(Blocks.POWDER_SNOW, PowderSnowCarryAdapter::new);
+        event.register((PowderSnowBlock) Blocks.POWDER_SNOW, PowderSnowCarryAdapter::new);
     }
     
     @AutoI18n(
@@ -139,5 +153,29 @@ public enum CarryCrateRegistries implements IRegistrant
     public static final Holder<MobEffect> OVERWEIGHT = OVERWEIGHT_EFFECT_REGISTER.register(
         "overweight",
         () -> OverWeightEffect.register(OVERWEIGHT_EFFECT_REGISTER)
+    );
+    
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
+        "carry_crate.carry_id",
+        resourceLocation -> DataComponentType.<String>builder().
+            persistent(Codec.STRING).
+            networkSynchronized(ByteBufCodecs.STRING_UTF8).
+            build()
+    );
+    
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryData>> CARRY_CRATE_DATA = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
+        "carry_crate.data",
+        resourceLocation -> DataComponentType.<CarryData>builder().
+            persistent(CarryData.CODEC).
+            networkSynchronized(CarryData.STREAM_CODEC).
+            build()
+    );
+    
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CARRY_TICK_COUNTER = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
+        "carry_crate.tick_counter",
+        resourceLocation -> DataComponentType.<Integer>builder().
+            persistent(Codec.INT).
+            networkSynchronized(ByteBufCodecs.INT).
+            build()
     );
 }

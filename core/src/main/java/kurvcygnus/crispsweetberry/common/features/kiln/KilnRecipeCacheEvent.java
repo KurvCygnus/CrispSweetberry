@@ -170,7 +170,7 @@ public final class KilnRecipeCacheEvent
                         }
                     }
                     
-                    configDebug("Completed a round of recipe collection, Ingredients: {}, current stream recipe type: {}",
+                    configDebug("Completed a round of recipe collection, Ingredients: {}, current stream recipe componentExecutionType: {}",
                         recipe.getIngredients(), recipeType
                     );
                 }

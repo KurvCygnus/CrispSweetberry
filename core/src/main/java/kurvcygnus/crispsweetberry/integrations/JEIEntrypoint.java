@@ -28,7 +28,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnJE
 /**
  * This is the entrypoint of JEI compat.<br>
  * Entrypoint mainly processes custom content, like Kiln's customization(include <u>{@link KilnScreen UI bound}</u>, 
- * <u>{@link KilnMenu quickcrafting layout provide}</u>, <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType recipe type provide}</u>, 
+ * <u>{@link KilnMenu quickcrafting layout provide}</u>, <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType recipe componentExecutionType provide}</u>, 
  * etc.),
  * as JEI will automatically discover and get vanilla recipes.
  * @since 1.0 Release

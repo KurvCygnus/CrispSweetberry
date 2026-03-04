@@ -80,7 +80,7 @@ public final class CrispDefUtils
      * <li><b>Classloader Bloat:</b> It generates a unique {@code .class} file for every single call site,
      * increasing the JVM's Metaspace pressure.</li>
      * <li><b>Serialization Issues:</b> Some reflection-based systems may fail to identify the
-     * original class type due to the synthetic subclassing.</li>
+     * original class componentExecutionType due to the synthetic subclassing.</li>
      * </ul>
      * @see CompoundTag
      */

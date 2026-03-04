@@ -11,6 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.registry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block.AbstractBlockCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.entity.AbstractEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
@@ -34,12 +35,14 @@ public interface ICarryRegistry
         @NotNull ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     );
     
-    <B extends Block, A extends AbstractBlockCarryAdapter<B>> void register(
+    <B extends Block, A extends AbstractBlockCarryAdapter<B>>
+    void register(
         @NotNull B block,
         @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory
     );
     
-    <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>> void registerUniversal(
+    <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>> 
+    void registerUniversal(
         @NotNull Set<? extends B> blocks,
         @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory
     );
@@ -56,21 +59,14 @@ public interface ICarryRegistry
         @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory
     );
     
-    @FunctionalInterface
-    interface ICarryBlockEntityAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> 
-    {
-        A create(@NotNull E blockEntity);
-    }
+    @FunctionalInterface interface ICarryBlockEntityAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>>
+    extends IBaseCarryAdapterFactory<E, A> { @Override A create(E blockEntity); }
     
-    @FunctionalInterface
-    interface ICarryBlockAdapterFactory<B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
-    {
-        A create(@NotNull B blockEntity);
-    }
+    @FunctionalInterface interface ICarryBlockAdapterFactory<B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
+    extends IBaseCarryAdapterFactory<B, A> { @Override A create(B block); }
     
-    @FunctionalInterface
-    interface ICarryEntityAdapterFactory<E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
-    {
-        A create(@NotNull E blockEntity);
-    }
+    @FunctionalInterface interface ICarryEntityAdapterFactory<E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>> 
+    extends IBaseCarryAdapterFactory<E, A> { @Override A create(E entity); }
+    
+    @FunctionalInterface interface IBaseCarryAdapterFactory<C, A extends AbstractCarryAdapter> { A create(C object); }
 }

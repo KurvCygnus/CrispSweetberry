@@ -30,14 +30,15 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaBrewingStandAccessor.MAX_FUEL;
 
 /**
- * This adapter can used by any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>, 
+ * This adapter can used by any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>,
  * without editing the core logics({@code #serverTick()}) too heavily.
- * @since 1.0 Release
- * @author Kurv Cygnus
+ *
  * @param <E> Any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>.
+ * @author Kurv Cygnus
+ * @since 1.0 Release
  */
-public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity> 
-extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic
+public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity>
+extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>
 {
     protected static final int OUTPUT_SLOT_START_INDEX = 0;
     protected static final int OUTPUT_SLOT_END_INDEX = 2;
@@ -46,9 +47,9 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
     
     public BaseVanillaBrewingStandAdapter(@NotNull E blockEntity) { super(blockEntity); }
     
-    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context)
+    @Override protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity)
     {
-        final IVanillaBrewingStandAccessor accessor = getAccessor();
+        final IVanillaBrewingStandAccessor accessor = (IVanillaBrewingStandAccessor) blockEntity;
         
         if(accessor.getFuel() == 0)
         {
@@ -68,14 +69,14 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
             return;
         }
         
-        final boolean canFinishBrew = carryingTime >= accessor.getBrewTime() / getBrewRate();
+        final boolean canFinishBrew = elapsedTime >= accessor.getBrewTime() / getBrewRate();
         
-        if(!canFinishBrew) 
-            accessor.setBrewTime((int) (accessor.getBrewTime() - carryingTime));
+        if(!canFinishBrew)
+            accessor.setBrewTime((int) (accessor.getBrewTime() - elapsedTime));
         else
         {
             accessor.setBrewTime(MAX_BREWING_TIME);
-            this.doBrew(level, context.pos());
+            this.doBrew(level, context.pos(), accessor.getItems());
         }
     }
     
@@ -97,10 +98,8 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
         return false;
     }
     
-    protected final void doBrew(@NotNull ServerLevel level, @NotNull BlockPos pos)
+    protected final void doBrew(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull NonNullList<ItemStack> items)
     {
-        final NonNullList<ItemStack> items = getAccessor().getItems();
-        
         if(EventHooks.onPotionAttemptBrew(items))
             return;
         
@@ -127,11 +126,13 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
         level.levelEvent(1035, pos, 0);
     }
     
-    @Override public void onCarriedSequence(@NotNull CarriedContext context) { super.onCarriedSequence(context); }
+    @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) { super.onCarriedSequence(context, blockEntity); }
     
-    @Override public void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) { getAccessor().callSaveAdditional(tag, registries); }
+    @Override protected void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
+        { ((IVanillaBrewingStandAccessor) blockEntity).callSaveAdditional(tag, registries); }
     
-    @Override public void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) { getAccessor().callLoadAdditional(tag, registries); }
+    @Override protected void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
+        { ((IVanillaBrewingStandAccessor) blockEntity).callLoadAdditional(tag, registries); }
     
     protected @Range(from = 0, to = Integer.MAX_VALUE) int getMaxFuel() { return MAX_FUEL; }
     
@@ -139,9 +140,7 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
     
     protected @NotNull Set<Item> getFuelItemList() { return Set.of(Items.BLAZE_POWDER); }
     
-    protected final @NotNull IVanillaBrewingStandAccessor getAccessor() { return (IVanillaBrewingStandAccessor) this.blockEntity; }
+    @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity) { return ((IVanillaBrewingStandAccessor) blockEntity).getItems(); }
     
-    @Override public @NotNull NonNullList<ItemStack> getItems() { return getAccessor().getItems(); }
-    
-    @Override public float getMiscFactor() { return (float) getAccessor().getFuel() / MAX_FUEL; }
+    @Override public float getMiscFactor(@NotNull E blockEntity) { return (float) ((IVanillaBrewingStandAccessor) blockEntity).getFuel() / MAX_FUEL; }
 }

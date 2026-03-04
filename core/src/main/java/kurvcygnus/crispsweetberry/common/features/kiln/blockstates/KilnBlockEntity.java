@@ -587,7 +587,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
         return new KilnBlockEntityContext(isLit, realRate);
     }
     
-    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull KilnBlockEntityContext context, @NotNull BlockPos pos)
+    @Override public void onPlacedProcess(@NotNull ServerLevel level, long carryingTime, @NotNull KilnBlockEntityContext context, @NotNull BlockPos pos)
     {
         final AtomicCalculationResult result = this.calculator.statelessCalculate(new CalculationContext(
             carryingTime,

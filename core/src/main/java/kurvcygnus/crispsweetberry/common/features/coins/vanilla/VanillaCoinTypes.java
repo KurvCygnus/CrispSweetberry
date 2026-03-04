@@ -25,7 +25,7 @@ import static net.minecraft.world.item.Items.GOLD_NUGGET;
 import static net.minecraft.world.item.Items.IRON_NUGGET;
 
 /**
- * Enum-like coin type definitions for vanilla ores.<br>
+ * Enum-like coin componentExecutionType definitions for vanilla ores.<br>
  * We intentionally do NOT use {@link Enum} here to allow <u>{@link net.neoforged.neoforge.common.util.Lazy lazy suppliers}</u> and more flexible registration behavior.
  * @since 1.0 Release
  * @author Kurv Cygnus

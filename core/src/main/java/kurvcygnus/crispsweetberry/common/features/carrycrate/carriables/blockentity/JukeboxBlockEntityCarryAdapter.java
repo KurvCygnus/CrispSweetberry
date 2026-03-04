@@ -9,10 +9,10 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.blockentity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.AbstractBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryTickable;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
@@ -27,25 +27,25 @@ public final class JukeboxBlockEntityCarryAdapter extends AbstractBlockEntityCar
     
     public JukeboxBlockEntityCarryAdapter(@NotNull JukeboxBlockEntity blockEntity) { super(blockEntity); }
     
-    @Override public void onCarriedSequence(@NotNull CarriedContext context)
+    @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull JukeboxBlockEntity blockEntity)
     {
-        this.playingLength = this.blockEntity.getSongPlayer().getTicksSinceSongStarted();
-        this.song = this.blockEntity.getSongPlayer().getSong();
+        this.playingLength = blockEntity.getSongPlayer().getTicksSinceSongStarted();
+        this.song = blockEntity.getSongPlayer().getSong();
     }
     
-    @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate() { return NO_PENALTY; }
+    @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull JukeboxBlockEntity blockEntity) { return NO_PENALTY; }
     
-    @Override public void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) 
-    {
-        //? TODO: Cannot rely on BE's serialization.
-    }
-    
-    @Override public void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    @Override protected void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull JukeboxBlockEntity blockEntity) 
     {
         //? TODO: Cannot rely on BE's serialization.
     }
     
-    @Override public void carryingTick(@NotNull ReactContext context)
+    @Override protected void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull JukeboxBlockEntity blockEntity)
+    {
+        //? TODO: Cannot rely on BE's serialization.
+    }
+    
+    @Override public void carryingTick(@NotNull ICarryTickable.TickingContext context)
     {
         if(song == null) 
             return;
@@ -67,5 +67,5 @@ public final class JukeboxBlockEntityCarryAdapter extends AbstractBlockEntityCar
         this.playingLength++;
     }
     
-    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context) {}
+    @Override public boolean causesOverweight() { return false; }
 }

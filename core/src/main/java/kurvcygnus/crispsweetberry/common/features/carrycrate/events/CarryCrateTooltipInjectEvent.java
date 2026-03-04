@@ -6,22 +6,18 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.events;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import kurvcygnus.crispsweetberry.CrispSweetberry;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import org.jetbrains.annotations.NotNull;
 
-public interface ICarryTickable
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
+final class CarryCrateTooltipInjectEvent
 {
-    default void onCarriedSequence(@NotNull CarriedContext context) {}
-    
-    void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context);
-    
-    record CarriedContext(
-        @NotNull ServerLevel level,
-        @NotNull BlockPos pos,
-        @NotNull ServerPlayer player
-    ) {}
+    @SubscribeEvent static void editTooltip(@NotNull RenderTooltipEvent.Pre event)
+    {
+    }
 }

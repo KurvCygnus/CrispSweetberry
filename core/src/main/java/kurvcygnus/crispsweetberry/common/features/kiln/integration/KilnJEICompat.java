@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 //? TODO: Display Stuff
 
 /**
- * This is the JEI compat layer of Kiln, it holds the <u>{@link RecipeType unique recipe type}</u>, IRT recipe sync and 
+ * This is the JEI compat layer of Kiln, it holds the <u>{@link RecipeType unique recipe componentExecutionType}</u>, IRT recipe sync and 
  * <u>{@link RecipeType}</u>'s display implementation.
  * @see kurvcygnus.crispsweetberry.integrations.JEIEntrypoint Entrypoint
  * @since 1.0 Release

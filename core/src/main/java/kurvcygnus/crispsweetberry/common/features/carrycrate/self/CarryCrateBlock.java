@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.self;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Direction;

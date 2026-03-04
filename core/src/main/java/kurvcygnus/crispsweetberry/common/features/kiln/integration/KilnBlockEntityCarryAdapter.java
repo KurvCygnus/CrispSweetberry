@@ -23,31 +23,33 @@ public final class KilnBlockEntityCarryAdapter extends AbstractBlockEntityCarryA
     
     public KilnBlockEntityCarryAdapter(@NotNull KilnBlockEntity blockEntity) { super(blockEntity); }
     
-    @Override public void onCarriedSequence(@NotNull CarriedContext context)
+    @Override public void onCarriedSequence(@NotNull CarriedContext context, @NotNull KilnBlockEntity blockEntity)
     {
         final BlockState state = context.level().getBlockState(context.pos());
         
-        this.context = this.blockEntity.onCarriedSequence(context.level(), context.pos(), state, context.player());
+        this.context = blockEntity.onCarriedSequence(context.level(), context.pos(), state, context.player());
     }
     
-    @Override public void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.blockEntity.loadCustomOnly(tag, registries); }
-    
-    @Override public void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull KilnBlockEntity blockEntity)
     {
-        final CompoundTag data = this.blockEntity.saveCustomOnly(registries);
-        tag.merge(data);
-    }
-    
-    @Override public void carryTick(@NotNull ServerLevel level, long carryingTime, @NotNull CarriedContext context)
-        { this.blockEntity.carryTick(level, carryingTime, this.context, context.pos()); }
-    
-    @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate()
-    {
-        final float itemTotalRate = this.blockEntity.getContainerItems().stream().
+        final float itemTotalRate = blockEntity.getContainerItems().stream().
             map(i -> ((float) i.getCount() / i.getMaxStackSize())).
             reduce(Float::sum).
             orElse(0F);
         
         return (int) (DEFAULT_PENALTY_RATE / (1 + itemTotalRate));
     }
+    
+    @Override public void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull KilnBlockEntity blockEntity)
+        { blockEntity.onPlacedProcess(level, elapsedTime, this.context, context.pos()); }
+    
+    @Override
+    public void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull KilnBlockEntity blockEntity)
+    {
+        final CompoundTag data = blockEntity.saveCustomOnly(registries);
+        tag.merge(data);
+    }
+    
+    @Override public void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull KilnBlockEntity blockEntity)
+        { blockEntity.loadCustomOnly(tag, registries); }
 }

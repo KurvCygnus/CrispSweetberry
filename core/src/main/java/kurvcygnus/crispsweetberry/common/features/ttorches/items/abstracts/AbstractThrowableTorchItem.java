@@ -76,8 +76,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
     
     //  region
     //*:=== Use interaction logics
-    @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand)
+    @Override public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand)
     {
         final ItemStack itemstack = player.getItemInHand(hand);
         final float throwSoundPitch = 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F);

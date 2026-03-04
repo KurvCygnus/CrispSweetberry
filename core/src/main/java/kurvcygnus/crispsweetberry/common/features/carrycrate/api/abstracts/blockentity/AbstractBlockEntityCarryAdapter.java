@@ -8,36 +8,93 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarriableLifecycle;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.ICarryReactable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IAtomicCarriable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.ICarrySerializable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.ICarryTickable;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 
 /**
  * This is the basic of BlockEntity Adapters, which doesn't include any usable logics.
+ *
  * @param <E> The blockEntity this adapter takes responsibility of.
- * @apiNote <b>BlockEntity's adapter is independent.</b><br>
- * Unlike vanilla design, blockEntity's adapter doesn't relies on its corresponded Block, 
- * thus, registering blockEntity itself only is the proper way to do compat.
  * @author Kurv Cygnus
+ * @apiNote <b>BlockEntity's adapter is independent.</b><br>
+ * Unlike vanilla design, blockEntity's adapter doesn't relies on its corresponded Block,
+ * thus, registering blockEntity itself only is the proper way to do compat.
  * @see BaseVanillaFurnaceSeriesAdapter Furnace Series Adapter
  * @see BaseVanillaBrewingStandAdapter Brewing Stand Adapter
  * @see SimpleContainerBlockEntityCarryAdapter Universal Storge Container Adapter
  * @since 1.0 Release
  */
-public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity> 
-implements ICarryTickable, ICarrySerializable, ICarriableLifecycle, ICarryReactable
+public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity>
+extends AbstractCarryAdapter implements IAtomicCarriable, ICarrySerializable, IBlockEntityCarryLifecycle<E>
 {
-    protected final E blockEntity;
+    /**
+     * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
+     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
+     * <br><br>
+     * In a nutshell, <b>using {@code blockEntity} during <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>
+     * will throw <u>{@link NullPointerException}</u></b>.
+     */
+    private final @Nullable E blockEntity;
     
-    public AbstractBlockEntityCarryAdapter(@NotNull E blockEntity) 
+    public AbstractBlockEntityCarryAdapter(@Nullable E blockEntity) { this.blockEntity = blockEntity; }
+    
+    /**
+     * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
+     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
+     * <br><br>
+     * In a nutshell, <b>using {@code #getBlockEntity()} during <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>
+     * will throw <u>{@link NullPointerException}</u>, and you shouldn't use this at most cases.</b>
+     */
+    @Override public final @NotNull E getBlockEntity() 
     {
-        Objects.requireNonNull(blockEntity, "Param \"blockEntity\" must not be null!");
-        
-        this.blockEntity = blockEntity;
+        Objects.requireNonNull(blockEntity, FAIL_SUPER_FAST_MSG);
+        return blockEntity;
     }
+    
+    @Override public final void onCarriedSequence(@NotNull CarriedContext context)
+    {
+        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
+        this.onCarriedSequence(context, blockEntity);
+    }
+    
+    @Override public final void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context)
+    {
+        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
+        this.onPlacedProcess(level, elapsedTime, context, this.blockEntity);
+    }
+    
+    @Override public final void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    {
+        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
+        this.saveCarryTag(tag, registries, this.blockEntity);
+    }
+    
+    @Override public final void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    {
+        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
+        this.loadCarryTag(tag, registries, this.blockEntity);
+    }
+    
+    @Override public final @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate()
+    {
+        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
+        return this.getPenaltyRate(this.blockEntity);
+    }
+    
+    protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) {}
+    protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity) {}
+    
+    protected abstract void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
+    protected abstract void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
 }

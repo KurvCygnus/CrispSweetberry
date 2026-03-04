@@ -50,7 +50,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  *         directly, which leads to the verbosity of torch function implementation, since neither does 
  *         <u>{@link net.minecraft.world.level.block.WallTorchBlock WallTorchBlock}</u>'s inheritance relationship, nor implementing a component to carry 
  *         custom behavior(Generic can only bound one specific class) can be reused to solve this.<br>
- *         However, that can be all solved by this, it offers field <u>{@link #isWallTorch}</u> to identity the type of torch, 
+ *         However, that can be all solved by this, it offers field <u>{@link #isWallTorch}</u> to identity the componentExecutionType of torch, 
  *         which leads to different behaviors in <u>{@link AbstractTemporaryTorchBehavior behavior class}</u>.
  *     </li>
  *     <li>
@@ -71,7 +71,7 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     private final boolean isWallTorch;
     protected final T behavior;
     
-    @SuppressWarnings("DataFlowIssue")//! We don't use "flameParticle" for display, and its type is "SimpleParticleType", which is not universal, and SUCKS.
+    @SuppressWarnings("DataFlowIssue")//! We don't use "flameParticle" for display, and its componentExecutionType is "SimpleParticleType", which is not universal, and SUCKS.
     public AbstractGenericTorchBlock(@NotNull Properties properties, @NotNull T behavior, boolean isWallTorch)
     {
         super(null, requireNonNull(properties, "Param \"properties\" must not be null!"));
