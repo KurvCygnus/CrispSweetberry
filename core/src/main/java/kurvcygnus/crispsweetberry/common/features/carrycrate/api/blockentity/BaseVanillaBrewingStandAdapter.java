@@ -6,9 +6,9 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaBrewingStandAccessor;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Set;
 
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaBrewingStandAccessor.MAX_BREWING_TIME;
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaBrewingStandAccessor.MAX_FUEL;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor.MAX_BREWING_TIME;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor.MAX_FUEL;
 
 /**
  * This adapter can used by any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>,
@@ -36,10 +36,13 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @param <E> Any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>.
  * @author Kurv Cygnus
  * @since 1.0 Release
+ * @implNote The access the vanilla data relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor mixin accessor}</u>.
  */
 public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity>
 extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>
 {
+    //  region
+    //*:=== Contacts & Constructor
     protected static final int OUTPUT_SLOT_START_INDEX = 0;
     protected static final int OUTPUT_SLOT_END_INDEX = 2;
     protected static final int INGREDIENT_SLOT_INDEX = 3;
@@ -47,9 +50,11 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
     
     public BaseVanillaBrewingStandAdapter(@NotNull E blockEntity) { super(blockEntity); }
     
+    //  region
+    //*:=== Atomic processions
     @Override protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity)
     {
-        final IVanillaBrewingStandAccessor accessor = (IVanillaBrewingStandAccessor) blockEntity;
+        final CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor accessor = (CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor) blockEntity;
         
         if(accessor.getFuel() == 0)
         {
@@ -110,7 +115,7 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
             items.set(outputSlotIndex, potionbrewing.mix(ingredientItem, items.get(outputSlotIndex)));
         
         EventHooks.onPotionBrewed(items);
-        if(ingredientItem.hasCraftingRemainingItem())
+        if(ingredientItem.hasCraftingRemainingItem())//* Process only once, since potion cannot be stacked.
         {
             final ItemStack remainingItem = ingredientItem.getCraftingRemainingItem();
             ingredientItem.shrink(1);
@@ -123,16 +128,19 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
             ingredientItem.shrink(1);
         
         items.set(INGREDIENT_SLOT_INDEX, ingredientItem);
-        level.levelEvent(1035, pos, 0);
+        level.levelEvent(1035, pos, 0);//* This plays the sound of brewing stand.
     }
     
     @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) { super.onCarriedSequence(context, blockEntity); }
+    //endregion
     
+    //  region
+    //*:=== Serialization & Getter Hooks
     @Override protected void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
-        { ((IVanillaBrewingStandAccessor) blockEntity).callSaveAdditional(tag, registries); }
+        { ((CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor) blockEntity).callSaveAdditional(tag, registries); }
     
     @Override protected void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
-        { ((IVanillaBrewingStandAccessor) blockEntity).callLoadAdditional(tag, registries); }
+        { ((CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor) blockEntity).callLoadAdditional(tag, registries); }
     
     protected @Range(from = 0, to = Integer.MAX_VALUE) int getMaxFuel() { return MAX_FUEL; }
     
@@ -140,7 +148,10 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
     
     protected @NotNull Set<Item> getFuelItemList() { return Set.of(Items.BLAZE_POWDER); }
     
-    @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity) { return ((IVanillaBrewingStandAccessor) blockEntity).getItems(); }
+    @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity) 
+        { return ((CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor) blockEntity).getItems(); }
     
-    @Override public float getMiscFactor(@NotNull E blockEntity) { return (float) ((IVanillaBrewingStandAccessor) blockEntity).getFuel() / MAX_FUEL; }
+    @Override public float getMiscFactor(@NotNull E blockEntity) 
+        { return (float) ((CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor) blockEntity).getFuel() / MAX_FUEL; }
+    //endregion
 }

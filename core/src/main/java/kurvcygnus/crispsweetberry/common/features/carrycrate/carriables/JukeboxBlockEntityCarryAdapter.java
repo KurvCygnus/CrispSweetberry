@@ -6,10 +6,10 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.carriables;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.AbstractBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryTickable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -45,7 +45,7 @@ public final class JukeboxBlockEntityCarryAdapter extends AbstractBlockEntityCar
         //? TODO: Cannot rely on BE's serialization.
     }
     
-    @Override public void carryingTick(@NotNull ICarryTickable.TickingContext context)
+    @Override public void carryingTick(@NotNull CarriableExtensions.ICarryTickable.TickingContext context)
     {
         if(song == null) 
             return;

@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.entity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
@@ -17,6 +17,15 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 
+/**
+ * This is the basic of Entity Adapters, which doesn't include any usable logics.
+ * @apiNote <span style="color: 95ce6d">At the most cases, these's no need to register your own entity with an adapter.</span><br>
+ * For further details, see <u>{@link AdaptiveAnimalCarryAdapter}</u>.
+ * @param <E> The entity this adapter takes responsibility of.
+ * @author Kurv Cygnus
+ * @see AdaptiveAnimalCarryAdapter Utility Adapter
+ * @since 1.0 Release
+ */
 public abstract class AbstractEntityCarryAdapter<E extends LivingEntity> extends AbstractCarryAdapter
 {
     /**
@@ -30,7 +39,7 @@ public abstract class AbstractEntityCarryAdapter<E extends LivingEntity> extends
     
     public AbstractEntityCarryAdapter(@Nullable E entity) { this.entity = entity; }
     
-    @Override public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate();
+    @Override public abstract @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate();
     
     /**
      * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter

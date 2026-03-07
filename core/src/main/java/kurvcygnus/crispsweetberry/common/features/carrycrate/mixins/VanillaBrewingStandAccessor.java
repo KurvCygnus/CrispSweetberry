@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.mixins;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaBrewingStandAccessor;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(BrewingStandBlockEntity.class)
-public abstract class VanillaBrewingStandAccessor implements IVanillaBrewingStandAccessor
+public abstract class VanillaBrewingStandAccessor implements CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor
 {
     @Accessor @Override public abstract @NotNull NonNullList<ItemStack> getItems();
     @Accessor @Override public abstract int getBrewTime();

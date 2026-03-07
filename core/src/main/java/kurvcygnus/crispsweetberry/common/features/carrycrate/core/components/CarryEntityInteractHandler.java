@@ -10,10 +10,10 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.components;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.entity.AbstractEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.registry.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.registry.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -28,8 +28,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class CarryEntityInteractHandler extends AbstractCarryInteractHandler
 {
@@ -61,8 +61,15 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         }
         
         
-        final AbstractEntityCarryAdapter<?> adapter = createAdapter(targetEntity);
-        final CarryData insertData = CarryData.createEntity(adapter.getPenaltyRate(), targetEntity.getType(), tagData, level.getGameTime());
+        final var optionalAdapter = createAdapter(targetEntity);
+        
+        if(optionalAdapter.isEmpty())
+        {
+            LOGGER.error("Cannot find entity \"{}\"'s adapter!", targetEntity.toString());
+            return HandleResult.failed();
+        }
+        
+        final CarryData insertData = CarryData.createEntity(optionalAdapter.get().getPenaltyRate(), targetEntity.getType(), tagData, level.getGameTime());
         
         return HandleResult.boxIn(insertData, InteractionResult.SUCCESS, uuid, false);
     }
@@ -80,23 +87,18 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
     
     @Override protected @NotNull ResourceLocation getCarryResourceLocation() { return EntityType.getKey(getTargetEntity().getType()); }
     
-    private static @NotNull AbstractEntityCarryAdapter<?> createAdapter(@NotNull LivingEntity entity)
-        { return createAdapter(getEntityRegistry().get(entity.getType()), entity); }
+    private static @NotNull Optional<AbstractEntityCarryAdapter<?>> createAdapter(@NotNull LivingEntity entity)
+    {
+        final var factory = CarryRegistryManager.INSTANCE.getEntityAdapter(entity.getType());
+        
+        return factory.map(f -> createAdapter(f, entity));
+    }
     
     @SuppressWarnings("unchecked")//! Safe casting UwU
     private static <E extends LivingEntity> AbstractEntityCarryAdapter<? extends E> createAdapter(
         @NotNull ICarryRegistry.ICarryEntityAdapterFactory<E, ?> factory,
         @NotNull LivingEntity entity
     ) { return factory.create((E) entity); }
-    
-    private static @NotNull HashMap<
-        EntityType<? extends LivingEntity>,
-        ICarryRegistry.ICarryEntityAdapterFactory<
-            ? extends LivingEntity,
-            ? extends AbstractEntityCarryAdapter<? extends LivingEntity>
-            >
-        >
-    getEntityRegistry() { return CarryRegistryManager.INSTANCE.getEntityRegistry(); }
     
     @Override protected @NotNull MarkLogger getLogger() { return LOGGER; }
 }

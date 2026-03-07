@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.mixins;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IBaseContainerAccessor;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(BaseContainerBlockEntity.class)
-public abstract class BaseContainerAccessor implements IBaseContainerAccessor
+public abstract class BaseContainerAccessor implements CarriableVanillaBlockEntityAccessors.IBaseContainerAccessor
 {
     @Override @Invoker public abstract @NotNull NonNullList<ItemStack> callGetItems();
 }

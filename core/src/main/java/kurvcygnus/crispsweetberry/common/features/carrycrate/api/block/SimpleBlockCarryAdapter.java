@@ -6,15 +6,16 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.block;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.block.ICarryStackable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryBlockStackable;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 /**
- * This is an universal adapter that supports most blocks.<br>
+ * <h3>This is an universal adapter that supports most blocks.</h3><br>
  * It works perfectly on:
  * <ul>
  *     <li>
@@ -43,12 +44,12 @@ import org.jetbrains.annotations.Range;
  * @apiNote It is recommend to use <u>{@link net.neoforged.neoforge.registries.DeferredHolder DeferredHolder}</u>, 
  * rather than <u>{@link net.minecraft.core.Holder Holder}</u> for 
  * {@link kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent registry}.<br>
- * Carry Crate's registerUniversal system has strict generic constraints, and <u>{@link net.minecraft.core.Holder Holder}</u> will erase the 
+ * Carry Crate's register system has strict generic constraints, and <u>{@link net.minecraft.core.Holder Holder}</u> will erase the 
  * detailed Block Type.
  * @since 1.0 Release
  * @author Kurv Cygnus
- * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarriableLifecycle Lifecycle Interface
- * @see ICarryStackable Block Carry Support Interface
+ * @see CarriableExtensions.ICarriableLifecycle Lifecycle Interface
+ * @see ICarryBlockStackable Block Carry Support Interface
  * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent Register Event
  * @param <B> The block this adapter takes responsibility of.
  */
@@ -58,7 +59,7 @@ public class SimpleBlockCarryAdapter<B extends Block> extends AbstractBlockCarry
     
     public SimpleBlockCarryAdapter(@NotNull B block) { super(block); }
     
-    @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate() { return DEFAULT_PENALTY_RATE; }
+    @Override public @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate() { return DEFAULT_PENALTY_RATE; }
     
-    @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getAcceptableCount() { return DEFAULT_ACCEPTABLE_COUNT; }
+    @Override public @Range(from = 1, to = Integer.MAX_VALUE) int getAcceptableCount() { return DEFAULT_ACCEPTABLE_COUNT; }
 }

@@ -9,20 +9,24 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
-import org.jetbrains.annotations.ApiStatus;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.SimpleBlockCarryAdapter;
+import org.jetbrains.annotations.Range;
 
 /**
- * This is the basic of all carry adapters.<br>
- * It features {@code penaltyRate} definition, and ticking logic.
+ * This interface holds the ability of <b>boxing multi blocks for a single carry crate</b>.
  * @since 1.0 Release
- * @see AbstractBlockCarryAdapter Block Base Adapter
- * @see AbstractBlockEntityCarryAdapter BlockEntity Base Adapter
- * @see AbstractEntityCarryAdapter Entity Base Adapter
  * @author Kurv Cygnus
+ * @see AbstractBlockCarryAdapter Base Block Adapter
  */
-@ApiStatus.Internal
-public abstract class AbstractCarryAdapter implements CarriableExtensions.ICarriableLifecycle, CarriableExtensions.ICarryTickable
+public interface ICarryBlockStackable
 {
+    /**
+     * Gets the max count of this adapter's <u>{@link net.minecraft.world.level.block.Block bounded block}</u> 
+     * can take.<br><br>
+     * 
+     * The higher it is, the more carry crate could take.
+     * @apiNote {@code 1} is the default value of 
+     * <u>{@link SimpleBlockCarryAdapter Universal Block Adapter}</u>.
+     */
+    @Range(from = 1, to = Integer.MAX_VALUE) int getAcceptableCount();
 }

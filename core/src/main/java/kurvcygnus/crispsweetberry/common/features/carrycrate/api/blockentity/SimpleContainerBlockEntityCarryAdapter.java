@@ -6,9 +6,9 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IBaseContainerAccessor;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import org.jetbrains.annotations.NotNull;
 
-//? TODO: BIG CHEST TSET. NBT IO Logic may have issues.
+//? TODO: BIG CHEST TEST. NBT IO Logic may have issues.
 public class SimpleContainerBlockEntityCarryAdapter<E extends BaseContainerBlockEntity>
 extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>
 {
@@ -33,5 +33,6 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
     
     @Override public final void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) {}
     
-    @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity) { return ((IBaseContainerAccessor) blockEntity).callGetItems(); }
+    @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity) 
+        { return ((CarriableVanillaBlockEntityAccessors.IBaseContainerAccessor) blockEntity).callGetItems(); }
 }

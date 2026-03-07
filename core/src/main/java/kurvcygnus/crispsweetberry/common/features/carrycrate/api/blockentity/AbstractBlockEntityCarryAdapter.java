@@ -6,12 +6,11 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IAtomicCarriable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IBlockEntityCarryLifecycle;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.ICarrySerializable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.IAtomicCarriable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -22,10 +21,12 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.ICarrySerializable;
+
 /**
  * This is the basic of BlockEntity Adapters, which doesn't include any usable logics.
  *
- * @param <E> The blockEntity this adapter takes responsibility of.
+ * @param <E> The blockEntity this adapter takes responsibility of
  * @author Kurv Cygnus
  * @apiNote <b>BlockEntity's adapter is independent.</b><br>
  * Unlike vanilla design, blockEntity's adapter doesn't relies on its corresponded Block,
@@ -38,6 +39,8 @@ import java.util.Objects;
 public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity>
 extends AbstractCarryAdapter implements IAtomicCarriable, ICarrySerializable, IBlockEntityCarryLifecycle<E>
 {
+    //  region
+    //*:=== Core Logics
     /**
      * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
      * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
@@ -56,40 +59,10 @@ extends AbstractCarryAdapter implements IAtomicCarriable, ICarrySerializable, IB
      * In a nutshell, <b>using {@code #getBlockEntity()} during <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>
      * will throw <u>{@link NullPointerException}</u>, and you shouldn't use this at most cases.</b>
      */
-    @Override public final @NotNull E getBlockEntity() 
+    @Override public final @NotNull E getBlockEntity()
     {
-        Objects.requireNonNull(blockEntity, FAIL_SUPER_FAST_MSG);
+        Objects.requireNonNull(blockEntity, INVALID_CALL_FAIL_MESSAGE);
         return blockEntity;
-    }
-    
-    @Override public final void onCarriedSequence(@NotNull CarriedContext context)
-    {
-        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
-        this.onCarriedSequence(context, blockEntity);
-    }
-    
-    @Override public final void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context)
-    {
-        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
-        this.onPlacedProcess(level, elapsedTime, context, this.blockEntity);
-    }
-    
-    @Override public final void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
-    {
-        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
-        this.saveCarryTag(tag, registries, this.blockEntity);
-    }
-    
-    @Override public final void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
-    {
-        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
-        this.loadCarryTag(tag, registries, this.blockEntity);
-    }
-    
-    @Override public final @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate()
-    {
-        Objects.requireNonNull(this.blockEntity, FAIL_SUPER_FAST_MSG);//! See blockEntity's Javadoc.
-        return this.getPenaltyRate(this.blockEntity);
     }
     
     protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) {}
@@ -97,4 +70,38 @@ extends AbstractCarryAdapter implements IAtomicCarriable, ICarrySerializable, IB
     
     protected abstract void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
     protected abstract void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
+    //endregion
+    
+    //  region
+    //*:=== Bridge methods
+    @Override public final void onCarriedSequence(@NotNull CarriedContext context)
+    {
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        this.onCarriedSequence(context, blockEntity);
+    }
+    
+    @Override public final void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context)
+    {
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        this.onPlacedProcess(level, elapsedTime, context, this.blockEntity);
+    }
+    
+    @Override public final void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    {
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        this.saveCarryTag(tag, registries, this.blockEntity);
+    }
+    
+    @Override public final void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
+    {
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        this.loadCarryTag(tag, registries, this.blockEntity);
+    }
+    
+    @Override public final @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate()
+    {
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        return this.getPenaltyRate(this.blockEntity);
+    }
+    //endregion
 }

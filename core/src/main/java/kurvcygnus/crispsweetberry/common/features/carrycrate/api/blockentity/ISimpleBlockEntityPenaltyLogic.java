@@ -6,18 +6,32 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IBlockEntityCarryLifecycle;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import org.jetbrains.annotations.NotNull;
 
-public interface ISimpleBlockEntityPenaltyLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>
+/**
+ * This interface provides a simple yet universal <u>{@link #getPenaltyRate() penaltyRate formula}</u> for blockEntity adapters.
+ * @param <E> The blockEntity this adapter takes responsibility of.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
+public interface ISimpleBlockEntityPenaltyLogic<E extends BlockEntity> extends CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle<E>
 {
+    /**
+     * A abstract method to get item list, which is essential for penaltyRate's <u>{@link #getPenaltyRate() calculation}</u>.
+     */
     @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity);
     
+    /**
+     * Provides {@code blockEntity} for further customization on final penaltyRate.
+     * @see BaseVanillaBrewingStandAdapter#getMiscFactor(BrewingStandBlockEntity) Use Example 
+     */
     default float getMiscFactor(@NotNull E blockEntity) { return 0F; }
     
     @Override default int getPenaltyRate(@NotNull E blockEntity)

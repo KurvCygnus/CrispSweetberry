@@ -6,9 +6,9 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IVanillaFurnaceSeriesAccessor;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -24,21 +24,31 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
+ * This adapter can used by any blockEntity that inherits <u>{@link AbstractFurnaceBlockEntity}</u>,
+ * without editing the core logics({@code #serverTick()}) too heavily.
  *
- * @param <E>
+ * @param <E> Any blockEntity that inherits <u>{@link AbstractFurnaceBlockEntity}</u>.
+ * @author Kurv Cygnus
+ * @since 1.0 Release
+ * @implNote The access the vanilla data relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor mixin accessor}</u>.
  */
 public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntity>
-    extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>
 {
+    // region
+    //*:=== Constants & Constructor
     protected static final int INPUT_SLOT_INDEX = 0;
     protected static final int FUEL_SLOT_INDEX = 1;
     protected static final int OUTPUT_SLOT_INDEX = 2;
     
     public BaseVanillaFurnaceSeriesAdapter(@NotNull E blockEntity) { super(blockEntity); }
+    //endregion
     
+    //  region
+    //*:=== Atomic processions
     @Override protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity)
     {
-        final IVanillaFurnaceSeriesAccessor accessor = (IVanillaFurnaceSeriesAccessor) blockEntity;
+        final CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor accessor = (CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor) blockEntity;
         final int maxStackSize = blockEntity.getMaxStackSize();
         
         final ItemStack input = getInputItem(blockEntity);
@@ -115,21 +125,6 @@ public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntit
             accessor.setLitTime(accessor.getLitTime() - (int) canBurnFor);
             remainingTime -= canBurnFor;
         }
-    }
-    
-    @Override protected void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
-        { ((IVanillaFurnaceSeriesAccessor) blockEntity).callSaveAdditional(tag, registries); }
-    
-    @Override protected void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
-        { ((IVanillaFurnaceSeriesAccessor) blockEntity).callLoadAdditional(tag, registries); }
-    
-    @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) { super.onCarriedSequence(context, blockEntity); }
-    
-    protected final int getTotalCookTime(@NotNull ServerLevel level, @NotNull E blockEntity)
-    {
-        return ((IVanillaFurnaceSeriesAccessor) blockEntity).getQuickCheck().getRecipeFor(new SingleRecipeInput(getInputItem(blockEntity)), level).
-            map(r -> r.value().getCookingTime()).
-            orElse(200);
     }
     
     protected boolean canBurn(
@@ -228,7 +223,33 @@ public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntit
             blockEntity.setItem(FUEL_SLOT_INDEX, new ItemStack(Items.WATER_BUCKET));
         
         input.shrink(count);
-        ((IVanillaFurnaceSeriesAccessor) blockEntity).callSetRecipeUsed(recipe);
+        ((CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor) blockEntity).callSetRecipeUsed(recipe);
+    }
+    
+    protected final void cooldown(long carryingTime, @NotNull CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor accessor)
+    {
+        accessor.setLitTime((int) Math.max(0, accessor.getLitTime() - carryingTime));
+        accessor.setCookingProgress(0);
+    }
+    
+    protected final void resetProgress(@NotNull CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor accessor) { accessor.setCookingProgress(0); }
+    
+    @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) { super.onCarriedSequence(context, blockEntity); }
+    //endregion
+    
+    //  region
+    //*:=== Serialization & Getter Hooks
+    @Override protected void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
+        { ((CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor) blockEntity).callSaveAdditional(tag, registries); }
+    
+    @Override protected void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
+        { ((CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor) blockEntity).callLoadAdditional(tag, registries); }
+    
+    protected final int getTotalCookTime(@NotNull ServerLevel level, @NotNull E blockEntity)
+    {
+        return ((CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor) blockEntity).getQuickCheck().getRecipeFor(new SingleRecipeInput(getInputItem(blockEntity)), level).
+            map(r -> r.value().getCookingTime()).
+            orElse(200);
     }
     
     protected final @NotNull ItemStack getFuelItem(@NotNull E blockEntity) { return blockEntity.getItem(FUEL_SLOT_INDEX); }
@@ -237,13 +258,7 @@ public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntit
     
     protected final @NotNull ItemStack getResultItem(@NotNull E blockEntity) { return blockEntity.getItem(OUTPUT_SLOT_INDEX); }
     
-    protected final void cooldown(long carryingTime, @NotNull IVanillaFurnaceSeriesAccessor accessor)
-    {
-        accessor.setLitTime((int) Math.max(0, accessor.getLitTime() - carryingTime));
-        accessor.setCookingProgress(0);
-    }
-    
-    protected final void resetProgress(@NotNull IVanillaFurnaceSeriesAccessor accessor) { accessor.setCookingProgress(0); }
-    
-    @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity) { return ((IVanillaFurnaceSeriesAccessor) blockEntity).callGetItems(); }
+    @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity)
+        { return ((CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor) blockEntity).callGetItems(); }
+    //endregion
 }

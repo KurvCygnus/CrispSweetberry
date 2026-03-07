@@ -11,17 +11,16 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block.AbstractBlockCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.AbstractBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.entity.AbstractEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryTickable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.registry.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryType;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.registry.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
@@ -61,12 +60,12 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+//? TODO: Oh shit, I forgot to process container issues, ass
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryEngine
 {
     INSTANCE;
     
-    //? TODO: Persistence listeners on game saving.
     private static final HashMap<String, ICarryRegistry.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>>>
         BLOCK_ENTITY_CARRY_LISTENERS = new HashMap<>();
     private static final HashMap<String, ICarryRegistry.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>>>
@@ -74,8 +73,8 @@ public enum CarryEngine
     private static final HashMap<String, ICarryRegistry.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>>>
         BLOCK_CARRY_LISTENERS = new HashMap<>();
     
+    private static final int PENALTY_QUANTITY = 10;
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_ENGINE");
-    private static final int MAX_COUNTER = 60;
     
     static final class CarryListenerSaveData extends SavedData
     {
@@ -91,9 +90,10 @@ public enum CarryEngine
             final ListTag entryList = new ListTag();
             
             final BiConsumer<String, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> insertToData = 
-                (id, uwu) ->
+                (id, $uwu$) ->
                 {
                     final String[] keys = id.split("§");
+                    
                     if(keys.length != 2)
                     {
                         LOGGER.error("Invalid CarryID: {}", id);
@@ -128,7 +128,6 @@ public enum CarryEngine
         private static @NotNull CarryListenerSaveData load(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
         {
             final CarryListenerSaveData data = new CarryListenerSaveData();
-            
             data.entries = tag.getList(ENTRIES, 10);
             
             return data;
@@ -166,24 +165,24 @@ public enum CarryEngine
                             final ResourceLocation resourceLocation = ResourceLocation.parse(id);
                             
                             final CarryRegistryManager manager = CarryRegistryManager.INSTANCE;
-                            final var blockRecoverRef = manager.getRecoveryBlockRegistry();
-                            final var blockEntityRecoverRef = manager.getRecoveryBlockEntityRegistry();
-                            final var entityRecoverRef = manager.getRecoveryEntityRegistry();
+                            final var blockAdapter = manager.getBlockAdapter(resourceLocation);
+                            final var blockEntityAdapter = manager.getBlockEntityAdapter(resourceLocation);
+                            final var entityAdapter = manager.getEntityAdapter(resourceLocation);
                             
-                            if(blockRecoverRef.containsKey(resourceLocation))
+                            if(blockAdapter.isPresent())
                             {
                                 LOGGER.debug("Recovered a block listener with ID: {}.", fullID);
-                                BLOCK_CARRY_LISTENERS.put(fullID, blockRecoverRef.get(resourceLocation));
+                                BLOCK_CARRY_LISTENERS.put(fullID, blockAdapter.get());
                             }
-                            else if(blockEntityRecoverRef.containsKey(resourceLocation))
+                            else if(blockEntityAdapter.isPresent())
                             {
                                 LOGGER.debug("Recovered a blockEntity listener with ID: {}.", fullID);
-                                BLOCK_ENTITY_CARRY_LISTENERS.put(fullID, blockEntityRecoverRef.get(resourceLocation));
+                                BLOCK_ENTITY_CARRY_LISTENERS.put(fullID, blockEntityAdapter.get());
                             }
-                            else if(entityRecoverRef.containsKey(resourceLocation))
+                            else if(entityAdapter.isPresent())
                             {
                                 LOGGER.debug("Recovered a entity listener with ID: {}.", fullID);
-                                ENTITY_CARRY_LISTENERS.put(fullID, entityRecoverRef.get(resourceLocation));
+                                ENTITY_CARRY_LISTENERS.put(fullID, entityAdapter.get());
                             }
                         }
                     )
@@ -191,28 +190,28 @@ public enum CarryEngine
             
             handle.changeMarker("CARRY_ENGINE_STARTED");
             LOGGER.debug("Listeners recovered. Carry engine, start!");
-            CarryRegistryManager.INSTANCE.freezeRecoveryAccess();
         }
     }
     
+    //? TODO: Overweight effect.
     public static void carryingTick(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, int slotId)
     {
-        if(carryCrate.has(CarryCrateRegistries.CARRY_ID.get()) && carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
+        if(!carryCrate.has(CarryCrateRegistries.CARRY_ID.get()) && !carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
             return;
         
-        final ICarryTickable.TickingContext context = new ICarryTickable.TickingContext(carryCrate, level, entity, slotId);
-        final String uuid = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
+        final CarriableExtensions.ICarryTickable.TickingContext context = new CarriableExtensions.ICarryTickable.TickingContext(carryCrate, level, entity, slotId);
+        final String carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        final int[] penaltyInfo = new int[1];//* Array is referenceable, it can be used by lambda.
-        assert uuid != null;//! carryCrate#has() has granted the safety.
+        assert carryID != null;//! carryCrate#has() has granted the safety.
         assert data != null;
+        
+        final int penaltyRate = data.data().getPenaltyRate();
         
         final Consumer<HashMap<String, ? extends ICarryRegistry.IBaseCarryAdapterFactory<?, ?>>> tickAction = 
             map ->
             {
-                final AbstractCarryAdapter adapter = map.get(uuid).create(null);
-                adapter.carryingTick(context);
-                penaltyInfo[0] = adapter.getPenaltyRate();
+                final AbstractCarryAdapter adapter = map.get(carryID).create(null);
+                adapter.carryingTick(context);//? TODO: #carryingTick() should have a return value, like Tag or something else.
             }; 
         
         switch(data.carryType())
@@ -223,14 +222,14 @@ public enum CarryEngine
         }
         
         //! This has already implicitly checked whether it is clientside.
-        if(!(entity instanceof ServerPlayer player) || penaltyInfo[0] == 0)
+        if(!(entity instanceof ServerPlayer player) || penaltyRate == 0)
             return;
         
         final int currentCounter = Objects.requireNonNullElse(carryCrate.get(CarryCrateRegistries.CARRY_TICK_COUNTER.get()), 0);
         
-        if(currentCounter + 1 >= MAX_COUNTER)
+        if(currentCounter + 1 >= penaltyRate)
         {
-            carryCrate.hurtAndBreak(penaltyInfo[0], (ServerLevel) level, player, i -> 
+            carryCrate.hurtAndBreak(PENALTY_QUANTITY, (ServerLevel) level, player, i -> 
                 {
                     //? TODO UwU
                 }
@@ -284,12 +283,12 @@ public enum CarryEngine
             handle.changeMarker("ACTION_SELECT");
             LOGGER.debug("Picking {} as the current action.", action.name());
             
-            if(action == CarryType.BLOCK_ENTITY && !CarryRegistryManager.INSTANCE.getBlockEntityRegistry().containsKey(blockEntity.getType()))
+            if(action == CarryType.BLOCK_ENTITY && CarryRegistryManager.INSTANCE.getBlockEntityAdapter(blockEntity.getType()).isEmpty())
             {
                 LOGGER.debug("BlockEntity \"{}\" is not supported by carry crate. Skipped.", blockEntity.toString());
                 return InteractionResult.PASS;
             }
-            else if(action == CarryType.BLOCK && !CarryRegistryManager.INSTANCE.getBlockRegistry().containsKey(state.getBlock()))
+            else if(action == CarryType.BLOCK && CarryRegistryManager.INSTANCE.getBlockAdapter(state.getBlock()).isEmpty())
             {
                 LOGGER.debug("Block \"{}\" is not supported by carry crate. Skipped.", state.getBlock().getDescriptionId());
                 return InteractionResult.PASS;
@@ -299,7 +298,7 @@ public enum CarryEngine
             LOGGER.debug("Trying to get the CarryID of this carry crate...");
             
             final @Nullable String carryID = context.getItemInHand().get(CarryCrateRegistries.CARRY_ID.get());
-            LOGGER.debug("Got CarryID: \"{}\"", carryID == null ? "N/A" : carryID);
+            LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
             
             final AbstractCarryInteractHandler handler = action.createHandler(
                 (ServerLevel) context.getLevel(),
@@ -350,24 +349,45 @@ public enum CarryEngine
                 {
                     if(result.shouldAddListener() && optionalData.isPresent())
                     {
-                        markDirty(level);
                         switch(action)
                         {
                             case BLOCK_ENTITY ->
                             {
                                 final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = optionalData.get().data();
                                 
-                                BLOCK_ENTITY_CARRY_LISTENERS.put(
-                                    id,
-                                    CarryRegistryManager.INSTANCE.getBlockEntityRegistry().get(blockEntityDataHolder.getType())
+                                final var optionalFactory = 
+                                    CarryRegistryManager.INSTANCE.getBlockEntityAdapter(blockEntityDataHolder.getType());
+                                
+                                optionalFactory.ifPresent(
+                                    factory ->
+                                    {
+                                        BLOCK_ENTITY_CARRY_LISTENERS.put(id, factory);
+                                        markDirty(level);
+                                    }
+                                );
+                                
+                                LOGGER.when(optionalFactory.isEmpty()).error(
+                                    "Cannot find blockEntity \"{}\"'s adapter factory!",
+                                    blockEntityDataHolder.getType().toString()
                                 );
                             }
                             case BLOCK ->
                             {
                                 final CarryData.CarryBlockDataHolder blockDataHolder = optionalData.get().data();
-                                BLOCK_CARRY_LISTENERS.put(
-                                    id,
-                                    CarryRegistryManager.INSTANCE.getBlockRegistry().get(blockDataHolder.getState().getBlock())
+                                final var optionalFactory = 
+                                    CarryRegistryManager.INSTANCE.getBlockAdapter(blockDataHolder.getState().getBlock());
+                                
+                                optionalFactory.ifPresent(
+                                    factory ->
+                                    {
+                                        BLOCK_CARRY_LISTENERS.put(id, factory);
+                                        markDirty(level);
+                                    }
+                                );
+                                
+                                LOGGER.when(optionalFactory.isEmpty()).error(
+                                    "Cannot find block \"{}\"'s adapter factory!",
+                                    blockDataHolder.getState().getBlock().getDescriptionId()
                                 );
                             }
                             case ENTITY -> {}
@@ -401,7 +421,7 @@ public enum CarryEngine
         @NotNull LivingEntity interactionTarget
     )
     {
-        if(!CarryRegistryManager.INSTANCE.getEntityRegistry().containsKey(interactionTarget.getType()))
+        if(CarryRegistryManager.INSTANCE.getEntityAdapter(interactionTarget.getType()).isEmpty())
         {
             LOGGER.debug("Entity \"{}\" is not supported by carry crate. Skipped.", interactionTarget.toString());
             return InteractionResult.PASS;
@@ -456,8 +476,21 @@ public enum CarryEngine
             if(result.shouldAddListener() && optionalData.isPresent())
             {
                 final CarryData.CarryEntityDataHolder entityDataHolder = optionalData.get().data();
-                ENTITY_CARRY_LISTENERS.put(optionalCarryID.get(), CarryRegistryManager.INSTANCE.getEntityRegistry().get(entityDataHolder.getType()));
-                markDirty((ServerLevel) level);
+                final var optionalFactory = 
+                    CarryRegistryManager.INSTANCE.getEntityAdapter(entityDataHolder.getType());
+                
+                optionalFactory.ifPresent(
+                    factory ->
+                    {
+                        ENTITY_CARRY_LISTENERS.put(optionalCarryID.get(), factory);
+                        markDirty((ServerLevel) level);
+                    }
+                );
+                
+                LOGGER.when(optionalFactory.isEmpty()).error(
+                    "Cannot find entity \"{}\"'s factory!",
+                    interactionTarget.toString()
+                );
             }
             else if(result.shouldRemoveListener())
             {

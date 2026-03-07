@@ -6,10 +6,10 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.block;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.block;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.block.ICarryStackable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryBlockStackable;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import java.util.Objects;
  * @see SimpleBlockCarryAdapter Utility Adapter
  * @since 1.0 Release
  */
-public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter implements ICarryStackable
+public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter implements ICarryBlockStackable
 {
     /**
      * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter 
@@ -39,9 +39,9 @@ public abstract class AbstractBlockCarryAdapter<B extends Block> extends Abstrac
     
     public AbstractBlockCarryAdapter(@Nullable B block) { this.block = block; }
     
-    @Override public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate();
+    @Override public abstract @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate();
     
-    @Override public abstract @Range(from = 0, to = Integer.MAX_VALUE) int getAcceptableCount();
+    @Override public abstract @Range(from = 1, to = Integer.MAX_VALUE) int getAcceptableCount();
     
     /**
      * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
@@ -55,7 +55,7 @@ public abstract class AbstractBlockCarryAdapter<B extends Block> extends Abstrac
         Objects.requireNonNull(
             block,
             """
-                Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
+                Assertion failed: Field "block" happens to be null, this shouldn't be happen, which usually means
                 method is called at improper time, with improper param. %s
                 """.
                 formatted(MiscConstants.FEEDBACK_MESSAGE)

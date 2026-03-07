@@ -10,11 +10,11 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.components;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.abstracts.blockentity.AbstractBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.blockentity.IAtomicCarriable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.registry.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.registry.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public final class CarryBlockEntityInteractHandler extends AbstractCarryInteractHandler
 {
@@ -60,10 +61,20 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         final BlockPos targetPos = getTargetPos();
         LOGGER.debug("Generated a new CarryID \"{}\" for indexing.", carryID);
         
-        final AbstractBlockEntityCarryAdapter<?> adapter = createAdapter(blockEntity.getType(), targetPos, targetState);
+        @SuppressWarnings("DuplicatedCode")//! A little boilerplate code is OK.
+        final var optionalAdapter = createAdapter(blockEntity.getType(), targetPos, targetState);
+        
+        if(optionalAdapter.isEmpty())
+        {
+            LOGGER.error("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntity.toString());
+            return HandleResult.failed();
+        }
+        
+        final AbstractBlockEntityCarryAdapter<?> adapter = optionalAdapter.get();
+        
         final CompoundTag tagData = new CompoundTag();
-        adapter.onCarriedSequence(new IAtomicCarriable.CarriedContext(this.level, targetPos, this.player));
-        adapter.saveCarryTag(tagData, level.registryAccess());//* Carry sequence may have side effects on BE's data, we should save data after it.
+        adapter.onCarriedSequence(new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(this.level, targetPos, this.player));
+        adapter.saveCarryTag(tagData, level.registryAccess());//* #onCarriedSequence() may have side effects on BE's data, we should save data after it.
         
         final CarryData insertData = CarryData.createBlockEntity(
             targetState,
@@ -87,18 +98,27 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         Objects.requireNonNull(data, MISUSE_FAIL_MSG);
         
         final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.data();
-        final AbstractBlockEntityCarryAdapter<?> adapter = createAdapter(blockEntityDataHolder.getType(), targetPos, targetState);
+        final var optionalAdapter = createAdapter(blockEntityDataHolder.getType(), targetPos, targetState);
+        
+        if(optionalAdapter.isEmpty())
+        {
+            LOGGER.error("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntity.toString());
+            return HandleResult.failed();
+        }
+        
+        final AbstractBlockEntityCarryAdapter<? extends BlockEntity> adapter = optionalAdapter.get();
+        
         final CompoundTag tagData = new CompoundTag();
-        adapter.loadCarryTag(tagData, this.level.registryAccess());
         adapter.onPlacedProcess(
             this.level,
             this.level.getGameTime() - data.startTime(),
-            new IAtomicCarriable.CarriedContext(
+            new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(
                 this.level,
                 targetPos,
                 this.player
             )
         );
+        adapter.loadCarryTag(tagData, this.level.registryAccess());//* #onPlacedProcess() may have side effects on BE's data, we should load data after it.
         
         return HandleResult.unbox(
             CarryData.createBlockEntity(
@@ -121,30 +141,35 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         );
     }
     
-    private static @NotNull AbstractBlockEntityCarryAdapter<? extends BlockEntity> createAdapter(
+    private static @NotNull Optional<AbstractBlockEntityCarryAdapter<? extends BlockEntity>> createAdapter(
         @NotNull BlockEntityType<? extends BlockEntity> blockEntityType,
         @NotNull BlockPos pos,
         @NotNull BlockState state
     )
     {
-        return createAdapter(
-            CarryRegistryManager.INSTANCE.getBlockEntityRegistry().get(blockEntityType),
-            //! This method returns "null" at extreme edge cases.
-            Objects.requireNonNull(
-                blockEntityType.create(pos, state),
-                """
-                    Fatal:
-                    Failed to create blockEntity "%s"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
-                    method is called at improper time.
-                    
-                    %s
-                    """.
-                    formatted(
-                        blockEntityType.toString(),
-                        MiscConstants.FEEDBACK_MESSAGE
+        final var factory = CarryRegistryManager.INSTANCE.getBlockEntityAdapter(blockEntityType);
+        
+        return factory.map(
+            adapterFactory ->
+                createAdapter(
+                    adapterFactory,
+                    Objects.requireNonNull(
+                        blockEntityType.create(pos, state),
+                        """
+                               Fatal:
+                               Failed to create blockEntity "%s"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
+                               method is called at improper time.
+                               
+                               %s
+                               """.
+                            formatted(
+                                blockEntityType.toString(),
+                                MiscConstants.FEEDBACK_MESSAGE
+                            )
                     )
-            )
+                )
         );
+        
     }
     
     @SuppressWarnings("unchecked")//! Safe casting OwO
