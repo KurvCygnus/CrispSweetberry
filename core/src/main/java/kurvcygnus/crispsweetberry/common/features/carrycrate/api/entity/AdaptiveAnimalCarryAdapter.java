@@ -21,8 +21,8 @@ import org.jetbrains.annotations.Range;
  * @apiNote At most cases, animal entity's compat is not necessary.<br>
  * Before the Carry Registry's access frozen, an automatic compat task will be activated to find, and register 
  * animal entities that meet the <u>{@link #MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME condition}</u>.<br><br>
- * <b>So, for most custom animals, there's no need to write compat manually</b>, unless you have further customization demand, then you should 
- * write it, and the auto compat will ignore it.
+ * <b>So, for most custom animals, there's even no need to write compat manually</b>, unless you have further customization demand, then you should 
+ * write it, and the auto compat will ignore this entity.
  */
 public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends AbstractEntityCarryAdapter<E>
 {

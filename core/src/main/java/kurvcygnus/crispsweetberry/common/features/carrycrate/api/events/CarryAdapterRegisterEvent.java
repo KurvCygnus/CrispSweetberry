@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 /**
- * A event makes adapter's registration available.<br>
+ * A event that makes adapter's registration available.<br>
  * It is fired during the <u>{@link net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent common setup}</u>.
  * @apiNote Before registration compat, it's strongly recommended to see <u>{@link AbstractBlockCarryAdapter}</u> and 
  * <u>{@link AbstractBlockEntityCarryAdapter}</u> first, since they have different constraints from Vanilla's principle.
@@ -46,7 +46,8 @@ public final class CarryAdapterRegisterEvent extends Event
      * even the child blockEntities are not allowed. For universal case, use 
      * <u>{@link #registerUniversal(ICarryRegistry.ICarryBlockEntityAdapterFactory, BlockEntityType[])}</u> instead.
      * @implSpec <pre>{@code
-     *  @SubscribeEvent static void register(@NotNull CarryAdapterRegisterEvent event)
+     *  @SubscribeEvent 
+     *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.register(
      *          BlockEntityType.BREWING_STAND,
@@ -79,7 +80,8 @@ public final class CarryAdapterRegisterEvent extends Event
      * @param <A> The detailed type of the blockEntity's adapter, it only requires the blockEntityTypes are assignable from 
      *           its bound blockEntity's Type.
      * @implSpec <pre>{@code 
-     *  @SubscribeEvent static void register(@NotNull CarryAdapterRegisterEvent event)
+     *  @SubscribeEvent 
+     *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.registerUniversal(
      *          BaseVanillaFurnaceSeriesAdapter::new,
@@ -107,7 +109,8 @@ public final class CarryAdapterRegisterEvent extends Event
      * even the child blocks are not allowed. For universal case, use
      * <u>{@link #registerUniversal(ICarryRegistry.ICarryBlockAdapterFactory, Block[])}</u> instead.
      * @implSpec <pre>{@code
-     *  @SubscribeEvent static void register(@NotNull CarryAdapterRegisterEvent event)
+     *  @SubscribeEvent 
+     *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.register(
      *          MyReg.PROCESS_TABLE.get(),
@@ -140,7 +143,8 @@ public final class CarryAdapterRegisterEvent extends Event
      * @param <A> The detailed type of the block's adapter, it only requires the blocks are assignable from
      *           its bound block's Type.
      * @implSpec <pre>{@code
-     *  @SubscribeEvent static void register(@NotNull CarryAdapterRegisterEvent event)
+     *  @SubscribeEvent 
+     *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.registerUniversal(
      *          LiteBlockEntityCarryAdapter::new,
@@ -167,7 +171,8 @@ public final class CarryAdapterRegisterEvent extends Event
      * even the child entities are not allowed. For universal case, use
      * <u>{@link #registerUniversal(ICarryRegistry.ICarryEntityAdapterFactory, EntityType[])}</u> instead.
      * @implSpec <pre>{@code
-     *  @SubscribeEvent static void register(@NotNull CarryAdapterRegisterEvent event)
+     *  @SubscribeEvent 
+     *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.register(
      *          MyReg.ANT.get(),
@@ -200,7 +205,8 @@ public final class CarryAdapterRegisterEvent extends Event
      * @param <A> The detailed type of the entity's adapter, it only requires the entities are assignable from
      *           its bound entity's Type.
      * @implSpec <pre>{@code
-     *  @SubscribeEvent static void register(@NotNull CarryAdapterRegisterEvent event)
+     *  @SubscribeEvent 
+     *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.registerUniversal(
      *          BaseRabbitCarryAdapter::new,

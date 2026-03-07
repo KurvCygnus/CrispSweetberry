@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This interface provides a simple yet universal <u>{@link #getPenaltyRate() penaltyRate formula}</u> for blockEntity adapters.
+ * This interface provides a simple yet universal <u>{@link #getPenaltyRate(E) penaltyRate formula}</u> for blockEntity adapters.
  * @param <E> The blockEntity this adapter takes responsibility of.
  * @since 1.0 Release
  * @author Kurv Cygnus
