@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.integration;
 
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import net.minecraft.core.HolderLookup;
@@ -18,7 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-public final class KilnBlockEntityCarryAdapter extends AbstractBlockEntityCarryAdapter<KilnBlockEntity>
+public final class KilnBlockEntityCarryAdapter extends AbstractBlockEntityCarryAdapter<KilnBlockEntity> 
+implements CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic<KilnBlockEntity>
 {
     private KilnCarriableExtensions.KilnBlockEntityContext context;
     
@@ -44,8 +46,7 @@ public final class KilnBlockEntityCarryAdapter extends AbstractBlockEntityCarryA
     @Override public void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull KilnBlockEntity blockEntity)
         { blockEntity.onPlacedProcess(level, elapsedTime, this.context, context.pos()); }
     
-    @Override
-    public void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull KilnBlockEntity blockEntity)
+    @Override public void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull KilnBlockEntity blockEntity)
     {
         final CompoundTag data = blockEntity.saveCustomOnly(registries);
         tag.merge(data);
@@ -53,4 +54,6 @@ public final class KilnBlockEntityCarryAdapter extends AbstractBlockEntityCarryA
     
     @Override public void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull KilnBlockEntity blockEntity)
         { blockEntity.loadCustomOnly(tag, registries); }
+    
+    @Override public @NotNull Class<?> getSupportedType() { return KilnBlockEntity.class; }
 }
