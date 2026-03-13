@@ -19,6 +19,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * This is a simple implementation of alternative slowdown effect. Reusing <u>{@link net.minecraft.world.effect.MobEffects#MOVEMENT_SLOWDOWN Slowness}</u> 
+ * will have a lot of conflict issues, and doesn't have a unique icon, so we made a new effect.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
 public final class OverWeightEffect extends MobEffect
 {
     public static final String OVERWEIGHT_KEY = "effect.overweight";

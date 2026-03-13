@@ -15,13 +15,21 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(AbstractFurnaceBlockEntity.class) 
+/**
+ * This is a bridge class, which implements the accessor's methods to reveal {@code private} fields.
+ *
+ * @author Kurv Cygnus
+ * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaFurnaceSeriesAdapter Usage
+ * @since 1.0 Release
+ */
+@Mixin(AbstractFurnaceBlockEntity.class)  @ApiStatus.Internal
 public abstract class VanillaFurnaceAccessor implements CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor
 {
     @Invoker @Override public abstract boolean callIsLit();

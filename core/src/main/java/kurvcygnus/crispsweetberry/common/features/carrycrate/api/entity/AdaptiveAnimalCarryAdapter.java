@@ -8,8 +8,13 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
+import com.mojang.logging.LogUtils;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
@@ -24,7 +29,7 @@ import org.jetbrains.annotations.Range;
  * <b>So, for most custom animals, there's even no need to write compat manually</b>, unless you have further customization demand, then you should 
  * write it, and the auto compat will ignore this entity.
  */
-public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends AbstractEntityCarryAdapter<E>
+public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends AbstractEntityCarryAdapter<E> implements CarriableSimpleLogicCollection.ISimpleCarriableEntityBreakLogic
 {
     /**
      * <u>{@link net.minecraft.world.entity.animal.Cow Cow}</u>'s <u>{@link net.minecraft.world.phys.AABB Bounding Box}</u>.<br>
@@ -32,9 +37,12 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
      * <i>{@code 0.9D} is its width and length, and {@code 1.4D} is its height</i>.
      */
     public static final double MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME = Math.pow(0.9D, 2) * 1.4D;
+   
+    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "ANIMAL_CARRY");
+    
     private final int penaltyRate;
     
-    public AdaptiveAnimalCarryAdapter(@Nullable E entity) 
+    public AdaptiveAnimalCarryAdapter(@Nullable LivingEntity entity)
     {
         super(entity);
         
@@ -57,4 +65,8 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
     }
     
     @Override public @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate() { return this.penaltyRate; }
+    
+    @Override public @NotNull Class<?> getSupportedType() { return Animal.class; }
+    
+    @Override public @NotNull MarkLogger getLogger() { return LOGGER; }
 }

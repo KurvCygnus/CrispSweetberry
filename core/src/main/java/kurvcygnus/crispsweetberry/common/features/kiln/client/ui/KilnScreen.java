@@ -175,10 +175,10 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         public KilnInfoWidget(int x, int y, int width, int height)
         {
             super(x, y, width, height, Component.literal("?"));
-            throwIf(x < 0, () -> new IllegalArgumentException("Param \"x\" should be a positive integer!"));
-            throwIf(y < 0, () -> new IllegalArgumentException("Param \"y\" should be a positive integer!"));
-            throwIf(width < 0, () -> new IllegalArgumentException("Param \"width\" should be a positive integer!"));
-            throwIf(height < 0, () -> new IllegalArgumentException("Param \"height\" should be a positive integer!"));
+            throwIf(x < 0, "Param \"x\" should be a positive integer!", IllegalArgumentException::new);
+            throwIf(y < 0, "Param \"y\" should be a positive integer!", IllegalArgumentException::new);
+            throwIf(width < 0, "Param \"width\" should be a positive integer!", IllegalArgumentException::new);
+            throwIf(height < 0, "Param \"height\" should be a positive integer!", IllegalArgumentException::new);
             this.setTooltip(EMPTY_TIP);
         }
         

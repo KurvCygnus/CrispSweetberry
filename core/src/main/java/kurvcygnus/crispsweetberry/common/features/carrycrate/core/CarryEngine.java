@@ -20,7 +20,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryType;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
@@ -55,33 +57,43 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-//? TODO: Oh shit, I forgot to process container issues, ass
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryEngine
 {
     INSTANCE;
     
-    private static final HashMap<String, ICarryRegistry.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>>>
+    private static final HashMap<CarryID, ICarryRegistry.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>>>
         BLOCK_ENTITY_CARRY_LISTENERS = new HashMap<>();
-    private static final HashMap<String, ICarryRegistry.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>>>
+    private static final HashMap<CarryID, ICarryRegistry.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>>>
         ENTITY_CARRY_LISTENERS = new HashMap<>();
-    private static final HashMap<String, ICarryRegistry.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>>>
+    private static final HashMap<CarryID, ICarryRegistry.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>>>
         BLOCK_CARRY_LISTENERS = new HashMap<>();
+    
+    private static final Map<CarryType, HashMap<CarryID, ? extends ICarryRegistry.IBaseCarryAdapterFactory<?, ?>>> TYPE_MAP =
+        CrispDefUtils.createImmutableEnumMap(CarryType.class, 
+            map ->
+            {
+                map.put(CarryType.BLOCK_ENTITY, BLOCK_CARRY_LISTENERS);
+                map.put(CarryType.ENTITY, ENTITY_CARRY_LISTENERS);
+                map.put(CarryType.BLOCK, BLOCK_CARRY_LISTENERS);
+            }
+        );
     
     private static final int PENALTY_QUANTITY = 10;
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_ENGINE");
     
     static final class CarryListenerSaveData extends SavedData
     {
-        static final String UUID = "carryID";
+        static final String UUID = "uuid";
         static final String ID = "id";
         static final String ENTRIES = "entries";
-        static final String DATA = "csb_carry_listeners";
+        static final String DATA = "crispsweetberry_carry_listeners";
         
         private ListTag entries = null;
         
@@ -89,26 +101,17 @@ public enum CarryEngine
         {
             final ListTag entryList = new ListTag();
             
-            final BiConsumer<String, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> insertToData = 
-                (id, $uwu$) ->
+            final BiConsumer<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> insertToData = 
+                (id, UwU_OwO_QAQ) ->
                 {
-                    final String[] keys = id.split("§");
-                    
-                    if(keys.length != 2)
-                    {
-                        LOGGER.error("Invalid CarryID: {}", id);
-                        return;
-                    }
-                    
                     final CompoundTag entry = new CompoundTag();
-                    entry.putString(ID, keys[0]);
-                    entry.putString(UUID, keys[1]);
+                    entry.putString(ID, id.id());
+                    entry.putString(UUID, id.uuid());
                     entryList.add(entry);
+                    LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid(), id.id());
                 };
             
-            BLOCK_ENTITY_CARRY_LISTENERS.forEach(insertToData);
-            ENTITY_CARRY_LISTENERS.forEach(insertToData);
-            BLOCK_CARRY_LISTENERS.forEach(insertToData);
+            TYPE_MAP.forEach((type, map) -> map.forEach(insertToData));
             
             tag.put(ENTRIES, entryList);
             return tag;
@@ -144,11 +147,12 @@ public enum CarryEngine
             BLOCK_ENTITY_CARRY_LISTENERS.clear();
             BLOCK_CARRY_LISTENERS.clear();
             ENTITY_CARRY_LISTENERS.clear();
+            LOGGER.debug("Clean completed.");
             
             final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer().overworld());
             handle.changeMarker("CARRY_DATA_RECOVER");
             
-            LOGGER.debug("SavedData acquired. Continue to recover listeners.");
+            LOGGER.when(data.getEntries().isPresent()).debug("SavedData acquired. Continue to recover listeners.");
                 
             data.getEntries().ifPresent(
                 listTag -> listTag.stream().
@@ -159,7 +163,7 @@ public enum CarryEngine
                         {
                             final String id = entryTag.getString(CarryListenerSaveData.ID);
                             final String uuid = entryTag.getString(CarryListenerSaveData.UUID);
-                            final String fullID = "%s§%s".formatted(id, uuid);
+                            final CarryID fullID = new CarryID(id, uuid);
                             LOGGER.debug("Got CarryID: [ResourceLocation: \"{}\", UUID: \"{}\"]", id, uuid);
                             
                             final ResourceLocation resourceLocation = ResourceLocation.parse(id);
@@ -193,26 +197,28 @@ public enum CarryEngine
         }
     }
     
-    //? TODO: Overweight effect.
+    //? TODO: Penalty's item drop logic.
     public static void carryingTick(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, int slotId)
     {
         if(!carryCrate.has(CarryCrateRegistries.CARRY_ID.get()) && !carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
             return;
         
-        final CarriableExtensions.ICarryTickable.TickingContext context = new CarriableExtensions.ICarryTickable.TickingContext(carryCrate, level, entity, slotId);
-        final String carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
+        final CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
         assert carryID != null;//! carryCrate#has() has granted the safety.
         assert data != null;
         
-        final int penaltyRate = data.data().getPenaltyRate();
+        final CarriableExtensions.TickingContext context = new CarriableExtensions.TickingContext(carryCrate, level, entity, carryID.uuid(), slotId);
         
-        final Consumer<HashMap<String, ? extends ICarryRegistry.IBaseCarryAdapterFactory<?, ?>>> tickAction = 
+        final int penaltyRate = data.data().getPenaltyRate();
+        final AbstractCarryAdapter<?>[] adapter = new AbstractCarryAdapter[1];//! Single element array is used for making the adapter's value assignable in lambda.
+        
+        final Consumer<HashMap<CarryID, ? extends ICarryRegistry.IBaseCarryAdapterFactory<?, ?>>> tickAction = 
             map ->
             {
-                final AbstractCarryAdapter adapter = map.get(carryID).create(null);
-                adapter.carryingTick(context);//? TODO: #carryingTick() should have a return value, like Tag or something else.
-            }; 
+                adapter[0] = map.get(carryID).create(null);
+                adapter[0].carryingTick(context);
+            };
         
         switch(data.carryType())
         {
@@ -221,17 +227,31 @@ public enum CarryEngine
             case BLOCK -> tickAction.accept(BLOCK_CARRY_LISTENERS);
         }
         
-        //! This has already implicitly checked whether it is clientside.
+        //! ↓ This has already implicitly checked whether it is clientside.
         if(!(entity instanceof ServerPlayer player) || penaltyRate == 0)
             return;
         
         final int currentCounter = Objects.requireNonNullElse(carryCrate.get(CarryCrateRegistries.CARRY_TICK_COUNTER.get()), 0);
         
-        if(currentCounter + 1 >= penaltyRate)
+        if(currentCounter + 1 >= penaltyRate && player.gameMode.isCreative())
         {
-            carryCrate.hurtAndBreak(PENALTY_QUANTITY, (ServerLevel) level, player, i -> 
+            carryCrate.hurtAndBreak(
+                PENALTY_QUANTITY,
+                (ServerLevel) level,
+                player,
+                i ->
                 {
-                    //? TODO UwU
+                    final BlockPos pos = player.getOnPos();
+                    
+                    adapter[0].onBreak(
+                        level,
+                        pos,
+                        data.data(),
+                        level.getGameTime() - data.startTime()
+                    );
+                    
+                    carryCrate.remove(CarryCrateRegistries.CARRY_CRATE_DATA.get());
+                    carryCrate.remove(CarryCrateRegistries.CARRY_ID.get());
                 }
             );
             
@@ -242,7 +262,7 @@ public enum CarryEngine
         carryCrate.set(CarryCrateRegistries.CARRY_TICK_COUNTER.get(), currentCounter + 1);
     }
     
-    //? TODO: BE Handler Logic refactor
+    //? TODO: Handler Logic refactor
     public static @NotNull InteractionResult interactOnBlock(@NotNull UseOnContext context)
     {
         final CarryType action;
@@ -297,7 +317,7 @@ public enum CarryEngine
             handle.changeMarker("CARRY_ID_QUERY");
             LOGGER.debug("Trying to get the CarryID of this carry crate...");
             
-            final @Nullable String carryID = context.getItemInHand().get(CarryCrateRegistries.CARRY_ID.get());
+            final @Nullable CarryID carryID = context.getItemInHand().get(CarryCrateRegistries.CARRY_ID.get());
             LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
             
             final AbstractCarryInteractHandler handler = action.createHandler(
@@ -312,10 +332,10 @@ public enum CarryEngine
             
             final AbstractCarryInteractHandler.HandleResult result = handler.handle();
             final Optional<CarryData> optionalData = result.data();
-            final Optional<String> optionalCarryID = result.carryID();
+            final Optional<CarryID> optionalCarryID = result.carryID();
             InteractionResult finalResult = result.result();
             
-            if(result.shouldTakeTarget() && !action.equals(CarryType.ENTITY))
+            if(result.shouldTakeTarget() && !Objects.equals(action, CarryType.ENTITY))
             {
                 level.setBlockAndUpdate(context.getClickedPos(), Blocks.VOID_AIR.defaultBlockState());
                 level.playSound(null, context.getClickedPos(), SoundEvents.SCAFFOLDING_STEP, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -435,7 +455,7 @@ public enum CarryEngine
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
         
-        final @Nullable String carryID = carryCrateStack.get(CarryCrateRegistries.CARRY_ID.get());
+        final @Nullable CarryID carryID = carryCrateStack.get(CarryCrateRegistries.CARRY_ID.get());
         
         final AbstractCarryInteractHandler handler = CarryType.ENTITY.createHandler(
             (ServerLevel) level,
@@ -449,7 +469,7 @@ public enum CarryEngine
         
         final AbstractCarryInteractHandler.HandleResult result = handler.handle();
         final Optional<CarryData> optionalData = result.data();
-        final Optional<String> optionalCarryID = result.carryID();
+        final Optional<CarryID> optionalCarryID = result.carryID();
         InteractionResult finalResult = result.result();
         
         if(result.shouldTakeTarget())

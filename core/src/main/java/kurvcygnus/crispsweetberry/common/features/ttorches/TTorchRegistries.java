@@ -28,6 +28,7 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedsto
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableSoulTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
+import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
@@ -481,33 +482,45 @@ public enum TTorchRegistries implements IRegistrant
         GLOW_STICK_ENTITY
     );
     
-    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> UNWAXED_REDSTONE_TTORCH_LOOKUP = Map.of(
-        OxidizeState.NORMAL, TEMPORARY_REDSTONE_TORCH,
-        OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_TORCH,
-        OxidizeState.WEATHERED, WEATHERED_TEMPORARY_REDSTONE_TORCH,
-        OxidizeState.OXIDIZED, OXIDIZED_TEMPORARY_REDSTONE_TORCH
-    );
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> UNWAXED_REDSTONE_TTORCH_LOOKUP =
+        CrispDefUtils.createImmutableEnumMap(OxidizeState.class, map ->
+            {
+                map.put(OxidizeState.NORMAL, TEMPORARY_REDSTONE_TORCH);
+                map.put(OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_TORCH);
+                map.put(OxidizeState.WEATHERED, WEATHERED_TEMPORARY_REDSTONE_TORCH);
+                map.put(OxidizeState.OXIDIZED, OXIDIZED_TEMPORARY_REDSTONE_TORCH);
+            }
+        );
     
-    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> WAXED_REDSTONE_TTORCH_LOOKUP = Map.of(
-        OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_TORCH,
-        OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_TORCH,
-        OxidizeState.WEATHERED, WAXED_WEATHERED_TEMPORARY_REDSTONE_TORCH,
-        OxidizeState.OXIDIZED, WAXED_OXIDIZED_TEMPORARY_REDSTONE_TORCH
-    );
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> UNWAXED_WALL_REDSTONE_TTORCH_LOOKUP =
+        CrispDefUtils.createImmutableEnumMap(OxidizeState.class, map ->
+            {
+                map.put(OxidizeState.NORMAL, TEMPORARY_REDSTONE_WALL_TORCH);
+                map.put(OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH);
+                map.put(OxidizeState.WEATHERED, WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH);
+                map.put(OxidizeState.OXIDIZED, OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH);
+            }
+        );
     
-    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> UNWAXED_WALL_REDSTONE_TTORCH_LOOKUP = Map.of(
-        OxidizeState.NORMAL, TEMPORARY_REDSTONE_WALL_TORCH,
-        OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH,
-        OxidizeState.WEATHERED, WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH,
-        OxidizeState.OXIDIZED, OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH
-    );
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> WAXED_REDSTONE_TTORCH_LOOKUP = 
+        CrispDefUtils.createImmutableEnumMap(OxidizeState.class, map ->
+            {
+                map.put(OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_TORCH);
+                map.put(OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_TORCH);
+                map.put(OxidizeState.WEATHERED, WAXED_WEATHERED_TEMPORARY_REDSTONE_TORCH);
+                map.put(OxidizeState.OXIDIZED, WAXED_OXIDIZED_TEMPORARY_REDSTONE_TORCH);
+            }
+        );
     
-    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> WAXED_WALL_REDSTONE_TTORCH_LOOKUP = Map.of(
-        OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_WALL_TORCH,
-        OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH,
-        OxidizeState.WEATHERED, WAXED_WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH,
-        OxidizeState.OXIDIZED, WAXED_OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH
-    );
+    private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> WAXED_WALL_REDSTONE_TTORCH_LOOKUP = 
+        CrispDefUtils.createImmutableEnumMap(OxidizeState.class, map ->
+            {
+                map.put(OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_WALL_TORCH);
+                map.put(OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH);
+                map.put(OxidizeState.WEATHERED, WAXED_WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH);
+                map.put(OxidizeState.OXIDIZED, WAXED_OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH);
+            }
+        );
     
     public static final Map<Boolean, Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>>> REDSTONE_TTORCH_LOOKUP = Map.of(
         true, WAXED_REDSTONE_TTORCH_LOOKUP,
@@ -533,7 +546,12 @@ public enum TTorchRegistries implements IRegistrant
     private static @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> getThrowableRedstoneTorch(@NotNull OxidizeState state, boolean waxed)
     {
         return THROWABLE_TORCH_REGISTER.register(
-            "%s%sthrowable_redstone_torch".formatted(waxed ? "waxed_" : "", state.equals(OxidizeState.NORMAL) ? "" : "%s_".formatted(state.name().toLowerCase())),
+            "%s%sthrowable_redstone_torch".formatted(waxed ? 
+                "waxed_" : "",
+                state.equals(OxidizeState.NORMAL) ?
+                    "" : "%s_".
+                    formatted(state.name().toLowerCase())
+            ),
             resourceLocation -> new ThrowableRedstoneTorchItem(state, waxed)
         );
     }

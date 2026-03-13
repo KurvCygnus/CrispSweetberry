@@ -12,11 +12,18 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.Carria
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(BaseContainerBlockEntity.class)
+/**
+ * This is a bridge class, which implements the accessor's methods to reveal {@code private} fields.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter Usage
+ */
+@Mixin(BaseContainerBlockEntity.class) @ApiStatus.Internal
 public abstract class BaseContainerAccessor implements CarriableVanillaBlockEntityAccessors.IBaseContainerAccessor
 {
     @Override @Invoker public abstract @NotNull NonNullList<ItemStack> callGetItems();

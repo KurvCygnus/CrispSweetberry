@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.utils.definitions;
 
+import com.google.common.collect.Maps;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
@@ -19,7 +20,10 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -52,6 +56,18 @@ public final class CrispDefUtils
             return text;
         
         throw new IllegalArgumentException("This is an illegal Component, which is neither literal nor translatable!");
+    }
+    
+    public static <E extends Enum<E>, V> 
+    @Unmodifiable @NotNull Map<E, V> createImmutableEnumMap(@NotNull Class<E> enumClass, @NotNull Consumer<EnumMap<E, V>> dataInsertAction)
+    {
+        requireNonNull(enumClass, "Param \"enumClass\" must not be null!");
+        requireNonNull(dataInsertAction, "Param \"dataInsertAction\" must not be null!");
+        
+        final EnumMap<E, V> enumMap = new EnumMap<>(enumClass);
+        dataInsertAction.accept(enumMap);
+        
+        return Maps.immutableEnumMap(enumMap);
     }
     
     public static String safeUnwrapTextKey(@NotNull Component component)

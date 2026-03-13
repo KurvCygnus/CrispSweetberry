@@ -56,8 +56,11 @@ public final class CrispIntRanger implements Iterable<Integer>
     
     private CrispIntRanger(int min, int max, boolean minClosed, boolean maxClosed)
     {
-        CrispFunctionalUtils.throwIf(min == max && (!minClosed || !maxClosed), () ->
-            new IllegalArgumentException("This is an empty, and illegal ranger!"));
+        CrispFunctionalUtils.throwIf(
+            min == max && (!minClosed || !maxClosed), 
+            "This is an empty, and illegal ranger!", 
+            IllegalArgumentException::new
+        );
         
         if(min < max)
         {

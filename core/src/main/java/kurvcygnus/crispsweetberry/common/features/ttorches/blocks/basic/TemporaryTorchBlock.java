@@ -8,14 +8,14 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic;
 
-import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
 import net.minecraft.core.particles.ParticleOptions;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.*;
 
@@ -30,16 +30,13 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  */
 public final class TemporaryTorchBlock extends AbstractTemporaryTorchBlock<TemporaryTorchBehavior>
 {
-    private TemporaryTorchBlock(@Nullable Properties properties) { this(); }
-    
     public TemporaryTorchBlock() { super(STANDARD_TEMPORARY_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_TORCH))); }
-    
-    @Override
-    public @NotNull MapCodec<? extends AbstractGenericTorchBlock<TemporaryTorchBehavior>> codec() { return simpleCodec(TemporaryTorchBlock::new); }
     
     @Override
     public @NotNull ParticleOptions getTorchParticle() { return DEFAULT_TEMP_TORCH_PARTICLE; }
     
     @Override
     public @NotNull ParticleOptions getSubTorchParticle() { return DEFAULT_TEMP_TORCH_SUB_PARTICLE; }
+    
+    @Override protected @NotNull Supplier<? extends AbstractGenericTorchBlock<TemporaryTorchBehavior>> getCodecConstruct() { return TemporaryTorchBlock::new; }
 }

@@ -8,7 +8,12 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.*;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaBrewingStandAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaFurnaceSeriesAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -24,7 +29,8 @@ import org.jetbrains.annotations.Range;
  * A collection class holds the all unique abilities of 
  * <u>{@link AbstractBlockEntityCarryAdapter BlockEntity's adapter}</u>.
  * @since 1.0 Release
- * @author Kurv Cygnus
+ * @see CarriableExtensions Basics
+ * @see CarriableBlockExtensions Block Basics
  * @see AbstractBlockEntityCarryAdapter Base BlockEntity Adapter
  */
 @ApiStatus.Internal
@@ -62,7 +68,8 @@ public final class CarriableBlockEntityExtensions
         record CarriedContext(
             @NotNull ServerLevel level,
             @NotNull BlockPos pos,
-            @NotNull ServerPlayer player
+            @NotNull ServerPlayer player,
+            @NotNull String carryID
         ) {}
     }
     
@@ -73,13 +80,13 @@ public final class CarriableBlockEntityExtensions
      * @author Kurv Cygnus
      * @see CarriableExtensions.ICarriableLifecycle Base Lifecycle Interface
      * @implNote This interface is actually necessary because the existence of 
-     * <u>{@link ISimpleBlockEntityPenaltyLogic ISimpleBlockEntityPenaltyLogic}</u>, 
+     * <u>{@link CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic ISimpleBlockEntityPenaltyLogic}</u>, 
      * without this interface, the implementor of that interface have to do <b>Default Method Delegation</b>, which makes it not "Simple".
      * <br><br>
      * Also, interface methods are used by internal implementation, which doesn't have blockEntity instance at all the time, 
      * with adapter itself has blockEntity field, we shouldn't add blockEntity as method args.
      */
-    public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends CarriableExtensions.ICarriableLifecycle
+    public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryBlockEntityDataHolder>
     {
         String INVALID_CALL_FAIL_MESSAGE = """
             Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
@@ -99,12 +106,12 @@ public final class CarriableBlockEntityExtensions
          * @apiNote <span style="color: red">This method is not recommended to use.</span> Only use this when you know what are you doing.<br> 
          * For further details, see <u>{@link AbstractBlockEntityCarryAdapter#getBlockEntity()}</u>.
          */
-        @NotNull E getBlockEntity();
+        @ApiStatus.Experimental @NotNull E getBlockEntity();
         
         /**
          * The new base penaltyRate getter for blockEntity.<br>
          * With the reference of {@code blockEntity}, its return value can be much more flexible.
-         * @see ISimpleBlockEntityPenaltyLogic Recommend Universal Implementation
+         * @see CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic Recommend Universal Implementation
          */
         @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull E blockEntity);
     }
@@ -116,6 +123,8 @@ public final class CarriableBlockEntityExtensions
      * <u>{@link SimpleContainerBlockEntityCarryAdapter Here}</u>'s a simple example.
      * @implNote Interface methods are used by internal implementation, which doesn't have blockEntity instance at all the time, 
      * with adapter itself has blockEntity field, we shouldn't add blockEntity as method args.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
      */
     public interface ICarrySerializable
     {

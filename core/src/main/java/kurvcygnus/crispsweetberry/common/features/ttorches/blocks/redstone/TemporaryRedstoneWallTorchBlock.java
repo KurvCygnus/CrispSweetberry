@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone;
 
-import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
@@ -30,8 +29,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+
+import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.BASIC_TEMP_TORCH_PROPERTIES;
 
@@ -50,9 +50,6 @@ extends AbstractTemporaryWallTorchBlock<TemporaryRedstoneTorchBehavior> implemen
 {
     private final Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch;
     
-    private TemporaryRedstoneWallTorchBlock(@Nullable Properties properties) 
-        { this(ITRedstoneTorchExtensions.OxidizeState.NORMAL, false, Lazy.of(TTorchRegistries.THROWABLE_REDSTONE_TORCH)); }
-    
     public TemporaryRedstoneWallTorchBlock
     (@NotNull ITRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed, @NotNull Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch)
     {
@@ -68,10 +65,16 @@ extends AbstractTemporaryWallTorchBlock<TemporaryRedstoneTorchBehavior> implemen
         this.throwableTorch = throwableTorch;
     }
     
-    @Override
-    public @NotNull MapCodec<? extends AbstractGenericTorchBlock<TemporaryRedstoneTorchBehavior>> codec() { return simpleCodec(TemporaryRedstoneWallTorchBlock::new); }
-    
     @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getStateLength() { return REDSTONE_TORCH_SIGNAL_SEND_DELAY; }
+    
+    @Override protected @NotNull Supplier<? extends AbstractGenericTorchBlock<TemporaryRedstoneTorchBehavior>> getCodecConstruct()
+    {
+        return () -> new TemporaryRedstoneWallTorchBlock(
+            ITRedstoneTorchExtensions.OxidizeState.NORMAL,
+            false,
+            Lazy.of(TTorchRegistries.THROWABLE_REDSTONE_TORCH)
+        );
+    }
     
     @Override protected void addExtraStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) 
         { builder.add(REDSTONE_LIT, OXIDIZE_STATE, WAXED); }

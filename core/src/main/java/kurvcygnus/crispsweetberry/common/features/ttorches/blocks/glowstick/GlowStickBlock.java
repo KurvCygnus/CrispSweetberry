@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.glowstick;
 
-import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
@@ -25,8 +24,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 
 /**
@@ -41,8 +40,6 @@ import java.util.function.ToIntFunction;
 public final class GlowStickBlock extends AbstractTemporaryTorchBlock<GlowStickBehavior> implements SimpleWaterloggedBlock
 {
     private static final ToIntFunction<BlockState> GLOW_STICK_BRIGHTNESS_FORMULA = bs -> bs.getValue(BlockStateProperties.WATERLOGGED) ? 15 : 9;
-    
-    private GlowStickBlock(@Nullable Properties properties) { this(); }
     
     public GlowStickBlock()
     {
@@ -63,7 +60,7 @@ public final class GlowStickBlock extends AbstractTemporaryTorchBlock<GlowStickB
     
     @Override protected void addExtraProperties(StateDefinition.@NotNull Builder<Block, BlockState> builder) { builder.add(BlockStateProperties.WATERLOGGED); }
     
-    @Override public @NotNull MapCodec<? extends AbstractGenericTorchBlock<GlowStickBehavior>> codec() { return simpleCodec(GlowStickBlock::new); }
+    @Override protected @NotNull Supplier<? extends AbstractGenericTorchBlock<GlowStickBehavior>> getCodecConstruct() { return GlowStickBlock::new; }
     
     @Override public @NotNull ParticleOptions getTorchParticle() { return ParticleTypes.GLOW_SQUID_INK; }
     

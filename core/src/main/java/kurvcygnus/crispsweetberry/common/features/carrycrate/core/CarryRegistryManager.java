@@ -18,7 +18,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAda
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -43,6 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
+import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
 
 @ApiStatus.Internal
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
@@ -54,52 +54,16 @@ public enum CarryRegistryManager implements ICarryRegistry
     
     private boolean frozen = false;
     
-    private final HashMap<
-        BlockEntityType<? extends BlockEntity>,
-        ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<? extends BlockEntity>>
-        >
-        blockEntityRegistry = new HashMap<>();
+    private final HashMap<BlockEntityType<?>, ICarryBlockEntityAdapterFactory<?, ?>> blockEntityRegistry = new HashMap<>();
+    private final HashMap<ResourceLocation, ICarryBlockEntityAdapterFactory<?, ?>> recoveryBlockEntityRegistry = new HashMap<>();
     
-    private final HashMap<
-        ResourceLocation,
-        ICarryBlockEntityAdapterFactory<
-            ? extends BlockEntity,
-            ? extends AbstractBlockEntityCarryAdapter<? extends BlockEntity>
-            >
-        >
-        recoveryBlockEntityRegistry = new HashMap<>();
+    private final HashMap<Block, ICarryBlockAdapterFactory<?, ?>> blockRegistry = new HashMap<>();
+    private final HashMap<ResourceLocation, ICarryBlockAdapterFactory<? extends Block, ?>> recoveryBlockRegistry = new HashMap<>();
     
-    private final HashMap<
-        Block,
-        ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<? extends Block>>
-        >
-        blockRegistry = new HashMap<>();
+    private final HashMap<EntityType<?>, ICarryEntityAdapterFactory<?, ?>> entityRegistry = new HashMap<>();
+    private final HashMap<ResourceLocation, ICarryEntityAdapterFactory<?, ?>> recoveryEntityRegistry = new HashMap<>();
     
-    private final HashMap<
-        ResourceLocation,
-        ICarryBlockAdapterFactory<
-            ? extends Block,
-            ? extends AbstractBlockCarryAdapter<? extends Block>
-            >
-        > 
-        recoveryBlockRegistry = new HashMap<>();
-    
-    private final HashMap<
-        EntityType<? extends LivingEntity>,
-        ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<? extends LivingEntity>>
-        >
-        entityRegistry = new HashMap<>();
-    
-    private final HashMap<
-        ResourceLocation,
-        ICarryEntityAdapterFactory<
-            ? extends LivingEntity,
-            ? extends AbstractEntityCarryAdapter<? extends LivingEntity>
-            >
-        >
-        recoveryEntityRegistry = new HashMap<>();
-    
-    @SubscribeEvent static void postAdapterRegisterEvent(@NotNull FMLCommonSetupEvent event) 
+    @SubscribeEvent static void postAdapterRegisterEvent(@NotNull FMLCommonSetupEvent event)
     {
         event.enqueueWork(
             () ->
@@ -107,13 +71,13 @@ public enum CarryRegistryManager implements ICarryRegistry
                 LOGGER.info("Starting carry adapters' registration...");
                 NeoForge.EVENT_BUS.post(new CarryAdapterRegisterEvent(CarryRegistryManager.INSTANCE));
             }
-        ); 
+        );
     }
     
-    @SubscribeEvent static void loadComplete(@NotNull FMLLoadCompleteEvent event) 
+    @SubscribeEvent static void loadComplete(@NotNull FMLLoadCompleteEvent event)
     {
         event.enqueueWork(
-            () -> 
+            () ->
             {
                 LOGGER.debug("Registration ended, starting Entity Compat Binding...");
                 
@@ -154,7 +118,7 @@ public enum CarryRegistryManager implements ICarryRegistry
                 }
             ).
             forEach(
-                entityType ->
+                animalType ->
                 {
                     //! Seems hacky? Actually, this is the best reality solution of such a situation.
                     //! EntityType has a method #getBaseClass(), which actually turns out to be hrad-coded, returning "Entity.class" only.
@@ -166,13 +130,14 @@ public enum CarryRegistryManager implements ICarryRegistry
                     //! Besides, dummy level is a hard stuff, this doesn't worth it.
                     try
                     {
-                        final EntityType<? extends Animal> animal = (EntityType<? extends Animal>) entityType;
+                        final EntityType<? extends Animal> animal = (EntityType<? extends Animal>) animalType;
                         
-                        CarryRegistryManager.INSTANCE.register(animal, AdaptiveAnimalCarryAdapter::new, false);
+                        CarryRegistryManager.INSTANCE.unsafeRegisterEntity(animal, AdaptiveAnimalCarryAdapter::new);
                     }
-                    catch(ClassCastException $) { LOGGER.debug("Entity \"{}\" is not an animal. Skipped.", entityType.getDescriptionId()); }
+                    catch(ClassCastException $) { LOGGER.debug("Entity \"{}\" is not an animal. Skipped.", animalType.getDescriptionId()); }
                 }
-            );
+            )
+        ;
     }
     
     @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> void register(
@@ -180,9 +145,10 @@ public enum CarryRegistryManager implements ICarryRegistry
         @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
-        CrispFunctionalUtils.throwIf(
+        throwIf(
             this.frozen,
-            () -> new IllegalStateException("Attempting registration after registry frozen is not allowed!")
+            "Attempting registration after registry frozen is not allowed!",
+            IllegalStateException::new
         );
         
         requireNonNull(blockEntityType, "Param \"blockEntityType\" must not be null!");
@@ -191,8 +157,11 @@ public enum CarryRegistryManager implements ICarryRegistry
         
         validateMiscAdapter(blockEntityType, carryAdapterBlockEntityFactory);
         
-        if(blockEntityRegistry.containsKey(blockEntityType))
-            throw new IllegalStateException("BlockEntity \"%s\" has already been bounded with an adapter!".formatted(blockEntityType.toString()));
+        throwIf(
+            blockEntityRegistry.containsKey(blockEntityType),
+            "BlockEntity \"%s\" has already been bounded with an adapter!".formatted(blockEntityType.toString()),
+            IllegalStateException::new
+        );
         
         blockEntityRegistry.put(blockEntityType, carryAdapterBlockEntityFactory);
         recoveryBlockEntityRegistry.put(BlockEntityType.getKey(blockEntityType), carryAdapterBlockEntityFactory);
@@ -201,13 +170,14 @@ public enum CarryRegistryManager implements ICarryRegistry
     }
     
     @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> void registerUniversal(
-        @NotNull Set<BlockEntityType<? extends E>> blockEntityTypes,
+        @NotNull Set<? extends BlockEntityType<? extends E>> blockEntityTypes,
         @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
-        CrispFunctionalUtils.throwIf(
+        throwIf(
             this.frozen,
-            () -> new IllegalStateException("Attempting registration after registry frozen is not allowed!")
+            "Attempting registration after registry frozen is not allowed!",
+            IllegalStateException::new
         );
         
         requireNonNull(blockEntityTypes, "Param \"blockEntityTypes\" must not be null!");
@@ -220,8 +190,11 @@ public enum CarryRegistryManager implements ICarryRegistry
             
             validateMiscAdapter(blockEntityType, carryAdapterBlockEntityFactory);
             
-            if(blockEntityRegistry.containsKey(blockEntityType))
-                throw new IllegalStateException("BlockEntity \"%s\" has already been bounded with an adapter!".formatted(blockEntityType.toString()));
+            throwIf(
+                blockEntityRegistry.containsKey(blockEntityType),
+                "BlockEntity \"%s\" has already been bounded with an adapter!".formatted(blockEntityType.toString()),
+                IllegalStateException::new
+            );
             
             blockEntityRegistry.put(blockEntityType, carryAdapterBlockEntityFactory);
             recoveryBlockEntityRegistry.put(BlockEntityType.getKey(blockEntityType), carryAdapterBlockEntityFactory);
@@ -230,12 +203,13 @@ public enum CarryRegistryManager implements ICarryRegistry
     }
     
     @SuppressWarnings("DuplicatedCode")
-    @Override public <B extends Block, A extends AbstractBlockCarryAdapter<B>> 
+    @Override public <B extends Block, A extends AbstractBlockCarryAdapter<B>>
     void register(@NotNull B block, @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory)
     {
-        CrispFunctionalUtils.throwIf(
+        throwIf(
             this.frozen,
-            () -> new IllegalStateException("Attempting registration after registry frozen is not allowed!")
+            "Attempting registration after registry frozen is not allowed!",
+            IllegalStateException::new
         );
         
         requireNonNull(block, "Param \"block\" must not be null!");
@@ -247,8 +221,11 @@ public enum CarryRegistryManager implements ICarryRegistry
         //! Sometimes, KISS is better.
         validateBlockAdapter(block, carryAdapterBlockAdapterFactory);
         
-        if(blockRegistry.containsKey(block))
-            throw new IllegalStateException("Block \"%s\" has already been bounded with an adapter!".formatted(block.getDescriptionId()));
+        throwIf(
+            blockRegistry.containsKey(block),
+            "Block \"%s\" has already been bounded with an adapter!".formatted(block.getDescriptionId()),
+            IllegalStateException::new
+        );
         
         blockRegistry.put(block, carryAdapterBlockAdapterFactory);
         recoveryBlockRegistry.put(BuiltInRegistries.BLOCK.getKey(block), carryAdapterBlockAdapterFactory);
@@ -256,12 +233,13 @@ public enum CarryRegistryManager implements ICarryRegistry
     }
     
     @SuppressWarnings("DuplicatedCode")
-    @Override public <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>> 
+    @Override public <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
     void registerUniversal(@NotNull Set<? extends B> blocks, @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory)
     {
-        CrispFunctionalUtils.throwIf(
+        throwIf(
             this.frozen,
-            () -> new IllegalStateException("Attempting registration after registry frozen is not allowed!")
+            "Attempting registration after registry frozen is not allowed!",
+            IllegalStateException::new
         );
         
         requireNonNull(blocks, "Param \"blocks\" must not be null!");
@@ -277,8 +255,11 @@ public enum CarryRegistryManager implements ICarryRegistry
             //! Sometimes, KISS is better.
             validateBlockAdapter(block, carryAdapterBlockAdapterFactory);
             
-            if(blockRegistry.containsKey(block))
-                throw new IllegalStateException("Block \"%s\" has already been bounded with an adapter!".formatted(block.getDescriptionId()));
+            throwIf(
+                blockRegistry.containsKey(block),
+                "Block \"%s\" has already been bounded with an adapter!".formatted(block.getDescriptionId()),
+                IllegalStateException::new
+            );
             
             blockRegistry.put(block, carryAdapterBlockAdapterFactory);
             recoveryBlockRegistry.put(BuiltInRegistries.BLOCK.getKey(block), carryAdapterBlockAdapterFactory);
@@ -287,15 +268,12 @@ public enum CarryRegistryManager implements ICarryRegistry
     }
     
     @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<E>>
-    void register(@NotNull EntityType<E> entityType, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory) 
-        { this.register(entityType, carryEntityAdapterFactory, true); }
-    
-    private <E extends LivingEntity, A extends AbstractEntityCarryAdapter<E>>
-    void register(@NotNull EntityType<E> entityType, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory, boolean doThrow)
+    void register(@NotNull EntityType<E> entityType, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
     {
-        CrispFunctionalUtils.throwIf(
+        throwIf(
             this.frozen,
-            () -> new IllegalStateException("Attempting registration after registry frozen is not allowed!")
+            "Attempting registration after registry frozen is not allowed!",
+            IllegalStateException::new
         );
         
         requireNonNull(entityType, "Param \"entityType\" must not be null!");
@@ -304,26 +282,24 @@ public enum CarryRegistryManager implements ICarryRegistry
         
         validateMiscAdapter(entityType, carryEntityAdapterFactory);
         
-        if(entityRegistry.containsKey(entityType))
-        {
-            if(doThrow)
-                throw new IllegalStateException("Entity \"%s\" has already been bounded with an adapter!".formatted(entityType.getDescriptionId()));
-            
-            LOGGER.debug("Entity \"{}\" has already been bounded with an adapter, skipped.", entityType.getDescriptionId());
-            return;
-        }
+        throwIf(
+            entityRegistry.containsKey(entityType),
+            "Entity \"%s\" has already been bounded with an adapter!".formatted(entityType.getDescriptionId()),
+            IllegalStateException::new
+        );
         
         entityRegistry.put(entityType, carryEntityAdapterFactory);
         recoveryEntityRegistry.put(EntityType.getKey(entityType), carryEntityAdapterFactory);
         LOGGER.debug("Registered entity \"{}\".", entityType.getDescriptionId());
     }
     
-    @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>> 
-    void registerUniversal(@NotNull Set<EntityType<? extends E>> entityTypes, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
+    @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
+    void registerUniversal(@NotNull Set<? extends EntityType<? extends E>> entityTypes, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
     {
-        CrispFunctionalUtils.throwIf(
+        throwIf(
             this.frozen,
-            () -> new IllegalStateException("Attempting registration after registry frozen is not allowed!")
+            "Attempting registration after registry frozen is not allowed!",
+            IllegalStateException::new
         );
         
         requireNonNull(entityTypes, "Param \"entityTypes\" must not be null!");
@@ -336,8 +312,11 @@ public enum CarryRegistryManager implements ICarryRegistry
             
             validateMiscAdapter(entityType, carryEntityAdapterFactory);
             
-            if(entityRegistry.containsKey(entityType))
-                throw new IllegalStateException("Entity \"%s\" has already been bounded with an adapter!".formatted(entityType.getDescriptionId()));
+            throwIf(
+                entityRegistry.containsKey(entityType),
+                "Entity \"%s\" has already been bounded with an adapter!".formatted(entityType.getDescriptionId()),
+                IllegalStateException::new
+            );
             
             entityRegistry.put(entityType, carryEntityAdapterFactory);
             recoveryEntityRegistry.put(EntityType.getKey(entityType), carryEntityAdapterFactory);
@@ -345,7 +324,29 @@ public enum CarryRegistryManager implements ICarryRegistry
         }
     }
     
-    public @NotNull Optional<ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>>> 
+    @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
+    private void unsafeRegisterEntity(
+        @NotNull EntityType<? extends LivingEntity> entityType,
+        @NotNull ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
+    )
+    {
+        requireNonNull(entityType, "Param \"entityType\" must not be null!");
+        requireNonNull(EntityType.getKey(entityType), "Param \"entityType\"'s ResourceLocation must not be null!");
+        requireNonNull(carryEntityAdapterFactory, "Param \"carryEntityAdapterFactory\" must not be null!");
+        
+        if(entityRegistry.containsKey(entityType))
+        {
+            LOGGER.debug("Entity \"{}\" has already been bounded with an adapter, skipped.", entityType.getDescriptionId());
+            return;
+        }
+        
+        final var castedEntity = (EntityType<LivingEntity>) entityType;
+        final var castedFactory = (ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
+        
+        entityRegistry.put(castedEntity, castedFactory);
+    }
+    
+    public @NotNull Optional<ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>>>
     getBlockEntityAdapter(@NotNull BlockEntityType<?> blockEntityType) { return Optional.ofNullable(blockEntityRegistry.get(blockEntityType)); }
     
     @NotNull Optional<ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>>>
@@ -366,14 +367,19 @@ public enum CarryRegistryManager implements ICarryRegistry
     @SuppressWarnings("ConstantValue")//! Defensive check.
     private void validateMiscAdapter(@NotNull Object obj, @NotNull IBaseCarryAdapterFactory<?, ?> baseCarryAdapterFactory)
     {
-        final AbstractCarryAdapter adapter = baseCarryAdapterFactory.create(null);
+        final AbstractCarryAdapter<?> adapter = baseCarryAdapterFactory.create(null);
+        final Class<?> baseTargetClass = adapter.getSupportedType();
         
-        CrispFunctionalUtils.throwIf(
+        throwIf(
+            !baseTargetClass.isAssignableFrom(obj.getClass()),
+            "The target's type doesn't match. Expected: %s, Got: %s".formatted(obj.getClass().getSimpleName(), baseTargetClass.getSimpleName()),
+            IllegalArgumentException::new
+        );
+        
+        throwIf(
             adapter.getPenaltyRate() < 0,
-            () -> new IllegalStateException(
-                "The penaltyRate of \"%s\"'s adapter should be non-negative! Current is: %d".
-                    formatted(obj.toString(), adapter.getPenaltyRate())
-            )
+            "The penaltyRate of \"%s\"'s adapter should be non-negative! Current is: %d".formatted(obj.toString(), adapter.getPenaltyRate()),
+            IllegalStateException::new
         );
     }
     
@@ -381,20 +387,24 @@ public enum CarryRegistryManager implements ICarryRegistry
     private void validateBlockAdapter(@NotNull Block block, @NotNull ICarryBlockAdapterFactory<?, ?> carryAdapterBlockAdapterFactory)
     {
         final AbstractBlockCarryAdapter<?> adapter = carryAdapterBlockAdapterFactory.create(null);
+        final Class<?> baseTargetClass = adapter.getSupportedType();
         
-        CrispFunctionalUtils.throwIf(
-            adapter.getPenaltyRate() < 0,
-            () -> new IllegalStateException(
-                "The penaltyRate of \"%s\"'s adapter should be non-negative! Current is: %d".
-                    formatted(block.getDescriptionId(), adapter.getPenaltyRate())
-            )
+        throwIf(
+            !baseTargetClass.isAssignableFrom(block.getClass()),
+            "The target's type doesn't match. Expected: %s, Got: %s".formatted(block.getClass().getSimpleName(), baseTargetClass.getSimpleName()),
+            IllegalArgumentException::new
         );
-        CrispFunctionalUtils.throwIf(
+        
+        throwIf(
+            adapter.getPenaltyRate() < 0,
+            "The penaltyRate of \"%s\"'s adapter should be non-negative! Current is: %d".formatted(block.getDescriptionId(), adapter.getPenaltyRate()),
+            IllegalStateException::new
+        );
+        
+        throwIf(
             adapter.getAcceptableCount() <= 0,
-            () -> new IllegalStateException(
-                "The acceptableCount of \"%s\"'s adapter should be positive! Current is: %d".
-                    formatted(block.getDescriptionId(), adapter.getAcceptableCount())
-            )
+            "The acceptableCount of \"%s\"'s adapter should be positive! Current is: %d".formatted(block.getDescriptionId(), adapter.getAcceptableCount()),
+            IllegalStateException::new
         );
     }
 }

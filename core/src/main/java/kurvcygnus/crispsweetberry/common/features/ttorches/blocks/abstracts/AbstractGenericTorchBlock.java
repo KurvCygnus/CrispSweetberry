@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
+import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ScalableParticleOptionsBase;
@@ -28,6 +29,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
+
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.LIGHT_PROPERTY;
@@ -97,9 +100,15 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     @Override public final void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
         { this.behavior.animateTick(state, level, pos, isWallTorch); }
     
-    @Override protected final @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
-        @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
-            { return this.behavior.useItemOn(stack, state, level, pos, player, hand); }
+    @Override protected final @NotNull ItemInteractionResult useItemOn(
+        @NotNull ItemStack stack,
+        @NotNull BlockState state,
+        @NotNull Level level,
+        @NotNull BlockPos pos,
+        @NotNull Player player,
+        @NotNull InteractionHand hand,
+        @NotNull BlockHitResult hitResult
+    ) { return this.behavior.useItemOn(stack, state, level, pos, player, hand); }
     
     @Override public final @NotNull String getDescriptionId() { return getThrowableTorchItem().getDescriptionId(); }
     
@@ -113,5 +122,8 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     
     public boolean isWallTorch() { return isWallTorch; }
     
-    @Override public abstract @NotNull MapCodec<? extends AbstractGenericTorchBlock<T>> codec();
+    @Override public final @NotNull MapCodec<? extends AbstractGenericTorchBlock<T>> codec()
+        { return simpleCodec(CrispFunctionalUtils.noArgCodec(getCodecConstruct())); }
+    
+    protected abstract @NotNull Supplier<? extends AbstractGenericTorchBlock<T>> getCodecConstruct();
 }

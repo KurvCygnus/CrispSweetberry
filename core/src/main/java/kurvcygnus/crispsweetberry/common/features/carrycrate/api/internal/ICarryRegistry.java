@@ -21,18 +21,31 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
+/**
+ * This is a view interface of Carry Registry's Manager.
+ *
+ * @author Kurv Cygnus
+ * @apiNote This won't be directly used by externals, so if you want to see documents, please go to
+ * <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent CarryAdapterRegisterEvent}</u>.
+ * @implNote 
+ *         You may think, <i>"Why do we keeping this? These generics have no actual usage, isn't it?"</i><br>
+ *         <b>This is the facade of the whole registry module.</b> Despite generics don't have any actual usages, 
+ *         they are the contract of this registry, and it doesn't actually affect the external usage, thus, we kept it.
+ * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent Usage
+ * @since 1.0 Release
+ */
 @ApiStatus.Internal
 public interface ICarryRegistry
 {
-    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> 
+    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>>
     void register(
         @NotNull BlockEntityType<E> blockEntityType,
         @NotNull ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     );
     
-    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> 
+    <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>>
     void registerUniversal(
-        @NotNull Set<BlockEntityType<? extends E>> blockEntityTypes,
+        @NotNull Set<? extends BlockEntityType<? extends E>> blockEntityTypes,
         @NotNull ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     );
     
@@ -42,7 +55,7 @@ public interface ICarryRegistry
         @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory
     );
     
-    <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>> 
+    <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
     void registerUniversal(
         @NotNull Set<? extends B> blocks,
         @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory
@@ -56,18 +69,18 @@ public interface ICarryRegistry
     
     <E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
     void registerUniversal(
-        @NotNull Set<EntityType<? extends E>> entityTypes,
+        @NotNull Set<? extends EntityType<? extends E>> entityTypes,
         @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory
     );
     
     @FunctionalInterface interface ICarryBlockEntityAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>>
-    extends IBaseCarryAdapterFactory<E, A> { @Override A create(E blockEntity); }
+    extends IBaseCarryAdapterFactory<E, A> { @Override @NotNull A create(E blockEntity); }
     
     @FunctionalInterface interface ICarryBlockAdapterFactory<B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
-    extends IBaseCarryAdapterFactory<B, A> { @Override A create(B block); }
+    extends IBaseCarryAdapterFactory<B, A> { @Override @NotNull A create(B block); }
     
-    @FunctionalInterface interface ICarryEntityAdapterFactory<E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>> 
-    extends IBaseCarryAdapterFactory<E, A> { @Override A create(E entity); }
+    @FunctionalInterface interface ICarryEntityAdapterFactory<E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
+    extends IBaseCarryAdapterFactory<E, A> { @Override @NotNull A create(E entity); }
     
-    @FunctionalInterface interface IBaseCarryAdapterFactory<C, A extends AbstractCarryAdapter> { A create(C object); }
+    @FunctionalInterface interface IBaseCarryAdapterFactory<C, A extends AbstractCarryAdapter<?>> { @NotNull A create(C object); }
 }

@@ -15,6 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.Carria
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
@@ -47,7 +48,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         @NotNull BlockPos targetPos,
         @NotNull BlockState targetState,
         @Nullable LivingEntity targetEntity,
-        @Nullable String optionalUUID
+        @Nullable CarryID optionalUUID
     )
     {
         super(level, player, carryCrate, targetPos, targetState, targetEntity, optionalUUID);
@@ -56,7 +57,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
     
     @Override protected @NotNull HandleResult boxIn()
     {
-        final String carryID = generateCarryID();
+        final CarryID carryID = generateCarryID();
         final BlockState targetState = getTargetState();
         final BlockPos targetPos = getTargetPos();
         LOGGER.debug("Generated a new CarryID \"{}\" for indexing.", carryID);
@@ -73,7 +74,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         final AbstractBlockEntityCarryAdapter<?> adapter = optionalAdapter.get();
         
         final CompoundTag tagData = new CompoundTag();
-        adapter.onCarriedSequence(new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(this.level, targetPos, this.player));
+        adapter.onCarriedSequence(new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(this.level, targetPos, this.player, carryID.uuid()));
         adapter.saveCarryTag(tagData, level.registryAccess());//* #onCarriedSequence() may have side effects on BE's data, we should save data after it.
         
         final CarryData insertData = CarryData.createBlockEntity(
@@ -81,6 +82,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
             tagData,
             this.blockEntity.getType(),
             adapter.getPenaltyRate(),
+            adapter.causesOverweight(),
             this.level.getGameTime()
         );
         
@@ -95,7 +97,14 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         final BlockState targetState = getTargetState();
         final BlockPos targetPos = getTargetPos();
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
+        final @Nullable CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
         Objects.requireNonNull(data, MISUSE_FAIL_MSG);
+        LOGGER.when(carryID == null).
+            warn(
+                "BlockEntity \"{}\"'s adapter has no uuid. This is a persistent issue. {}",
+                blockEntity.toString(),
+                MiscConstants.FEEDBACK_MESSAGE
+            );
         
         final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.data();
         final var optionalAdapter = createAdapter(blockEntityDataHolder.getType(), targetPos, targetState);
@@ -115,7 +124,8 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
             new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(
                 this.level,
                 targetPos,
-                this.player
+                this.player,
+                carryID == null ? "" : carryID.uuid()
             )
         );
         adapter.loadCarryTag(tagData, this.level.registryAccess());//* #onPlacedProcess() may have side effects on BE's data, we should load data after it.
@@ -126,6 +136,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
                 tagData,
                 blockEntityDataHolder.getType(),
                 adapter.getPenaltyRate(),
+                data.causesOverweight(),
                 level.getGameTime()
             ),
             optionalCarryID

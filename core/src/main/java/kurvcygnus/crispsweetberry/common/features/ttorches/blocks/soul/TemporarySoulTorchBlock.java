@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul;
 
-import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractGenericTorchBlock;
@@ -17,7 +16,8 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 /**
  * This is the soul fire variant of ttorch series.
@@ -31,8 +31,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class TemporarySoulTorchBlock extends AbstractTemporaryTorchBlock<TemporarySoulTorchBehavior>
 {
-    private TemporarySoulTorchBlock(@Nullable Properties properties) { this(); }
-    
     public TemporarySoulTorchBlock() 
     { 
         super(
@@ -41,9 +39,9 @@ public final class TemporarySoulTorchBlock extends AbstractTemporaryTorchBlock<T
         );
     }
     
-    @Override public @NotNull MapCodec<? extends AbstractGenericTorchBlock<TemporarySoulTorchBehavior>> codec() { return simpleCodec(TemporarySoulTorchBlock::new); }
-    
     @Override public @NotNull ParticleOptions getTorchParticle() { return ParticleTypes.SOUL_FIRE_FLAME; }
     
     @Override public @NotNull ParticleOptions getSubTorchParticle() { return ParticleTypes.SOUL; }
+    
+    @Override protected @NotNull Supplier<? extends AbstractGenericTorchBlock<TemporarySoulTorchBehavior>> getCodecConstruct() { return TemporarySoulTorchBlock::new; }
 }

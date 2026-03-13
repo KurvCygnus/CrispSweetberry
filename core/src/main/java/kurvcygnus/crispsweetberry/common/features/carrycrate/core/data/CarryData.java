@@ -49,25 +49,35 @@ public final class CarryData
     
     private final @NotNull CarryType carryType;
     private final @NotNull CarryDataBaseHolder data;
+    private final boolean causesOverweight;
     private final @Range(from = 0, to = Long.MAX_VALUE) long startTime;
     
     @SuppressWarnings("ConstantValue")//! Defensive check.
     private CarryData(
         @NotNull CarryType carryType,
-        @NotNull CarryDataBaseHolder data,
+        @NotNull CarryDataBaseHolder data, 
+        boolean causesOverweight,
         @Range(from = 0, to = Long.MAX_VALUE) long startTime
     )
     {
         Objects.requireNonNull(carryType, "Param \"carryType\" must not be null!");
         Objects.requireNonNull(data, "Param \"data\" must not be null!");
-        CrispFunctionalUtils.throwIf(startTime < 0, () -> new IllegalArgumentException("Param \"startTime\" must be greater than 0!"));
+        CrispFunctionalUtils.throwIf(startTime < 0, "Param \"startTime\" must be greater than 0!", IllegalArgumentException::new);
         
         this.carryType = carryType;
         this.data = data;
+        this.causesOverweight = causesOverweight;
         this.startTime = startTime;
     }
     
-    public static @NotNull CarryData createBlock(@NotNull BlockState state, int penaltyRate, int carryCount, int maxCarryCount, long startTime)
+    public static @NotNull CarryData createBlock(
+        @NotNull BlockState state,
+        int penaltyRate,
+        int carryCount,
+        int maxCarryCount,
+        boolean causesOverweight,
+        long startTime
+    )
     {
         return new CarryData(
             CarryType.BLOCK,
@@ -77,6 +87,7 @@ public final class CarryData
                 carryCount,
                 maxCarryCount
             ),
+            causesOverweight,
             startTime
         );
     }
@@ -86,6 +97,7 @@ public final class CarryData
         @NotNull CompoundTag tagData,
         @NotNull BlockEntityType<? extends BlockEntity> type,
         int penaltyRate,
+        boolean causesOverweight,
         long startTime
     )
     {
@@ -97,15 +109,23 @@ public final class CarryData
                 type,
                 tagData
             ),
+            causesOverweight,
             startTime
         );
     }
     
-    public static @NotNull CarryData createEntity(int penaltyRate, @NotNull EntityType<?> type, @NotNull CompoundTag tagData, long startTime)
+    public static @NotNull CarryData createEntity(
+        int penaltyRate,
+        @NotNull EntityType<?> type,
+        @NotNull CompoundTag tagData,
+        boolean causesOverweight,
+        long startTime
+    )
     {
         return new CarryData(
             CarryType.ENTITY,
             new CarryEntityDataHolder(penaltyRate, type, tagData),
+            causesOverweight, 
             startTime
         );
     }
@@ -123,6 +143,8 @@ public final class CarryData
     }
     
     public @NotNull CarryType carryType() { return carryType; }
+    
+    public boolean causesOverweight() { return causesOverweight; }
     
     public @Range(from = 0, to = Long.MAX_VALUE) long startTime() { return startTime; }
     
@@ -142,7 +164,8 @@ public final class CarryData
     
     @Override public int hashCode() { return Objects.hash(carryType, data, startTime); }
     
-    @Override public @NotNull String toString() { return "CarryData[carryType=%s, data=%s, startTime=%d]".formatted(carryType, data, startTime); }
+    @Override public @NotNull String toString() 
+        { return "CarryData[carryType = %s, data = %s, causesOverweight = %s, startTime = %d]".formatted(carryType, data, causesOverweight, startTime); }
     
     //  region
     //*:=== Internal Data
@@ -194,8 +217,8 @@ public final class CarryData
             super(penaltyRate);
             
             Objects.requireNonNull(state, "Param \"state\" must not be null!");
-            CrispFunctionalUtils.throwIf(carryCount < 1, () -> new IllegalArgumentException("Param \"carryCount\" must be a positive integer!"));
-            CrispFunctionalUtils.throwIf(maxCarryCount < 1, () -> new IllegalArgumentException("Param \"maxCarryCount\" must be a positive integer!"));
+            CrispFunctionalUtils.throwIf(carryCount < 1, "Param \"carryCount\" must be a positive integer!", IllegalArgumentException::new);
+            CrispFunctionalUtils.throwIf(maxCarryCount < 1, "Param \"maxCarryCount\" must be a positive integer!", IllegalArgumentException::new);
             
             this.state = state;
             this.carryCount = carryCount;
@@ -321,7 +344,7 @@ public final class CarryData
                             
                             return dataResult.flatMap(
                                 data -> timeResult.map(
-                                    startTime -> Pair.of(new CarryData(type, data, startTime), ops.empty())
+                                    startTime -> Pair.of(new CarryData(type, data, true, startTime), ops.empty())
                                 )
                             );
                         }
@@ -357,7 +380,7 @@ public final class CarryData
              
             final long startTime = buffer.readLong();
             
-            return new CarryData(type, data, startTime);
+            return new CarryData(type, data, true, startTime);
         }
         
         @Override public void encode(@NotNull ByteBuf buffer, @NotNull CarryData value)

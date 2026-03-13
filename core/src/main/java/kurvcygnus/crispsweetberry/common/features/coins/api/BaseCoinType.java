@@ -63,11 +63,10 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
         requireNonNull(stackSupplier, "Param \"stackSupplier\" must not be null!");
         requireNonNull(coinSupplier, "Param \"coinSupplier\" must not be null!");
         requireNonNull(nuggetSupplier, "Param \"nuggetSupplier\" must not be null!");
-        throwIf(experience <= 0, () -> new IllegalArgumentException("Param \"experience\" must be a positive integer!"));
-        throwIf(penaltyRate <= 0F || penaltyRate > 1F, () ->
-                new IllegalArgumentException("Param \"penaltyRate\" must be in range of (0F, 1F]!")
+        throwIf(experience <= 0, "Param \"experience\" must be a positive integer!", IllegalArgumentException::new);
+        throwIf(penaltyRate <= 0F || penaltyRate > 1F, "Param \"penaltyRate\" must be in range of (0F, 1F]!", IllegalArgumentException::new
         );
-        throwIf(strength <= 0F, () -> new IllegalArgumentException("Param \"strength\" must be a positive float!"));
+        throwIf(strength <= 0F, "Param \"strength\" must be a positive float!", IllegalArgumentException::new);
         requireNonNull(initEnableCondition(), "Param \"enableCondition\" must not be null!");
         
         this.namespace = initNamespace();

@@ -13,6 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEnti
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -21,7 +22,7 @@ public final class KilnBlockEntityCarryAdapter extends AbstractBlockEntityCarryA
 {
     private KilnCarriableExtensions.KilnBlockEntityContext context;
     
-    public KilnBlockEntityCarryAdapter(@NotNull KilnBlockEntity blockEntity) { super(blockEntity); }
+    public KilnBlockEntityCarryAdapter(@NotNull BlockEntity blockEntity) { super(blockEntity); }
     
     @Override public void onCarriedSequence(@NotNull CarriedContext context, @NotNull KilnBlockEntity blockEntity)
     {

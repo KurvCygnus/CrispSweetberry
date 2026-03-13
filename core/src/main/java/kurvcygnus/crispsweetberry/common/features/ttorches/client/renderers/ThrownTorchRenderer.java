@@ -23,6 +23,5 @@ public final class ThrownTorchRenderer extends AbstractThrownTorchRenderer<Throw
 {
     public ThrownTorchRenderer(@NotNull EntityRendererProvider.Context context) { super(context); }
     
-    @Override
-    protected @NotNull String getTextureName() { return "thrown_torch"; }
+    @Override protected @NotNull String getTextureName() { return "thrown_torch"; }
 }

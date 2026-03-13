@@ -12,6 +12,7 @@ import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
+import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.misc.CrispVisualUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -85,8 +86,6 @@ public final class KilnBlock extends BaseEntityBlock
     
     public static final String LIT_PROPERTY = "lit";
     
-    private static final MapCodec<KilnBlock> CODEC = simpleCodec(KilnBlock::new);
-    
     //*:=== Property Fields
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
@@ -95,15 +94,6 @@ public final class KilnBlock extends BaseEntityBlock
     
     //  region
     //*: Constructors & Basic Definitions
-    
-    /**
-     * This constructor method has no exact usage, it is implemented for vanilla CODEC stuff.
-     */
-    private KilnBlock(@Nullable Properties properties) { this(); }
-    
-    /**
-     * The construct method for <b>block registry</b>.
-     */
     public KilnBlock()
     {
         super(BlockBehaviour.Properties.of().
@@ -126,7 +116,7 @@ public final class KilnBlock extends BaseEntityBlock
      */
     @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.MODEL; }
     
-    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
+    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(CrispFunctionalUtils.noArgCodec(KilnBlock::new)); }
     //endregion
     
     //  region
@@ -159,16 +149,22 @@ public final class KilnBlock extends BaseEntityBlock
         return state.setValue(LIT, isLit);
     }
     
-    @Override public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction direction, @NotNull BlockState neighborState,
-        @NotNull LevelAccessor level, @NotNull BlockPos currentPos, @NotNull BlockPos neighborPos)
-            {
-                if(state.getValue(LIT) && level.getFluidState(currentPos).is(FluidTags.WATER))
-                {
-                    level.playSound(null, currentPos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, QUIET_SOUND_VOLUME, 2.6F);
-                    return state.setValue(LIT, false);
-                }
-                return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
-            }
+    @Override public @NotNull BlockState updateShape(
+        @NotNull BlockState state,
+        @NotNull Direction direction,
+        @NotNull BlockState neighborState,
+        @NotNull LevelAccessor level,
+        @NotNull BlockPos currentPos,
+        @NotNull BlockPos neighborPos
+    )
+    {
+        if(state.getValue(LIT) && level.getFluidState(currentPos).is(FluidTags.WATER))
+        {
+            level.playSound(null, currentPos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, QUIET_SOUND_VOLUME, 2.6F);
+            return state.setValue(LIT, false);
+        }
+        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+    }
     
     @Override public void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving)
     {

@@ -69,9 +69,8 @@ public final class CrispUIUtils
         
         CrispFunctionalUtils.throwIf(
             rows <= 0 || cols <= 0,
-            () -> new IllegalArgumentException(
-                "Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: %d, cols: %d".
-                    formatted(rows, cols))
+            "Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: %d, cols: %d".formatted(rows, cols),
+            IllegalArgumentException::new
         );
         
         for(int row = 0; row < rows; row++)

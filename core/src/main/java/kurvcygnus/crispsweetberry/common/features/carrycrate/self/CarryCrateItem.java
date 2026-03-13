@@ -34,7 +34,7 @@ public final class CarryCrateItem extends BlockItem
             new Properties().
                 durability(CARRY_CRATE_MAX_DURABILITY).
                 setNoRepair().//* "durability" sets the max stack size to 1 implicitly, we need to adjust this.
-                stacksTo(MiscConstants.STANDARD_MAX_STACK_SIZE)//* and for flexibility, we take maxStackCount as a param.
+                stacksTo(MiscConstants.STANDARD_MAX_STACK_SIZE)
         );
     }
     

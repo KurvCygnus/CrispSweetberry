@@ -8,8 +8,10 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.ISimpleBlockEntityPenaltyLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -20,7 +22,8 @@ import org.jetbrains.annotations.Range;
 /**
  * This is a collection for universal carriable interfaces.
  * @since 1.0 Release
- * @author Kurv Cygnus
+ * @see CarriableBlockExtensions Block Extras
+ * @see CarriableBlockEntityExtensions BlockEntity Extras
  */
 @ApiStatus.Internal
 public final class CarriableExtensions
@@ -37,10 +40,10 @@ public final class CarriableExtensions
      * <br>
      * <b>The smaller the Penalty Rate is, the faster the durability drops</b>.
      * @since 1.0 Release
-     * @see ISimpleBlockEntityPenaltyLogic Container Item Based Penalty Logic Implementation
+     * @see CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic Container Item Based Penalty Logic Implementation
      * @author Kurv Cygnus
      */
-    public interface ICarriableLifecycle
+    public interface ICarriableLifecycle<T extends CarryData.CarryDataBaseHolder>
     {
         int DEFAULT_PENALTY_RATE = 20;
         
@@ -57,6 +60,8 @@ public final class CarriableExtensions
          * <b>When player holds stuff that doesn't cause overweight more than 1, overweight will always be applied to player.</b>
          */
         default boolean causesOverweight() { return true; }
+        
+        void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull T dataHolder, long elapsedTime);
     }
     
     /**
@@ -72,16 +77,32 @@ public final class CarriableExtensions
          * During the execution of {@code #carryTick(TickingContext)}, <b>adapters will be created with {@code null} values</b>.<br>
          * So, <span style="color: red">do not try to get adapters field(block, blockEntity...) and use, <u>{@link NullPointerException NPE}</u> will be thrown.</span>
          */
-        default void carryingTick(@NotNull CarriableExtensions.ICarryTickable.TickingContext context) {}
-        
-        record TickingContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, int slotId) {}
+        default void carryingTick(@NotNull TickingContext context) {}
+    }
+    
+    /**
+     * A simple interface, used for runtime type-adapter validation.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     */
+    public interface ICarryVerifiable 
+    {
+        /**
+         * Get the basic supported type's class.
+         * @apiNote For universal usage, return the targets' common base.
+         * (e.g. <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaFurnaceSeriesAdapter Furnace Series}</u> -> 
+         * <u>{@link net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity AbstractFurnaceBlockEntity.class}</u>)
+         */
+        @NotNull Class<?> getSupportedType();
     }
     
     //? TODO: UI Ass stuff
-    public static interface ICarryDisplayable
+    public interface ICarryDisplayable
     {
         default void initRenderComponents(@NotNull ClientTooltipComponent... components) {}
         
         default void display() {}
     }
+    
+    public record TickingContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, @NotNull String uuid, int slotId) {}
 }

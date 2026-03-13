@@ -8,19 +8,22 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 
 //? TODO: BIG CHEST TEST. NBT IO Logic may have issues.
 public class SimpleContainerBlockEntityCarryAdapter<E extends BaseContainerBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>
+extends AbstractBlockEntityCarryAdapter<E>
+implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic<E>
 {
-    public SimpleContainerBlockEntityCarryAdapter(@NotNull E blockEntity) { super(blockEntity); }
+    public SimpleContainerBlockEntityCarryAdapter(@NotNull BlockEntity blockEntity) { super(blockEntity); }
     
     @Override public void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
     {
@@ -35,4 +38,6 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
     
     @Override public @NotNull NonNullList<ItemStack> getItems(@NotNull E blockEntity) 
         { return ((CarriableVanillaBlockEntityAccessors.IBaseContainerAccessor) blockEntity).callGetItems(); }
+    
+    @Override public @NotNull Class<?> getSupportedType() { return BaseContainerBlockEntity.class; }
 }

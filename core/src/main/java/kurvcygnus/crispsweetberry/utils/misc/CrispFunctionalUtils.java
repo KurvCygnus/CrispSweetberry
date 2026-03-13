@@ -9,12 +9,15 @@
 package kurvcygnus.crispsweetberry.utils.misc;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
@@ -27,6 +30,12 @@ public final class CrispFunctionalUtils
     private CrispFunctionalUtils() { throw new IllegalAccessError("Class \"CrispFunctionalUtils\" is not meant to be instantized!"); }
     
     private static final Logger LOGGER = LogUtils.getLogger();
+    
+    public static <B extends Block> @NotNull Function<BlockBehaviour.Properties, B> noArgCodec(@NotNull Supplier<B> construct)
+    {
+        requireNonNull(construct, "Param \"construct\" must not be null!");
+        return UwU -> construct.get();
+    }
     
     public static <T> void doIfNonNull(@Nullable T object, @NotNull Consumer<T> action)
     {
@@ -48,14 +57,14 @@ public final class CrispFunctionalUtils
             action.run();
     }
     
-    public static <E extends Throwable> void throwIf(boolean condition, @NotNull Supplier<E> supplier) throws E
+    public static <E extends Throwable> void throwIf(boolean condition, @NotNull String message, @NotNull Function<String, E> function) throws E
     {
-        requireNonNull(supplier, "Param \"supplier\" cannot be null!(Param 2, Bro, serious?)");
+        requireNonNull(message, "Param \"message\" must not be null!");
         
         if(!condition)
             return;
         
-        throw supplier.get();
+        throw function.apply(message);
     }
     
     @Contract("null, _ -> fail; !null, _ -> param1")

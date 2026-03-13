@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.components;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
@@ -47,7 +48,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     private final @Nullable BlockPos targetPos;
     private final @Nullable BlockState targetState;
     private final @Nullable LivingEntity targetEntity;
-    protected final @Nullable String optionalCarryID;
+    protected final @Nullable CarryID optionalCarryID;
     protected final boolean hasData;
     
     public AbstractCarryInteractHandler(
@@ -57,7 +58,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         @Nullable BlockPos targetPos,
         @Nullable BlockState targetState,
         @Nullable LivingEntity targetEntity,
-        @Nullable String optionalCarryID
+        @Nullable CarryID optionalCarryID
     )
     {
         requireNonNull(level, "Param \"level\" must not be null!");
@@ -88,11 +89,11 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     
     protected abstract @NotNull ResourceLocation getCarryResourceLocation();
     
-    protected final @NotNull String generateCarryID()
+    protected final @NotNull CarryID generateCarryID()
     {
         final UUID uuid = UUID.randomUUID();
         
-        return "%s§%s".formatted(getCarryResourceLocation(), uuid.toString().replace("-", ""));
+        return new CarryID(getCarryResourceLocation().toString(), uuid.toString().replace("-", ""));
     }
     
     protected final @NotNull HandleResult handleEx()
@@ -148,7 +149,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         @NotNull Optional<CarryData> data,
         int flags,
         @NotNull InteractionResult result,
-        @NotNull Optional<String> carryID
+        @NotNull Optional<CarryID> carryID
     )
     {
         private static final int LISTENER_ADD = 1;// 1 << 0
@@ -163,7 +164,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         public static @NotNull HandleResult boxIn(
             @NotNull CarryData carryData,
             @NotNull InteractionResult result,
-            @Nullable String carryID,
+            @Nullable CarryID carryID,
             boolean addAsExtra
         )
         {
@@ -171,7 +172,8 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             requireNonNull(result, "Param \"result\" must not be null!");
             CrispFunctionalUtils.throwIf(
                 carryID == null && !addAsExtra,
-                () -> new IllegalArgumentException("Param \"carryID\" must not be null when data won't be added as extra!")
+                "Param \"uuid\" must not be null when data won't be added as extra!",
+                IllegalArgumentException::new
             );
             
             final int flags = COMPONENT_INSERT | TARGET_TAKE | (addAsExtra ? 0 : LISTENER_ADD);
@@ -186,7 +188,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         
         public static @NotNull HandleResult failed() { return new HandleResult(Optional.empty(), 0, InteractionResult.FAIL, Optional.empty()); }
         
-        public static @NotNull HandleResult removeWithUUID(@NotNull String carryID)
+        public static @NotNull HandleResult removeWithUUID(@NotNull CarryID carryID)
         {
             return new HandleResult(
                 Optional.empty(),
@@ -196,7 +198,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             );
         }
         
-        public static @NotNull HandleResult unbox(@NotNull CarryData data, @Nullable String carryID)
+        public static @NotNull HandleResult unbox(@NotNull CarryData data, @Nullable CarryID carryID)
         {
             final int flags = LISTENER_REMOVE | COMPONENT_REMOVE | TARGET_RELEASE;
             

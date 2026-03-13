@@ -117,14 +117,16 @@ public final class CrispSweetberry
                         final IRegistrant registrant = (IRegistrant) clazz.getEnumConstants()[0];
                         
                         CrispFunctionalUtils.throwIf(
-                            !LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()), () ->
-                                new IllegalArgumentException(String.format("Invalid priority: %s", registrant.getPriority().priority()))
+                            !LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()),
+                            String.format("Invalid priority: %s", registrant.getPriority().priority()),
+                            IllegalArgumentException::new
                         );
                         
                         return registrant;
                     }
                     
-                    LOGGER.warn("Skipped class \"{}\" because {}", 
+                    LOGGER.warn(
+                        "Skipped class \"{}\" because {}", 
                         clazz.getName(), 
                         clazz.isEnum() ? "it's not a singleton enum." : "it's not an enum. Did you forget it?"
                     );

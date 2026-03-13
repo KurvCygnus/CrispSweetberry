@@ -38,6 +38,7 @@
     "crispsweetberry.menu.control.title": "澄莓物语-游戏按键",
     "crispsweetberry.ui.widget.kiln_info_cooldown": "总输入热量改变. 正在重分配热量...",
     "crispsweetberry.ui.widget.kiln_tip_blast": "部分原材料属于高炉原配方.\n窑炉无法处理高热量要求的原材料.",
+    "effect.crispsweetberry.overweight": "超重",
     "entity.crispsweetberry.glowstick": "荧光棒",
     "entity.crispsweetberry.thrown_redstone_torch": "红石投掷火把",
     "entity.crispsweetberry.thrown_soul_torch": "灵魂投掷火把",

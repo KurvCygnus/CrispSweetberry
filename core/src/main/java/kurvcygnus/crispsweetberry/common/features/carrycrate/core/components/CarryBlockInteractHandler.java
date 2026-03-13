@@ -14,6 +14,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractB
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -25,6 +26,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,13 +44,13 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
         @NotNull BlockPos targetPos,
         @NotNull BlockState targetState,
         @Nullable LivingEntity targetEntity,
-        @Nullable String optionalCarryID
+        @Nullable CarryID optionalCarryID
     )
     { super(level, player, carryCrate, targetPos, targetState, targetEntity, optionalCarryID); }
     
     @Override public @NotNull HandleResult boxIn()
     {
-        final String carryID = generateCarryID();
+        final CarryID carryID = generateCarryID();
         final BlockState targetState = getTargetState();
         LOGGER.debug("Generated a new CarryID \"{}\" for indexing.", carryID);
 
@@ -61,12 +63,14 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
         }
         
         final AbstractBlockCarryAdapter<?> adapter = optionalAdapter.get();
+        final int carryCount = targetState.hasProperty(BlockStateProperties.LAYERS) ? targetState.getValue(BlockStateProperties.LAYERS) : 1;
         
         final CarryData insertData = CarryData.createBlock(
             targetState,
             adapter.getPenaltyRate(),
-            1,//? TODO: Make here more flexible, perhaps. Layered blocks are obviously not following this.
+            carryCount,
             adapter.getAcceptableCount(),
+            adapter.causesOverweight(),
             level.getGameTime()
         );
         
@@ -91,6 +95,7 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
                 blockDataHolder.getPenaltyRate(),
                 blockDataHolder.getCarryCount() + 1,
                 blockDataHolder.getMaxCarryCount(),
+                data.causesOverweight(),
                 level.getGameTime()
             );
             
@@ -106,10 +111,7 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
     {
         final var factory = CarryRegistryManager.INSTANCE.getBlockAdapter(block);
         
-        return factory.map(
-            f ->
-            createAdapter(f, block)
-        );
+        return factory.map(f -> createAdapter(f, block));
     }
     
     @SuppressWarnings("unchecked")//! Safe casting awa

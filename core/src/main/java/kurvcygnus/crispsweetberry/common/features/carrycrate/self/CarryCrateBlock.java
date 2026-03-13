@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.self;
 
 import com.mojang.serialization.MapCodec;
+import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
@@ -18,15 +19,16 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 //? TODO
 
+/**
+ * This is the block version of Carry Crate.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
 public final class CarryCrateBlock extends HorizontalDirectionalBlock
 {
-    //! Only for CODC.
-    public CarryCrateBlock(@Nullable Properties properties) { this(); }
-    
     public CarryCrateBlock()
     {
         super(BlockBehaviour.Properties.of().
@@ -43,5 +45,5 @@ public final class CarryCrateBlock extends HorizontalDirectionalBlock
     @Override public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
         { return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
     
-    @Override protected @NotNull MapCodec<CarryCrateBlock> codec() { return simpleCodec(CarryCrateBlock::new); }
+    @Override protected @NotNull MapCodec<CarryCrateBlock> codec() { return simpleCodec(CrispFunctionalUtils.noArgCodec(CarryCrateBlock::new)); }
 }

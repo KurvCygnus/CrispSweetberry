@@ -79,7 +79,8 @@ public abstract class AbstractTemporaryTorchBehavior
             //noinspection NonStrictComparisonCanBeEquality
             CrispFunctionalUtils.throwIf(
                 stateLength <= 0,//! Defensive check.
-                () -> new IllegalArgumentException("The attachTag length of tempo torches should be a positive integer! Current length: %d".formatted(stateLength))
+                "The attachTag length of tempo torches should be a positive integer! Current length: %d".formatted(stateLength),
+                IllegalArgumentException::new
             );
             isStateLengthLegal = true;
         }

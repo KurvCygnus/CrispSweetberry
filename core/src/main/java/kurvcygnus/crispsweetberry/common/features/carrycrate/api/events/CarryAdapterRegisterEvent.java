@@ -40,11 +40,9 @@ public final class CarryAdapterRegisterEvent extends Event
      * Registers a blockEntity with its unique adapter.
      * @param blockEntityType Bounded BlockEntity's Type
      * @param carryAdapterBlockEntityFactory Bounded Adapter's Contractor
-     * @param <E> The detailed type of the blockEntity.
-     * @param <A> The detailed type of the blockEntity's adapter.
      * @apiNote Please notes that the type that adapter supports must be completely same as blockEntityType's, 
      * even the child blockEntities are not allowed. For universal case, use 
-     * <u>{@link #registerUniversal(ICarryRegistry.ICarryBlockEntityAdapterFactory, BlockEntityType[])}</u> instead.
+     * <u>{@link #registerUniversal(Set, ICarryRegistry.ICarryBlockEntityAdapterFactory)}</u> instead.
      * @implSpec <pre>{@code
      *  @SubscribeEvent 
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
@@ -60,54 +58,65 @@ public final class CarryAdapterRegisterEvent extends Event
      *      );// This won't work.
      *      
      *      event.registerUniversal(
-     *          BaseVanillaBrewingStandAdapter::new,
-     *          MyReg.SUPER_BREWING_STAND.get()
+     *          Set.of(MyReg.SUPER_BREWING_STAND.get()),
+     *          BaseVanillaBrewingStandAdapter::new
      *      );// This works.
      *  }
      * }</pre>
      */
-    public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>>
-    void register(
-        @NotNull BlockEntityType<E> blockEntityType,
-        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
-    ) { this.carryRegistry.register(blockEntityType, carryAdapterBlockEntityFactory); }
+    @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
+    public void register(
+        @NotNull BlockEntityType<? extends BlockEntity> blockEntityType,
+        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>> carryAdapterBlockEntityFactory
+    )
+    {
+        final var castedFactory = (ICarryRegistry.ICarryBlockEntityAdapterFactory<BlockEntity, AbstractBlockEntityCarryAdapter<BlockEntity>>) 
+            carryAdapterBlockEntityFactory;
+        final var castedType = (BlockEntityType<BlockEntity>) blockEntityType;
+        
+        this.carryRegistry.register(castedType, castedFactory);
+    }
     
     /**
      * Registers a collection of blockEntity with a base adapter.
      * @param carryAdapterBlockEntityFactory Bounded Adapter's Contractor
      * @param blockEntityTypes Bounded BlockEntities' Types
-     * @param <E> The base type of all blockEntities.
-     * @param <A> The detailed type of the blockEntity's adapter, it only requires the blockEntityTypes are assignable from 
-     *           its bound blockEntity's Type.
      * @implSpec <pre>{@code 
      *  @SubscribeEvent 
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.registerUniversal(
-     *          BaseVanillaFurnaceSeriesAdapter::new,
-     *          BlockEntityType.FURNACE,
-     *          BlockEntityType.BLAST_FURNACE,
-     *          BlockEntityType.SMOKER,
-     *          MyReg.IRON_FURNACE.get()
+     *          Set.of(
+     *              BlockEntityType.FURNACE,
+     *              BlockEntityType.BLAST_FURNACE,
+     *              BlockEntityType.SMOKER,
+     *              MyReg.IRON_FURNACE.get()
+     *          ),
+     *          BaseVanillaFurnaceSeriesAdapter::new
      *      );// Works!
      *  }
      * }</pre>
      */
-    @SafeVarargs public final <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> 
-    void registerUniversal(
-        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory,
-        @NotNull BlockEntityType<? extends E>... blockEntityTypes
-    ) { this.carryRegistry.registerUniversal(Set.of(blockEntityTypes), carryAdapterBlockEntityFactory); }
+    @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
+    public void registerUniversal(
+        @NotNull Set<? extends BlockEntityType<? extends BlockEntity>> blockEntityTypes,
+        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>> carryAdapterBlockEntityFactory
+    ) 
+    {
+        final var castedFactory = (ICarryRegistry.ICarryBlockEntityAdapterFactory<BlockEntity, AbstractBlockEntityCarryAdapter<BlockEntity>>)
+            carryAdapterBlockEntityFactory;
+        final var castedTypes = (Set<BlockEntityType<BlockEntity>>) blockEntityTypes;
+        
+        this.carryRegistry.registerUniversal(castedTypes, castedFactory);
+    }
     
     /**
      * Registers a block with its unique adapter.
      * @param block Bounded Block's Type
      * @param carryAdapterBlockAdapterFactory Bounded Adapter's Contractor
-     * @param <B> The detailed type of the block.
-     * @param <A> The detailed type of the block's adapter.
      * @apiNote Please notes that the type that adapter supports must be completely same as block's,
      * even the child blocks are not allowed. For universal case, use
-     * <u>{@link #registerUniversal(ICarryRegistry.ICarryBlockAdapterFactory, Block[])}</u> instead.
+     * <u>{@link #registerUniversal(Set, ICarryRegistry.ICarryBlockAdapterFactory)}</u> instead.
      * @implSpec <pre>{@code
      *  @SubscribeEvent 
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
@@ -123,53 +132,63 @@ public final class CarryAdapterRegisterEvent extends Event
      *      );// This won't work.
      *
      *      event.registerUniversal(
-     *          ProcessBlockCarryAdapter::new,
-     *          MyReg.BIG_PROCESS_TABLE.get()
+     *          Set.of(MyReg.BIG_PROCESS_TABLE.get()),
+     *          ProcessBlockCarryAdapter::new
      *      );// This works.
      *  }
      * }</pre>
      */
-    public <B extends Block, A extends AbstractBlockCarryAdapter<B>>
-    void register(
-        @NotNull B block,
-        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory
-    ) { this.carryRegistry.register(block, carryAdapterBlockAdapterFactory); }
+    public void register(
+        @NotNull Block block,
+        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>> carryAdapterBlockAdapterFactory
+    ) 
+    {
+        @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
+        final var castedFactory = (ICarryRegistry.ICarryBlockAdapterFactory<Block, AbstractBlockCarryAdapter<Block>>) carryAdapterBlockAdapterFactory;
+        
+        this.carryRegistry.register(block, castedFactory);
+    }
     
     /**
      * Registers a collection of block with a base adapter.
-     * @param blocks Bounded Blocks' Types
+     *
+     * @param blocks                          Bounded Blocks' Types
      * @param carryAdapterBlockAdapterFactory Bounded Adapter's Contractor
-     * @param <B> The base type of all blocks.
-     * @param <A> The detailed type of the block's adapter, it only requires the blocks are assignable from
-     *           its bound block's Type.
+     *                                        its bound block's Type.
      * @implSpec <pre>{@code
-     *  @SubscribeEvent 
+     *  @SubscribeEvent
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.registerUniversal(
-     *          LiteBlockEntityCarryAdapter::new,
-     *          MyReg.LITE_LOG_BLOCK.get(),
-     *          MyReg.LITE_CRAFTING_TABLE.get()
+     *          Set.of(
+     *              MyReg.LITE_LOG_BLOCK.get(),
+     *              MyReg.LITE_CRAFTING_TABLE.get()
+     *          ),
+     *          LiteBlockEntityCarryAdapter::new
      *      );// Works!
      *  }
      * }</pre>
      */
-    @SafeVarargs public final <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
-    void registerUniversal(
-        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory,
-        @NotNull B... blocks
-    ) { this.carryRegistry.registerUniversal(Set.of(blocks), carryAdapterBlockAdapterFactory); }
+    @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
+    public void registerUniversal(
+        @NotNull Set<? extends Block> blocks,
+        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>> carryAdapterBlockAdapterFactory
+    )
+    {
+        final var castedBlocks = (Set<Block>) blocks;
+        final var castedFactory = (ICarryRegistry.ICarryBlockAdapterFactory<Block, AbstractBlockCarryAdapter<Block>>) carryAdapterBlockAdapterFactory;
+        
+        this.carryRegistry.registerUniversal(castedBlocks, castedFactory);
+    }
     
     /**
      * Registers a entity with its unique adapter.
      *
      * @param entityType Bounded Entity's Type
      * @param carryEntityAdapterFactory Bounded Adapter's Contractor
-     * @param <E> The detailed type of the entity.
-     * @param <A> The detailed type of the entity's adapter.
      * @apiNote Please notes that the type that adapter supports must be completely same as entityType's,
      * even the child entities are not allowed. For universal case, use
-     * <u>{@link #registerUniversal(ICarryRegistry.ICarryEntityAdapterFactory, EntityType[])}</u> instead.
+     * <u>{@link #registerUniversal(Set, ICarryRegistry.ICarryEntityAdapterFactory)}</u> instead.
      * @implSpec <pre>{@code
      *  @SubscribeEvent 
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
@@ -185,40 +204,53 @@ public final class CarryAdapterRegisterEvent extends Event
      *      );// This won't work.
      *      
      *      event.registerUniversal(
-     *          MyReg.BIG_ANT.get(),
+     *          Set.of(MyReg.BIG_ANT.get()),
      *          AntCarryAdapter::new
      *      );// Works.
      *  }
      * }</pre>
      */
-    public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<E>>
-    void register(
-        @NotNull EntityType<E> entityType,
-        @NotNull ICarryRegistry.ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory
-    ) { this.carryRegistry.register(entityType, carryEntityAdapterFactory); }
+    @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
+    public void register(
+        @NotNull EntityType<? extends LivingEntity> entityType,
+        @NotNull ICarryRegistry.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
+    ) 
+    {
+        final var castedEntity = (EntityType<LivingEntity>) entityType;
+        final var castedFactory = (ICarryRegistry.ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
+        
+        this.carryRegistry.register(castedEntity, castedFactory);
+    }
     
     /**
      * Registers a collection of Entity with a base adapter.
-     * @param entityTypes Bounded Entities' Types
+     *
+     * @param entityTypes               Bounded Entities' Types
      * @param carryEntityAdapterFactory Bounded Adapter's Contractor
-     * @param <E> The base type of all entities.
-     * @param <A> The detailed type of the entity's adapter, it only requires the entities are assignable from
-     *           its bound entity's Type.
+     *                                  its bound entity's Type.
      * @implSpec <pre>{@code
-     *  @SubscribeEvent 
+     *  @SubscribeEvent
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
      *  {
      *      event.registerUniversal(
-     *          BaseRabbitCarryAdapter::new,
-     *          MyReg.BLUE_RABBIT.get(),
-     *          MyReg.INVIS_RABBIT.get()
+     *          Set.of(
+     *              MyReg.BLUE_RABBIT.get(),
+     *              MyReg.INVIS_RABBIT.get()
+     *          ),
+     *          BaseRabbitCarryAdapter::new
      *      );// Works!
      *  }
      * }</pre>
      */
-    @SafeVarargs public final <E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
-    void registerUniversal(
-        @NotNull ICarryRegistry.ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory,
-        @NotNull EntityType<? extends E>... entityTypes
-    ) { this.carryRegistry.registerUniversal(Set.of(entityTypes), carryEntityAdapterFactory); }
+    @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
+    public void registerUniversal(
+        @NotNull Set<? extends EntityType<? extends LivingEntity>> entityTypes,
+        @NotNull ICarryRegistry.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
+    )
+    {
+        final var castedEntities = (Set<EntityType<LivingEntity>>) entityTypes;
+        final var castedFactory = (ICarryRegistry.ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
+        
+        this.carryRegistry.registerUniversal(castedEntities, castedFactory);
+    }
 }

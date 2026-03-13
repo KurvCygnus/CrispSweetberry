@@ -38,6 +38,7 @@
     "crispsweetberry.menu.control.title": "Crisp Sweetberry-In Game Keymappings",
     "crispsweetberry.ui.widget.kiln_info_cooldown": "Total heat changed. Rebalancing heat distribution...",
     "crispsweetberry.ui.widget.kiln_tip_blast": "Some materials are blasting recipe.\nKiln can't process such items that requires high heat.",
+    "effect.crispsweetberry.overweight": "Overweight",
     "entity.crispsweetberry.glowstick": "Glowstick",
     "entity.crispsweetberry.thrown_redstone_torch": "Thrown Redstone Torch",
     "entity.crispsweetberry.thrown_soul_torch": "Throwable Soul Torch",

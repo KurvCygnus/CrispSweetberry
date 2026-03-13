@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -19,6 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionBrewing;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +41,8 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @implNote The access the vanilla data relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor mixin accessor}</u>.
  */
 public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> 
+implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic<E>
 {
     //  region
     //*:=== Contacts & Constructor
@@ -48,7 +51,10 @@ extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyL
     protected static final int INGREDIENT_SLOT_INDEX = 3;
     protected static final int FUEL_SLOT_INDEX = 4;
     
-    public BaseVanillaBrewingStandAdapter(@NotNull E blockEntity) { super(blockEntity); }
+    public BaseVanillaBrewingStandAdapter(@NotNull BlockEntity blockEntity) { super(blockEntity); }
+    
+    @Override public @NotNull Class<?> getSupportedType() { return BrewingStandBlockEntity.class; }
+    //endregion
     
     //  region
     //*:=== Atomic processions

@@ -15,13 +15,21 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(BrewingStandBlockEntity.class)
+/**
+ * This is a bridge class, which implements the accessor's methods to reveal {@code private} fields.
+ *
+ * @author Kurv Cygnus
+ * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaBrewingStandAdapter Usage
+ * @since 1.0 Release
+ */
+@Mixin(BrewingStandBlockEntity.class) @ApiStatus.Internal
 public abstract class VanillaBrewingStandAccessor implements CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor
 {
     @Accessor @Override public abstract @NotNull NonNullList<ItemStack> getItems();

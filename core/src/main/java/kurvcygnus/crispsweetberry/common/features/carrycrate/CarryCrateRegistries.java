@@ -16,8 +16,11 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaFurnaceSeriesAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.JukeboxCompatCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.PowderSnowCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryFactor;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateBlock;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverWeightEffect;
@@ -31,16 +34,18 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.PowderSnowBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Set;
 
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryCrateRegistries implements IRegistrant
@@ -64,50 +69,63 @@ public enum CarryCrateRegistries implements IRegistrant
         Registries.DATA_COMPONENT_TYPE,
         CrispSweetberry.NAMESPACE
     );
+    private static final DeferredRegister<AttachmentType<?>> CARRY_FACTOR_REGISTER = DeferredRegister.create(
+        NeoForgeRegistries.ATTACHMENT_TYPES,
+        CrispSweetberry.NAMESPACE
+    );
     
     public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         CARRY_CRATE_BLOCK_REGISTER,
         CARRY_CRATE_ITEM_REGISTER,
         CARRY_CRATE_BE_REGISTER,
         OVERWEIGHT_EFFECT_REGISTER,
-        CARRY_CRATE_DATA_COMPONENT_REGISTER
+        CARRY_CRATE_DATA_COMPONENT_REGISTER,
+        CARRY_FACTOR_REGISTER
     );
     
     @SubscribeEvent static void registerInternalBasicCarriables(@NotNull CarryAdapterRegisterEvent event)
     {
         event.registerUniversal(
-            BaseVanillaFurnaceSeriesAdapter::new,
-            BlockEntityType.FURNACE,
-            BlockEntityType.BLAST_FURNACE,
-            BlockEntityType.SMOKER
+            Set.of(
+                BlockEntityType.FURNACE,
+                BlockEntityType.BLAST_FURNACE,
+                BlockEntityType.SMOKER
+            ),
+            BaseVanillaFurnaceSeriesAdapter::new
         );
+        
         event.register(BlockEntityType.BREWING_STAND, BaseVanillaBrewingStandAdapter::new);
+        event.register(BlockEntityType.JUKEBOX, JukeboxCompatCollection.JukeboxBlockEntityCarryAdapter::new);
         
         //* Despite EnderChest belongs to BlockEntity, it can't, and shouldn't be registered at here.
         //* EnderChest's content stores on player, so we treat it as a normal block.
         event.registerUniversal(
-            SimpleContainerBlockEntityCarryAdapter::new,
-            BlockEntityType.CHEST,
-            BlockEntityType.BARREL,
-            BlockEntityType.DISPENSER,
-            BlockEntityType.DROPPER,
-            BlockEntityType.HOPPER,
-            BlockEntityType.TRAPPED_CHEST,
-            BlockEntityType.CRAFTER//* Crafter relies on redstone signal to work, so here's no need to support its tick logic LLLLLLMAO
+            Set.of(
+                BlockEntityType.CHEST,
+                BlockEntityType.BARREL,
+                BlockEntityType.DISPENSER,
+                BlockEntityType.DROPPER,
+                BlockEntityType.HOPPER,
+                BlockEntityType.TRAPPED_CHEST,
+                BlockEntityType.CRAFTER
+            ),//* Crafter relies on redstone signal to work, so here's no need to support its tick logic LLLLLLMAO
+            SimpleContainerBlockEntityCarryAdapter::new
         );
         
         event.registerUniversal(
-            SimpleBlockCarryAdapter::new,
-            Blocks.ANVIL,
-            Blocks.ENCHANTING_TABLE,
-            Blocks.SMITHING_TABLE,
-            Blocks.CARTOGRAPHY_TABLE,
-            Blocks.FLETCHING_TABLE,
-            Blocks.CRAFTING_TABLE,
-            Blocks.ENDER_CHEST
+            Set.of(
+                Blocks.ANVIL,
+                Blocks.ENCHANTING_TABLE,
+                Blocks.SMITHING_TABLE,
+                Blocks.CARTOGRAPHY_TABLE,
+                Blocks.FLETCHING_TABLE,
+                Blocks.CRAFTING_TABLE,
+                Blocks.ENDER_CHEST
+            ),
+            SimpleBlockCarryAdapter::new
         );
         
-        event.register((PowderSnowBlock) Blocks.POWDER_SNOW, PowderSnowCarryAdapter::new);
+        event.register(Blocks.POWDER_SNOW, PowderSnowCarryAdapter::new);
     }
     
     @AutoI18n(
@@ -141,11 +159,11 @@ public enum CarryCrateRegistries implements IRegistrant
         () -> OverWeightEffect.register(OVERWEIGHT_EFFECT_REGISTER)
     );
     
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryID>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
         "carry_crate.carry_id",
-        resourceLocation -> DataComponentType.<String>builder().
-            persistent(Codec.STRING).
-            networkSynchronized(ByteBufCodecs.STRING_UTF8).
+        resourceLocation -> DataComponentType.<CarryID>builder().
+            persistent(CarryID.CODEC).
+            networkSynchronized(CarryID.STREAM_CODEC).
             build()
     );
     
@@ -162,6 +180,14 @@ public enum CarryCrateRegistries implements IRegistrant
         resourceLocation -> DataComponentType.<Integer>builder().
             persistent(Codec.INT).
             networkSynchronized(ByteBufCodecs.INT).
+            build()
+    );
+    
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<CarryFactor>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(
+        "carry_crate.carry_factor",
+        resourceLocation -> AttachmentType.builder(() -> new CarryFactor(0F)).
+            serialize(CarryFactor.CODEC).
+            sync(CarryFactor.STREAM_CODEC).
             build()
     );
 }

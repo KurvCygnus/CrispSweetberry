@@ -84,7 +84,7 @@ public enum KilnRegistries implements IRegistrant
         KILN_STAT_REGISTER
     );
     
-    @SubscribeEvent static void registerCarry(@NotNull CarryAdapterRegisterEvent event) { event.register(KILN_BLOCK_ENTITY.get(), KilnBlockEntityCarryAdapter::new); }
+    @SubscribeEvent static void registerCarry(@NotNull CarryAdapterRegisterEvent event) { event.register(KILN_BLOCK_ENTITY.get(), blockEntity -> new KilnBlockEntityCarryAdapter(blockEntity)); }
     
     /**
      * This event assigns value to kiln item, depending on block's property <u>{@link KilnBlock#LIT}</u>.<br>

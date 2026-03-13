@@ -14,6 +14,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.Abstract
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -42,13 +43,13 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         @Nullable BlockPos targetPos,
         @Nullable BlockState targetState,
         @NotNull LivingEntity targetEntity,
-        @Nullable String optionalCarryID
+        @Nullable CarryID optionalCarryID
     )
     { super(level, player, carryCrate, targetPos, targetState, targetEntity, optionalCarryID); }
     
     @Override protected @NotNull HandleResult boxIn() 
     {
-        final String uuid = generateCarryID();
+        final CarryID uuid = generateCarryID();
         LOGGER.debug("Generated UUID \"{}\" for indexing.", uuid);
         final LivingEntity targetEntity = getTargetEntity();
         
@@ -69,7 +70,15 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
             return HandleResult.failed();
         }
         
-        final CarryData insertData = CarryData.createEntity(optionalAdapter.get().getPenaltyRate(), targetEntity.getType(), tagData, level.getGameTime());
+        final AbstractEntityCarryAdapter<?> adapter = optionalAdapter.get();
+        
+        final CarryData insertData = CarryData.createEntity(
+            adapter.getPenaltyRate(),
+            targetEntity.getType(),
+            tagData,
+            adapter.causesOverweight(),
+            level.getGameTime()
+        );
         
         return HandleResult.boxIn(insertData, InteractionResult.SUCCESS, uuid, false);
     }

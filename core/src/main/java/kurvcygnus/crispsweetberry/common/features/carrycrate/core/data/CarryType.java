@@ -44,7 +44,7 @@ public enum CarryType implements StringRepresentable
         CarryData.CarryBlockDataHolder.STREAM_CODEC,
         CarryBlockInteractHandler::new
     ),
-    @SuppressWarnings("DataFlowIssue")//! See #createHandler(). It grantees the null safety for BLOCK.
+    @SuppressWarnings("DataFlowIssue")//! See #createHandler(). It grantees the null safety for ENTITY.
     ENTITY(
         "entity",
         CarryData.CarryEntityDataHolder.CODEC,
@@ -77,7 +77,7 @@ public enum CarryType implements StringRepresentable
         @Nullable BlockPos targetPos,
         @Nullable BlockState targetState,
         @Nullable LivingEntity targetEntity,
-        @Nullable String optionalUUID
+        @Nullable CarryID optionalUUID
     ) 
     {
         if(this != ENTITY)
@@ -108,7 +108,7 @@ public enum CarryType implements StringRepresentable
             @Nullable BlockPos targetPos,
             @Nullable BlockState targetState,
             @Nullable LivingEntity targetEntity,
-            @Nullable String optionalUUID
+            @Nullable CarryID optionalUUID
         );
     }
 }

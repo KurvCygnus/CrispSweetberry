@@ -42,28 +42,22 @@ public final class FakeLightBlock extends Block
         this.registerDefaultState(this.stateDefinition.getOwner().defaultBlockState().setValue(LIGHT_PROPERTY, TTorchUtilCollection.LightState.DARK));
     }
     
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
+    @Override protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder)
     {
         super.createBlockStateDefinition(builder);
         builder.add(LIGHT_PROPERTY);
     }
     
-    @Override
-    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.INVISIBLE; }
+    @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.INVISIBLE; }
     
-    @Override
-    protected @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
+    @Override protected @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
         { return Shapes.empty(); }
     
-    @Override
-    public float getShadeBrightness(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos) { return 1F; }
+    @Override public float getShadeBrightness(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos) { return 1F; }
     
-    @Override
-    public boolean propagatesSkylightDown(@NotNull BlockState state, @NotNull BlockGetter reader, @NotNull BlockPos pos) { return true; }
+    @Override public boolean propagatesSkylightDown(@NotNull BlockState state, @NotNull BlockGetter reader, @NotNull BlockPos pos) { return true; }
     
-    @Override
-    protected void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
+    @Override protected void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
     {
         if(state.is(oldState.getBlock()))
             return;
@@ -71,7 +65,6 @@ public final class FakeLightBlock extends Block
         level.scheduleTick(pos, this, 5);
     }
     
-    @Override
-    protected void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random) 
+    @Override protected void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random) 
         { level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState()); }
 }

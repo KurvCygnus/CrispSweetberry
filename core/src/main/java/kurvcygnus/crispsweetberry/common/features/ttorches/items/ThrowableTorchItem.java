@@ -30,9 +30,7 @@ public final class ThrowableTorchItem extends AbstractThrowableTorchItem<ThrownT
 {
     public ThrowableTorchItem() { super(new Properties()); }
     
-    @Override
-    protected @NotNull BiFunction<LivingEntity, Level, ThrownTorchEntity> getPlayerUsedProjectile() { return ThrownTorchEntity::new; }
+    @Override protected @NotNull BiFunction<LivingEntity, Level, ThrownTorchEntity> getPlayerUsedProjectile() { return ThrownTorchEntity::new; }
     
-    @Override
-    protected @NotNull ITriProjectileFunction<ThrownTorchEntity> getDispenserUsedProjectile() { return ThrownTorchEntity::new; }
+    @Override protected @NotNull ITriProjectileFunction<ThrownTorchEntity> getDispenserUsedProjectile() { return ThrownTorchEntity::new; }
 }

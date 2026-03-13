@@ -8,8 +8,9 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.block;
 
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryBlockStackable;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -49,17 +50,19 @@ import org.jetbrains.annotations.Range;
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see CarriableExtensions.ICarriableLifecycle Lifecycle Interface
- * @see ICarryBlockStackable Block Carry Support Interface
+ * @see CarriableBlockExtensions.ICarryBlockStackable Block Carry Support Interface
  * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent Register Event
  * @param <B> The block this adapter takes responsibility of.
  */
-public class SimpleBlockCarryAdapter<B extends Block> extends AbstractBlockCarryAdapter<B>
+public class SimpleBlockCarryAdapter<B extends Block> extends AbstractBlockCarryAdapter<B> implements CarriableSimpleLogicCollection.ISimpleCarriableBlockBreakLogic
 {
     protected static final int DEFAULT_ACCEPTABLE_COUNT = 1;
     
-    public SimpleBlockCarryAdapter(@NotNull B block) { super(block); }
+    public SimpleBlockCarryAdapter(@NotNull Block block) { super(block); }
     
     @Override public @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate() { return DEFAULT_PENALTY_RATE; }
     
     @Override public @Range(from = 1, to = Integer.MAX_VALUE) int getAcceptableCount() { return DEFAULT_ACCEPTABLE_COUNT; }
+    
+    @Override public @NotNull Class<?> getSupportedType() { return Block.class; }
 }

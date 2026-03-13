@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.utils.ui.functions;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A functional interface to make creating slot for container menu more simple.
@@ -24,5 +25,5 @@ import net.minecraft.world.inventory.Slot;
 @FunctionalInterface
 public interface IQuadSlotSupplier<C extends Container, S extends Slot>
 {
-    S create(C container, int index, int x, int y);
+    @NotNull S create(C container, int index, int x, int y);
 }

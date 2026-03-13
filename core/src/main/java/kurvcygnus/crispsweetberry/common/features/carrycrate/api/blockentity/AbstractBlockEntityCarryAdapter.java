@@ -11,6 +11,8 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.IAtomicCarriable;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -37,26 +39,43 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @since 1.0 Release
  */
 public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity>
-extends AbstractCarryAdapter implements IAtomicCarriable, ICarrySerializable, IBlockEntityCarryLifecycle<E>
+extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IAtomicCarriable, ICarrySerializable, IBlockEntityCarryLifecycle<E>
 {
     //  region
     //*:=== Core Logics
     /**
-     * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
-     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
+     * @apiNote During <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
+     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
      * <br><br>
-     * In a nutshell, <b>using {@code blockEntity} during <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>
+     * In a nutshell, <b>using {@code blockEntity} during <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>
      * will throw <u>{@link NullPointerException}</u></b>.
      */
     private final @Nullable E blockEntity;
     
-    public AbstractBlockEntityCarryAdapter(@Nullable E blockEntity) { this.blockEntity = blockEntity; }
+    @SuppressWarnings("unchecked")//! Due to the limitation of javac's generic deduction, we have to choose runtime check.
+    public AbstractBlockEntityCarryAdapter(@Nullable BlockEntity blockEntity) 
+    {
+        if(blockEntity == null)
+        {
+            this.blockEntity = null;
+            return;
+        }
+        
+        try { this.blockEntity = (E) blockEntity; }
+        catch(ClassCastException e) 
+        {
+            throw new IllegalArgumentException(
+                "Adapter Type Mismatch! Attempted to bind adapter to blockEntity: %s, but this adapter expects: %s".
+                    formatted(blockEntity.getClass().getSimpleName(), this.getClass().getSimpleName())
+            );
+        }
+    }
     
     /**
-     * @apiNote During <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
-     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
+     * @apiNote During <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
+     * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
      * <br><br>
-     * In a nutshell, <b>using {@code #getBlockEntity()} during <u>{@link #carryingTick(TickingContext) #carryingTick(TickingContext)}</u>
+     * In a nutshell, <b>using {@code #getBlockEntity()} during <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>
      * will throw <u>{@link NullPointerException}</u>, and you shouldn't use this at most cases.</b>
      */
     @Override public final @NotNull E getBlockEntity()
