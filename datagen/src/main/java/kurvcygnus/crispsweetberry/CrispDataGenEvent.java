@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Main event for generating JSON data.
+ * Main event for generating JSON unionData.
  * @since 1.0 Release
  * @implNote <u>{@link GatherDataEvent}</u> doesn't belong to neither <u>{@link net.neoforged.api.distmarker.Dist#CLIENT ClientSide}</u> nor 
  * <u>{@link net.neoforged.api.distmarker.Dist#DEDICATED_SERVER ServerSide}</u>, so just remind that adding these params to 

@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -38,11 +38,11 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstr
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 final class ThrowableTorchZombieEvent
 {
-    private static final CrispIntRanger DEEPEST_RANGE = CrispIntRanger.closed(-64, -24);
-    private static final CrispIntRanger DEEP_RANGE = CrispIntRanger.closed(-23, 16);
-    private static final CrispIntRanger NORMAL_RANGE = CrispIntRanger.closed(17, 320);
+    private static final CrispRanger DEEPEST_RANGE = CrispRanger.closed(-64, -24);
+    private static final CrispRanger DEEP_RANGE = CrispRanger.closed(-23, 16);
+    private static final CrispRanger NORMAL_RANGE = CrispRanger.closed(17, 320);
     
-    private static final List<CrispIntRanger> RANGERS = List.of(
+    private static final List<CrispRanger> RANGERS = List.of(
         DEEPEST_RANGE,
         DEEP_RANGE,
         NORMAL_RANGE
@@ -68,7 +68,7 @@ final class ThrowableTorchZombieEvent
             
             final int count;
             
-            switch(CrispIntRanger.inRangers(entity.getBlockY(), RANGERS))
+            switch(CrispRanger.inRangers(entity.getBlockY(), RANGERS))
             {
                 case 0 -> count = random.nextInt(7) + 1;
                 case 1 -> count = random.nextInt(5) + 1;

@@ -58,7 +58,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock.LIT_PROP
 @EventBusSubscriber(modid = NAMESPACE, value = Dist.CLIENT)
 public enum KilnRegistries implements IRegistrant
 {
-    INSTANCE;
+    INST;
     
     @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
@@ -144,7 +144,7 @@ public enum KilnRegistries implements IRegistrant
     );
     
     public static final DeferredHolder<RecipeType<?>, KilnRecipeType> KILN_RECIPE_TYPE = KILN_RECIPE_REGISTER.register("kiln", () ->
-        KilnRecipeType.INSTANCE
+        KilnRecipeType.INST
     );
     
     public static final DeferredHolder<RecipeSerializer<?>, KilnRecipeSerializer> KILN_SERIALIZER = KILN_SERIALIZER_REGISTER.register("kiln", KilnRecipeSerializer::new);

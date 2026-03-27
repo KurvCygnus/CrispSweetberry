@@ -8,9 +8,10 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.carriables;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -28,10 +29,20 @@ import org.jetbrains.annotations.Range;
 import java.util.HashMap;
 import java.util.Optional;
 
+/**
+ * This holds all stuff that is related to <u>{@link JukeboxBlockEntity Jukebox}</u>'s compat.
+ * @since 1.0 Release
+ */
 public final class JukeboxCompatCollection
 {
+    /**
+     * The adapter of <u>{@link JukeboxBlockEntity Jukebox}</u>.
+     * It is essentially more like a bridge, most logics are handled by {@link CrispMusicGroover}.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     */
     public static final class JukeboxBlockEntityCarryAdapter extends AbstractBlockEntityCarryAdapter<JukeboxBlockEntity>
-    implements CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic<JukeboxBlockEntity>
+    implements ISimpleBlockEntityBreakLogic<JukeboxBlockEntity>, ISimpleBlockEntityPenaltyDropLogic<JukeboxBlockEntity>
     {
         public JukeboxBlockEntityCarryAdapter(@NotNull BlockEntity blockEntity) { super(blockEntity); }
         
@@ -40,18 +51,18 @@ public final class JukeboxCompatCollection
             final ItemStack disc = blockEntity.getTheItem();
             final JukeboxSong song = blockEntity.getSongPlayer().getSong();
             
-            if(disc.isEmpty() || song == null) 
+            if(disc.isEmpty() || song == null)
                 return;
             
             final int songID = context.level().registryAccess().registryOrThrow(Registries.JUKEBOX_SONG).getId(song);
             
-            CrispMusicGroover.INSTANCE.addMusic(disc, songID, blockEntity.getSongPlayer().getTicksSinceSongStarted(), song.lengthInTicks(), context.carryID());
+            CrispMusicGroover.INST.addMusic(disc, songID, blockEntity.getSongPlayer().getTicksSinceSongStarted(), song.lengthInTicks(), context.carryID());
         }
         
         @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull JukeboxBlockEntity blockEntity) { return NO_PENALTY; }
         
         //? TODO: Feature: Bundle-like interaction will be supported in very soon, with changing disc on carrying allowed.
-        @Override protected void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull JukeboxBlockEntity blockEntity) 
+        @Override protected void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull JukeboxBlockEntity blockEntity)
             { blockEntity.loadCustomOnly(tag, registries); }
         
         @Override protected void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull JukeboxBlockEntity blockEntity)
@@ -60,8 +71,8 @@ public final class JukeboxCompatCollection
             tag.merge(dataTag);
         }
         
-        @Override public void carryingTick(@NotNull CarriableExtensions.TickingContext context) 
-            { CrispMusicGroover.INSTANCE.playMusic(context.level(), context.entity().getOnPos(), context.uuid()); }
+        @Override public void carryingTick(@NotNull CarriableExtensions.TickingContext context)
+            { CrispMusicGroover.INST.playMusic(context.level(), context.entity().getOnPos(), context.uuid()); }
         
         @Override protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull JukeboxBlockEntity blockEntity)
         {
@@ -73,9 +84,14 @@ public final class JukeboxCompatCollection
         @Override public @NotNull Class<?> getSupportedType() { return JukeboxBlockEntity.class; }
     }
     
+    /**
+     * Stores, plays music UwU.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     */
     private enum CrispMusicGroover
     {
-        INSTANCE;
+        INST;
         
         private final HashMap<String, MusicInfo> playList = new HashMap<>();
         

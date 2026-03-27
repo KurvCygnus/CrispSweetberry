@@ -37,16 +37,16 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
  *
  * @author Kurv Cygnus
  * @apiNote It is recommended to <b>use this as a constant</b>, constantly creating instances like this only brings performance penalty.<br>
- * Also, <u>{@link CrispIntRanger}</u> is always immutable, and we recommend reduce the usage of <u>{@link CrispIntRanger}</u>'s {@code forEach}
+ * Also, <u>{@link CrispRanger}</u> is always immutable, and we recommend reduce the usage of <u>{@link CrispRanger}</u>'s {@code forEach}
  * in performance-sensitive cases, as it brings unboxing performance penalty.
  * @since 1.0 Release
  */
 @ApiStatus.Internal @SuppressWarnings("unused")
-public final class CrispIntRanger implements Iterable<Integer>
+public final class CrispRanger implements Iterable<Integer>
 {
-    public static final CrispIntRanger BACKPACK_SLOTS_RANGE = closed(ExampleSlotConstants.BACKPACK_SLOT_START_INDEX, ExampleSlotConstants.BACKPACK_SLOT_END_INDEX);
-    public static final CrispIntRanger HOTBAR_SLOTS_RANGE = closed(ExampleSlotConstants.HOTBAR_SLOT_START_INDEX, ExampleSlotConstants.HOTBAR_SLOT_END_INDEX);
-    public static final CrispIntRanger INVENTORY_SLOTS_RANGE = closed(BACKPACK_SLOTS_RANGE.getMin(), HOTBAR_SLOTS_RANGE.getMax());
+    public static final CrispRanger BACKPACK_SLOTS_RANGE = closed(ExampleSlotConstants.BACKPACK_SLOT_START_INDEX, ExampleSlotConstants.BACKPACK_SLOT_END_INDEX);
+    public static final CrispRanger HOTBAR_SLOTS_RANGE = closed(ExampleSlotConstants.HOTBAR_SLOT_START_INDEX, ExampleSlotConstants.HOTBAR_SLOT_END_INDEX);
+    public static final CrispRanger INVENTORY_SLOTS_RANGE = closed(BACKPACK_SLOTS_RANGE.getMin(), HOTBAR_SLOTS_RANGE.getMax());
     
     private final int min;
     private final int max;
@@ -54,7 +54,7 @@ public final class CrispIntRanger implements Iterable<Integer>
     private final boolean maxClosed;
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    private CrispIntRanger(int min, int max, boolean minClosed, boolean maxClosed)
+    private CrispRanger(int min, int max, boolean minClosed, boolean maxClosed)
     {
         CrispFunctionalUtils.throwIf(
             min == max && (!minClosed || !maxClosed), 
@@ -82,40 +82,35 @@ public final class CrispIntRanger implements Iterable<Integer>
      * Creates a {@code [min, max]} range.
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min}.
      */
-    @Contract("_, _ -> new")
-    public static @NotNull CrispIntRanger closed(int min, int max) { return new CrispIntRanger(min, max, true, true); }
+    @Contract("_, _ -> new") public static @NotNull CrispRanger closed(int min, int max) { return new CrispRanger(min, max, true, true); }
     
     /**
      * Creates a {@code (min, max)} range.
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min},
      * and throws <u>{@link IllegalArgumentException}</u> when {@code min} equals {@code max}.
      */
-    @Contract("_, _ -> new")
-    public static @NotNull CrispIntRanger open(int min, int max) { return new CrispIntRanger(min, max, false, false); }
+    @Contract("_, _ -> new") public static @NotNull CrispRanger open(int min, int max) { return new CrispRanger(min, max, false, false); }
     
     /**
      * Creates a {@code (min, max]} range.
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min},
      * and throws <u>{@link IllegalArgumentException}</u> when {@code min} equals {@code max}.
      */
-    @Contract("_, _ -> new")
-    public static @NotNull CrispIntRanger openClosed(int min, int max) { return new CrispIntRanger(min, max, false, true); }
+    @Contract("_, _ -> new") public static @NotNull CrispRanger openClosed(int min, int max) { return new CrispRanger(min, max, false, true); }
     
     /**
      * Creates a {@code [min, max)} range.
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min},
      * and throws <u>{@link IllegalArgumentException}</u> when {@code min} equals {@code max}.
      */
-    @Contract("_, _ -> new")
-    public static @NotNull CrispIntRanger closedOpen(int min, int max) { return new CrispIntRanger(min, max, true, false); }
+    @Contract("_, _ -> new") public static @NotNull CrispRanger closedOpen(int min, int max) { return new CrispRanger(min, max, true, false); }
     
     /**
      * This method is used for searching which range does {@code index} located in.<br>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
-    @CheckReturnValue
-    public boolean inRange(int value) { return value >= this.min && value <= this.max; }
+    @CheckReturnValue public boolean inRange(int value) { return value >= this.min && value <= this.max; }
     
     /**
      * This method is used for searching which range does {@code index} located in.<br>
@@ -123,14 +118,13 @@ public final class CrispIntRanger implements Iterable<Integer>
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.<br>
      * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, List)}</u>, but has unboxing penalty</i></b>.
      */
-    @CheckReturnValue
-    public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, @NotNull List<CrispIntRanger> rangers)
+    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, @NotNull List<CrispRanger> rangers)
     {
         requireNonNull(value, "Param \"value\" must not be null!");
         
         for(int index = 0; index < rangers.size(); index++)
         {
-            final CrispIntRanger ranger = rangers.get(index);
+            final CrispRanger ranger = rangers.get(index);
             
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
@@ -146,12 +140,11 @@ public final class CrispIntRanger implements Iterable<Integer>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
-    @CheckReturnValue
-    public static int inRangers(int value, @NotNull List<CrispIntRanger> rangers)
+    @CheckReturnValue public static int inRangers(int value, @NotNull List<CrispRanger> rangers)
     {
         for(int index = 0; index < rangers.size(); index++)
         {
-            final CrispIntRanger ranger = rangers.get(index);
+            final CrispRanger ranger = rangers.get(index);
             
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
@@ -166,16 +159,15 @@ public final class CrispIntRanger implements Iterable<Integer>
      * This method is used for searching which range does {@code index} located in.<br>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
-     * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, CrispIntRanger...)}</u>, but has unboxing penalty</i></b>.
+     * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, CrispRanger...)}</u>, but has unboxing penalty</i></b>.
      */
-    @CheckReturnValue
-    public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, CrispIntRanger @NotNull ... rangers)
+    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, CrispRanger @NotNull ... rangers)
     {
         requireNonNull(value, "Param \"value\" must not be null!");
         
         for(int index = 0; index < rangers.length; index++)
         {
-            final CrispIntRanger ranger = rangers[index];
+            final CrispRanger ranger = rangers[index];
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
             if(ranger.inRange(value))
@@ -190,12 +182,11 @@ public final class CrispIntRanger implements Iterable<Integer>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
-    @CheckReturnValue
-    public static int inRangers(int value, CrispIntRanger @NotNull ... rangers)
+    @CheckReturnValue public static int inRangers(int value, CrispRanger @NotNull ... rangers)
     {
         for(int index = 0; index < rangers.length; index++)
         {
-            final CrispIntRanger ranger = rangers[index];
+            final CrispRanger ranger = rangers[index];
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
             if(ranger.inRange(value))
@@ -214,7 +205,7 @@ public final class CrispIntRanger implements Iterable<Integer>
     {
         requireNonNull(action, "Param \"action\" must not be null!");
         
-        final IntIterator it = new IntIterator();
+        final RangerPrimitiveIterator it = new RangerPrimitiveIterator();
         
         while(it.hasNext())
             action.accept(it.nextInt());
@@ -259,14 +250,14 @@ public final class CrispIntRanger implements Iterable<Integer>
         return Optional.empty();
     }
     
-    public boolean contains(@NotNull CrispIntRanger ranger)
+    public boolean contains(@NotNull CrispRanger ranger)
     {
         requireNonNull(ranger, "Param \"ranger\" must not be null!");
         
         return this.min <= ranger.min && ranger.max <= this.max;
     }
     
-    public @NotNull Optional<CrispIntRanger> merge(@NotNull CrispIntRanger ranger)
+    public @NotNull Optional<CrispRanger> merge(@NotNull CrispRanger ranger)
     {
         requireNonNull(ranger, "Param \"ranger\" must not be null!");
         
@@ -282,14 +273,13 @@ public final class CrispIntRanger implements Iterable<Integer>
         return Optional.of(closed(newMin, newMax));
     }
     
-    public static @NotNull Optional<CrispIntRanger> merge(@NotNull CrispIntRanger first, @NotNull CrispIntRanger second)
+    public static @NotNull Optional<CrispRanger> merge(@NotNull CrispRanger first, @NotNull CrispRanger second)
     {
         requireNonNull(first, "Param \"first\" must not be null!");
         return first.merge(second);
     }
     
-    @Contract("_ -> new")
-    public @NotNull CrispIntRanger offset(int offset) { return closed(this.min + offset, this.max + offset); }
+    @Contract("_ -> new") public @NotNull CrispRanger offset(int offset) { return closed(this.min + offset, this.max + offset); }
     
     public @NotNull IntStream stream() { return IntStream.rangeClosed(this.min, this.max); }
     
@@ -301,29 +291,24 @@ public final class CrispIntRanger implements Iterable<Integer>
     
     @CheckReturnValue public int size() { return this.max - this.min + 1; }
     
-    @Override @Contract(" -> new") 
-    public @NotNull Iterator<Integer> iterator() { return new IntegerIterator(); }
+    @Override @Contract(" -> new") public @NotNull Iterator<Integer> iterator() { return new RangerIterator(); }
     
-    @Override @Contract(" -> new")
-    public @NotNull Spliterator.OfInt spliterator()
+    @Override @Contract(" -> new") public @NotNull Spliterator.OfInt spliterator()
     {
         return Spliterators.spliterator(
-            new IntIterator(),
+            new RangerPrimitiveIterator(),
             size(),
             Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL
         );
     }
     
-    @ApiStatus.Internal
-    private final class IntegerIterator implements Iterator<Integer>
+    @ApiStatus.Internal private final class RangerIterator implements Iterator<Integer>
     {
         private int cursor = min;
         
-        @Override
-        public boolean hasNext() { return cursor <= max; }
+        @Override public boolean hasNext() { return cursor <= max; }
         
-        @Override
-        public Integer next()
+        @Override public Integer next()
         {
             if(!hasNext())
                 throw new NoSuchElementException();
@@ -331,10 +316,10 @@ public final class CrispIntRanger implements Iterable<Integer>
         }
     }
     
-    @ApiStatus.Internal
-    private final class IntIterator implements PrimitiveIterator.OfInt
+    @ApiStatus.Internal private final class RangerPrimitiveIterator implements PrimitiveIterator.OfInt
     {
         private int cursor = min;
+        
         @Override
         public int nextInt()
         {

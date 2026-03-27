@@ -46,7 +46,7 @@ public final class CrispDefUtils
     
     public static @NotNull String createPersistentTag(@NotNull String tagName) { return "%s.persistent_tags.%s".formatted(CrispSweetberry.NAMESPACE, tagName); }
     
-    public static String unwrapTextKey(@NotNull Component component)
+    public static @NotNull String unwrapTextKey(@NotNull Component component)
     {
         final ComponentContents contents = component.getContents();
         
@@ -58,7 +58,7 @@ public final class CrispDefUtils
         throw new IllegalArgumentException("This is an illegal Component, which is neither literal nor translatable!");
     }
     
-    public static <E extends Enum<E>, V> 
+    public static <E extends Enum<E>, V>
     @Unmodifiable @NotNull Map<E, V> createImmutableEnumMap(@NotNull Class<E> enumClass, @NotNull Consumer<EnumMap<E, V>> dataInsertAction)
     {
         requireNonNull(enumClass, "Param \"enumClass\" must not be null!");
@@ -70,7 +70,7 @@ public final class CrispDefUtils
         return Maps.immutableEnumMap(enumMap);
     }
     
-    public static String safeUnwrapTextKey(@NotNull Component component)
+    public static @NotNull String safeUnwrapTextKey(@NotNull Component component)
     {
         final ComponentContents contents = component.getContents();
         

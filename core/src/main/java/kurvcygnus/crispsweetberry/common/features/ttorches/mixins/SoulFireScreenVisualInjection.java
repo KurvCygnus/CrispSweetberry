@@ -6,20 +6,19 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.ttorches.mixin;
+package kurvcygnus.crispsweetberry.common.features.ttorches.mixins;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ScreenEffectRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.SoulFireBlock;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
@@ -28,36 +27,30 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
 
 /**
  * This mixin belongs to a part of vanilla <u>{@link SoulFireBlock}</u>'s enhancement, 
- * it makes sure that <u>{@link Entity}</u>'s appearance is blue fire, not the standard one.
+ * it proves the screen visual effect.
  * <br><br>
  * Btw, it's compatible with resource packs UwU.
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see SoulFireBurnInjection Start Logic
  * @see SoulFireExtinguishInjection Behave Logic
- * @see SoulFireScreenVisualInjection Screen Visual
+ * @see SoulFireVisualEffectInjection Appearance Visual
  * @see SoulFireTagPayloads.SoulFireTagPayloadHandler#attachTag Sync Handle 
  */
-@Mixin(EntityRenderDispatcher.class)
-public final class SoulFireVisualEffectInjection
+@Mixin(ScreenEffectRenderer.class)
+public final class SoulFireScreenVisualInjection
 {
-    @Unique private static final ResourceLocation SOUL_FIRE_1 = ResourceLocation.withDefaultNamespace("block/soul_fire_1");
-    
-    @ModifyVariable(method = "renderFlame", at = @At("STORE"), ordinal = 0)
-    private TextureAtlasSprite modifyFireSprite0(TextureAtlasSprite textureatlassprite, PoseStack poseStack, MultiBufferSource buffer, @NotNull Entity entity)
+    @ModifyVariable(method = "renderFire", at = @At("STORE"), ordinal = 0)
+    private static TextureAtlasSprite renderSoulFire(TextureAtlasSprite textureatlassprite, @NotNull Minecraft minecraft, PoseStack poseStack)
     {
-        if(TTorchUtilCollection.isLitBySoulFire(entity))
-            return getTextureByResourceLocation(SOUL_FIRE_0);
-            
-        return textureatlassprite;
-    }
-    
-    @ModifyVariable(method = "renderFlame", at = @At(value = "STORE"), ordinal = 1)
-    private TextureAtlasSprite soulFireOverlayAlt(TextureAtlasSprite textureatlassprite1, PoseStack poseStack, MultiBufferSource buffer, @NotNull Entity entity)
-    {
-        if(TTorchUtilCollection.isLitBySoulFire(entity))
-            return getTextureByResourceLocation(SOUL_FIRE_1);
+        final @Nullable Player player = minecraft.player;
         
-        return textureatlassprite1;
+        if(player == null)
+            return textureatlassprite;
+        
+        if(TTorchUtilCollection.isLitBySoulFire(player))
+            return getTextureByResourceLocation(SOUL_FIRE_0);
+        
+        return textureatlassprite;
     }
 }

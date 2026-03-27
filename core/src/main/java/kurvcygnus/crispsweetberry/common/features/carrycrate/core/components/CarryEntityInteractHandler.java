@@ -11,9 +11,10 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.components;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import net.minecraft.core.BlockPos;
@@ -21,17 +22,24 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
+/**
+ * The handler of <u>{@link LivingEntity Entity}</u>.
+ * @author Kurv Cygnus
+ * @see AbstractCarryInteractHandler
+ * @since 1.0 Release
+ */
 public final class CarryEntityInteractHandler extends AbstractCarryInteractHandler
 {
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "ENTITY_HANDLE");
@@ -43,24 +51,23 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         @Nullable BlockPos targetPos,
         @Nullable BlockState targetState,
         @NotNull LivingEntity targetEntity,
+        @Nullable BlockEntity targetBlockEntity,
+        @Nullable Function<BlockState, CarryBlockPlaceContext> contextGenerator,
         @Nullable CarryID optionalCarryID
-    )
-    { super(level, player, carryCrate, targetPos, targetState, targetEntity, optionalCarryID); }
+    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalCarryID); }
     
     @Override protected @NotNull HandleResult boxIn() 
     {
-        final CarryID uuid = generateCarryID();
-        LOGGER.debug("Generated UUID \"{}\" for indexing.", uuid);
+        final CarryID carryID = generateCarryID();
         final LivingEntity targetEntity = getTargetEntity();
         
         final CompoundTag tagData = new CompoundTag();
         
         if(!targetEntity.saveAsPassenger(tagData))
         {
-            LOGGER.error("Error: Can not get entity \"{}\"'s data, interaction failed.");
+            LOGGER.error("Error: Can not get entity \"{}\"'s unionData, interaction failed.");
             return HandleResult.failed();
         }
-        
         
         final var optionalAdapter = createAdapter(targetEntity);
         
@@ -80,7 +87,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
             level.getGameTime()
         );
         
-        return HandleResult.boxIn(insertData, InteractionResult.SUCCESS, uuid, false);
+        return HandleResult.boxIn(insertData, carryID);
     }
     
     @Override protected @NotNull HandleResult unbox() 
@@ -98,7 +105,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
     
     private static @NotNull Optional<AbstractEntityCarryAdapter<?>> createAdapter(@NotNull LivingEntity entity)
     {
-        final var factory = CarryRegistryManager.INSTANCE.getEntityAdapter(entity.getType());
+        final var factory = CarryRegistryManager.INST.getEntityAdapter(entity.getType());
         
         return factory.map(f -> createAdapter(f, entity));
     }

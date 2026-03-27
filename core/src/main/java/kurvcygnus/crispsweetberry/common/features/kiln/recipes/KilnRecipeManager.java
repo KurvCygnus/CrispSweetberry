@@ -31,7 +31,7 @@ public enum KilnRecipeManager
     /**
      * Recipe manager should always exist in the whole lifecycle of game, so using singleton enum is a good choice.
      */
-    INSTANCE;
+    INST;
     
     private Map<Item, NonNullList<KilnRecipe>> recipes;
     private Map<Item, NonNullList<KilnRecipe>> bannedRecipes;
@@ -96,7 +96,7 @@ public enum KilnRecipeManager
             flatMap(Collection::stream).
             toList();
         
-        KilnJEICompat.INSTANCE.pushRecipesToJEI();
+        KilnJEICompat.INST.pushRecipesToJEI();
     }
     
     public @NotNull Map<Item, NonNullList<KilnRecipe>> getRecipes() { return recipes; }

@@ -6,18 +6,9 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.events;
+package kurvcygnus.crispsweetberry.utils.definitions;
 
-import kurvcygnus.crispsweetberry.CrispSweetberry;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderTooltipEvent;
-import org.jetbrains.annotations.NotNull;
-
-@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
-final class CarryCrateTooltipInjectEvent
+public final class NotImplementedYetException extends UnsupportedOperationException
 {
-    @SubscribeEvent static void editTooltip(@NotNull RenderTooltipEvent.Pre event)
-    {
-    }
+    public NotImplementedYetException() { super("Not implemented yet!"); }
 }

@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public enum CrispCreativeTabs implements IRegistrant
 {
-    INSTANCE;
+    INST;
     
     @Override
     public void register(@NotNull IEventBus bus) { CRISP_TAB_REGISTER.register(bus); }

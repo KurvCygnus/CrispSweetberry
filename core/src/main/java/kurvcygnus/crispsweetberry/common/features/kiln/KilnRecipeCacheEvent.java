@@ -15,7 +15,6 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEnti
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.util.Unit;
@@ -28,6 +27,7 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.commons.lang3.time.StopWatch;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.event.Level;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -47,7 +47,10 @@ import java.util.Objects;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class KilnRecipeCacheEvent
 {
-    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final MarkLogger LOGGER = MarkLogger.configuredLogger(
+        LogUtils.getLogger(),
+        MarkLogger.allowWhen(Level.DEBUG, MarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_EVENT_DEBUG)
+    );
     
     /**
      * Triggers the initial cache population when the server finishes its startup sequence.
@@ -62,7 +65,7 @@ public final class KilnRecipeCacheEvent
      * Registers a reload listener to handle dynamic changes to recipes during gameplay.
      * @implNote <h4><b>This alternative event exists because recipes in Minecraft are not static.</b></h4>
      * Players or server admins can trigger {@code /reload}
-     * to update datapacks. Without this listener, the Kiln would continue using stale data
+     * to update datapacks. Without this listener, the Kiln would continue using stale unionData
      * from the initial server start, leading to "ghost recipes" or crashes when the underlying
      * recipe objects no longer exist in the manager.
      */
@@ -84,7 +87,7 @@ public final class KilnRecipeCacheEvent
     }
     
     /**
-     * The core logic for filtering and transforming vanilla cooking recipes into Kiln-compatible data.
+     * The core logic for filtering and transforming vanilla cooking recipes into Kiln-compatible unionData.
      */
     private static void collectRecipes(@NotNull RecipeManager manager, @NotNull RegistryAccess registryAccess)
     {
@@ -102,12 +105,12 @@ public final class KilnRecipeCacheEvent
             handle.changeMarker("SMOKER_PHASE");
             LOGGER.info("Collecting Smoker Recipes...");
             streamRecipes(tempSmokingRecipes, manager, RecipeType.SMOKING);
-            configDebug("Collection ended, {} entries in total, content: {}", tempSmokingRecipes.size(), tempSmokingRecipes);
+            LOGGER.debug("Collection ended, {} entries in total, content: {}", tempSmokingRecipes.size(), tempSmokingRecipes);
             
             handle.changeMarker("BLAST_PHASE");
             LOGGER.info("Collecting Blast Furnace(Banned) Recipes...");
             streamRecipes(tempBlastingRecipes, manager, RecipeType.BLASTING);
-            configDebug("Collection ended, {} entries in total, content: {}", tempBlastingRecipes.size(), tempBlastingRecipes);
+            LOGGER.debug("Collection ended, {} entries in total, content: {}", tempBlastingRecipes.size(), tempBlastingRecipes);
             
             
             handle.changeMarker("INITIAL_FILTER");
@@ -121,7 +124,7 @@ public final class KilnRecipeCacheEvent
                         {
                             final Item item = stack.getItem();
                             
-                            configDebug("Accepted item \"{}\" as smelting recipe", stack.getDisplayName());
+                            LOGGER.debug("Accepted item \"{}\" as smelting recipe", stack.getDisplayName());
                             
                             tempKilnRecipes.computeIfAbsent(item, i -> NonNullList.create()).
                                 add(recipe);
@@ -144,7 +147,7 @@ public final class KilnRecipeCacheEvent
             handle.changeMarker("EVENT_FINISHED");
             LOGGER.info("Kiln recipe caching finished in {} ms!", time.getTime());
             
-            KilnRecipeManager.INSTANCE.updateRecipes(completedKilnRecipesCacheList);
+            KilnRecipeManager.INST.updateRecipes(completedKilnRecipesCacheList);
         }
     }
     
@@ -170,7 +173,7 @@ public final class KilnRecipeCacheEvent
                         }
                     }
                     
-                    configDebug("Completed a round of recipe collection, Ingredients: {}, current stream recipe componentExecutionType: {}",
+                    LOGGER.debug("Completed a round of recipe collection, Ingredients: {}, current stream recipe componentExecutionType: {}",
                         recipe.getIngredients(), recipeType
                     );
                 }
@@ -198,7 +201,7 @@ public final class KilnRecipeCacheEvent
                     
                     if(!type.equals("Skip") && targetMap.containsKey(item))
                     {
-                        configDebug("Item {} found in cache, clearing old Smelting recipes to override with {}.", item, type);
+                        LOGGER.debug("Item {} found in cache, clearing old Smelting recipes to override with {}.", item, type);
                         targetMap.get(item).clear();
                     }
                 }
@@ -236,17 +239,17 @@ public final class KilnRecipeCacheEvent
         {
             case SMOKING ->
             {
-                standardTime = MiscConstants.ADVANCED_HEATING_CONTAINER_TIME;
+                standardTime = KilnConstants.ADVANCED_HEATING_CONTAINER_TIME;
                 penaltyRate = 1.25D;
             }
             case BLASTING ->
             {
-                standardTime = MiscConstants.ADVANCED_HEATING_CONTAINER_TIME;
+                standardTime = KilnConstants.ADVANCED_HEATING_CONTAINER_TIME;
                 penaltyRate = 2.5D;
             }
             default ->
             {
-                standardTime = MiscConstants.FURNACE_SMELTING_TIME;
+                standardTime = KilnConstants.FURNACE_SMELTING_TIME;
                 penaltyRate = 1D;
             }
         }
@@ -255,14 +258,12 @@ public final class KilnRecipeCacheEvent
         //!                             ↓ so we should make sure at least processFactor is always bigger than 0D.
         final double factor = Math.max(0.05D, (double) cookingTime / standardTime) * penaltyRate;
         
-        configDebug("Type: {}, Time: {}, Factor: {}",
+        LOGGER.debug("Type: {}, Time: {}, Factor: {}",
             recipeSourceType.name().toLowerCase(), cookingTime, factor
         );
         
         return factor;
     }
-    
-    private static void configDebug(@NotNull String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_EVENT_DEBUG.get()).debug(message, args); }
     
     private enum RecipeSourceType
     {

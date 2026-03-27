@@ -16,14 +16,13 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaFurnaceSeriesAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.JukeboxCompatCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.PowderSnowCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryFactor;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateBlock;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverWeightEffect;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import net.minecraft.core.Holder;
@@ -50,7 +49,7 @@ import java.util.Set;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryCrateRegistries implements IRegistrant
 {
-    INSTANCE;
+    INST;
     
     @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
@@ -156,7 +155,7 @@ public enum CarryCrateRegistries implements IRegistrant
     })
     public static final Holder<MobEffect> OVERWEIGHT = OVERWEIGHT_EFFECT_REGISTER.register(
         "overweight",
-        () -> OverWeightEffect.register(OVERWEIGHT_EFFECT_REGISTER)
+        () -> OverweightEffect.register(OVERWEIGHT_EFFECT_REGISTER)
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryID>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
@@ -168,7 +167,7 @@ public enum CarryCrateRegistries implements IRegistrant
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryData>> CARRY_CRATE_DATA = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-        "carry_crate.data",
+        "carry_crate.union_data",
         resourceLocation -> DataComponentType.<CarryData>builder().
             persistent(CarryData.CODEC).
             networkSynchronized(CarryData.STREAM_CODEC).
@@ -183,11 +182,20 @@ public enum CarryCrateRegistries implements IRegistrant
             build()
     );
     
-    public static final DeferredHolder<AttachmentType<?>, AttachmentType<CarryFactor>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STACKABLE_TOOL_DURABILITY =
+        CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
+            "carry_crate.durability",
+        resourceLocation -> DataComponentType.<Integer>builder().
+                persistent(Codec.INT).
+                networkSynchronized(ByteBufCodecs.INT).
+                build()
+        );
+    
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(
         "carry_crate.carry_factor",
-        resourceLocation -> AttachmentType.builder(() -> new CarryFactor(0F)).
-            serialize(CarryFactor.CODEC).
-            sync(CarryFactor.STREAM_CODEC).
+        resourceLocation -> AttachmentType.builder(() -> 0F).
+            serialize(Codec.FLOAT).
+            sync(ByteBufCodecs.FLOAT).
             build()
     );
 }

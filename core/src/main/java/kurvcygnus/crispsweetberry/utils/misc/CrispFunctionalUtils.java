@@ -11,11 +11,13 @@ package kurvcygnus.crispsweetberry.utils.misc;
 import com.mojang.logging.LogUtils;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -40,13 +42,7 @@ public final class CrispFunctionalUtils
     public static <T> void doIfNonNull(@Nullable T object, @NotNull Consumer<T> action)
     {
         requireNonNull(action, "Param \"action\" must not be null!");
-        if(object == null)
-        {
-            LOGGER.warn("Current object appears to be null.");
-            return;
-        }
-        
-        action.accept(object);
+        Optional.ofNullable(object).ifPresent(action);
     }
     
     public static void doIf(boolean condition, @NotNull Runnable action)
@@ -60,11 +56,31 @@ public final class CrispFunctionalUtils
     public static <E extends Throwable> void throwIf(boolean condition, @NotNull String message, @NotNull Function<String, E> function) throws E
     {
         requireNonNull(message, "Param \"message\" must not be null!");
+        requireNonNull(function, "Param \"function\" must not be null!");
         
         if(!condition)
             return;
         
         throw function.apply(message);
+    }
+    
+    public static <E extends Throwable> void throwIf(boolean condition, @NotNull Supplier<E> supplier) throws E
+    {
+        requireNonNull(supplier, "Param \"supplier\" must not be null!");
+        
+        if(!condition)
+            return;
+        
+        throw supplier.get();
+    }
+    
+    @Contract(value = "_, true, _ -> param3; _, false, _ -> param1", pure = true) @CheckReturnValue
+    public static <T> @NotNull T mutateIf(@NotNull T original, boolean condition, @NotNull T newValue)
+    {
+        if(condition)
+            return newValue;
+        
+        return original;
     }
     
     @Contract("null, _ -> fail; !null, _ -> param1")

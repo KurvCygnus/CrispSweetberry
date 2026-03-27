@@ -37,7 +37,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnJE
 @JeiPlugin
 public enum JEIEntrypoint implements IModPlugin
 {
-    INSTANCE;
+    INST;
     
     @Override public @NotNull ResourceLocation getPluginUid() { return CrispDefUtils.getModNamespacedLocation("jei_integration"); }
     
@@ -45,7 +45,7 @@ public enum JEIEntrypoint implements IModPlugin
     {
     }
     
-    @Override public void onRuntimeAvailable(@NotNull IJeiRuntime jeiRuntime) { KilnJEICompat.INSTANCE.setRuntime(jeiRuntime); }
+    @Override public void onRuntimeAvailable(@NotNull IJeiRuntime jeiRuntime) { KilnJEICompat.INST.setRuntime(jeiRuntime); }
     
     @Override public void registerGuiHandlers(@NotNull IGuiHandlerRegistration registration)
     {

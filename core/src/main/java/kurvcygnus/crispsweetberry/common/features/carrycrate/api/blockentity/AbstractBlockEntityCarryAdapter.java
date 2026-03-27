@@ -9,10 +9,10 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.IAtomicCarriable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IAtomicCarriable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -23,12 +23,12 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions.ICarrySerializable;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.ICarrySerializable;
 
 /**
  * This is the basic of BlockEntity Adapters, which doesn't include any usable logics.
  *
- * @param <E> The blockEntity this adapter takes responsibility of
+ * @param <E> The blockEntity this adapter takes responsibility of.
  * @author Kurv Cygnus
  * @apiNote <b>BlockEntity's adapter is independent.</b><br>
  * Unlike vanilla design, blockEntity's adapter doesn't relies on its corresponded Block,
@@ -84,33 +84,81 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
         return blockEntity;
     }
     
+    /**
+     * The pre-process method, which is called before blockEntity's serialization started, and blockEntity's boxIn.<br>
+     * <b>So you can use {@link CarriedContext CarriedContext}</b> to edit unionData, or insert custom behaviors in this method.
+     */
     protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) {}
+    
+    /**
+     * The post-process method, which is called before blockEntity is physically placed.<br>
+     *
+     * @apiNote <b>This method is meant to atomize a blockEntity's main work logic</b>.<br>
+     * Which means, you should compress all main work logic in this method, instead of calling {@code serverTick()}
+     * directly, since it will obviously cause great performance penalty.<br><br>
+     *
+     * <b>The corresponded blockEntity instance was created before the call of this method. You can access and use it</b>.
+     * @see BaseVanillaFurnaceSeriesAdapter Furnace Example(Reusable)
+     * @see BaseVanillaBrewingStandAdapter Brewing Stand Example(Reusable)
+     */
     protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity) {}
     
+    /**
+     * Save <u>{@link BlockEntity}</u>'s unionData as <u>{@link CompoundTag}</u>.<br><br>
+     * <span style="color: 95ce6d">If have no specific demand, you can use such a combination:</span><br>
+     * <pre>{@code
+     *  void saveCarryTag(
+     *      @NotNull CompoundTag tag,
+     *      @NotNull HolderLookup.Provider registries
+     *  )
+     *  {
+     *      final CompoundTag dataTag = blockEntity.saveCustomOnly(registries);
+     *      tag.merge(dataTag);
+     *  }
+     * }</pre>
+     */
     protected abstract void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
+    
+    /**
+     * Load <u>{@link BlockEntity}</u>'s serialized unionData.<br><br>
+     * <span style="color: 95ce6d">If have no specific demand, directly use <u>{@link BlockEntity#loadCustomOnly(CompoundTag, HolderLookup.Provider)}</u> is OK.</span>
+     */
     protected abstract void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
     //endregion
     
     //  region
     //*:=== Bridge methods
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override public final void onCarriedSequence(@NotNull CarriedContext context)
     {
         Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
         this.onCarriedSequence(context, blockEntity);
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override public final void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context)
     {
         Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
         this.onPlacedProcess(level, elapsedTime, context, this.blockEntity);
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override public final void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
     {
         Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
         this.saveCarryTag(tag, registries, this.blockEntity);
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override public final void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
     {
         Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
@@ -119,7 +167,9 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
     
     @Override public final @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate()
     {
-        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        if(this.blockEntity == null)
+            return this.getFallbackPenaltyRate();
+        
         return this.getPenaltyRate(this.blockEntity);
     }
     //endregion

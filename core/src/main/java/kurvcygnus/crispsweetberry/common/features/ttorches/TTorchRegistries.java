@@ -60,9 +60,8 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redston
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum TTorchRegistries implements IRegistrant
 {
-    //  region
-    //*:=== Registry Basics
-    INSTANCE;
+    //  region Registry Basics
+    INST;
     
     @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     
@@ -81,8 +80,7 @@ public enum TTorchRegistries implements IRegistrant
     );
     //endregion
     
-    //  region
-    //*:=== Sync Packet Registry
+    //  region Sync Packet Registry
     @SubscribeEvent
     static void registerPacket(@NotNull RegisterPayloadHandlersEvent event)
     {
@@ -96,8 +94,7 @@ public enum TTorchRegistries implements IRegistrant
     }
     //endregion
     
-    //  region
-    //*:=== Item Registries
+    //  region Item Registries
     @RegisterToTab
     @AutoI18n({
         "en_us = Throwable Torch",
@@ -207,8 +204,7 @@ public enum TTorchRegistries implements IRegistrant
     );
     //endregion
     
-    //  region
-    //*:=== Block Registries
+    //  region Block Registries
     @AutoI18n(value = {
             "en_us = Thrown Torch",
             "lol_us = fullee lite stik",
@@ -444,8 +440,7 @@ public enum TTorchRegistries implements IRegistrant
     );
     //endregion
     
-    //  region
-    //*:=== Entity Registries
+    //  region Entity Registries
     @AutoI18n({
         "en_us = Thrown Torch",
         "lol_us = Spinn' Stik",
@@ -473,8 +468,8 @@ public enum TTorchRegistries implements IRegistrant
     public static final DeferredHolder<EntityType<?>, EntityType<GlowStickEntity>> GLOW_STICK_ENTITY = getTypeHolder("glow_stick", GlowStickEntity::new);
     //endregion
     
-    //  region
-    //*:=== Misc & helpers
+    //  region Misc & helpers
+    //*:=== Jade Compat
     public static final List<DeferredHolder<EntityType<?>, ? extends EntityType<? extends AbstractThrownTorchEntity>>> ENTITY_HIDE_LIST = List.of(
         THROWN_TORCH,
         THROWN_REDSTONE_TORCH,
@@ -482,6 +477,7 @@ public enum TTorchRegistries implements IRegistrant
         GLOW_STICK_ENTITY
     );
     
+    //*:=== Redstone TTorch Dispatchers
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> UNWAXED_REDSTONE_TTORCH_LOOKUP =
         CrispDefUtils.createImmutableEnumMap(OxidizeState.class, map ->
             {
@@ -532,6 +528,7 @@ public enum TTorchRegistries implements IRegistrant
         false, UNWAXED_WALL_REDSTONE_TTORCH_LOOKUP
     );
     
+    //*:=== Helpers
     private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>>
     getTypeHolder(@NotNull String id, @NotNull EntityType.EntityFactory<T> factory)
     {

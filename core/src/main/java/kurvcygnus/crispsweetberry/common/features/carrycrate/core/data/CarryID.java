@@ -17,6 +17,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * A data object that represents the identity of boxed Carry Crate.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @param id The <u>{@link net.minecraft.resources.ResourceLocation Resource Location}</u> of this Carry Crate's object, which is used for data recovery.
+ * @param uuid The <u><a href="https://en.wikipedia.org/wiki/Universally_unique_identifier">Universally unique identifier</a></u> of Carry Crate.
+ *             <br><br>
+ *             <span style="color: 95cc6d">It makes every boxed Carry Crate</span> <b>unique</b>.
+ */
 public record CarryID(@NotNull String id, @NotNull String uuid)
 {
     public static final Codec<CarryID> CODEC = RecordCodecBuilder.create(inst -> 
@@ -36,5 +45,17 @@ public record CarryID(@NotNull String id, @NotNull String uuid)
     {
         Objects.requireNonNull(id, "Param \"id\" must not be null!");
         Objects.requireNonNull(uuid, "Param \"uuid\" must not be null!");
+    }
+    
+    @Override public @NotNull String toString()
+    {
+        return """
+            CarryID
+            {
+                Recovery ID: %s,
+                UUID: %s,
+            }
+            """.
+            formatted(id, uuid);
     }
 }

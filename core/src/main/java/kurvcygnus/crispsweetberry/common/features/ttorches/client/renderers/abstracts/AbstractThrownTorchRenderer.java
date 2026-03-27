@@ -15,7 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.client.events.Throwab
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.ThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -47,11 +47,11 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
 {
     private static final int HORIZONTAL_SIDE_DIRECTION_INDEX = -1;
     
-    private static final CrispIntRanger FRONT_GROUP_1 = CrispIntRanger.closed(0, 45);
-    private static final CrispIntRanger FRONT_GROUP_2 = CrispIntRanger.openClosed(315, 360);
-    private static final CrispIntRanger FLIPPED_FRONT_GROUP = CrispIntRanger.openClosed(135, 225);
+    private static final CrispRanger FRONT_GROUP_1 = CrispRanger.closed(0, 45);
+    private static final CrispRanger FRONT_GROUP_2 = CrispRanger.openClosed(315, 360);
+    private static final CrispRanger FLIPPED_FRONT_GROUP = CrispRanger.openClosed(135, 225);
     
-    private static final List<CrispIntRanger> HORIZONTAL_FRONT_RANGERS = List.of(FRONT_GROUP_1, FRONT_GROUP_2, FLIPPED_FRONT_GROUP);
+    private static final List<CrispRanger> HORIZONTAL_FRONT_RANGERS = List.of(FRONT_GROUP_1, FRONT_GROUP_2, FLIPPED_FRONT_GROUP);
     
     private static final int VERTICAL_TOP_RANGE_INDEX = 0;
     private static final int VERTICAL_BOTTOM_RANGE_INDEX = 1;
@@ -59,13 +59,13 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     private static final int VERTICAL_DOWNER_TILT_RANGE_INDEX = 3;
     private static final int VERTICAL_DIRECT_RANGE_INDEX = 4;
     
-    private static final CrispIntRanger VERTICAL_TOP_RANGE = CrispIntRanger.closed(45, 90);
-    private static final CrispIntRanger VERTICAL_BOTTOM_RANGE = CrispIntRanger.closed(-90, 45);
-    private static final CrispIntRanger VERTICAL_UPPER_TILT_RANGE = CrispIntRanger.closedOpen(15, 45);
-    private static final CrispIntRanger VERTICAL_DOWNER_TILT_RANGE = CrispIntRanger.openClosed(-45, -15);
-    private static final CrispIntRanger VERTICAL_DIRECT_RANGE = CrispIntRanger.closed(-15, 15);
+    private static final CrispRanger VERTICAL_TOP_RANGE = CrispRanger.closed(45, 90);
+    private static final CrispRanger VERTICAL_BOTTOM_RANGE = CrispRanger.closed(-90, 45);
+    private static final CrispRanger VERTICAL_UPPER_TILT_RANGE = CrispRanger.closedOpen(15, 45);
+    private static final CrispRanger VERTICAL_DOWNER_TILT_RANGE = CrispRanger.openClosed(-45, -15);
+    private static final CrispRanger VERTICAL_DIRECT_RANGE = CrispRanger.closed(-15, 15);
     
-    private static final List<CrispIntRanger> VERTICAL_DIRECTION_RANGERS = List.of(
+    private static final List<CrispRanger> VERTICAL_DIRECTION_RANGERS = List.of(
         VERTICAL_TOP_RANGE,
         VERTICAL_BOTTOM_RANGE,
         VERTICAL_UPPER_TILT_RANGE,
@@ -78,7 +78,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     @Override
     public void render(@NotNull T entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight)
     {
-        final FacingPair relativeFacing = this.getFacing(entity);
+        final FacingTriple relativeFacing = this.getFacing(entity);
         
         poseStack.pushPose();
         poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());//* Makes entity always face the observer.
@@ -101,7 +101,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     }
     
     @Contract("_ -> new")
-    private @NotNull FacingPair getFacing(@NotNull T entity)
+    private @NotNull AbstractThrownTorchRenderer.FacingTriple getFacing(@NotNull T entity)
     {
         final double relativeX = this.entityRenderDispatcher.camera.getPosition().x - entity.getX();
         final double relativeY = this.entityRenderDispatcher.camera.getPosition().y - entity.getEyeY();
@@ -117,7 +117,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         final HorizontalFacing horizontalFacing;
         final boolean flipHorizontal;
         
-        if(CrispIntRanger.inRangers(relativeYaw, HORIZONTAL_FRONT_RANGERS) != HORIZONTAL_SIDE_DIRECTION_INDEX)
+        if(CrispRanger.inRangers(relativeYaw, HORIZONTAL_FRONT_RANGERS) != HORIZONTAL_SIDE_DIRECTION_INDEX)
         {
             horizontalFacing = HorizontalFacing.FRONT;
             flipHorizontal = false;
@@ -130,7 +130,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         
         final VerticalFacing verticalFacing = getVerticalFacing(relativeX, relativeY, relativeZ);
         
-        return new FacingPair(horizontalFacing, verticalFacing, flipHorizontal);
+        return new FacingTriple(horizontalFacing, verticalFacing, flipHorizontal);
     }
     
     private static @NotNull VerticalFacing getVerticalFacing(double relativeX, double relativeY, double relativeZ)
@@ -140,7 +140,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         
         final VerticalFacing verticalFacing;
         
-        switch(CrispIntRanger.inRangers(relativeVerticalDegree, VERTICAL_DIRECTION_RANGERS))
+        switch(CrispRanger.inRangers(relativeVerticalDegree, VERTICAL_DIRECTION_RANGERS))
         {
             case VERTICAL_TOP_RANGE_INDEX -> verticalFacing = VerticalFacing.TOP;
             case VERTICAL_BOTTOM_RANGE_INDEX -> verticalFacing = VerticalFacing.BOTTOM;
@@ -167,9 +167,9 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     
     /**
      * New method for get throwable throw sprites. It replaces <u>{@link #getTextureLocation(AbstractThrownTorchEntity)}</u> from <u>{@link EntityRenderer}</u>,
-     * as it can't use {@link FacingPair}.
+     * as it can't use {@link FacingTriple}.
      */
-    protected @NotNull ResourceLocation getTextureLocation(@NotNull T entity, @NotNull FacingPair pair)
+    protected @NotNull ResourceLocation getTextureLocation(@NotNull T entity, @NotNull AbstractThrownTorchRenderer.FacingTriple pair)
     {
         final StringBuilder path = new StringBuilder(BASE_TEXTURE_PATH).append(getTextureName());
         
@@ -187,7 +187,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         return CrispDefUtils.getModNamespacedLocation(path.append(TEXTURE_SUFFIX).toString());
     }
     
-    protected void appendTextureName(@NotNull StringBuilder path, @NotNull T entity, @NotNull FacingPair pair)
+    protected void appendTextureName(@NotNull StringBuilder path, @NotNull T entity, @NotNull AbstractThrownTorchRenderer.FacingTriple pair)
     {
         path.append("_").append(pair.horizontalFacing().getAlias());
         path.append("_").append(pair.verticalFacing().getAlias());
@@ -195,12 +195,12 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     
     /**
      * @deprecated This method can't support the demand of thrown torches' muti-direction sprites.<br>
-     * Use <u>{@link #getTextureLocation(AbstractThrownTorchEntity, FacingPair)}</u> instead.
+     * Use <u>{@link #getTextureLocation(AbstractThrownTorchEntity, FacingTriple)}</u> instead.
      */
     @Contract(value = "_ -> fail", pure = true) @Override
     @Deprecated(forRemoval = true)//! Can't be removed actually. This is used to tip for misuse with red errors.
     public final @NotNull ResourceLocation getTextureLocation(@NotNull T entity)
-    { throw new IllegalStateException("This is not supposed to be used by thrown torch renderers. Use #getTextureLocation(T, FacingPair) instead."); }
+    { throw new IllegalStateException("This is not supposed to be used by thrown torch renderers. Use #getTextureLocation(T, FacingTriple) instead."); }
     
     protected abstract @NotNull String getTextureName();
     
@@ -242,6 +242,5 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         public @NotNull String getAlias() { return this.alias; }
     }
     
-    protected record FacingPair(@NotNull HorizontalFacing horizontalFacing, @NotNull VerticalFacing verticalFacing,
-                                boolean flipHorizontal) { }
+    protected record FacingTriple(@NotNull HorizontalFacing horizontalFacing, @NotNull VerticalFacing verticalFacing, boolean flipHorizontal) { }
 }

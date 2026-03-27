@@ -6,14 +6,18 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.misc;
+package kurvcygnus.crispsweetberry.utils.data;
 
-/**
- * @since 1.0 Release
- */
-public final class MiscConstants
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+
+public record Tuple<L, M, R>(@NotNull L left, @NotNull M middle, @NotNull R right)
 {
-    private MiscConstants() { throw new IllegalAccessError("Class \"MiscConstants\" is not meant to be instantized!"); }
-    
-    public static final String FEEDBACK_MESSAGE = "If you found this log, please feedback to us at %PLACEHOLDER%, with detailed debug log.";
+    public Tuple
+    {
+        Objects.requireNonNull(left, "Param \"left\" must not be null!");
+        Objects.requireNonNull(middle, "Param \"middle\" must not be null!");
+        Objects.requireNonNull(right, "Param \"right\" must not be null!");
+    }
 }

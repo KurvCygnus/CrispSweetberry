@@ -15,7 +15,7 @@ import net.minecraft.world.item.Item;
 import java.util.function.Supplier;
 
 /**
- * A simple data holder for <u>{@link kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent tab registry}</u>.
+ * A simple unionData holder for <u>{@link kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent tab registry}</u>.
  * @since 1.0 Release
  * @author Kurv Cygnus
  */

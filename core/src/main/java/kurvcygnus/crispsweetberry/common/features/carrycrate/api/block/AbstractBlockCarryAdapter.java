@@ -9,9 +9,9 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.block;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockExtensions;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
@@ -28,9 +28,10 @@ import java.util.Objects;
  * @see SimpleBlockCarryAdapter Utility Adapter
  * @since 1.0 Release
  */
-public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter<CarryData.CarryBlockDataHolder> implements CarriableBlockExtensions.ICarryBlockStackable
+public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter<CarryData.CarryBlockDataHolder> 
+implements CarriableBlockExtensions.ICarryBlockStackable
 {
-    /**
+     /**
      * @apiNote During <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter 
      * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
      * <br><br>
@@ -60,6 +61,9 @@ public abstract class AbstractBlockCarryAdapter<B extends Block> extends Abstrac
     
     @Override public abstract @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate();
     
+    /**
+     * {@inheritDoc}
+     */
     @Override public abstract @Range(from = 1, to = Integer.MAX_VALUE) int getAcceptableCount();
     
     /**

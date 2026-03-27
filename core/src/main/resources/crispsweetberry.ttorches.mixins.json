@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "kurvcygnus.crispsweetberry.common.features.ttorches.mixin",
+  "package": "kurvcygnus.crispsweetberry.common.features.ttorches.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "SoulFireBurnInjection",

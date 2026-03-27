@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BaseContainerAccessor",
+    "CarryContainerQuickMoveInterceptInjection",
+    "CarrySlotMoveInterceptInjection",
     "VanillaBrewingStandAccessor",
     "VanillaFurnaceAccessor"
   ],

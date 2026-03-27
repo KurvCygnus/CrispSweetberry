@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum CrispEntities implements IRegistrant
 {
-    INSTANCE;
+    INST;
     
     @Override public void register(@NotNull IEventBus bus) 
     {

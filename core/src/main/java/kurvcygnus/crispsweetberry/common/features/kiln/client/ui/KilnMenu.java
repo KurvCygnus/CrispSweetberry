@@ -15,7 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnDummyBlockEntity;
 import kurvcygnus.crispsweetberry.utils.ui.CrispUIUtils;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
 import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -57,7 +57,7 @@ public final class KilnMenu extends AbstractContainerMenu
     private static final int KILN_SLOTS_LOWER_Y_POS = 43;
     private static final int KILN_SLOTS_X_GAP = 18;
     
-    private static final List<CrispIntRanger> SLOT_RANGERS = List.of(
+    private static final List<CrispRanger> SLOT_RANGERS = List.of(
         KILN_INPUT_SLOTS_RANGE,
         KILN_OUTPUT_SLOTS_RANGE,
         KILN_BACKPACK_SLOTS_RANGE,
@@ -178,7 +178,7 @@ public final class KilnMenu extends AbstractContainerMenu
         final ItemStack interactStack = slot.getItem();
         final ItemStack temporaryStack = interactStack.copy();
         
-        final int rangeIndex = CrispIntRanger.inRangers(index, SLOT_RANGERS);
+        final int rangeIndex = CrispRanger.inRangers(index, SLOT_RANGERS);
         final boolean hasMoved;
         
         switch(rangeIndex)
@@ -230,7 +230,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * @apiNote The problem of vanilla closedOpen range has been fixed here.
      * @see ExampleSlotConstants More details about these constants
      */
-    private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger, boolean reverseDirection)
+    private boolean moveToSlotRange(ItemStack interactStack, CrispRanger ranger, boolean reverseDirection)
         { return CrispUIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
     
     /**
@@ -242,7 +242,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * @see ExampleSlotConstants More details about these constants
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted") //! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.
-    private boolean moveToSlotRange(ItemStack interactStack, CrispIntRanger ranger)
+    private boolean moveToSlotRange(ItemStack interactStack, CrispRanger ranger)
         { return moveToSlotRange(interactStack, ranger, false); }
     //endregion
 }

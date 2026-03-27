@@ -28,7 +28,7 @@ import snownee.jade.api.ui.IElementHelper;
 
 public enum KilnBlockInfoProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor>
 {
-    INSTANCE;
+    INST;
     
     private static final ResourceLocation UNIQUE_JADE_KILN_ID = CrispDefUtils.getModNamespacedLocation("integration.jade.kiln");
     private static final String VISUAL_PROGRESS = "visualProgress";

@@ -8,7 +8,9 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +26,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors.IVanillaFurnaceSeriesAccessor;
 
 /**
  * This adapter can used by any blockEntity that inherits <u>{@link AbstractFurnaceBlockEntity}</u>,
@@ -33,14 +35,12 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @param <E> Any blockEntity that inherits <u>{@link AbstractFurnaceBlockEntity}</u>.
  * @author Kurv Cygnus
  * @since 1.0 Release
- * @implNote The access the vanilla data relies on <u>{@link IVanillaFurnaceSeriesAccessor mixin accessor}</u>.
+ * @implNote The access the vanilla unionData relies on <u>{@link IVanillaFurnaceSeriesAccessor mixin accessor}</u>.
  */
 public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E> 
-implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>, ISimpleBlockEntityBreakLogic<E>, ISimpleBlockEntityPenaltyDropLogic<E>
 {
-    // region
-    //*:=== Constants & Constructor
+    // region Constants & Constructor
     protected static final int INPUT_SLOT_INDEX = 0;
     protected static final int FUEL_SLOT_INDEX = 1;
     protected static final int OUTPUT_SLOT_INDEX = 2;
@@ -50,8 +50,7 @@ implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, Car
     @Override public @NotNull Class<?> getSupportedType() { return AbstractFurnaceBlockEntity.class; }
     //endregion
     
-    //  region
-    //*:=== Atomic processions
+    //  region Atomic processions
     @Override protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity)
     {
         final IVanillaFurnaceSeriesAccessor accessor = (IVanillaFurnaceSeriesAccessor) blockEntity;
@@ -243,8 +242,7 @@ implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, Car
     @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) { super.onCarriedSequence(context, blockEntity); }
     //endregion
     
-    //  region
-    //*:=== Serialization & Getter Hooks
+    //  region Serialization & Getter Hooks
     @Override protected void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
         { ((IVanillaFurnaceSeriesAccessor) blockEntity).callSaveAdditional(tag, registries); }
     

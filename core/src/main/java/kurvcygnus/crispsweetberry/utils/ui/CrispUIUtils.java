@@ -9,10 +9,13 @@
 package kurvcygnus.crispsweetberry.utils.ui;
 
 import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
 import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
 import kurvcygnus.crispsweetberry.utils.ui.functions.IQuadMoveStackPredicate;
 import kurvcygnus.crispsweetberry.utils.ui.functions.IQuadSlotSupplier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -27,7 +30,7 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
 /**
  * A collection of some simple helpers for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu UI stuff}</u>.
  * @apiNote Being tortured by {@code AbstractMenu#moveItemStackTo()}?<br>
- * <u>{@link CrispIntRanger#inRangers CrispIntRanger#inRangers()}</u> may help you out.
+ * <u>{@link CrispRanger#inRangers CrispRanger#inRangers()}</u> may help you out.
  * @since 1.0 Release
  */
 public final class CrispUIUtils
@@ -92,15 +95,35 @@ public final class CrispUIUtils
      *  moveStackByRanger(stack, ranger, flag, this::moveItemStackTo);
      * }</pre>
      * @see ExampleSlotConstants Furnace Layout Index Reference
-     * @see CrispIntRanger Ranger
+     * @see CrispRanger Ranger
      */
     public static boolean 
-    moveStackByRanger(@NotNull ItemStack interactStack, @NotNull CrispIntRanger ranger, boolean reverseDirection, @NotNull IQuadMoveStackPredicate predicate)
+    moveStackByRanger(@NotNull ItemStack interactStack, @NotNull CrispRanger ranger, boolean reverseDirection, @NotNull IQuadMoveStackPredicate predicate)
     {
         requireNonNull(interactStack, "Param \"interactStack\" cannot be null!(1st param)");
         requireNonNull(ranger, "Param \"ranger\" cannot be null!(2nd param)");
         requireNonNull(predicate, "Param \"predicate\" cannot be null!(4th param)");
         
         return predicate.test(interactStack, ranger.getMin(), ranger.getMax() + CORRECTION_INDEX, reverseDirection);
+    }
+    
+    public static @NotNull MutableComponent dimmedText(@NotNull String transKey) { return dimmedText(transKey, false); }
+    
+    public static @NotNull MutableComponent dimmedItalicText(@NotNull String transKey) { return dimmedText(transKey, true); }
+    
+    /**
+     * @implNote Font styles like <u>{@link ChatFormatting#ITALIC}</u> doesn't have a color value,
+     * and colors like <u>{@link ChatFormatting#GOLD}</u> obviously will have, so we can do an assertion here.
+     */
+    @SuppressWarnings("DataFlowIssue") private static @NotNull MutableComponent dimmedText(@NotNull String transKey, boolean italic)
+    {
+        requireNonNull(transKey, "Param \"transKey\" must not be null!");
+        
+        final MutableComponent text = Component.translatable(transKey).withColor(ChatFormatting.DARK_GRAY.getColor());
+        
+        if(italic)
+            return text.withStyle(ChatFormatting.ITALIC);
+        
+        return text;
     }
 }

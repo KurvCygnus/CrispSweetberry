@@ -31,13 +31,17 @@ import java.util.regex.Pattern;
  *  public static final Holder&lt;Block&gt; DIRT = ...
  *  // Creates `"block.${modid}.dirt": "Dirt"` in en_us.json.
  * </pre>
+ * <hr>
  * <b><i>
  * This is only the simplest usage example.<br>
- * For details, please see {@code GettingStarted.md}, or <u>{@link #value()}</u>, <u>{@link #key()}</u> and <u>{@link #group()}</u>
+ * For details, please see {@code GettingStarted.md}
  * </i></b>.
  * 
  * @since 1.0 Release
  * @author Kurv Cygnus
+ * @see #value() Value Rule
+ * @see #key() Key Rule
+ * @see #group() Group Rule
  * @see AutoI18n.Lang Supported Languages
  */
 @Target(ElementType.FIELD)
@@ -52,6 +56,7 @@ public @interface AutoI18n
      * Grammar: <pre>{@code 
      *  "${Language} = ${Translation}"
      * }</pre>
+     * <hr>
      * Here are some extra explanations:
      * <ul>
      *     <li>
@@ -65,7 +70,10 @@ public @interface AutoI18n
      *     <li>
      *         {@code ${Language}}'s parse is strict. For all supported languages, you can found them at <u>{@link Lang}</u>.
      *     </li>
-     * </ul><br>
+     *     <li>
+     *         If you need trailing or leading whitespaces, please use <b>{@code &ensp;}</b>
+     *     </li>
+     * </ul><hr>
      * A simple example: <pre>{@code 
      *  value = {
      *      "en_us = Foo",
@@ -83,8 +91,7 @@ public @interface AutoI18n
      * The processor will automatically 
      * deduce the key of annotated target, <b>based on its type, and declared name(<i>for naming rules, we'll cover it later</i>)</b>, 
      * thus, <b>explicitly writing {@code key()} will override the deduction</b>.
-     * <br>
-     * <br>
+     * <hr>
      * Explanations about deduction:
      * <ul>
      *     <li>
@@ -113,7 +120,7 @@ public @interface AutoI18n
      *             </li>
      *         </ul>
      *     </li>
-     * </ul><br>
+     * </ul><hr>
      * Two simple examples:<pre>{@code 
      *  ...
      *  {
@@ -131,7 +138,7 @@ public @interface AutoI18n
     
     /**
      * This declares a group, which can be inherited by other translation entries.
-     * @apiNote {@code group()} follows <u><a href="https://en.wikipedia.org/wiki/One_Definition_Rule">one definition rule</a></u>, 
+     * @apiNote {@code group()} follows <u><a href="https://en.wikipedia.org/wiki/One_Definition_Rule">one definition rule</a></u>,
      * <b>which means, you should only define it once</b>.
      * <br><br>
      * Declaring a {@code group()} is simple: Write your <u>{@link #value() translations}</u> as usual, then put a group on it, that's all, adding modId

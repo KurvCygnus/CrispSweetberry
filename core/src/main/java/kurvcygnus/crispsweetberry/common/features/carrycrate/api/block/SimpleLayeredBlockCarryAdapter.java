@@ -26,5 +26,8 @@ public class SimpleLayeredBlockCarryAdapter<B extends Block> extends SimpleBlock
     
     protected @Range(from = DEFAULT_ACCEPTABLE_COUNT, to = Integer.MAX_VALUE) int getLayer() { return VANILLA_LAYER; }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override public @Range(from = 1, to = Integer.MAX_VALUE) int getAcceptableCount() { return super.getAcceptableCount() * getLayer(); }
 }

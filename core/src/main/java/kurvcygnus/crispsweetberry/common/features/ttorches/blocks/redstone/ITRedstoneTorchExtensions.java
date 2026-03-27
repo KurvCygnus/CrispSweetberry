@@ -128,7 +128,7 @@ public final class ITRedstoneTorchExtensions
     }
     
     /**
-     * Carries the data that is only used for Block.
+     * Carries the unionData that is only used for Block.
      */
     interface Block
     {
@@ -141,7 +141,7 @@ public final class ITRedstoneTorchExtensions
     }
     
     /**
-     * Carries the data that is only used for Behavior.
+     * Carries the unionData that is only used for Behavior.
      */
     interface Behavior
     {

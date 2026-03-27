@@ -8,8 +8,10 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -28,8 +30,8 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Set;
 
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor.MAX_BREWING_TIME;
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor.MAX_FUEL;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor.MAX_BREWING_TIME;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor.MAX_FUEL;
 
 /**
  * This adapter can used by any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>,
@@ -38,14 +40,12 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @param <E> Any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>.
  * @author Kurv Cygnus
  * @since 1.0 Release
- * @implNote The access the vanilla data relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor mixin accessor}</u>.
+ * @implNote The access the vanilla unionData relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor mixin accessor}</u>.
  */
 public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E> 
-implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>, ISimpleBlockEntityBreakLogic<E>, ISimpleBlockEntityPenaltyDropLogic<E>
 {
-    //  region
-    //*:=== Contacts & Constructor
+    //region Constants & Constructor
     protected static final int OUTPUT_SLOT_START_INDEX = 0;
     protected static final int OUTPUT_SLOT_END_INDEX = 2;
     protected static final int INGREDIENT_SLOT_INDEX = 3;
@@ -56,8 +56,7 @@ implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, Car
     @Override public @NotNull Class<?> getSupportedType() { return BrewingStandBlockEntity.class; }
     //endregion
     
-    //  region
-    //*:=== Atomic processions
+    //region Atomic processions
     @Override protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity)
     {
         final CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor accessor = (CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor) blockEntity;
@@ -140,8 +139,7 @@ implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, Car
     @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) { super.onCarriedSequence(context, blockEntity); }
     //endregion
     
-    //  region
-    //*:=== Serialization & Getter Hooks
+    //region Serialization & Getter Hooks
     @Override protected void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull E blockEntity)
         { ((CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor) blockEntity).callSaveAdditional(tag, registries); }
     

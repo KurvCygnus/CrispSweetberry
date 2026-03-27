@@ -11,10 +11,11 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.components;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
@@ -34,12 +35,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
+/**
+ * The handler of <u>{@link BlockEntity}</u>.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see AbstractCarryInteractHandler
+ */
 public final class CarryBlockEntityInteractHandler extends AbstractCarryInteractHandler
 {
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "BLOCK_ENTITY_HANDLER");
-    
-    private final BlockEntity blockEntity;
     
     public CarryBlockEntityInteractHandler(
         @NotNull ServerLevel level,
@@ -48,19 +54,17 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         @NotNull BlockPos targetPos,
         @NotNull BlockState targetState,
         @Nullable LivingEntity targetEntity,
+        @NotNull BlockEntity targetBlockEntity,
+        @NotNull Function<BlockState, CarryBlockPlaceContext> contextGenerator,
         @Nullable CarryID optionalUUID
-    )
-    {
-        super(level, player, carryCrate, targetPos, targetState, targetEntity, optionalUUID);
-        this.blockEntity = level.getBlockEntity(targetPos);
-    }
+    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalUUID); }
     
     @Override protected @NotNull HandleResult boxIn()
     {
         final CarryID carryID = generateCarryID();
         final BlockState targetState = getTargetState();
         final BlockPos targetPos = getTargetPos();
-        LOGGER.debug("Generated a new CarryID \"{}\" for indexing.", carryID);
+        final BlockEntity blockEntity = getTargetBlockEntity();
         
         @SuppressWarnings("DuplicatedCode")//! A little boilerplate code is OK.
         final var optionalAdapter = createAdapter(blockEntity.getType(), targetPos, targetState);
@@ -75,18 +79,18 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         
         final CompoundTag tagData = new CompoundTag();
         adapter.onCarriedSequence(new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(this.level, targetPos, this.player, carryID.uuid()));
-        adapter.saveCarryTag(tagData, level.registryAccess());//* #onCarriedSequence() may have side effects on BE's data, we should save data after it.
+        adapter.saveCarryTag(tagData, level.registryAccess());//* #onCarriedSequence() may have side effects on BE's unionData, we should save unionData after it.
         
         final CarryData insertData = CarryData.createBlockEntity(
             targetState,
             tagData,
-            this.blockEntity.getType(),
+            blockEntity.getType(),
             adapter.getPenaltyRate(),
             adapter.causesOverweight(),
             this.level.getGameTime()
         );
         
-        return HandleResult.boxIn(insertData, InteractionResult.SUCCESS, carryID, false);
+        return HandleResult.boxIn(insertData, carryID);
     }
     
     @Override protected @NotNull HandleResult unbox()
@@ -98,6 +102,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         final BlockPos targetPos = getTargetPos();
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
         final @Nullable CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
+        final BlockEntity blockEntity = getTargetBlockEntity();
         Objects.requireNonNull(data, MISUSE_FAIL_MSG);
         LOGGER.when(carryID == null).
             warn(
@@ -106,7 +111,21 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
                 MiscConstants.FEEDBACK_MESSAGE
             );
         
-        final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.data();
+        final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.unionData();
+        
+        final CarryBlockPlaceContext context = getContextGenerator().apply(blockEntityDataHolder.getState());
+        
+        //! AbstractBlockEntityAdapter's init implicitly creates blockEntity.
+        //! However, Minecraft only allows the creation of a new blockEntity when the targetBlock is corresponded.
+        //! We have to treat such a case specially.
+        //! THANK YOU, MOJANG
+        if(!context.performPlace().equals(InteractionResult.CONSUME))
+        {
+            LOGGER.debug("Cannot place block to process blockEntity, return the process result as failed.");
+            context.cancelPlacement();
+            return HandleResult.failed();
+        }
+        
         final var optionalAdapter = createAdapter(blockEntityDataHolder.getType(), targetPos, targetState);
         
         if(optionalAdapter.isEmpty())
@@ -118,6 +137,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         final AbstractBlockEntityCarryAdapter<? extends BlockEntity> adapter = optionalAdapter.get();
         
         final CompoundTag tagData = new CompoundTag();
+        adapter.loadCarryTag(tagData, this.level.registryAccess());//* #onPlacedProcess() may have side effects on BE's unionData, we should load unionData before it.
         adapter.onPlacedProcess(
             this.level,
             this.level.getGameTime() - data.startTime(),
@@ -125,10 +145,17 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
                 this.level,
                 targetPos,
                 this.player,
-                carryID == null ? "" : carryID.uuid()
+                carryID == null ?
+                    "" :
+                    carryID.uuid()
             )
         );
-        adapter.loadCarryTag(tagData, this.level.registryAccess());//* #onPlacedProcess() may have side effects on BE's data, we should load data after it.
+        
+        if(!context.cancelPlacement())
+        {
+            LOGGER.debug("Cannot cancel the emulation of the blockEntity's unbox! return the process result as failed.");
+            return HandleResult.failed();
+        }
         
         return HandleResult.unbox(
             CarryData.createBlockEntity(
@@ -139,14 +166,16 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
                 data.causesOverweight(),
                 level.getGameTime()
             ),
-            optionalCarryID
+            optionalCarryID,
+            blockEntityDataHolder.getType(),
+            false
         );
     }
     
     @Override protected @NotNull ResourceLocation getCarryResourceLocation()
     {
         return Objects.requireNonNull(
-            BlockEntityType.getKey(this.blockEntity.getType()),
+            BlockEntityType.getKey(getTargetBlockEntity().getType()),
             "Assertion failed: Param \"blockEntity\"'s ResourceLocation is null. This only means the internal logic is flawed, or get misused. %s".
                 formatted(MiscConstants.FEEDBACK_MESSAGE)
         );
@@ -158,7 +187,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         @NotNull BlockState state
     )
     {
-        final var factory = CarryRegistryManager.INSTANCE.getBlockEntityAdapter(blockEntityType);
+        final var factory = CarryRegistryManager.INST.getBlockEntityAdapter(blockEntityType);
         
         return factory.map(
             adapterFactory ->

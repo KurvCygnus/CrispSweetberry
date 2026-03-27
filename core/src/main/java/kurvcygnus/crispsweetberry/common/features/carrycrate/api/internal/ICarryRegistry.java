@@ -74,13 +74,33 @@ public interface ICarryRegistry
     );
     
     @FunctionalInterface interface ICarryBlockEntityAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>>
-    extends IBaseCarryAdapterFactory<E, A> { @Override @NotNull A create(E blockEntity); }
+    extends IBaseCarryAdapterFactory<E, A> 
+    {
+        @Override @NotNull A create(E blockEntity);
+        
+        @Override default @NotNull String getType() { return "blockEntity"; }
+    }
     
     @FunctionalInterface interface ICarryBlockAdapterFactory<B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
-    extends IBaseCarryAdapterFactory<B, A> { @Override @NotNull A create(B block); }
+    extends IBaseCarryAdapterFactory<B, A> 
+    {
+        @Override @NotNull A create(B block);
+        
+        @Override default @NotNull String getType() { return "block"; }
+    }
     
     @FunctionalInterface interface ICarryEntityAdapterFactory<E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
-    extends IBaseCarryAdapterFactory<E, A> { @Override @NotNull A create(E entity); }
+    extends IBaseCarryAdapterFactory<E, A>
+    {
+        @Override @NotNull A create(E entity);
+        
+        @Override default @NotNull String getType() { return "entity"; }
+    }
     
-    @FunctionalInterface interface IBaseCarryAdapterFactory<C, A extends AbstractCarryAdapter<?>> { @NotNull A create(C object); }
+    @FunctionalInterface interface IBaseCarryAdapterFactory<C, A extends AbstractCarryAdapter<?>> 
+    {
+        @NotNull A create(C object);
+        
+        default @NotNull String getType() { return "awa"; }
+    }
 }

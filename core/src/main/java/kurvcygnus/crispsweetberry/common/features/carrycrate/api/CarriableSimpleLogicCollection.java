@@ -9,9 +9,9 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaBrewingStandAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableBlockEntityExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
@@ -19,6 +19,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -28,11 +29,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * This is a simple collection for all types of adapters, providing practical default implementations for 
@@ -74,7 +80,7 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ISimpleBlockEntityPenaltyLogic<E extends BlockEntity> extends CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle<E>
+    public interface ISimpleBlockEntityPenaltyLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>
     {
         /**
          * A abstract method to get item list, which is essential for penaltyRate's <u>{@link #getPenaltyRate() calculation}</u>.
@@ -99,6 +105,103 @@ public final class CarriableSimpleLogicCollection
     }
     
     /**
+     * An internal interface that provides the ability of loading a <u>{@link BlockEntity}</u>'s container items through <u>{@link CompoundTag}</u>.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     */
+    @ApiStatus.Internal
+    private interface ILoadableTagItems
+    {
+        /**
+         * Get the tag ID for this <u>{@link BlockEntity}</u>'s items.
+         * @apiNote Unless you have specified the tag ID of items, this is unnecessary to override.
+         * @implNote <b>{@code "Items"}</b> is the default ID of a <u>{@link BlockEntity}</u>'s items,
+         * it is hard-coded in <u>{@link net.minecraft.world.ContainerHelper ContainerHelper}</u>.
+         */
+        default @NotNull String getItemsTagID() { return "Items"; }
+        
+        default void loadAllItems(@NotNull CompoundTag tag, @NotNull NonNullList<ItemStack> items, HolderLookup.@NotNull Provider levelRegistry)
+        {
+            Objects.requireNonNull(tag, "Param \"tag\" must not be null!");
+            Objects.requireNonNull(items, "Param \"items\" must not be null!");
+            Objects.requireNonNull(levelRegistry, "Param \"levelRegistry\" must not be null!");
+            
+            final ListTag listtag = tag.getList(getItemsTagID(), 10);
+            
+            for(int index = 0; index < listtag.size(); index++)
+            {
+                final CompoundTag compoundtag = listtag.getCompound(index);
+                final int slotIndex = compoundtag.getByte("Slot") & 255;
+                
+                //noinspection ConstantValue
+                if(slotIndex >= 0 && slotIndex < items.size())//! Defensive check, and also follow vanilla's logic.
+                    items.set(slotIndex, ItemStack.parse(levelRegistry, compoundtag).orElse(ItemStack.EMPTY));
+            }
+        }
+    }
+    
+    /**
+     * Provides a simple penalty drop logic for <b><u>{@link BlockEntity}</u> that has container items.
+     * @param <E> The blockEntity this adapter takes responsibility of.
+     * @author Kurv Cygnus
+     * @apiNote If your custom <b>{@link BlockEntity}</b> uses other name to represent its items,
+     * you should override method <u>{@link #getItemsTagID()}</u>.
+     * @since 1.0 Release
+     */
+    public interface ISimpleBlockEntityPenaltyDropLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
+    {
+        @Override default @NotNull CarryData onPenaltyDrop(CarriableExtensions.@NotNull TickingContext context)
+        {
+            final CarryData data = context.data();
+            final CarryData.CarryBlockEntityDataHolder unionData = data.unionData();
+            final CompoundTag tag = unionData.getTagData();
+            final NonNullList<ItemStack> items = NonNullList.create();
+            final Level level = context.level();
+            final BlockPos dropPos = context.entity().getOnPos();
+            
+            loadAllItems(tag, items, level.registryAccess());
+            final ItemStack carryCrate = context.carryCrate();
+            float penaltyChance = (float) carryCrate.getDamageValue() / carryCrate.getMaxDamage();
+            
+            final ArrayList<Integer> indexList = IntStream.range(0, items.size()).boxed().collect(Collectors.toCollection(ArrayList::new));
+            Collections.shuffle(indexList);
+            
+            int dropTime = 0;
+            
+            for(int index = 0; index < items.size() / 2; index++)
+            {
+                final ItemStack item = items.get(indexList.get(index));
+                
+                if(level.getRandom().nextFloat() > penaltyChance || item.isEmpty())
+                    continue;
+                
+                final int dropCount = (item.getCount() * penaltyChance / 2) < 1 ?
+                    1 :
+                    (int) (item.getCount() * penaltyChance / 2);
+                
+                final ItemStack dropStack = item.copy();
+                dropStack.setCount(dropCount);
+                
+                Containers.dropItemStack(level, dropPos.getX(), dropPos.getY(), dropPos.getZ(), dropStack);
+                item.setCount(item.getCount() - dropCount);
+                dropTime++;
+                penaltyChance = penaltyChance / dropTime;
+            }
+            
+            final CompoundTag completedTag = ContainerHelper.saveAllItems(tag, items, level.registryAccess());
+            
+            return CarryData.createBlockEntity(
+                unionData.getState(),
+                completedTag,
+                unionData.getType(),
+                unionData.getPenaltyRate(),
+                data.causesOverweight(),
+                data.startTime()
+            );
+        }
+    }
+    
+    /**
      * Provides a simple break logic for <b><u>{@link BlockEntity}</u> that has container items.
      * @apiNote If your custom <b>{@link BlockEntity}</b> uses other name to represent its items, 
      * you should override method <u>{@link #getItemsTagID()}</u>.
@@ -106,43 +209,16 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ISimpleBlockEntityBreakLogic<E extends BlockEntity> extends CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle<E>
+    public interface ISimpleBlockEntityBreakLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
     {
-        /**
-         * Get the tag ID for this <u>{@link BlockEntity}</u>'s items.
-         * @implNote <b>{@code "Items"}</b> is the default ID of a <u>{@link BlockEntity}</u>'s items, 
-         * it is hard-coded in <u>{@link net.minecraft.world.ContainerHelper ContainerHelper}</u>.
-         */
-        default @NotNull String getItemsTagID() { return "Items"; }
-        
         @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryBlockEntityDataHolder dataHolder, long elapsedTime)
         {
             final CompoundTag dataTag = dataHolder.getTagData();
             final NonNullList<ItemStack> items = NonNullList.create();
             
-            loadAllItems(dataTag, items, level.registryAccess(), getItemsTagID());
+            loadAllItems(dataTag, items, level.registryAccess());
             
             Containers.dropContents(level, pos, items);
-        }
-    }
-    
-    private static void loadAllItems(@NotNull CompoundTag tag, @NotNull NonNullList<ItemStack> items, HolderLookup.@NotNull Provider levelRegistry, @NotNull String id)
-    {
-        Objects.requireNonNull(tag, "Param \"tag\" must not be null!");
-        Objects.requireNonNull(items, "Param \"items\" must not be null!");
-        Objects.requireNonNull(levelRegistry, "Param \"levelRegistry\" must not be null!");
-        Objects.requireNonNull(id, "Param \"id\" must not be null!");
-        
-        final ListTag listtag = tag.getList(id, 10);
-        
-        for(int index = 0; index < listtag.size(); index++)
-        {
-            final CompoundTag compoundtag = listtag.getCompound(index);
-            final int slotIndex = compoundtag.getByte("Slot") & 255;
-            
-            //noinspection ConstantValue
-            if(slotIndex >= 0 && slotIndex < items.size())//! Defensive check, and also follow vanilla's logic.
-                items.set(slotIndex, ItemStack.parse(levelRegistry, compoundtag).orElse(ItemStack.EMPTY));
         }
     }
     //endregion
@@ -170,7 +246,7 @@ public final class CarriableSimpleLogicCollection
             }
             else
                 getLogger().error(
-                    "Cannot instantiate entity with its data \"{}\". This is a serious serialization issue. {}", 
+                    "Cannot instantiate entity with its unionData \"{}\". This is a serious serialization issue. {}",
                     dataTag.toString(),
                     MiscConstants.FEEDBACK_MESSAGE
                 );

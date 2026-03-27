@@ -12,7 +12,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 
 public enum KilnRecipeType implements RecipeType<KilnRecipe>
 {
-    INSTANCE;
+    INST;
     
     public static final String ID = "kiln";
 }

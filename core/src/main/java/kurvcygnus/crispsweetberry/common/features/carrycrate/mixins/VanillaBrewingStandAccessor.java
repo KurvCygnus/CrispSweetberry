@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.mixins;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;

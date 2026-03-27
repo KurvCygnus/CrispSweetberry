@@ -24,7 +24,7 @@ public final class ThrownRedstoneTorchRenderer extends AbstractThrownTorchRender
 {
     public ThrownRedstoneTorchRenderer(EntityRendererProvider.@NotNull Context context) { super(context); }
     
-    @Override protected void appendTextureName(@NotNull StringBuilder path, @NotNull ThrownRedstoneTorchEntity entity, @NotNull FacingPair pair)
+    @Override protected void appendTextureName(@NotNull StringBuilder path, @NotNull ThrownRedstoneTorchEntity entity, @NotNull AbstractThrownTorchRenderer.FacingTriple pair)
     {
         path.append("_").append(entity.getOxidizeState().name());
         path.append("_").append(pair.horizontalFacing().getAlias());

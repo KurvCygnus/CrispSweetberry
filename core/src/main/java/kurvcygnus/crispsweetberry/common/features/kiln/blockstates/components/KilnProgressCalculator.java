@@ -19,6 +19,7 @@ import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.NonNullList;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.*;
+import org.slf4j.event.Level;
 
 import java.util.Objects;
 
@@ -62,7 +63,10 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     private boolean hasWarnedNullRecipe = false;
     private boolean hasWarnedAbnormalFactor = false;
     
-    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final MarkLogger LOGGER = MarkLogger.configuredLogger(
+        LogUtils.getLogger(),
+        MarkLogger.allowWhen(Level.DEBUG, MarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_CAL_DEBUG)
+    );
     
     public void setRecipesAndResultType(@NotNull NonNullList<KilnRecipe> recipes, @NotNull LogicalResult logicalResult)
     {
@@ -120,7 +124,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 final double decreasedVisualProgress = currentVisualProgress - NORMAL_PROGRESS_RATE;
                 
                 handle.changeMarker("CAL_END");
-                configDebug("Current logicalResult \"{}\" doesn't need any further calculation. Progress value: R: {}, V: {}",
+                LOGGER.debug("Current logicalResult \"{}\" doesn't need any further calculation. Progress value: R: {}, V: {}",
                     nonWorkingLogicalResult.name(), decreasedRealProgress, decreasedVisualProgress
                 );
                 
@@ -135,7 +139,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             final byte remainingTicks = (byte) (BALANCE_STATE_STANDARD_TICKS - this.balanceTick);
             
             handle.changeMarker("CAL_CHECK");
-            configDebug("recipes = {}, lastFactor = {}, processState = {}{}",
+            LOGGER.debug("recipes = {}, lastFactor = {}, processState = {}{}",
                 this.recipes.toString(), this.lastProcessFactor, processState.name(),
                 this.balanceTick > 0 ? ", %d balance tick%s remain%s".formatted
                     (remainingTicks, remainingTicks == 1 ? "s" : "", remainingTicks == 1 ? "" : "s") : ""
@@ -165,7 +169,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                     hasWarnedAbnormalFactor = true;
                 }
                 
-                configDebug("Keeping progress unchanged to prevent unexpected behavior.");
+                LOGGER.debug("Keeping progress unchanged to prevent unexpected behavior.");
                 
                 return CalculationResult.unexpectedResult(currentRealProgress, currentVisualProgress);
             }
@@ -183,7 +187,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             if(Objects.requireNonNullElse(this.lastProcessFactor, -1D) != currentProcessFactor)
             {
                 handle.changeMarker("CAL_DATA_INFO");
-                configDebug("Factors: C: {}, L: {}", currentProcessFactor, Objects.requireNonNullElse(this.lastProcessFactor, "N/A"));
+                LOGGER.debug("Factors: C: {}, L: {}", currentProcessFactor, Objects.requireNonNullElse(this.lastProcessFactor, "N/A"));
             }
             
             this.lastProcessFactor = currentProcessFactor;
@@ -193,7 +197,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             if(shouldBalance)
             {
                 handle.changeMarker("CAL_BALANCE");
-                configDebug("ProgressFactor mismatch. Start calculate balance factors.");
+                LOGGER.debug("ProgressFactor mismatch. Start calculate balance factors.");
                 
                 currentRealProgress = currentRealProgress * (this.lastProcessFactor / currentProcessFactor);
                 this.balanceRate = (currentRealProgress + realChangeRate * BALANCE_STATE_STANDARD_TICKS - currentVisualProgress) / BALANCE_STATE_STANDARD_TICKS;
@@ -202,7 +206,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 this.balanceTick = BALANCE_STATE_STANDARD_TICKS - 1;//* The calculation tick also counts as a tick of whole balance attachTag.
                 
                 handle.changeMarker("CAL_BALANCE_END");
-                configDebug("Balance calculation ended.");
+                LOGGER.debug("Balance calculation ended.");
                 
                 return new CalculationResult(
                     currentRealProgress,
@@ -215,11 +219,11 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             if(this.balanceTick > 0)
             {
                 handle.changeMarker("CAL_BALANCE");
-                configDebug("balanceTick({}) is bigger than 0. Continue to calculate visualProgress.", balanceTick);
+                LOGGER.debug("balanceTick({}) is bigger than 0. Continue to calculate visualProgress.", balanceTick);
                 
                 this.balanceTick--;
                 
-                configDebug("Current VisualTrend: {}", this.balanceTrend);
+                LOGGER.debug("Current VisualTrend: {}", this.balanceTrend);
                 
                 return new CalculationResult(
                     currentRealProgress + realChangeRate,
@@ -245,7 +249,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             }
             
             handle.changeMarker("CAL_NORMAL");
-            configDebug("Rate: {}, progressPairValue: R: {}, V: {}",
+            LOGGER.debug("Rate: {}, progressPairValue: R: {}, V: {}",
                 realChangeRate, newRealProgress, newVisualProgress
             );
             
@@ -323,7 +327,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
         {
             for(final KilnRecipe recipe: recipes)
             {
-                configDebug("Factor of recipe({}): {}",
+                LOGGER.debug("Factor of recipe({}): {}",
                     recipe, recipe.processFactor()
                 );
                 
@@ -353,7 +357,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             currentProcessFactor = canUseAverageReward ? (revaluateFactor / nonEmptyCount) : multipliedFactor;
             
             handle.changeMarker("STRATEGY_SELECT");
-            configDebug("strategy = \"{}\", totalFactor = {}{}",
+            LOGGER.debug("strategy = \"{}\", totalFactor = {}{}",
                 canUseAverageReward ? "Average" : "Multiply", currentProcessFactor,
                 canUseAverageReward ? ", non-empty recipes: %d".formatted(nonEmptyCount) : ""
             );
@@ -365,6 +369,4 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     public byte getBalanceTick() { return balanceTick; }
     
     public double getBalanceRate() { return balanceRate; }
-    
-    private void configDebug(String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_BE_CAL_DEBUG.get()).debug(message, args); }
 }

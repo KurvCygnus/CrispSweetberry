@@ -31,7 +31,7 @@ import java.util.Objects;
  * in survivor mode.
  *
  * @author Kurv Cygnus
- * @apiNote Loot logic is fully data-driven via Coin LootTables(in datagen module).
+ * @apiNote Loot logic is fully unionData-driven via Coin LootTables(in datagen module).
  * Block only handles experience awarding.
  * @implNote The reason we keep <u>{@link AbstractCoinStackBlock}</u> and <u>{@link VanillaCoinStackBlock VanillaCoinStackBlock}</u>
  * separated is that we are considering using annotation processors to solve boilerplate problems in future developing.<br><br>
@@ -50,7 +50,7 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
     @SuppressWarnings({"unused", "DataFlowIssue"})//! Only for vanilla CODEC.
     private AbstractCoinStackBlock(@Nullable Properties properties, @Nullable C coinType) { this(coinType); }
     
-    public AbstractCoinStackBlock(@NotNull C coinType)//! This is safe since the base class uses lazy to pass value.
+    public AbstractCoinStackBlock(@NotNull C coinType)//! This is markAsSafe since the base class uses lazy to pass value.
     {
         super(Properties.of().
             strength(coinType.getStrength()).//! Oh my god, Minecraft API is terrible.

@@ -6,10 +6,11 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -73,7 +74,7 @@ public final class CarriableExtensions
     {
         /**
          * This method will be called during carrying.
-         * @apiNote All <u>{@link AbstractCarryAdapter adapters}</u> are variables with short lifecycle. 
+         * @apiNote All <u>{@link AbstractCarryAdapter adapters}</u> are variables with short lifecycle.
          * During the execution of {@code #carryTick(TickingContext)}, <b>adapters will be created with {@code null} values</b>.<br>
          * So, <span style="color: red">do not try to get adapters field(block, blockEntity...) and use, <u>{@link NullPointerException NPE}</u> will be thrown.</span>
          */
@@ -85,7 +86,7 @@ public final class CarriableExtensions
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ICarryVerifiable 
+    public interface ICarryVerifiable
     {
         /**
          * Get the basic supported type's class.
@@ -104,5 +105,5 @@ public final class CarriableExtensions
         default void display() {}
     }
     
-    public record TickingContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, @NotNull String uuid, int slotId) {}
+    public record TickingContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, @NotNull CarryData data, @NotNull String uuid, int slotId) {}
 }

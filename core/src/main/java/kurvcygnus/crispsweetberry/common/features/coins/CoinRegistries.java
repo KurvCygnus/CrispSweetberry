@@ -39,7 +39,7 @@ import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCo
  */
 public enum CoinRegistries implements IRegistrant
 {
-    INSTANCE;
+    INST;
     
     @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
     

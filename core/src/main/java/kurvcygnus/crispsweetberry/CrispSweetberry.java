@@ -15,12 +15,13 @@ import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.registry.objects.TabEntry;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforgespi.language.ModFileScanData;
@@ -42,12 +43,13 @@ import java.util.function.Supplier;
 public final class CrispSweetberry
 {
     public static final String NAMESPACE = "crispsweetberry";
+    public static final @Nullable IEventBus CRISP_BUS = ModLoadingContext.get().getActiveContainer().getEventBus();
     
     private static final List<String> ANNOTATIONS = List.of(
         RegisterToTab.class.getName()
     );
     
-    private static final CrispIntRanger LEGAL_PRIORITY_RANGE = CrispIntRanger.closed(1, 999);
+    private static final CrispRanger LEGAL_PRIORITY_RANGE = CrispRanger.closed(1, 999);
     
     public static final Map<ResourceKey<CreativeModeTab>, List<TabEntry>> TAB_LOOKUP = new HashMap<>();
     
@@ -146,10 +148,10 @@ public final class CrispSweetberry
         LOGGER.info("Registries sort completed!");
         
         LOGGER.info("Start Registration...");
-        for(final IRegistrant helper: sortedHelpers)
+        for(final IRegistrant registrant: sortedHelpers)
         {
-            helper.register(eventBus);
-            LOGGER.info("Registering {}{}...", helper.isFeature() ? "Feature: " : "", helper.getJob());
+            registrant.register(eventBus);
+            LOGGER.info("Registering {}{}...", registrant.isFeature() ? "Feature: " : "", registrant.getJob());
         }
         LOGGER.info("CrispSweetberry has been initialized!");
     }

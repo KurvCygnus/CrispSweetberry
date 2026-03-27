@@ -6,14 +6,15 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaBrewingStandAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaFurnaceSeriesAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarriableLifecycle;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -49,7 +50,7 @@ public final class CarriableBlockEntityExtensions
     {
         /**
          * The pre-process method, which is called before blockEntity's serialization started, and blockEntity's boxIn.<br>
-         * <b>So you can use {@link CarriedContext}</b> to edit data, or insert custom behaviors in this method.
+         * <b>So you can use {@link CarriedContext CarriedContext}</b> to edit unionData, or insert custom behaviors in this method.
          */
         default void onCarriedSequence(@NotNull CarriedContext context) { }
         
@@ -86,15 +87,19 @@ public final class CarriableBlockEntityExtensions
      * Also, interface methods are used by internal implementation, which doesn't have blockEntity instance at all the time, 
      * with adapter itself has blockEntity field, we shouldn't add blockEntity as method args.
      */
-    public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryBlockEntityDataHolder>
+    public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends ICarriableLifecycle<CarryData.CarryBlockEntityDataHolder>
     {
         String INVALID_CALL_FAIL_MESSAGE = """
             Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
             method is called at improper time, with improper param.
             
             %s
-            """.
-            formatted(MiscConstants.FEEDBACK_MESSAGE);
+            """.formatted(MiscConstants.FEEDBACK_MESSAGE);
+        
+        /**
+         * A fallback penalty Rate getter for registration validation, and edge case fallback.
+         */
+        default @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getFallbackPenaltyRate() { return DEFAULT_PENALTY_RATE; }
         
         /**
          * The bridge method between base and this interface.
@@ -114,11 +119,13 @@ public final class CarriableBlockEntityExtensions
          * @see CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic Recommend Universal Implementation
          */
         @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull E blockEntity);
+        
+        @NotNull CarryData onPenaltyDrop(@NotNull CarriableExtensions.TickingContext context);
     }
     
     /**
-     * This interface makes sure that blockEntity's data can be serialized.
-     * @apiNote This interface allows you save/load specified data, <b>if you want to save/load all data, 
+     * This interface makes sure that blockEntity's unionData can be serialized.
+     * @apiNote This interface allows you save/load specified unionData, <b>if you want to save/load all unionData,
      * use {@link BlockEntity#saveCustomOnly(HolderLookup.Provider)} and {@link BlockEntity#loadCustomOnly(CompoundTag, HolderLookup.Provider)}</b>. 
      * <u>{@link SimpleContainerBlockEntityCarryAdapter Here}</u>'s a simple example.
      * @implNote Interface methods are used by internal implementation, which doesn't have blockEntity instance at all the time, 
@@ -128,8 +135,26 @@ public final class CarriableBlockEntityExtensions
      */
     public interface ICarrySerializable
     {
+        /**
+         * Load <u>{@link BlockEntity}</u>'s serialized unionData.<br><br>
+         * <span style="color: 95ce6d">If have no specific demand, directly use <u>{@link BlockEntity#loadCustomOnly(CompoundTag, HolderLookup.Provider)}</u> is OK.</span>
+         */
         void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries);
         
+        /**
+         * Save <u>{@link BlockEntity}</u>'s unionData as <u>{@link CompoundTag}</u>.<br><br>
+         * <span style="color: 95ce6d">If have no specific demand, you can use such a combination:</span><br>
+         * <pre>{@code
+         *  void saveCarryTag(
+         *      @NotNull CompoundTag tag,
+         *      @NotNull HolderLookup.Provider registries
+         *  )
+         *  {
+         *      final CompoundTag dataTag = blockEntity.saveCustomOnly(registries);
+         *      tag.merge(dataTag);
+         *  }
+         * }</pre>
+         */
         void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries);
     }
 }

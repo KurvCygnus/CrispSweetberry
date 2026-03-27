@@ -18,6 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -25,6 +27,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * A extended <u>{@link BlockPlaceContext}</u>, which extends the ability of block placement with
+ * the support of specifying the <u>{@link BlockState}</u> to place.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
 public final class CarryBlockPlaceContext extends BlockPlaceContext
 {
     private final BlockState placeState;
@@ -36,19 +44,18 @@ public final class CarryBlockPlaceContext extends BlockPlaceContext
         this.placeState = placeState;
     }
     
-    public @NotNull BlockState getPlaceState() { return placeState; }
-    
     public @NotNull InteractionResult performPlace()
     {
         if(!this.placeState.getBlock().isEnabled(this.getLevel().enabledFeatures()) || !this.canPlace())
             return InteractionResult.FAIL;
         
-        final Level level = this.getLevel();
         final BlockPos pos = this.getClickedPos();
+        final Level level = this.getLevel();
         final Player player = this.getPlayer();
         final ItemStack itemStack = this.getItemInHand();
         
-        if(!level.setBlock(pos, this.placeState, 11))
+        //? FIX: Entity AABB.
+        if(!level.setBlock(pos, this.placeState, Block.UPDATE_ALL_IMMEDIATE))
             return InteractionResult.FAIL;
         
         final BlockState currentState = level.getBlockState(pos);
@@ -62,7 +69,7 @@ public final class CarryBlockPlaceContext extends BlockPlaceContext
         
         final SoundType soundType = currentState.getSoundType(level, pos, player);
         level.playSound(
-            player,
+            null,
             pos,
             soundType.getPlaceSound(),
             SoundSource.BLOCKS,
@@ -77,4 +84,6 @@ public final class CarryBlockPlaceContext extends BlockPlaceContext
         
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
+    
+    public boolean cancelPlacement() { return this.getLevel().setBlockAndUpdate(this.getClickedPos(), Blocks.VOID_AIR.defaultBlockState()); }
 }

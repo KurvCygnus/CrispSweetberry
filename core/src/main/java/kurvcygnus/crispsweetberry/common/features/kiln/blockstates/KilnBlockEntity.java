@@ -133,7 +133,10 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     }
     
     //*:== Logger
-    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final MarkLogger LOGGER = MarkLogger.configuredLogger(
+        LogUtils.getLogger(),
+        MarkLogger.allowWhen(org.slf4j.event.Level.DEBUG, MarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_DEBUG)
+    );
     //endregion
     
     //  region
@@ -186,7 +189,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
         
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
-            configDebug("Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
+            LOGGER.debug("Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
                 index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
             );
             
@@ -198,11 +201,11 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                 if(KILN_INPUT_SLOTS_RANGE.inRange(index))
                 {
                     handle.changeMarker("UPDATE_INFO");
-                    configDebug("index: {} -> at input range -> go update input slots' information", index);
+                    LOGGER.debug("index: {} -> at input range -> go update input slots' information", index);
                     updateInputSlotsInfo();
                 }
                 
-                setChanged(level, worldPosition, this.getBlockState());// If the content in the container is changed, the data must markedLogger dirtied.
+                setChanged(level, worldPosition, this.getBlockState());// If the content in the container is changed, the unionData must markedLogger dirtied.
             }
         }
     }
@@ -228,7 +231,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                 final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.getMin();
                 final ItemStack stackInSlot = containerItems.get(slotIndex);
                 
-                configDebug("slotIndex: {}, cacheIndex: {}, content: {}",
+                LOGGER.debug("slotIndex: {}, cacheIndex: {}, content: {}",
                     slotIndex, cacheIndex, stackInSlot.getDisplayName()
                 );
                 
@@ -239,7 +242,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                     if(inputState != InputState.VALID)
                     {
                         handle.changeMarker("INPUT_STATE_CHANGED");
-                        configDebug("{} -> VALID (at slot {}, stack: {})",
+                        LOGGER.debug("{} -> VALID (at slot {}, stack: {})",
                             inputState, slotIndex, stackInSlot.getDisplayName()
                         );
                     }
@@ -265,7 +268,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                         recipeCache.set(cacheIndex, EMPTY_RECIPE);
                     
                     handle.changeMarker("CACHE_WRITE");
-                    configDebug("write cache[{}] from slot {} -> {}",
+                    LOGGER.debug("write cache[{}] from slot {} -> {}",
                         cacheIndex, slotIndex, optionalKilnRecipe
                     );
                 }
@@ -279,7 +282,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                 final KilnRecipe cache = recipeCache.get(cacheIndex);
                 
                 handle.changeMarker("CACHE_CONFIRM");
-                configDebug("new cache at index {}: [Ingredient: {}, Result: {}]",
+                LOGGER.debug("new cache at index {}: [Ingredient: {}, Result: {}]",
                     slotIndex, cache.ingredient(), cache.result()
                 );
             }
@@ -292,7 +295,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
             }
             
             handle.changeMarker("PULL_CACHE");
-            configDebug(
+            LOGGER.debug(
                 "\"Calculator#setRecipesAndResultType\" called. inputState = {}, recipes = {}, nonWorkingLogicalResult = {}",
                 inputState,
                 recipeCache.toString(),
@@ -615,7 +618,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     
     public @NotNull Optional<KilnRecipe> getKilnRecipe(@NotNull ItemStack stackInSlot)
     {
-        final Optional<NonNullList<KilnRecipe>> list = Optional.ofNullable(KilnRecipeManager.INSTANCE.getRecipes().get(stackInSlot.getItem()));
+        final Optional<NonNullList<KilnRecipe>> list = Optional.ofNullable(KilnRecipeManager.INST.getRecipes().get(stackInSlot.getItem()));
         
         return list.map(List::getFirst);//? TODO: Polymorph support
     }
@@ -623,7 +626,5 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     public @NotNull ContainerData getData() { return this.data; }
     
     public @NotNull NonNullList<ItemStack> getContainerItems() { return this.containerItems; }
-    
-    private void configDebug(String message, Object @NotNull ... args) { LOGGER.when(CrispConfig.KILN_BE_DEBUG.get()).debug(message, args); }
     //endregion
 }

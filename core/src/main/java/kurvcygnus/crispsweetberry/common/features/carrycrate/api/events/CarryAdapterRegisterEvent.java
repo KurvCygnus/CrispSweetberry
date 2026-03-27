@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.Event;
+import net.neoforged.fml.event.IModBusEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -30,12 +31,15 @@ import java.util.Set;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public final class CarryAdapterRegisterEvent extends Event
+public final class CarryAdapterRegisterEvent extends Event implements IModBusEvent
 {
+    //region Fields & Constructors
     private final ICarryRegistry carryRegistry;
     
     public CarryAdapterRegisterEvent(@NotNull ICarryRegistry carryRegistry) { this.carryRegistry = carryRegistry; }
+    //endregion
     
+    //region BlockEntity Register Facade
     /**
      * Registers a blockEntity with its unique adapter.
      * @param blockEntityType Bounded BlockEntity's Type
@@ -109,7 +113,9 @@ public final class CarryAdapterRegisterEvent extends Event
         
         this.carryRegistry.registerUniversal(castedTypes, castedFactory);
     }
+    //endregion
     
+    //region Block Register Facade
     /**
      * Registers a block with its unique adapter.
      * @param block Bounded Block's Type
@@ -180,7 +186,9 @@ public final class CarryAdapterRegisterEvent extends Event
         
         this.carryRegistry.registerUniversal(castedBlocks, castedFactory);
     }
+    //endregion
     
+    //region Entity Register Facade
     /**
      * Registers a entity with its unique adapter.
      *
@@ -253,4 +261,5 @@ public final class CarryAdapterRegisterEvent extends Event
         
         this.carryRegistry.registerUniversal(castedEntities, castedFactory);
     }
+    //endregion
 }

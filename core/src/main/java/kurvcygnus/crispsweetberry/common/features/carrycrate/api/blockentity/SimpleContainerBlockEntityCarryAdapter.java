@@ -8,8 +8,10 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableVanillaBlockEntityAccessors;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -19,9 +21,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 
 //? TODO: BIG CHEST TEST. NBT IO Logic may have issues.
+
+/**
+ * This is simple implementation for most containers, like <u>{@link net.minecraft.world.level.block.entity.ChestBlockEntity Chest}</u>, 
+ * <u>{@link net.minecraft.world.level.block.entity.BarrelBlockEntity Barrel}</u>.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @param <E> The blockEntity this adapter takes responsibility of.
+ */
 public class SimpleContainerBlockEntityCarryAdapter<E extends BaseContainerBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E>
-implements CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic<E>, CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>, ISimpleBlockEntityBreakLogic<E>, ISimpleBlockEntityPenaltyDropLogic<E>
 {
     public SimpleContainerBlockEntityCarryAdapter(@NotNull BlockEntity blockEntity) { super(blockEntity); }
     

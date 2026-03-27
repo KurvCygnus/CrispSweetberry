@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispIntRanger;
+import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -19,6 +19,9 @@ import net.minecraft.network.chat.Component;
  */
 public final class KilnConstants
 {
+    public static final int FURNACE_SMELTING_TIME = 200;
+    public static final int ADVANCED_HEATING_CONTAINER_TIME = 100;
+    
     private KilnConstants() { throw new IllegalAccessError("Class \"KilnConstants\" is not meant to be instantized!"); }
     
     @AutoI18n({
@@ -57,9 +60,9 @@ public final class KilnConstants
     private static final int KILN_HOTBAR_START_INDEX = 33;
     private static final int KILN_HOTBAR_END_INDEX = 41;
     
-    public static final CrispIntRanger KILN_INPUT_SLOTS_RANGE = CrispIntRanger.closed(KILN_INPUT_START_INDEX, KILN_INPUT_END_INDEX);
-    public static final CrispIntRanger KILN_OUTPUT_SLOTS_RANGE = CrispIntRanger.closed(KILN_OUTPUT_START_INDEX, KILN_OUTPUT_END_INDEX);
-    public static final CrispIntRanger KILN_BACKPACK_SLOTS_RANGE = CrispIntRanger.closed(KILN_BACKPACK_START_INDEX, KILN_BACKPACK_END_INDEX);
-    public static final CrispIntRanger KILN_HOTBAR_SLOTS_RANGE = CrispIntRanger.closed(KILN_HOTBAR_START_INDEX, KILN_HOTBAR_END_INDEX);
-    public static final CrispIntRanger KILN_INVENTORY_SLOTS_RANGE = CrispIntRanger.closed(KILN_BACKPACK_SLOTS_RANGE.getMin(), KILN_HOTBAR_SLOTS_RANGE.getMax());
+    public static final CrispRanger KILN_INPUT_SLOTS_RANGE = CrispRanger.closed(KILN_INPUT_START_INDEX, KILN_INPUT_END_INDEX);
+    public static final CrispRanger KILN_OUTPUT_SLOTS_RANGE = CrispRanger.closed(KILN_OUTPUT_START_INDEX, KILN_OUTPUT_END_INDEX);
+    public static final CrispRanger KILN_BACKPACK_SLOTS_RANGE = CrispRanger.closed(KILN_BACKPACK_START_INDEX, KILN_BACKPACK_END_INDEX);
+    public static final CrispRanger KILN_HOTBAR_SLOTS_RANGE = CrispRanger.closed(KILN_HOTBAR_START_INDEX, KILN_HOTBAR_END_INDEX);
+    public static final CrispRanger KILN_INVENTORY_SLOTS_RANGE = CrispRanger.closed(KILN_BACKPACK_SLOTS_RANGE.getMin(), KILN_HOTBAR_SLOTS_RANGE.getMax());
 }

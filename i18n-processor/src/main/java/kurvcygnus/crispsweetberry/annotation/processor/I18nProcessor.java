@@ -45,19 +45,20 @@ import java.util.regex.Matcher;
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class I18nProcessor extends AbstractProcessor
 {
-    private static final String OBJECT = "java.lang.Object";
-    private static final String HOLDER = "net.minecraft.core.Holder";
-    private static final String ITEM = "net.minecraft.world.item.Item";
-    private static final String BLOCK = "net.minecraft.world.level.block.Block";
-    private static final String ENTITY_TYPE = "net.minecraft.world.entity.EntityType";
+    private static final String OBJECT            = "java.lang.Object";
+    private static final String HOLDER            = "net.minecraft.core.Holder";
+    private static final String ITEM              = "net.minecraft.world.item.Item";
+    private static final String BLOCK             = "net.minecraft.world.level.block.Block";
+    private static final String ENTITY_TYPE       = "net.minecraft.world.entity.EntityType";
     private static final String CREATIVE_MODE_TAB = "net.minecraft.world.item.CreativeModeTab";
-    private static final String ENCHANTMENT = "net.minecraft.world.item.enchantment.Enchantment";
-    private static final String MOB_EFFECT = "net.minecraft.world.effect.MobEffect";
-    private static final String ATTRIBUTE = "net.minecraft.world.entity.ai.attributes.Attribute";
-    private static final String COMPONENT = "net.minecraft.network.chat.Component";
+    private static final String ENCHANTMENT       = "net.minecraft.world.item.enchantment.Enchantment";
+    private static final String MOB_EFFECT        = "net.minecraft.world.effect.MobEffect";
+    private static final String ATTRIBUTE         = "net.minecraft.world.entity.ai.attributes.Attribute";
+    private static final String COMPONENT         = "net.minecraft.network.chat.Component";
     private static final String RESOURCE_LOCATION = "net.minecraft.resources.ResourceLocation";
-    private static final String KEY_MAPPING = "net.minecraft.client.KeyMapping";
-    private static final String SUPPLIER = "java.util.function.Supplier";
+    private static final String KEY_MAPPING       = "net.minecraft.client.KeyMapping";
+    private static final String SUPPLIER          = "java.util.function.Supplier";
+    
     private static final String VERSION = "v0.1";
     
     /**
@@ -429,7 +430,7 @@ public final class I18nProcessor extends AbstractProcessor
                     );
                 
                 final String lang = matcher.group(1);
-                final String content = matcher.group(2);
+                final String content = matcher.group(2).replace("&ensp;", " ");
                 
                 if(!hasContent(lang))
                     messager.printMessage(

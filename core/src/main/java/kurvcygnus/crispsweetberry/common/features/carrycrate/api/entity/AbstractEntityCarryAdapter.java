@@ -9,8 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarriableExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;

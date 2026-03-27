@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum CrispItems implements IRegistrant
 {
-    INSTANCE;
+    INST;
     
     @Override public void register(@NotNull IEventBus bus) { CRISP_ITEM_REGISTER.register(bus); }
     

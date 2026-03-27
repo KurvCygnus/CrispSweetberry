@@ -148,8 +148,13 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      * or else your custom stuff won't work properly!
      * @see net.minecraft.world.entity.projectile.ThrowableItemProjectile
      */
-    public AbstractThrownTorchEntity(@NotNull EntityType<? extends AbstractThrownTorchEntity> childrenClazzValue, 
-        double x, double y, double z, @NotNull Level level) { super(childrenClazzValue, x, y, z, level); }
+    public AbstractThrownTorchEntity(
+        @NotNull EntityType<? extends AbstractThrownTorchEntity> childrenClazzValue,
+        double x,
+        double y,
+        double z,
+        @NotNull Level level
+    ) { super(childrenClazzValue, x, y, z, level); }
     
     /**
      * The construct method for <b>dispenser's usage.<br><br>
@@ -162,8 +167,11 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
      * or else your custom stuff won't work properly!
      * @see net.minecraft.world.entity.projectile.ThrowableItemProjectile
      */
-    public AbstractThrownTorchEntity(@NotNull EntityType<? extends AbstractThrownTorchEntity> childrenClazzValue,
-        @NotNull LivingEntity shooter, @NotNull Level level) { super(childrenClazzValue, shooter, level); }
+    public AbstractThrownTorchEntity(
+        @NotNull EntityType<? extends AbstractThrownTorchEntity> childrenClazzValue,
+        @NotNull LivingEntity shooter,
+        @NotNull Level level
+    ) { super(childrenClazzValue, shooter, level); }
     //endregion
     
     //  region

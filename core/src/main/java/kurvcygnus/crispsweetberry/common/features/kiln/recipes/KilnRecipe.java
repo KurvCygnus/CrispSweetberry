@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Range;
 
 /**
  * This is the base of the existence of the whole kiln recipe.<br>
- * <b><i>It defines the data and behavior a kiln recipe contains</b></i>.
+ * <b><i>It defines the unionData and behavior a kiln recipe contains</b></i>.
  *
  * @param processFactor The procession of kiln is percentage-based, this variable holds <b>the factor of influencing the final procession rate of kiln</b>,
  *                      which is calculated by cookTime.
@@ -111,7 +111,7 @@ public record KilnRecipe(
     
     @Override public @NotNull RecipeSerializer<?> getSerializer() { return KilnRegistries.KILN_SERIALIZER.get(); }
     
-    @Override public @NotNull RecipeType<?> getType() { return KilnRecipeType.INSTANCE; }
+    @Override public @NotNull RecipeType<?> getType() { return KilnRecipeType.INST; }
     
     @Override public @NotNull Ingredient ingredient() { return this.ingredient; }
     

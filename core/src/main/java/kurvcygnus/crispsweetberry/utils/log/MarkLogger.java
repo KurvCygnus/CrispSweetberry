@@ -9,14 +9,20 @@
 package kurvcygnus.crispsweetberry.utils.log;
 
 import com.mojang.logging.LogUtils;
+import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.misc.ITriConsumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.slf4j.event.Level;
 
 import java.util.ArrayDeque;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
@@ -25,36 +31,13 @@ import static java.util.Objects.requireNonNull;
  * This is a simple wrapper for SLF4J's <u>{@link Logger}</u>. It reduces the verbosity of passing <u>{@link Marker}</u> to log functions.
  * @apiNote We recommend using {@code SCREAMING_SNAKE_CASE} for <u>{@link Marker}</u>, because it is more attractive, and easy to search.<br>
  * <b>This logger uses <u>{@link ThreadLocal}</u>. Do not leak <u>{@link MarkerHandle MarkerHandle}</u> across async boundaries</b>.
- * <br>
- * If you are using IDEA, you can generate a template with typing keyword {@code mls}, {@code mdl} and {@code mws}</b>.
- * <br>
- * <br>
- * Templates: <pre>{@code 
- *  // mls:
- *  private static final MarkLogger LOGGER = MarkLogger.marklessLogger(
- *      LogUtils.getLogger()
- *  );
- *  
- *  // mdl:
- *  private static final MarkLogger LOGGER = MarkLogger.markedLogger(
- *      LogUtils.getLogger(),
- *      "${Class Name}$"
- *  );
- *  
- *  // mws:
- *  private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(
- *      LogUtils.getLogger(),
- *      "${Class Name}$"
- *  );
- * }</pre>
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
 @SuppressWarnings("unused")
 public final class MarkLogger
 {
-    //  region
-    //*:=== Fields
+    //  region Fields & Constants
     /**
      * The core of this wrapper. All log functions are actually executed by this. 
      */
@@ -94,16 +77,29 @@ public final class MarkLogger
      * As mentioned above, do not leak <u>{@link MarkerHandle MarkerHandle}</u> across async boundaries</b>.
      */
     private final @NotNull ThreadLocal<ArrayDeque<Marker>> mutableMarker = new ThreadLocal<>();
+    
+    /**
+     * The <u>{@link Level}</u> based condition. It decides whether the message will be printed for specified cases.
+     */
+    private final @NotNull Predicate<Level> condition;
+    
+    private static final @NotNull Predicate<Level> TRUE = ignored -> true;
     //endregion
     
-    //  region
-    //*:=== Constructor & Static Factories
-    private MarkLogger(@NotNull Logger logger, @Nullable Marker defaultMarker, @Nullable Marker errorMarker, @Nullable Marker warnMarker)
+    //  region Constructor & Static Factories
+    private MarkLogger(
+        @NotNull Logger logger,
+        @Nullable Marker defaultMarker,
+        @Nullable Marker errorMarker,
+        @Nullable Marker warnMarker,
+        @NotNull Predicate<Level> condition
+    )
     {
         this.logger = requireNonNull(logger, "Param \"logger\" must not be null!");
         this.defaultMarker = defaultMarker;
         this.errorMarker = errorMarker;
         this.warnMarker = warnMarker;
+        this.condition = condition;
     }
     
     /**
@@ -121,7 +117,7 @@ public final class MarkLogger
     public static @NotNull MarkLogger marklessLogger(@NotNull Logger logger)
     {
         requireNonNull(logger, "Param \"logger\" must not be null!");
-        return new MarkLogger(logger, null, null, null);
+        return new MarkLogger(logger, null, null, null, TRUE);
     }
     
     /**
@@ -143,7 +139,7 @@ public final class MarkLogger
         requireNonNull(logger, "Param \"logger\" must not be null!");
         requireNonNull(marker, "Param \"marker\" must not be null!");
         
-        return new MarkLogger(logger, marker, marker, marker);
+        return new MarkLogger(logger, marker, marker, marker, TRUE);
     }
     
     /**
@@ -168,7 +164,7 @@ public final class MarkLogger
         
         final Marker marker = MarkerFactory.getMarker(mark);
         
-        return new MarkLogger(logger, marker, marker, marker);
+        return new MarkLogger(logger, marker, marker, marker, TRUE);
     }
     
     /**
@@ -180,6 +176,7 @@ public final class MarkLogger
      *      MarkerFactory.getMarker("Bar")
      *  );
      * }</pre>
+     * <hr>
      * Produces these markers:
      * <pre>{@code 
      *  // foo -> foo_err(For error log funcs)
@@ -195,9 +192,9 @@ public final class MarkLogger
         requireNonNull(marker, "Param \"marker\" must not be null!");
         
         final Marker err = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_ERR"));
-        final Marker expr = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_WARN"));
+        final Marker warn = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_WARN"));
         
-        return new MarkLogger(logger, marker, err, expr);
+        return new MarkLogger(logger, marker, err, warn, TRUE);
     }
     
     /**
@@ -209,7 +206,7 @@ public final class MarkLogger
      *      LogUtils.getLogger(),
      *      "Bar"
      *  );
-     * }</pre>
+     * }</pre><hr>
      * Produces these markers:
      * <pre>{@code
      *  // foo -> foo_err(For error log funcs)
@@ -226,10 +223,107 @@ public final class MarkLogger
         
         return withMarkerSuffixes(logger, MarkerFactory.getMarker(mark));
     }
+    
+    /**
+     * Produces a highly configurable logger, which supports adaptive markers suffix<i>(with {@code adaptive} arg's value equaling {@code true})</i>,
+     * and the ability to log message, depending on arg {@code condition}.
+     */
+    @Contract("_, null, true, _ -> fail")
+    private static @NotNull MarkLogger configuredLogger(@NotNull Logger logger, @Nullable Marker marker, boolean adaptive, @NotNull Predicate<Level> condition)
+    {
+        requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(condition, "Param \"condition\" must not be null!");
+        
+        CrispFunctionalUtils.throwIf(
+            marker == null && adaptive,
+            "Creating a MarkLogger instance with null marker and adaptive markers is not allowed!",
+            IllegalArgumentException::new
+        );
+        
+        if(adaptive)
+        {
+            requireNonNull(marker, "Param \"marker\" must not be null!");
+            
+            final Marker err = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_ERR"));
+            final Marker warn = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_WARN"));
+            
+            return new MarkLogger(logger, marker, err, warn, condition);
+        }
+        
+        return new MarkLogger(logger, marker, marker, marker, condition);
+    }
+    
+    /**
+     * Produces a highly configurable logger, which supports adaptive markers suffix<i>(with {@code adaptive} arg's value equaling {@code true})</i>,
+     * and the ability to log message, depending on arg {@code condition}.
+     */
+    public static @NotNull MarkLogger configuredLogger(@NotNull Logger logger, @NotNull String mark, @NotNull Predicate<Level> condition, boolean adaptive)
+        { return configuredLogger(logger, MarkerFactory.getMarker(mark), adaptive, condition); }
+    
+    /**
+     * Produces a highly configurable logger, which supports the ability to log message, depending on arg {@code condition}.
+     */
+    public static @NotNull MarkLogger configuredLogger(@NotNull Logger logger, @NotNull Predicate<Level> condition)
+        { return configuredLogger(logger, null, false, condition); }
+    
+    /**
+     * Creates a condition that allows logging only when the <u>{@link Level log level}</u> satisfies
+     * the specified comparison against the provided reference level.
+     *
+     * @param level     The reference log level to compare against.
+     * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
+     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     * @param extra     An additional boolean flag to force-enable the log (OR logic).
+     * @return A predicate that returns {@code true} if the log should be performed.
+     * @apiNote <span style="color: 95cc6d">The value of {@code extra} is <b>dynamic</b></span>, it will changed with the formula of the <u>{@link Predicate}</u>.
+     */
+    public static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, Supplier<Boolean> extra)
+        { return leveledCondition(level, situation, extra, false); }
+    
+    /**
+     * Creates a condition that allows logging only when the log level satisfies
+     * the specified comparison against the provided reference level.
+     *
+     * @param level     The reference log level to compare against.
+     * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
+     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     * @param extra     An additional boolean flag to force-enable the log (OR logic).
+     * @return A predicate that returns {@code true} if the log should be performed.
+     * @apiNote <span style="color: red">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
+     */
+    public static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra)
+        { return leveledCondition(level, situation, () -> extra, false); }
+    
+    /**
+     * Creates a condition that rejects logging when the log level satisfies
+     * the specified comparison against the provided reference level.
+     *
+     * @param level     The reference log level to compare against.
+     * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
+     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     * @param extra     An additional boolean flag to force-enable the log (OR logic).
+     * @return A predicate that returns {@code true} if the log should be performed.
+     * @apiNote <span style="color: red">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
+     */
+    public static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra)
+        { return leveledCondition(level, situation, () -> extra, true); }
+    
+    /**
+     * Creates a condition that rejects logging when the log level satisfies
+     * the specified comparison against the provided reference level.
+     *
+     * @param level     The reference log level to compare against.
+     * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
+     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     * @param extra     An additional boolean flag to force-enable the log (OR logic).
+     * @return A predicate that returns {@code true} if the log should be performed.
+     * @apiNote <span style="color: 95cc6d">The value of {@code extra} is <b>dynamic</b></span>, it will changed with the formula of the <u>{@link Predicate}</u>.
+     */
+    public static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, Supplier<Boolean> extra)
+        { return leveledCondition(level, situation, extra, true); }
     //endregion
     
-    //  region
-    //*:=== Scoped Marker Logics
+    //  region Scoped Marker Logics
     /**
      * Push a <u>{@link #mutableMarker temporary marker}</u> to <u>{@link MarkLogger}</u>, 
      * and will always be used until current key is ended.<br><br>
@@ -348,8 +442,7 @@ public final class MarkLogger
          * <b>Failure to close this handle (especially in async or pooled thread environments) will lead to
          * <i>Marker Pollution</i></b>.
          */
-        @Override
-        public void close()
+        @Override public void close()
         {
             if(closed) 
                 return;
@@ -369,8 +462,7 @@ public final class MarkLogger
     }
     //endregion
     
-    //  region
-    //*:=== Log Print Commons
+    //  region Log Print Commons
     /**
      * A fluent style API for conditional log.<br>
      * It makes the log method called after it displayed only when this method's param, {@code condition} is true.
@@ -380,47 +472,45 @@ public final class MarkLogger
      *  // "Bar" will only be printed when foo is true.
      * }</pre>
      */
-    @Contract("_ -> new")
-    public @NotNull MarkLogger.ConditionalLogCommons when(boolean condition) { return new ConditionalLogCommons(this, condition); }
+    @Contract("_ -> new") public @NotNull ConditionalLogCommons when(boolean condition) { return new ConditionalLogCommons(this, condition); }
     
     //*:== Trace
-    public void trace(@Nullable String message) { logger.trace(getMarker(), message); }
+    public void trace(@Nullable String message) { this.print(logger::trace, Level.TRACE, getMarker(), message); }
     
-    public void trace(@Nullable String message, Object @Nullable ... args) { logger.trace(getMarker(), message, args); }
+    public void trace(@Nullable String message, Object @Nullable ... args) { this.print(logger::trace, Level.TRACE, getMarker(), message, args); }
     
-    public void trace(@Nullable String message, @Nullable Throwable throwable) { logger.trace(getMarker(), message, throwable); }
+    public void trace(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::trace, Level.TRACE, getMarker(), message, throwable); }
     
     //*:== Debug
-    public void debug(@Nullable String message) { logger.debug(getMarker(), message); }
+    public void debug(@Nullable String message) { this.print(logger::debug, Level.DEBUG, getMarker(), message); }
     
-    public void debug(@Nullable String message, Object @Nullable ... args) { logger.debug(getMarker(), message, args); }
+    public void debug(@Nullable String message, Object @Nullable ... args) { this.print(logger::debug, Level.DEBUG, getMarker(), message, args); }
     
-    public void debug(@Nullable String message, @Nullable Throwable throwable) { logger.debug(getMarker(), message, throwable); }
+    public void debug(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::debug, Level.DEBUG, getMarker(), message, throwable); }
     
     //*:== Info
-    public void info(@Nullable String message) { logger.info(getMarker(), message); }
+    public void info(@Nullable String message) { this.print(logger::info, Level.INFO, getMarker(), message); }
     
-    public void info(@Nullable String message, Object @Nullable ... args) { logger.info(getMarker(), message, args); }
+    public void info(@Nullable String message, Object @Nullable ... args) { this.print(logger::info, Level.INFO, getMarker(), message, args); }
     
-    public void info(@Nullable String message, @Nullable Throwable throwable) { logger.info(getMarker(), message, throwable); }
+    public void info(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::info, Level.INFO, getMarker(), message, throwable); }
     
     //*:== Warn
-    public void warn(@Nullable String message) { logger.warn(getWarnMarker(), message); }
+    public void warn(@Nullable String message) { this.print(logger::warn, Level.WARN, getMarker(), message); }
     
-    public void warn(@Nullable String message, Object @Nullable ... args) { logger.warn(getWarnMarker(), message, args); }
+    public void warn(@Nullable String message, Object @Nullable ... args) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, args); }
     
-    public void warn(@Nullable String message, @Nullable Throwable throwable) { logger.warn(getWarnMarker(), message, throwable); }
+    public void warn(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, throwable); }
 
     //*:== Error
-    public void error(@Nullable String message) { logger.error(getErrorMarker(), message); }
+    public void error(@Nullable String message) { this.print(logger::error, Level.ERROR, getMarker(), message); }
     
-    public void error(@Nullable String message, Object @Nullable ... args) { logger.error(getErrorMarker(), message, args); }
+    public void error(@Nullable String message, Object @Nullable ... args) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, args); }
     
-    public void error(@Nullable String message, @Nullable Throwable throwable) { logger.error(getErrorMarker(), message, throwable); }
+    public void error(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, throwable); }
     //endregion
     
-    //  region
-    //*:=== Log Common Extras
+    //  region Log Common Extras
     public static final class ConditionalLogCommons
     {
         private final Logger logger;
@@ -428,7 +518,7 @@ public final class MarkLogger
         private final @Nullable Marker errorMarker;
         private final @Nullable Marker warnMarker;
         private final @Nullable Marker currentMutableMarker;
-        private final Supplier<Boolean> condition;
+        private final Predicate<Level> condition;
         
         private ConditionalLogCommons(@NotNull MarkLogger logger, boolean condition)
         {
@@ -438,226 +528,249 @@ public final class MarkLogger
             this.errorMarker = logger.errorMarker;
             this.warnMarker = logger.warnMarker;
             this.currentMutableMarker = logger.mutableMarker.get() != null ? logger.mutableMarker.get().peek() : null;
-            this.condition = () -> condition;
+            this.condition = l -> logger.condition.test(l) && condition;
         }
         
         //  region
         //*:== Trace
-        public void trace(@Nullable String message)
-        {
-            if(condition.get())
-                logger.trace(getMarker(), message);
-        }
+        public void trace(@Nullable String message) { this.print(logger::trace, Level.TRACE, getMarker(), message); }
         
-        public void trace(@Nullable String message, Object @Nullable ... args)
-        {
-            if(condition.get())
-                logger.trace(getMarker(), message, args);
-        }
+        public void trace(@Nullable String message, Object @Nullable ... args) { this.print(logger::trace, Level.TRACE, getMarker(), message, args); }
         
         public void trace(@NotNull Supplier<String> messageSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
-            if(condition.get())
-                logger.trace(getMarker(), messageSupplier.get());
+            this.print(logger::trace, Level.TRACE, getMarker(), messageSupplier.get());
         }
         
         public void trace(@Nullable String message, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.trace(getMarker(), message, argsSupplier.get());
+            this.print(logger::trace, Level.TRACE, getMarker(), message, argsSupplier.get());
         }
         
         public void trace(@NotNull Supplier<String> messageSupplier, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.trace(getMarker(), messageSupplier.get(), argsSupplier.get());
+            this.print(logger::trace, Level.TRACE, getMarker(), messageSupplier.get(), argsSupplier.get());
         }
         //endregion
         
         //  region
         //*:== Debug
-        public void debug(@Nullable String message)
-        {
-            if(condition.get())
-                logger.debug(getMarker(), message);
-        }
+        public void debug(@Nullable String message) { this.print(logger::debug, Level.DEBUG, getMarker(), message); }
         
-        public void debug(@Nullable String message, Object @Nullable ... args)
-        {
-            if(condition.get())
-                logger.debug(getMarker(), message, args);
-        }
+        public void debug(@Nullable String message, Object @Nullable ... args) { this.print(logger::debug, Level.DEBUG, getMarker(), message, args); }
         
         public void debug(@NotNull Supplier<String> messageSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
-            if(condition.get())
-                logger.debug(getMarker(), messageSupplier.get());
+            this.print(logger::debug, Level.DEBUG, getMarker(), messageSupplier.get());
         }
         
         public void debug(@Nullable String message, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.debug(getMarker(), message, argsSupplier.get());
+            this.print(logger::debug, Level.DEBUG, getMarker(), message, argsSupplier.get());
         }
         
         public void debug(@NotNull Supplier<String> messageSupplier, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.debug(getMarker(), messageSupplier.get(), argsSupplier.get());
+            this.print(logger::debug, Level.DEBUG, getMarker(), messageSupplier.get(), argsSupplier.get());
         }
         //endregion
         
         //  region
         //*:== Info
-        public void info(@Nullable String message)
-        {
-            if(condition.get())
-                logger.info(getMarker(), message);
-        }
+        public void info(@Nullable String message) { this.print(logger::info, Level.INFO, getMarker(), message); }
         
-        public void info(@Nullable String message, Object @Nullable ... args)
-        {
-            if(condition.get())
-                logger.info(getMarker(), message, args);
-        }
+        public void info(@Nullable String message, Object @Nullable ... args) { this.print(logger::info, Level.INFO, getMarker(), message, args); }
         
         public void info(@NotNull Supplier<String> messageSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
-            if(condition.get())
-                logger.info(getMarker(), messageSupplier.get());
+            this.print(logger::info, Level.INFO, getMarker(), messageSupplier.get());
         }
         
         public void info(@Nullable String message, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.info(getMarker(), message, argsSupplier.get());
+            this.print(logger::info, Level.INFO, getMarker(), message, argsSupplier.get());
         }
         
         public void info(@NotNull Supplier<String> messageSupplier, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.info(getMarker(), messageSupplier.get(), argsSupplier.get());
+            this.print(logger::info, Level.INFO, getMarker(), messageSupplier.get(), argsSupplier.get());
         }
         //endregion
         
         //  region
         //*:== Warn
-        public void warn(@Nullable String message)
-        {
-            if(condition.get())
-                logger.warn(getWarnMarker(), message);
-        }
+        public void warn(@Nullable String message) { this.print(logger::warn, Level.WARN, getWarnMarker(), message); }
         
-        public void warn(@Nullable String message, Object @Nullable ... args)
-        {
-            if(condition.get())
-                logger.warn(getWarnMarker(), message, args);
-        }
+        public void warn(@Nullable String message, Object @Nullable ... args) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, args); }
         
         public void warn(@NotNull Supplier<String> messageSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
-            if(condition.get())
-                logger.warn(getWarnMarker(), messageSupplier.get());
+            this.print(logger::warn, Level.WARN, getWarnMarker(), messageSupplier.get());
         }
         
         public void warn(@Nullable String message, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.warn(getWarnMarker(), message, argsSupplier.get());
+            this.print(logger::warn, Level.WARN, getWarnMarker(), message, argsSupplier.get());
         }
         
         public void warn(@NotNull Supplier<String> messageSupplier, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.warn(getWarnMarker(), messageSupplier.get(), argsSupplier.get());
+            this.print(logger::warn, Level.WARN, getWarnMarker(), messageSupplier.get(), argsSupplier.get());
         }
         //endregion
         
         //  region
         //*:== Error
-        public void error(@Nullable String message)
-        {
-            if(condition.get())
-                logger.error(getErrorMarker(), message);
-        }
+        public void error(@Nullable String message) { this.print(logger::error, Level.ERROR, getErrorMarker(), message); }
         
-        public void error(@Nullable String message, Object @Nullable ... args)
-        {
-            if(condition.get())
-                logger.error(getErrorMarker(), message, args);
-        }
+        public void error(@Nullable String message, Object @Nullable ... args) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, args); }
         
         public void error(@NotNull Supplier<String> messageSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
-            if(condition.get())
-                logger.error(getErrorMarker(), messageSupplier.get());
+            this.print(logger::error, Level.ERROR, getErrorMarker(), messageSupplier.get());
         }
         
         public void error(@Nullable String message, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.error(getErrorMarker(), message, argsSupplier.get());
+            this.print(logger::error, Level.ERROR, getErrorMarker(), message, argsSupplier.get());
         }
         
         public void error(@NotNull Supplier<String> messageSupplier, @NotNull Supplier<Object[]> argsSupplier)
         {
             requireNonNull(messageSupplier, "Param \"messageSupplier\" must not be null!");
             requireNonNull(argsSupplier, "Param \"argsSupplier\" must not be null!");
-            
-            if(condition.get())
-                logger.error(getErrorMarker(), messageSupplier.get(), argsSupplier.get());
+            this.print(logger::error, Level.ERROR, getErrorMarker(), messageSupplier.get(), argsSupplier.get());
         }
         //endregion
         
         //  region
         //*:== Private Helpers
-        private @Nullable Marker getMarker() { return currentMutableMarker != null ? currentMutableMarker : defaultMarker; }
+        private @Nullable Marker getMarkerBase(@Nullable Marker content) { return currentMutableMarker != null ? currentMutableMarker : content; }
         
-        private @Nullable Marker getErrorMarker() { return currentMutableMarker != null ? currentMutableMarker : errorMarker; }
+        private @Nullable Marker getMarker() { return getMarkerBase(defaultMarker); }
         
-        private @Nullable Marker getWarnMarker() { return currentMutableMarker != null ? currentMutableMarker : warnMarker; }
+        private @Nullable Marker getErrorMarker() { return getMarkerBase(errorMarker); }
+        
+        private @Nullable Marker getWarnMarker() { return getMarkerBase(warnMarker); }
+        
+        private void print(
+            @NotNull ITriConsumer<Marker, String, Object[]> consumer,
+            @NotNull Level level,
+            @Nullable Marker marker,
+            @Nullable String message,
+            Object @Nullable ... args
+        ) { MarkLogger.print(consumer, condition, level, marker, message, args); }
+        
+        private void print(
+            @NotNull BiConsumer<Marker, String> consumer,
+            @NotNull Level level,
+            @Nullable Marker marker,
+            @Nullable String message
+        ) { MarkLogger.print(consumer, condition, level, marker, message); }
+        
+        private void print(
+            @NotNull ITriConsumer<Marker, String, Throwable> consumer,
+            @NotNull Level level,
+            @Nullable Marker marker,
+            @Nullable String message,
+            @Nullable Throwable throwable
+        ) { MarkLogger.print(consumer, condition, level, marker, message, throwable); }
         //endregion
     }
     //endregion
     
-    //  region
-    //*:=== Private helpers
+    //  region Private helpers
+    private static void print(
+        @NotNull ITriConsumer<Marker, String, Object[]> consumer,
+        @NotNull Predicate<Level> predicate,
+        @NotNull Level level,
+        @Nullable Marker marker,
+        @Nullable String message,
+        Object @Nullable ... args
+    )
+    {
+        if(predicate.test(level))
+            consumer.accept(marker, message, args);
+    }
+    
+    private static void print(
+        @NotNull BiConsumer<Marker, String> consumer,
+        @NotNull Predicate<Level> predicate,
+        @NotNull Level level,
+        @Nullable Marker marker,
+        @Nullable String message,
+        Object @Nullable ... args
+    )
+    {
+        if(predicate.test(level))
+            consumer.accept(marker, message);
+    }
+    
+    private static void print(
+        @NotNull ITriConsumer<Marker, String, Throwable> consumer,
+        @NotNull Predicate<Level> predicate,
+        @NotNull Level level,
+        @Nullable Marker marker,
+        @Nullable String message,
+        @Nullable Throwable throwable
+    )
+    {
+        if(predicate.test(level))
+            consumer.accept(marker, message, throwable);
+    }
+    
+    private void print(
+        @NotNull ITriConsumer<Marker, String, Object[]> consumer,
+        @NotNull Level level,
+        @Nullable Marker marker,
+        @Nullable String message,
+        Object @Nullable ... args
+    ) { print(consumer, condition, level, marker, message, args); }
+    
+    private void print(
+        @NotNull BiConsumer<Marker, String> consumer,
+        @NotNull Level level,
+        @Nullable Marker marker,
+        @Nullable String message
+    ) { print(consumer, condition, level, marker, message); }
+    
+    private void print(
+        @NotNull ITriConsumer<Marker, String, Throwable> consumer,
+        @NotNull Level level,
+        @Nullable Marker marker,
+        @Nullable String message,
+        @Nullable Throwable throwable
+    ) { print(consumer, condition, level, marker, message, throwable); }
+    
     private void pushTempMarker(@NotNull Marker marker)
     {
         requireNonNull(marker, "Param \"marker\" must not be null!");
         @Nullable ArrayDeque<Marker> stack = mutableMarker.get();
+        
         if(stack == null)
         {
             stack = new ArrayDeque<>();
             mutableMarker.set(stack);
         }
+        
         stack.push(marker);
     }
     
@@ -665,35 +778,29 @@ public final class MarkLogger
     {
         requireNonNull(marker, "Param \"marker\" must not be null!");
         @Nullable ArrayDeque<Marker> stack = mutableMarker.get();
+        
         if(stack == null)
         {
             stack = new ArrayDeque<>();
             mutableMarker.set(stack);
         }
-        stack.removeLast();
-        stack.addLast(marker);
+        
+        stack.removeFirst();
+        stack.addFirst(marker);
     }
     
-    private @Nullable Marker getMarker()
+    private @Nullable Marker getMarkerBase(@NotNull Supplier<Marker> sequence)
     {
         final @Nullable ArrayDeque<Marker> stack = this.mutableMarker.get();
         final Marker current = (stack != null) ? stack.peek() : null;
-        return current != null ? current : this.defaultMarker;
+        return current != null ? current : sequence.get();
     }
     
-    private @Nullable Marker getErrorMarker()
-    {
-        final @Nullable ArrayDeque<Marker> stack = this.mutableMarker.get();
-        final Marker current = (stack != null) ? stack.peek() : null;
-        return current != null ? current : (this.errorMarker != null ? this.errorMarker : this.defaultMarker);
-    }
+    private @Nullable Marker getMarker() { return getMarkerBase(() -> this.defaultMarker); }
     
-    private @Nullable Marker getWarnMarker()
-    {
-        final @Nullable ArrayDeque<Marker> stack = this.mutableMarker.get();
-        final Marker current = (stack != null) ? stack.peek() : null;
-        return current != null ? current : (this.warnMarker != null ? this.warnMarker : this.defaultMarker);
-    }
+    private @Nullable Marker getErrorMarker() { return getMarkerBase(() -> this.errorMarker != null ? this.errorMarker : this.defaultMarker); }
+    
+    private @Nullable Marker getWarnMarker() { return getMarkerBase(() -> this.warnMarker != null ? this.warnMarker : this.defaultMarker); }
     
     private static @NotNull String adaptSuffix(@NotNull String baseName, @NotNull String suffix)
     {
@@ -716,5 +823,62 @@ public final class MarkLogger
         
         return baseName + suffix.toUpperCase();
     }
+    
+    private static @NotNull Predicate<Level> leveledCondition(@NotNull Level level, @NotNull ConditionSituation situation, Supplier<Boolean> extra, boolean reverse)
+    {
+        requireNonNull(level, "Param \"level\" must not be null!");
+        requireNonNull(situation, "Param \"situation\" must not be null!");
+        
+        return l -> reverse == situation.condition.test(l, level) || extra.get();
+    }
+    
+    public enum ConditionSituation
+    {
+        EQUAL((fieldLevel, argLevel) -> fieldLevel == argLevel),
+        HIGHER((fieldLevel, argLevel) -> fieldLevel.toInt() >= argLevel.toInt()),
+        LOWER((fieldLevel, argLevel) -> fieldLevel.toInt() <= argLevel.toInt());
+        
+        private final BiPredicate<Level, Level> condition;
+        
+        ConditionSituation(@NotNull BiPredicate<Level, Level> condition) { this.condition = condition; }
+    }
+    
+    @Override public @NotNull String toString()
+    {
+        //* The first line is usually used by logger's header, so sparing a empty line makes display effect prettier.
+        return """
+            
+            MarkLogger
+            {
+                Logger Name: %s
+                Default Marker Name: %s
+                Warn Marker Name: %s
+                Error Marker Name: %s
+                Marker Stacks: %s
+                Current Condition's value for each level:
+                {
+                    Trace: %s
+                    Debug: %s
+                    Info: %s
+                    Warn: %s
+                    Error: %s
+                }
+            }
+            """.
+            formatted(
+                logger.getName(),
+                getNameSafely(getMarker()),
+                getNameSafely(getWarnMarker()),
+                getNameSafely(getErrorMarker()),
+                mutableMarker.get() == null ? "N/A" : mutableMarker.get().toString(),
+                condition.test(Level.TRACE),
+                condition.test(Level.DEBUG),
+                condition.test(Level.INFO),
+                condition.test(Level.WARN),
+                condition.test(Level.ERROR)
+            );
+    }
+    
+    private @NotNull String getNameSafely(@Nullable Marker marker) { return marker == null ? "N/A" : marker.getName(); }
     //endregion
 }

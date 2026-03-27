@@ -6,11 +6,12 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaBrewingStandAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaFurnaceSeriesAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.ICarrySerializable;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 /**
- * This is the collection of vanilla's blockEntity's data accessors, which involves <b>mixin</b>,
+ * This is the collection of vanilla's blockEntity's unionData accessors, which involves <b>mixin</b>,
  * and won't be used by external at most situations.
  * @since 1.0 Release
  * @author Kurv Cygnus
@@ -46,7 +47,7 @@ public final class CarriableVanillaBlockEntityAccessors
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ISimpleMixinCarrySerializable extends CarriableBlockEntityExtensions.ICarrySerializable
+    public interface IMixinCarrySerializable extends ICarrySerializable
     {
         @Override default void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) { callLoadAdditional(tag, registries); }
         
@@ -63,7 +64,7 @@ public final class CarriableVanillaBlockEntityAccessors
      * @since 1.0 Release
      * @see BaseVanillaBrewingStandAdapter Base Brewing Stand Adapter
      */
-    public interface IVanillaBrewingStandAccessor extends ISimpleMixinCarrySerializable
+    public interface IVanillaBrewingStandAccessor extends IMixinCarrySerializable
     {
         int MAX_FUEL = 20;
         int MAX_BREWING_TIME = 400;
@@ -93,7 +94,7 @@ public final class CarriableVanillaBlockEntityAccessors
      * @since 1.0 Release
      * @see BaseVanillaFurnaceSeriesAdapter Base Vanilla Furnace Adapter
      */
-    public interface IVanillaFurnaceSeriesAccessor extends ISimpleMixinCarrySerializable
+    public interface IVanillaFurnaceSeriesAccessor extends IMixinCarrySerializable
     {
         @NotNull RecipeType<? extends AbstractCookingRecipe> getRecipeType();
         

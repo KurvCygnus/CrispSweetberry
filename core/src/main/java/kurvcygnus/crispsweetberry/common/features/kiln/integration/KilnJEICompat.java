@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum KilnJEICompat
 {
-    INSTANCE;
+    INST;
     
     public static final RecipeType<KilnRecipe> JEI_KILN_RECIPE_TYPE = RecipeType.create(
         CrispSweetberry.NAMESPACE,
@@ -51,7 +51,7 @@ public enum KilnJEICompat
         
         //! JEI's IRecipeManager doesn't have any methods that removes the old recipe collection, maybe will auto rebuild on datapack reload, 
         //! maybe it has other solutions, anyways, we can only pray about this.
-        try { runtime.getRecipeManager().addRecipes(JEI_KILN_RECIPE_TYPE, KilnRecipeManager.INSTANCE.getRecipesList()); }
+        try { runtime.getRecipeManager().addRecipes(JEI_KILN_RECIPE_TYPE, KilnRecipeManager.INST.getRecipesList()); }
         catch(Throwable t) { LOGGER.error("Failed to push Kiln Recipes. Details: ", t); }
     }
 }
