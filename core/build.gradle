@@ -75,8 +75,9 @@ dependencies {
     runtimeOnly("maven.modrinth:jade:15.10.5+neoforge")
     
     compileOnly(project(':i18n-api'))
-    
-    annotationProcessor(project(':i18n-processor'))
+
+    if(!project.hasProperty('githubCI'))
+        annotationProcessor(project(':i18n-processor'))
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
