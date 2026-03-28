@@ -9,7 +9,6 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import com.mojang.logging.LogUtils;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -33,7 +32,7 @@ public final class KilnProgressModel
 {
     private @Range(from = 0, to = 1) double realProgress;
     private @Range(from = 0, to = 1) double visualProgress;
-    private VisualTrend trend;
+    private KilnEnumCollections.VisualTrend trend;
     private boolean isIgnited;
     
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "PROGRESS_MISMATCH");
@@ -42,18 +41,18 @@ public final class KilnProgressModel
     {
         this.realProgress = 0D;
         this.visualProgress = 0D;
-        this.trend = VisualTrend.TIP;
+        this.trend = KilnEnumCollections.VisualTrend.TIP;
         this.isIgnited = true;
     }
     
-    public void synchronize(double realProgress, double visualProgress, @Nullable VisualTrend trend, boolean isIgnited)
+    public void synchronize(double realProgress, double visualProgress, @Nullable KilnEnumCollections.VisualTrend trend, boolean isIgnited)
         { this.synchronize(realProgress, visualProgress, trend, isIgnited, false); }
     
-    public void synchronize(double realProgress, double visualProgress, @Nullable VisualTrend trend, boolean isIgnited, boolean isStateless)
+    public void synchronize(double realProgress, double visualProgress, @Nullable KilnEnumCollections.VisualTrend trend, boolean isIgnited, boolean isStateless)
     {
         this.realProgress = isStateless ? Math.max(0D, realProgress) : Math.clamp(realProgress, 0D, 1D);
         this.visualProgress = isStateless ? Math.max(0D, visualProgress) : Math.clamp(visualProgress, 0D, 1D);
-        this.trend = Objects.requireNonNullElse(trend, VisualTrend.TIP);
+        this.trend = Objects.requireNonNullElse(trend, KilnEnumCollections.VisualTrend.TIP);
         this.isIgnited = isIgnited;
     }
     
@@ -83,13 +82,13 @@ public final class KilnProgressModel
     
     public int getProgressTrendIndex() { return this.trend.ordinal(); }
     
-    public @NotNull VisualTrend getTrend() { return this.trend; }
+    public @NotNull KilnEnumCollections.VisualTrend getTrend() { return this.trend; }
     
     public int getIgnitionState() { return this.isIgnited ? TRUE : FALSE; }
     
     public void setVisualProgress(@Range(from = 0, to = 1) double visualProgress) { this.visualProgress = visualProgress; }
     
-    public void setProgressTrend(@NotNull VisualTrend trend) { this.trend = trend; }
+    public void setProgressTrend(@NotNull KilnEnumCollections.VisualTrend trend) { this.trend = trend; }
     
     public void setIgnitionState(@Range(from = 0, to = 1) int state) { this.isIgnited = (state == TRUE); }
 }

@@ -25,26 +25,21 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.Abs
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.HandleResult;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.OperationTask;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
-import kurvcygnus.crispsweetberry.utils.data.Tuple;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -67,9 +62,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData.*;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData.CarryBlockEntityDataHolder;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.*;
-import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
 
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryEngine
@@ -302,6 +296,9 @@ public enum CarryEngine
         carryCrate.set(CarryCrateRegistries.CARRY_TICK_COUNTER.get(), currentCounter + 1);
     }
     
+    //? TODO Known issues:
+    //? 1. Give crate always gives a new stack, instead of mut itself on single stack case.
+    //? 2. Effect Update is weird.
     @SuppressWarnings("unchecked")//! Safe Casting.
     public static @Nullable InteractionResult interact(@NotNull ICarryInteractContext context)
     {
@@ -316,7 +313,7 @@ public enum CarryEngine
             
             final Level level = context.getLevel();
             final BlockPos interactPos = context.getInteractPos();
-            final var optionalPlayer = context.getPlayer();
+            final Optional<Player> optionalPlayer = context.getPlayer();
             final ItemStack carryCrate = context.getCarryCrate();
             final Optional<CarryData> optionalData = context.getCarryData();
             
@@ -358,7 +355,11 @@ public enum CarryEngine
                     else
                     {
                         targetBlockEntity = context.getLevel().getBlockEntity(interactPos);
-                        yield targetBlockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
+                        final CarryType result = targetBlockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
+                        
+                        //! As you can see, once the CarryType is BLOCK_ENTITY, "targetBlockEntity" won't be null.
+                        assert targetBlockEntity != null;
+                        yield validateBlocklikeAction(result, targetBlockEntity, targetState);
                     }
                 }
                 case CarryEntityInteractContext entity ->
@@ -378,26 +379,6 @@ public enum CarryEngine
             handle.changeMarker("ACTION_SELECT");
             LOGGER.debug("Picking {} as the current action.", action.name());
             
-            final @Nullable Object factoryKey = switch(action)
-            {
-                case BLOCK_ENTITY ->
-                {
-                    //! Obviously, only when targetBlockEntity is not null, the type will be BLOCK_ENTITY.
-                    assert targetBlockEntity != null;
-                    yield targetBlockEntity.getType();
-                }
-                case BLOCK -> targetState.getBlock();
-                case ENTITY -> null;
-            };
-            
-            //? FIX: Override stuff.
-            if(!action.equals(CarryType.ENTITY) && optionalData.isEmpty() && CarryRegistryManager.INST.searchFactory(action, factoryKey).isEmpty())
-            {
-                handle.changeMarker("INVALID_ATTEMPT");
-                LOGGER.debug("{} \"{}\" is not supported by carry crate. Skipped.", action.name(), factoryKey.toString());
-                return null;
-            }
-            
             if(level.isClientSide)
             {
                 handle.changeMarker("CLIENT_HANDLE");
@@ -407,6 +388,7 @@ public enum CarryEngine
             
             final ServerLevel serverLevel = (ServerLevel) level;
             final ServerPlayer serverPlayer = (ServerPlayer) optionalPlayer.get();
+            final ItemStack newCrate = copyCrate(carryCrate);
             
             handle.changeMarker("CARRY_ID_QUERY");
             LOGGER.debug("Trying to get the CarryID of this carry crate...");
@@ -433,8 +415,8 @@ public enum CarryEngine
             final var componentPair = result.getComponentState();
             final var targetPair = result.getTargetState();
             
-            final List<Tuple<HandleResult.OperationType, TriState, Consumer<TriState>>> operations = List.of(
-                new Tuple<>(
+            final List<OperationTask> operations = List.of(
+                new OperationTask(
                     listenerPair.left(),
                     listenerPair.right(),
                     state ->
@@ -445,34 +427,52 @@ public enum CarryEngine
                         markDirty(serverLevel);
                     }
                 ),
-                new Tuple<>(
+                new OperationTask(
                     componentPair.left(),
                     componentPair.right(),
                     state ->
                     {
-                        if(state.isDefault())
+                        if(!state.isTrue())
                             return;
                         
-                        //? TODO
+                        result.data().ifPresent(//* This is referenced by CarryOperationContext ↓ It is OK to use.
+                            data -> giveCrate(serverLevel, serverPlayer, data, state, newCrate)
+                        );
                     }
                 ),
-                new Tuple<>(targetPair.left(), targetPair.right(), state -> {})
+                new OperationTask(
+                    targetPair.left(),
+                    targetPair.right(),
+                    state ->
+                    {
+                        if(!state.isTrue())
+                            return;
+                        
+                        carryCrate.shrink(1);
+                    }
+                )
             );
             
             handle.changeMarker("OPERATION_CONFIRM");
-            for(final Tuple<HandleResult.OperationType, TriState, Consumer<TriState>> operation: operations)
+            for(final OperationTask operation: operations)
             {
-                LOGGER.debug("Operation parsed: Type: {}, State: {}. Start executing.", operation.left().name(), operation.middle().name());
+                LOGGER.debug("Operation parsed: Type: {}, State: {}. Start executing.", operation.type().name(), operation.state().name());
                 CarryOperationExecutor.execute(
-                    operation.left(),
+                    operation.type(),
                     action,
-                    operation.middle(),
+                    operation.state(),
                     new CarryOperationExecutor.CarryOperationContext(
                         result.data(),
                         result.carryID(),
                         result.blockEntityType(),
                         Optional.ofNullable(targetEntity),
-                        carryCrate,
+                        (operationType, triState) ->
+                        {
+                            if(!operationType.equals(AbstractCarryInteractHandler.OperationType.COMPONENT))
+                                return carryCrate;
+                            
+                            return triState.isTrue() ? newCrate : carryCrate;
+                        },
                         (HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_MAPS.get(action),
                         serverLevel,
                         interactPos,
@@ -483,12 +483,12 @@ public enum CarryEngine
                             assert useOnContext != null;
                             return new CarryBlockPlaceContext(useOnContext, blockState);
                         },
-                        operation.right()
+                        operation.callback()
                     ),
                     //! Here is safe, no value compete.
                     //! Among all operations, only TARGET uses this,
                     //! thus, changing the executions' signature is worse than passing a atomic ref.
-                    operation.left().equals(HandleResult.OperationType.TARGET) ? interactionResultRef : null
+                    operation.type().equals(AbstractCarryInteractHandler.OperationType.TARGET) ? interactionResultRef : null
                 );
             }
         }
@@ -496,413 +496,34 @@ public enum CarryEngine
         return interactionResultRef.get();
     }
     
-    /**
-     * @deprecated <span style="color: red">Too shit, and bloat.</span>
-     */
-    @SuppressWarnings("unchecked")//! See line 410.
-    @Deprecated(forRemoval = true)
-    public static @Nullable InteractionResult interactOnBlock(@NotNull UseOnContext context)
+    private static @Nullable CarryType validateBlocklikeAction(@NotNull CarryType carryType, @NotNull BlockEntity blockEntity, @NotNull BlockState blockState)
     {
-        //region Refactored
-        final CarryType action;
-        
-        try(final MarkLogger.MarkerHandle handle = LOGGER.pushMarker("BLOCK_INTERACT"))
+        if(CarryRegistryManager.INST.searchFactory(carryType, carryType.equals(CarryType.BLOCK_ENTITY) ? blockEntity.getType() : blockState.getBlock()).isEmpty())
         {
-            final @Nullable Player player = context.getPlayer();
-            final BlockPos pos = context.getClickedPos();
-            final Level level = context.getLevel();
-            final BlockState state = level.getBlockState(pos);
+            if(carryType.equals(CarryType.BLOCK_ENTITY))
+                return validateBlocklikeAction(CarryType.BLOCK, blockEntity, blockState);
             
-            if(player == null || state.is(Blocks.VOID_AIR))
-            {
-                handle.changeMarker("UNEXPECTED_INTERACT");
-                LOGGER.debug(
-                    "Interaction terminated as \"PASS\". Details: {}",
-                    player == null ?
-                        "This interaction isn't driven by player." :
-                        "Block happens to be null."
-                );
-                
-                return InteractionResult.PASS;
-            }
-            
-            final ItemStack carryCrate = context.getItemInHand();
-            final @Nullable CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-            final @Nullable BlockEntity blockEntity;
-            
-            if(data != null)
-                switch(data.unionData())
-                {
-                    case CarryBlockEntityDataHolder blockEntityDataHolder ->
-                    {
-                        blockEntity = blockEntityDataHolder.getType().create(pos, blockEntityDataHolder.getState());
-                        action = CarryType.BLOCK_ENTITY;
-                    }
-                    case CarryBlockDataHolder ignored ->
-                    {
-                        blockEntity = null;
-                        action = CarryType.BLOCK;
-                    }
-                    case CarryEntityDataHolder ignored ->
-                    {
-                        blockEntity = null;
-                        action = CarryType.ENTITY;
-                    }
-                }
-            else
-            {
-                blockEntity = context.getLevel().getBlockEntity(pos);
-                action = blockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
-            }
-            
-            handle.changeMarker("ACTION_SELECT");
-            LOGGER.debug("Picking {} as the current action.", action.name());
-            
-            if(
-                action == CarryType.BLOCK_ENTITY &&
-                //!                                                     ↓ Impossible to be null, granted by enum "CarryType".
-                CarryRegistryManager.INST.getBlockEntityAdapter(Objects.requireNonNull(blockEntity).getType()).isEmpty() &&
-                !carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get())
-            )
-            {
-                LOGGER.debug("BlockEntity \"{}\" is not supported by carry crate. Skipped.", blockEntity.toString());
-                return null;
-            }
-            else if(
-                action == CarryType.BLOCK &&
-                CarryRegistryManager.INST.getBlockAdapter(state.getBlock()).isEmpty() &&
-                !carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get())
-            )
-            {
-                LOGGER.debug("Block \"{}\" is not supported by carry crate. Skipped.", state.getBlock().getDescriptionId());
-                return null;
-            }
-            
-            if(level.isClientSide)
-            {
-                LOGGER.debug("Current is client side, returning result as \"SUCCESS\".");
-                return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
-            }
-            
-            final ServerLevel serverLevel = (ServerLevel) level;
-            
-            handle.changeMarker("CARRY_ID_QUERY");
-            LOGGER.debug("Trying to get the CarryID of this carry crate...");
-            
-            final @Nullable CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
-            LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
-            
-            final AbstractCarryInteractHandler handler = action.createHandler(
-                serverLevel,
-                (ServerPlayer) context.getPlayer(),
-                carryCrate,
-                pos,
-                state,
-                null,
-                blockEntity,
-                context,
-                carryID
-            );
-            
-            final AbstractCarryInteractHandler.HandleResult result = handler.handle();
-            
-            LOGGER.debug("Received result: %s".formatted(result));
-            
-            final Optional<CarryData> optionalData = result.data();
-            final Optional<CarryID> optionalCarryID = result.carryID();
-            InteractionResult finalResult = result.result();
-            final ItemStack newCrate = copyCrate(carryCrate);
-            
-            handle.changeMarker("ACTION_CONFIRM");
-            LOGGER.debug(
-                "Confirmed sequence actions: Listener: {}, Target: {}, Component: {}",
-                result.getListenerState().left().name(),
-                result.getTargetState().left().name(),
-                result.getComponentState().left().name()
-            );
-            
-            if(result.shouldTakeTarget() && !Objects.equals(action, CarryType.ENTITY))
-            {
-                serverLevel.setBlockAndUpdate(pos, Blocks.VOID_AIR.defaultBlockState());
-                serverLevel.playSound(null, pos, SoundEvents.SCAFFOLDING_STEP, SoundSource.BLOCKS, 1.0F, 1.0F);
-                carryCrate.shrink(1);
-            }
-            else if(result.shouldReleaseTarget() && optionalData.isPresent())
-            {
-                if(!action.equals(CarryType.ENTITY))
-                {
-                    final CarryBlockPlaceContext placeContext = getCarryBlockPlaceContext(context, action, optionalData.get());
-                    finalResult = placeContext.performPlace();
-                    
-                    result.blockEntityType().ifPresent(
-                        blockEntityType ->
-                        {
-                            final CarryBlockEntityDataHolder blockEntityDataHolder = optionalData.get().unionData();
-                            
-                            final BlockEntity blockEntityToPlace = Objects.requireNonNull(
-                                blockEntityType.create(placeContext.getClickedPos(), blockEntityDataHolder.getState()),
-                                """
-                                    Fatal:
-                                    Failed to create blockEntity "%s"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
-                                    method is called at improper time.
-                                    
-                                    %s
-                                    """.
-                                    formatted(
-                                        blockEntityType.toString(),
-                                        MiscConstants.FEEDBACK_MESSAGE
-                                    )
-                            );
-                            
-                            blockEntityToPlace.loadCustomOnly(blockEntityDataHolder.getTagData(), serverLevel.registryAccess());
-                        }
-                    );
-                }
-                else
-                {
-                    final CarryEntityDataHolder entityDataHolder = optionalData.get().unionData();
-                    final Optional<Entity> optionalEntity = EntityType.create(entityDataHolder.getTagData(), serverLevel);
-                    
-                    if(optionalEntity.isPresent())
-                    {
-                        final Entity entity = optionalEntity.get();
-                        entity.moveTo(pos.getX(), pos.getY(), pos.getZ());
-                        
-                        serverLevel.addFreshEntity(entity);
-                        finalResult = InteractionResult.SUCCESS;
-                    }
-                }
-            }
-            
-            optionalCarryID.ifPresent(
-                id ->
-                {
-                    if(result.shouldAddListener() && optionalData.isPresent() && action != CarryType.ENTITY)
-                    {
-                        final BiConsumer<HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>, CarryData> insertAction =
-                            (map, carryData) ->
-                            {
-                                final var factory = CarryRegistryManager.INST.
-                                    searchFactory(action, carryData.unionData().getCreationData());
-                                
-                                if(factory.isEmpty())
-                                {
-                                    LOGGER.error(
-                                        "Cannot find \"{}\"'s adapter factory!",
-                                        carryData.unionData().getCreationData().toString()
-                                    );
-                                    
-                                    return;
-                                }
-                                
-                                map.put(id, factory.get());
-                            };
-                        
-                        insertAction.accept(//! ↓ This is safe.
-                            (HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_MAPS.get(action),
-                            optionalData.get()
-                        );
-                    }
-                    else if(result.shouldRemoveListener())
-                    {
-                        markDirty(serverLevel);
-                        LISTENER_MAPS.get(action).remove(id);
-                    }
-                }
-            );
-            
-            tryInsertData(carryCrate, result, optionalData, newCrate, optionalCarryID);
-            
-            optionalData.ifPresent(carryData -> tryGiveCrate(result, player, carryData, newCrate, serverLevel));
-            
-            return finalResult;
+            return null;
         }
+        
+        return carryType;
     }
     
-    /**
-     * @deprecated <span style="color: red">Too shit, and bloat.</span>
-     */
-    @Deprecated(forRemoval = true)
-    public static @NotNull InteractionResult interactOnEntity(
-        @NotNull ItemStack carryCrate,
-        @NotNull Player player,
-        @NotNull LivingEntity interactionTarget
-    )
+    private static void giveCrate(@NotNull ServerLevel level, @NotNull ServerPlayer player, @NotNull CarryData data, @NotNull TriState state, @NotNull ItemStack newCrate)
     {
-        if(carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()) || CarryRegistryManager.INST.getEntityAdapter(interactionTarget.getType()).isEmpty())
-        {
-            LOGGER.debug("Entity \"{}\" is not supported by carry crate. Skipped.", interactionTarget.toString());
-            return InteractionResult.PASS;
-        }
-        
-        final Level level = player.level();
-        
-        if(level.isClientSide())
-        {
-            LOGGER.debug("Current is client side, returning result as \"SUCCESS\".");
-            return InteractionResult.sidedSuccess(level.isClientSide);
-        }
-        
-        final @Nullable CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
-        final ServerLevel serverLevel = (ServerLevel) level;
-        
-        final AbstractCarryInteractHandler handler = CarryType.ENTITY.createHandler(
-            serverLevel,
-            (ServerPlayer) player,
-            carryCrate,
-            null,
-            null,
-            interactionTarget,
-            null,
-            null,
-            carryID
-        );
-        
-        final AbstractCarryInteractHandler.HandleResult result = handler.handle();
-        final Optional<CarryData> optionalData = result.data();
-        final Optional<CarryID> optionalCarryID = result.carryID();
-        InteractionResult finalResult = result.result();
-        final ItemStack newCrate = copyCrate(carryCrate);
-        
-        if(result.shouldTakeTarget())
-            interactionTarget.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
-        else if(result.shouldReleaseTarget() && optionalData.isPresent())
-        {
-            final CarryEntityDataHolder entityDataHolder = optionalData.get().unionData();
-            final Optional<Entity> optionalEntity = EntityType.create(entityDataHolder.getTagData(), level);
-            
-            if(optionalEntity.isPresent())
-            {
-                final Entity entity = optionalEntity.get();
-                final BlockPos pos = interactionTarget.getOnPos();
-                
-                entity.moveTo(pos.getX(), pos.getY(), pos.getZ());
-                
-                level.addFreshEntity(entity);
-                finalResult = InteractionResult.SUCCESS;
-            }
-        }
-        
-        optionalCarryID.ifPresent(
-            id ->
-            {
-                if(result.shouldAddListener() && optionalData.isPresent())
-                {
-                    final CarryEntityDataHolder entityDataHolder = optionalData.get().unionData();
-                    final var optionalFactory =
-                        CarryRegistryManager.INST.getEntityAdapter(entityDataHolder.getType());
-                    
-                    optionalFactory.ifPresent(
-                        factory ->
-                        {
-                            ENTITY_CARRY_LISTENERS.put(id, factory);
-                            markDirty((ServerLevel) level);
-                        }
-                    );
-                    
-                    LOGGER.when(optionalFactory.isEmpty()).error(
-                        "Cannot find entity \"{}\"'s factory!",
-                        interactionTarget.toString()
-                    );
-                }
-                else if(result.shouldRemoveListener())
-                {
-                    markDirty((ServerLevel) level);
-                    ENTITY_CARRY_LISTENERS.remove(id);
-                }
-            }
-        );
-        
-        tryInsertData(carryCrate, result, optionalData, newCrate, optionalCarryID);
-        
-        optionalData.ifPresent(data -> tryGiveCrate(result, player, data, newCrate, serverLevel));
-        
-        return finalResult;
-    }
-    
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")//! Optional makes logic clearer here.
-    @Deprecated(forRemoval = true)
-    private static void tryInsertData(
-        @NotNull ItemStack carryCrateStack,
-        @NotNull HandleResult result,
-        Optional<CarryData> optionalData,
-        @NotNull ItemStack newCrate,
-        Optional<CarryID> optionalCarryID
-    )
-    {
-        if(!result.shouldTakeTarget() && !result.shouldReleaseTarget())
-            return;
-        
-        if(result.shouldInsertComponent())
-        {
-            optionalData.ifPresentOrElse(
-                carryData -> insertData(newCrate, CarryCrateRegistries.CARRY_CRATE_DATA.get(), carryData),
-                () -> LOGGER.warn("Can't insert CarryData into the item, because it is null!")
-            );
-            
-            optionalCarryID.ifPresentOrElse(
-                id -> insertData(newCrate, CarryCrateRegistries.CARRY_ID.get(), id),
-                () -> LOGGER.warn("Can't insert CarryID into the item, because it is null!")
-            );
-        }
-        else if(result.shouldRemoveComponent())
-        {
-            carryCrateStack.remove(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-            carryCrateStack.remove(CarryCrateRegistries.CARRY_ID.get());
-            carryCrateStack.remove(CarryCrateRegistries.CARRY_TICK_COUNTER.get());
-        }
-    }
-    
-    private static void tryGiveCrate(
-        @NotNull HandleResult result,
-        @NotNull Player player,
-        @NotNull CarryData data,
-        @NotNull ItemStack newCrate,
-        @NotNull ServerLevel serverLevel
-    )
-    {
-        if((!result.shouldReleaseTarget() && !result.shouldTakeTarget()) || (!result.shouldInsertComponent() && !result.shouldRemoveComponent()))
-            return;
-        
         OverweightEffect.updateFactorAndEffect(
             player,
             data,
-            result.shouldTakeTarget(),
+            state.isTrue(),
             () ->
             {
                 if(player.getInventory().add(newCrate))
                     return;
                 
                 final BlockPos pos = player.getOnPos();
-                Containers.dropItemStack(serverLevel, pos.getX(), pos.getY(), pos.getZ(), newCrate);
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), newCrate);
             }
         );
-    }
-    
-    @Deprecated(forRemoval = true)
-    private static @NotNull CarryBlockPlaceContext getCarryBlockPlaceContext(@NotNull UseOnContext context, @NotNull CarryType action, @NotNull CarryData result)
-    {
-        final BlockState stateToPlace;
-        
-        switch(action)
-        {
-            case BLOCK_ENTITY ->
-            {
-                final CarryBlockEntityDataHolder blockEntityDataHolder = result.unionData();
-                stateToPlace = blockEntityDataHolder.getState();
-            }
-            case BLOCK ->
-            {
-                final CarryBlockDataHolder blockDataHolder = result.unionData();
-                stateToPlace = blockDataHolder.getState();
-            }
-            default -> throw new IllegalStateException(
-                "Assertion error: Block interaction ended up getting unexpected action. %s".
-                    formatted(MiscConstants.FEEDBACK_MESSAGE)
-            );
-        }
-        
-        return new CarryBlockPlaceContext(context, stateToPlace);
     }
     
     private static void markDirty(@NotNull ServerLevel level) { CarryListenerSaveData.get(level.getServer().overworld()).setDirty(); }
@@ -915,32 +536,5 @@ public enum CarryEngine
             newCrate.set(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get(), itemStack.get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()));
         
         return newCrate;
-    }
-    
-    @Deprecated(forRemoval = true)
-    private static <T> void insertData(@NotNull ItemStack stack, @NotNull DataComponentType<T> type, @NotNull T data)
-    {
-        throwIf(
-            stack.isEmpty() || !stack.is(CarryCrateRegistries.CARRY_CRATE_ITEM.value()),
-            "Param \"stack\" must be \"%s:carry_crate\"!".formatted(CrispSweetberry.NAMESPACE),
-            IllegalArgumentException::new
-        );
-        
-        throwIf(
-            stack.getCount() < 1,
-            "Param \"stack\"'s count should be an positive integer!",
-            IllegalArgumentException::new
-        );
-        
-        if(stack.getCount() == 1)
-        {
-            stack.set(type, data);
-            return;
-        }
-        
-        stack.shrink(1);
-        final ItemStack newStack = stack.copy();
-        newStack.setCount(1);
-        newStack.set(type, data);
     }
 }

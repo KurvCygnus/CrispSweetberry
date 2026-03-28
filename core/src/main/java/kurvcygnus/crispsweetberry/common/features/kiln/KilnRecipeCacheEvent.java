@@ -58,8 +58,8 @@ public final class KilnRecipeCacheEvent
      * mods and datapacks. This ensures our cache doesn't miss entries that are registered
      * late in the loading cycle.
      */
-    @SubscribeEvent
-    static void getKilnRecipes(final @NotNull ServerStartedEvent event) { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
+    @SubscribeEvent static void getKilnRecipes(final @NotNull ServerStartedEvent event)
+        { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
     
     /**
      * Registers a reload listener to handle dynamic changes to recipes during gameplay.

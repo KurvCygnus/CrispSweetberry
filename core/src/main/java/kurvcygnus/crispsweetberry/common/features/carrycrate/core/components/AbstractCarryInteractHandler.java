@@ -94,7 +94,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         this.targetState       = targetState;
         this.targetEntity      = targetEntity;
         this.targetBlockEntity = targetBlockEntity;
-        this.contextGenerator = contextGenerator;
+        this.contextGenerator  = contextGenerator;
         this.optionalCarryID   = optionalCarryID;
         this.hasData           = this.carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get());
     }
@@ -340,34 +340,40 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             );
         }
         
-        @Deprecated public boolean shouldAddListener() { return (flags & 0x3) == 1; }
-        @Deprecated public boolean shouldRemoveListener() { return (flags & 0x3) == 2; }
-        @Deprecated public boolean shouldInsertComponent() { return (flags >> 0x2 & 0x3) == 1; }
-        @Deprecated public boolean shouldRemoveComponent() { return (flags >> 0x2 & 0x3) == 2; }
-        @Deprecated public boolean shouldTakeTarget() { return (flags >> 0x4 & 0x3) == 1; }
-        @Deprecated public boolean shouldReleaseTarget() { return (flags >> 0x4 & 0x3) == 2; }
-        
         public @NotNull Pair<OperationType, TriState> getListenerState()
-            { return new Pair<>(OperationType.LISTENER, getTriFlag((flags & 0x3) == 1, (flags & 0x3) == 2)); }
+            { return new Pair<>(OperationType.LISTENER, OperationType.LISTENER.getTriFlag(flags)); }
         
         public @NotNull Pair<OperationType, TriState> getComponentState()
-            { return new Pair<>(OperationType.COMPONENT, getTriFlag((flags >> 0x2 & 0x3) == 1, (flags >> 0x2 & 0x3) == 2)); }
+            { return new Pair<>(OperationType.COMPONENT, OperationType.COMPONENT.getTriFlag(flags)); }
         
         public @NotNull Pair<OperationType, TriState> getTargetState()
-            { return new Pair<>(OperationType.TARGET, getTriFlag((flags >> 0x4 & 0x3) == 1, (flags >> 0x4 & 0x3) == 2)); }
+            { return new Pair<>(OperationType.TARGET, OperationType.TARGET.getTriFlag(flags)); }
+    }
+    
+    public enum OperationType
+    {
+        LISTENER(0),
+        COMPONENT(2),
+        TARGET(4);
         
-        private @NotNull TriState getTriFlag(boolean trueCondition, boolean falseCondition)
-        {
-            return trueCondition ?
-                TriState.TRUE : falseCondition ?
-                TriState.FALSE : TriState.DEFAULT;
-        }
+        private static final int MASK = 0x3;
+        private static final int STATE_TRUE = 1;
+        private static final int STATE_FALSE = 2;
         
-        public enum OperationType
+        private final int shift;
+        
+        OperationType(int shift) { this.shift = shift; }
+        
+        public @NotNull TriState getTriFlag(int flag)
         {
-            LISTENER,
-            COMPONENT,
-            TARGET
+            final int state = (flag >> shift) & MASK;
+            
+            return switch(state)
+            {
+                case STATE_TRUE -> TriState.TRUE;
+                case STATE_FALSE -> TriState.FALSE;
+                default -> TriState.DEFAULT;
+            };
         }
     }
 }

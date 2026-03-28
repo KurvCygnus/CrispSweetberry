@@ -79,8 +79,7 @@ import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
  */
 public final class KilnBlock extends BaseEntityBlock
 {
-    //  region
-    //*: Constants & Fields
+    //region Constants & Fields
     //*:=== Constants
     private static final double SOUND_HORIZONTICAL_OFFSET = 0.5D;
     
@@ -89,11 +88,10 @@ public final class KilnBlock extends BaseEntityBlock
     //*:=== Property Fields
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    //public static final EnumProperty<DyeColor> COLOR = EnumProperty.apply("color", DyeColor.class);
+    //? public static final EnumProperty<DyeColor> COLOR = EnumProperty.apply("color", DyeColor.class);
     //endregion
     
-    //  region
-    //*: Constructors & Basic Definitions
+    //region Constructors & Basic Definitions
     public KilnBlock()
     {
         super(BlockBehaviour.Properties.of().
@@ -105,7 +103,7 @@ public final class KilnBlock extends BaseEntityBlock
         );
         
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, true));
-        //this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, null));
+        //? this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, null));
     }
     
     @Override protected void createBlockStateDefinition(@NotNull StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, LIT); }
@@ -119,8 +117,7 @@ public final class KilnBlock extends BaseEntityBlock
     @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(CrispFunctionalUtils.noArgCodec(KilnBlock::new)); }
     //endregion
     
-    //  region
-    //*: World Logic & Life Cycles
+    //region World Logic & Life Cycles
     @Override public void onPlace(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean isMoving)
     {
         if(oldState.is(state.getBlock()))
@@ -207,8 +204,7 @@ public final class KilnBlock extends BaseEntityBlock
     }
     //endregion
     
-    //  region
-    //*: Block Entity Linking
+    //region Block Entity Linking
     @Override public <T extends BlockEntity> @Nullable BlockEntityTicker<T>
     getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> serverBlockEntityType)
     {
@@ -222,8 +218,7 @@ public final class KilnBlock extends BaseEntityBlock
     public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) { return new KilnBlockEntity(pos, state); }
     //endregion
     
-    //  region
-    //*: Interaction Basics
+    //region Interact Basics
     @Override protected @NotNull InteractionResult useWithoutItem
     (@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult)
     {
@@ -275,8 +270,7 @@ public final class KilnBlock extends BaseEntityBlock
             }
     //endregion
     
-    //  region
-    //*: Visual Display & Helpers
+    //region Visual Display & Helpers
     //? TODO: Particle Pos Adjust
     @Override public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {

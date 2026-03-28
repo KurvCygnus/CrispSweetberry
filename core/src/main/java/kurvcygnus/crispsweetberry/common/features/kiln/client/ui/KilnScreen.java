@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants;
 import net.minecraft.client.Minecraft;
@@ -88,35 +88,22 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         
         final double progress = KilnContainerData.toStandardProgress(menu.data.get(VISUAL_PROGRESS_INDEX));
-        final VisualTrend trend = VisualTrend.values()[menu.data.get(PROGRESS_TREND_INDEX)];
+        final KilnEnumCollections.VisualTrend trend = KilnEnumCollections.VisualTrend.values()[menu.data.get(PROGRESS_TREND_INDEX)];
         final boolean isIgnited = KilnContainerData.toStandardIgnitionState(menu.data.get(IGNITION_STATE_INDEX));
         
         if(isIgnited)
             guiGraphics.blitSprite(LIT_CAMPFIRE_TEXTURE, this.leftPos + CAMPFIRE_X_POS, this.topPos + CAMPFIRE_Y_POS, CAMPFIRE_WIDTH, CAMPFIRE_HEIGHT);
         
-        //*                  ↓ We should always tip players about recipes that are banned. 
-        if(progress > 0D || trend == VisualTrend.TIP)//! Strictly, the layered arrow texture doesn't belong to background stuff.
+        //*                  ↓ We should always tip players about recipes that are banned.
+        if(progress > 0D || trend == KilnEnumCollections.VisualTrend.TIP)//! Strictly, the layered arrow texture doesn't belong to background stuff.
         {
-            final ResourceLocation layeredArrowTexture;
-            Tooltip widgetTipText = null;
-            
-            switch(trend)
+            final ResourceLocation layeredArrowTexture = trend.getBoundArrowSprite();
+            final Tooltip widgetTipText = switch(trend)
             {
-                case BALANCE, BURST ->
-                {
-                    layeredArrowTexture = trend == VisualTrend.BALANCE ? BALANCE_DECREASE_ARROW_TEXTURE : BALANCE_INCREASE_ARROW_TEXTURE;
-                    widgetTipText = KilnInfoWidget.COOLDOWN_TIP;
-                }
-                case TIP ->
-                {
-                    layeredArrowTexture = TIP_ARROW_TEXTURE;
-                    widgetTipText = KilnInfoWidget.BLAST_TIP;
-                }
-                default -> layeredArrowTexture = PROGRESS_ARROW_TEXTURE;
-            }
-            
-            if(widgetTipText == null)
-                widgetTipText = KilnInfoWidget.EMPTY_TIP;
+                case BALANCE, BURST -> KilnInfoWidget.COOLDOWN_TIP;
+                case TIP -> KilnInfoWidget.BLAST_TIP;
+                default -> KilnInfoWidget.EMPTY_TIP;
+            };
             
             if(this.widget.getTooltip() != widgetTipText)
                 this.widget.setTooltip(widgetTipText);
@@ -151,10 +138,14 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     {
         gui.blitSprite(
             sprite,
-            ARROW_WIDTH, ARROW_HEIGHT,
-            NO_OFFSET, NO_OFFSET,
-            this.leftPos + ARROW_X_POS, this.topPos + ARROW_Y_POS,
-            progressWidth, ARROW_HEIGHT
+            ARROW_WIDTH,
+            ARROW_HEIGHT,
+            NO_OFFSET,
+            NO_OFFSET,
+            this.leftPos + ARROW_X_POS,
+            this.topPos + ARROW_Y_POS,
+            progressWidth,
+            ARROW_HEIGHT
         );
     }
     

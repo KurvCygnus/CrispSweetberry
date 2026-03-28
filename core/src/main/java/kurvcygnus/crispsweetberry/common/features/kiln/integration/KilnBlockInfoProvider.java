@@ -9,7 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.integration;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
 import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -46,7 +47,7 @@ public enum KilnBlockInfoProvider implements IBlockComponentProvider, IServerDat
         final IElementHelper elementHelper = IElementHelper.get();
         
         final double visualProgress = syncTag.getDouble(VISUAL_PROGRESS);
-        final VisualTrend visualArrow = VisualTrend.values()[syncTag.getByte(VISUAL_ARROW)];
+        final KilnEnumCollections.VisualTrend visualArrow = KilnEnumCollections.VisualTrend.values()[syncTag.getByte(VISUAL_ARROW)];
         final ListTag content = syncTag.getList("content", Tag.TAG_COMPOUND);
         
         for(int index = 0; index < content.size(); index++)
@@ -60,14 +61,14 @@ public enum KilnBlockInfoProvider implements IBlockComponentProvider, IServerDat
         }
     }
     
-    @Override
-    public void appendServerData(@NotNull CompoundTag compoundTag, @NotNull BlockAccessor blockAccessor)
+    @Override public void appendServerData(@NotNull CompoundTag compoundTag, @NotNull BlockAccessor blockAccessor)
     {
         final KilnBlockEntity kilnBlockEntity = (KilnBlockEntity) blockAccessor.getBlockEntity();
         
         final NonNullList<ItemStack> content = kilnBlockEntity.getContainerItems();
-        final double visualProgress = kilnBlockEntity.model.getVisualProgress();
-        final VisualTrend visualArrow = kilnBlockEntity.model.getTrend();
+        final KilnProgressModel model = kilnBlockEntity.getModel();
+        final double visualProgress = model.getVisualProgress();
+        final KilnEnumCollections.VisualTrend visualArrow = model.getTrend();
         
         compoundTag.putDouble(VISUAL_PROGRESS, visualProgress);
         compoundTag.putByte(VISUAL_ARROW, (byte) visualArrow.ordinal());

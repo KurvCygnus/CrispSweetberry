@@ -13,15 +13,11 @@ import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
 import net.minecraft.network.chat.Component;
 
 /**
- * This class mainly maintains slots contants of Kiln.
- * @author Kurv Cygnus
+ * This class mainly maintains slots constants of Kiln.
  * @since 1.0 Release
  */
 public final class KilnConstants
 {
-    public static final int FURNACE_SMELTING_TIME = 200;
-    public static final int ADVANCED_HEATING_CONTAINER_TIME = 100;
-    
     private KilnConstants() { throw new IllegalAccessError("Class \"KilnConstants\" is not meant to be instantized!"); }
     
     @AutoI18n({
@@ -59,6 +55,9 @@ public final class KilnConstants
     
     private static final int KILN_HOTBAR_START_INDEX = 33;
     private static final int KILN_HOTBAR_END_INDEX = 41;
+    
+    public static final int FURNACE_SMELTING_TIME = 200;
+    public static final int ADVANCED_HEATING_CONTAINER_TIME = 100;
     
     public static final CrispRanger KILN_INPUT_SLOTS_RANGE = CrispRanger.closed(KILN_INPUT_START_INDEX, KILN_INPUT_END_INDEX);
     public static final CrispRanger KILN_OUTPUT_SLOTS_RANGE = CrispRanger.closed(KILN_OUTPUT_START_INDEX, KILN_OUTPUT_END_INDEX);

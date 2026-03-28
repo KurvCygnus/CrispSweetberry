@@ -8,10 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.integration;
 
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.CalculationResult;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.LogicalResult;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
+import static kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections.*;
 import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.NAN;
 
 public final class KilnCarriableExtensions
@@ -49,7 +47,7 @@ public final class KilnCarriableExtensions
         double realProgress,
         double visualProgress,
         double realRate,
-        @NotNull KilnBlockEntity.ProcessionState state
+        @NotNull ProcessionState state
     ) {}
     
     public record AtomicCalculationResult(int theoreticalProcessRound, @NotNull CalculationResult calculationResult) 

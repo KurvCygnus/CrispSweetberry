@@ -6,19 +6,14 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.data;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler;
+import net.neoforged.neoforge.common.util.TriState;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-import java.util.Objects;
+import java.util.function.Consumer;
 
-public record Tuple<L, M, R>(@NotNull L left, @NotNull M middle, @NotNull R right) implements Serializable
+public record OperationTask(@NotNull AbstractCarryInteractHandler.OperationType type, @NotNull TriState state, @NotNull Consumer<TriState> callback)
 {
-    public Tuple
-    {
-        Objects.requireNonNull(left, "Param \"left\" must not be null!");
-        Objects.requireNonNull(middle, "Param \"middle\" must not be null!");
-        Objects.requireNonNull(right, "Param \"right\" must not be null!");
-    }
 }

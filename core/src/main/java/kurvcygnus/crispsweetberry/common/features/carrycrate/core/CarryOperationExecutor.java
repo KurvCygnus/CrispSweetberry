@@ -9,7 +9,6 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 
 import com.mojang.logging.LogUtils;
-import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
@@ -21,7 +20,6 @@ import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -47,8 +45,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.HandleResult.OperationType;
-import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.OperationType;
 
 public enum CarryOperationExecutor
 {
@@ -60,7 +57,7 @@ public enum CarryOperationExecutor
     
     //region Exact Actions
     //*:=== Listener
-    private static void listenerAddAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    private void listenerAddAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
     {
         if(context.optionalData.isEmpty() || context.optionalID.isEmpty())
             return;
@@ -75,7 +72,7 @@ public enum CarryOperationExecutor
         );
     }
     
-    private static void listenerRemoveAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    private void listenerRemoveAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
     {
         if(context.optionalID.isEmpty())
             return;
@@ -84,42 +81,42 @@ public enum CarryOperationExecutor
     }
     
     //*:=== Component
-    private static void componentInsertAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    private void componentInsertAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
     {
         final BiFunction<ItemStack, String, String> printTemplate =
             (itemStack, name) -> "Can't invoke %s's data insertion on itemStack \"%s\", because it is null!".formatted(name, itemStack.toString());
         
+        final ItemStack carryCrate = context.carryCrate.apply(OperationType.COMPONENT, TriState.TRUE);
+        
         context.optionalData.ifPresentOrElse(
-            data -> insertData(context.carryCrate, CarryCrateRegistries.CARRY_CRATE_DATA.get(), data),
-            () -> LOGGER.warn(printTemplate.apply(context.carryCrate, "carryData"))
+            data -> carryCrate.set(CarryCrateRegistries.CARRY_CRATE_DATA.get(), data),
+            () -> LOGGER.warn(printTemplate.apply(carryCrate, "carryData"))
         );
         
         context.optionalID.ifPresentOrElse(
-            id -> insertData(context.carryCrate, CarryCrateRegistries.CARRY_ID.get(), id),
-            () -> LOGGER.warn(printTemplate.apply(context.carryCrate, "carryID"))
+            id -> carryCrate.set(CarryCrateRegistries.CARRY_ID.get(), id),
+            () -> LOGGER.warn(printTemplate.apply(carryCrate, "carryID"))
         );
     }
     
-    private static void componentRemoveAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    private void componentRemoveAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
     {
-        final ItemStack carryCrate = context.carryCrate;
+        final ItemStack carryCrate = context.carryCrate.apply(OperationType.COMPONENT, TriState.FALSE);
         carryCrate.remove(CarryCrateRegistries.CARRY_CRATE_DATA.get());
         carryCrate.remove(CarryCrateRegistries.CARRY_ID.get());
         carryCrate.remove(CarryCrateRegistries.CARRY_TICK_COUNTER.get());
     }
     
     //*:=== Target
-    private static void blocklikeTargetCaptureAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private void blocklikeTargetCaptureAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
     {
         final ServerLevel level = context.level;
         final BlockPos pos = context.pos;
         level.setBlockAndUpdate(pos, Blocks.VOID_AIR.defaultBlockState());
         level.playSound(null, pos, SoundEvents.SCAFFOLDING_STEP, SoundSource.BLOCKS, 1.0F, 1.0F);
-        
-        context.carryCrate.shrink(1);
     }
     
-    private static void blockTargetReleasePreAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private void blockTargetReleasePreAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
     {
         context.optionalData.ifPresentOrElse(
             data ->
@@ -131,7 +128,7 @@ public enum CarryOperationExecutor
         );
     }
     
-    private static void blockEntityTargetReleasePreAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private void blockEntityTargetReleasePreAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
     {
         context.optionalData.ifPresentOrElse(
             data ->
@@ -143,7 +140,7 @@ public enum CarryOperationExecutor
         );
     }
     
-    private static void blocklikeTargetReleaseAction(
+    private void blocklikeTargetReleaseAction(
         @NotNull CarryOperationContext context,
         @NotNull BlockState stateToPlace,
         @NotNull AtomicReference<InteractionResult> resultReference
@@ -161,7 +158,7 @@ public enum CarryOperationExecutor
         );
     }
     
-    private static void blockEntityTargetReleaseExtra(@NotNull CarryOperationContext context, @NotNull BlockState stateToPlace)
+    private void blockEntityTargetReleaseExtra(@NotNull CarryOperationContext context, @NotNull BlockState stateToPlace)
     {
         assert context.optionalData.isPresent();
         final CarryData.CarryBlockEntityDataHolder holder = context.optionalData.get().unionData();
@@ -193,7 +190,7 @@ public enum CarryOperationExecutor
         );
     }
     
-    private static void entityTargetCaptureAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private void entityTargetCaptureAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
     {
         context.optionalEntity.ifPresentOrElse(
             entity -> entity.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER),
@@ -201,7 +198,7 @@ public enum CarryOperationExecutor
         );
     }
     
-    private static void entityTargetReleaseAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private void entityTargetReleaseAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
     {
         context.optionalData.ifPresentOrElse(
             data ->
@@ -229,9 +226,9 @@ public enum CarryOperationExecutor
         TriState.class,
         map ->
         {
-            map.put(TriState.TRUE, CarryOperationExecutor::listenerAddAction);
+            map.put(TriState.TRUE, CarryOperationExecutor.INST::listenerAddAction);
             map.put(TriState.DEFAULT, DO_NOTHING);
-            map.put(TriState.FALSE, CarryOperationExecutor::listenerRemoveAction);
+            map.put(TriState.FALSE, CarryOperationExecutor.INST::listenerRemoveAction);
         }
     );
     
@@ -239,9 +236,9 @@ public enum CarryOperationExecutor
         TriState.class,
         map ->
         {
-            map.put(TriState.TRUE, CarryOperationExecutor::componentInsertAction);
+            map.put(TriState.TRUE, CarryOperationExecutor.INST::componentInsertAction);
             map.put(TriState.DEFAULT, DO_NOTHING);
-            map.put(TriState.FALSE, CarryOperationExecutor::componentRemoveAction);
+            map.put(TriState.FALSE, CarryOperationExecutor.INST::componentRemoveAction);
         }
     );
     
@@ -249,9 +246,9 @@ public enum CarryOperationExecutor
         TriState.class,
         map ->
         {
-            map.put(TriState.TRUE, CarryOperationExecutor::blocklikeTargetCaptureAction);
+            map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
             map.put(TriState.DEFAULT, DO_NOTHING);
-            map.put(TriState.FALSE, CarryOperationExecutor::blockTargetReleasePreAction);
+            map.put(TriState.FALSE, CarryOperationExecutor.INST::blockTargetReleasePreAction);
         }
     );
     
@@ -259,9 +256,9 @@ public enum CarryOperationExecutor
         TriState.class,
         map ->
         {
-            map.put(TriState.TRUE, CarryOperationExecutor::blocklikeTargetCaptureAction);
+            map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
             map.put(TriState.DEFAULT, DO_NOTHING);
-            map.put(TriState.FALSE, CarryOperationExecutor::blockEntityTargetReleasePreAction);
+            map.put(TriState.FALSE, CarryOperationExecutor.INST::blockEntityTargetReleasePreAction);
         }
     );
     
@@ -269,9 +266,9 @@ public enum CarryOperationExecutor
         TriState.class,
         map ->
         {
-            map.put(TriState.TRUE, CarryOperationExecutor::entityTargetCaptureAction);
+            map.put(TriState.TRUE, CarryOperationExecutor.INST::entityTargetCaptureAction);
             map.put(TriState.DEFAULT, DO_NOTHING);
-            map.put(TriState.FALSE, CarryOperationExecutor::entityTargetReleaseAction);
+            map.put(TriState.FALSE, CarryOperationExecutor.INST::entityTargetReleaseAction);
         }
     );
     //endregion
@@ -335,39 +332,13 @@ public enum CarryOperationExecutor
     }
     //endregion
     
-    //region Helpers & Data Holder Declaration
-    private static <T> void insertData(@NotNull ItemStack stack, @NotNull DataComponentType<T> type, @NotNull T data)
-    {
-        throwIf(
-            stack.isEmpty() || !stack.is(CarryCrateRegistries.CARRY_CRATE_ITEM.value()),
-            "Param \"stack\" must be \"%s:carry_crate\"!".formatted(CrispSweetberry.NAMESPACE),
-            IllegalArgumentException::new
-        );
-        
-        throwIf(
-            stack.getCount() < 1,
-            "Param \"stack\"'s count should be an positive integer!",
-            IllegalArgumentException::new
-        );
-        
-        if(stack.getCount() == 1)
-        {
-            stack.set(type, data);
-            return;
-        }
-        
-        stack.shrink(1);
-        final ItemStack newStack = stack.copy();
-        newStack.setCount(1);
-        newStack.set(type, data);
-    }
-    
+    //region Data Object
     public record CarryOperationContext(
         @NotNull Optional<CarryData> optionalData,
         @NotNull Optional<CarryID> optionalID,
         @NotNull Optional<BlockEntityType<?>> optionalType,
         @NotNull Optional<Entity> optionalEntity,
-        @NotNull ItemStack carryCrate,
+        @NotNull BiFunction<OperationType, TriState, ItemStack> carryCrate,
         @NotNull HashMap<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> targetMap,
         @NotNull ServerLevel level,
         @NotNull BlockPos pos,

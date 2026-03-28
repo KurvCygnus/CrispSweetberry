@@ -9,7 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
 import net.minecraft.world.inventory.ContainerData;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
@@ -43,11 +44,13 @@ public final class KilnContainerData implements ContainerData
      */
     @Override public int get(@Range(from = 0, to = 2) @MagicConstant(intValues = {VISUAL_PROGRESS_INDEX, PROGRESS_TREND_INDEX, IGNITION_STATE_INDEX}) int index)
     {
+        final KilnProgressModel model = kiln.getModel();
+        
         return (int) switch(index)
         {
-            case VISUAL_PROGRESS_INDEX -> kiln.model.getVisualProgress() * 10000;
-            case PROGRESS_TREND_INDEX -> kiln.model.getProgressTrendIndex();
-            case IGNITION_STATE_INDEX -> kiln.model.getIgnitionState();
+            case VISUAL_PROGRESS_INDEX -> model.getVisualProgress() * 10000;
+            case PROGRESS_TREND_INDEX -> model.getProgressTrendIndex();
+            case IGNITION_STATE_INDEX -> model.getIgnitionState();
             default -> throw new IllegalArgumentException("Illegal value for index: " + index);
         };
     }
@@ -61,11 +64,13 @@ public final class KilnContainerData implements ContainerData
         int value
     )
     {
+        final KilnProgressModel model = kiln.getModel();
+        
         switch(index)
         {
-            case VISUAL_PROGRESS_INDEX -> kiln.model.setVisualProgress((double) value / 10000);
-            case PROGRESS_TREND_INDEX -> kiln.model.setProgressTrend(VisualTrend.values()[value]);
-            case IGNITION_STATE_INDEX -> kiln.model.setIgnitionState(value);
+            case VISUAL_PROGRESS_INDEX -> model.setVisualProgress((double) value / 10000);
+            case PROGRESS_TREND_INDEX -> model.setProgressTrend(KilnEnumCollections.VisualTrend.values()[value]);
+            case IGNITION_STATE_INDEX -> model.setIgnitionState(value);
             default -> throw new IllegalArgumentException("Illegal value for index: " + index);
         }
     }

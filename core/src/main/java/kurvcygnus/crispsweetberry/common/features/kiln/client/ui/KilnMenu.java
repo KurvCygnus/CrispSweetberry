@@ -44,8 +44,7 @@ import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants
  */
 public final class KilnMenu extends AbstractContainerMenu
 {
-    //  region
-    //*: Constants & Fields
+    //region Constants & Fields
     //*:=== Constants
     //*                                                          Layout Shape --> [□]
     //* Kiln uses pyramid layout, so we should have two types of start index.    [□ □]
@@ -69,9 +68,7 @@ public final class KilnMenu extends AbstractContainerMenu
     public final ContainerData data;
     //endregion
     
-    //  region
-    //* Constructors & Menu Basics
-    
+    //region Constructors & Menu Basics
     /**
      * The constructor method for <b>client-side UI</b>, it makes sure that the <b>UI can be open normally</b>.<br>
      * <i>You can see the reason of using </i>{@code KilnDummyBlockEntity}<i> <u>{@link KilnDummyBlockEntity here}</u></i>.
@@ -90,47 +87,67 @@ public final class KilnMenu extends AbstractContainerMenu
         this.container = container;
         this.data = this.container.getData();
         
-        this.addSlot(new KilnInputSlot(container,
+        this.addSlot(
+            new KilnInputSlot(
+                container,
                 KILN_INPUT_SLOTS_RANGE.getMin(),
                 INPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
             )
         );
-        this.addSlot(new KilnInputSlot(container,
+        this.addSlot(
+            new KilnInputSlot(
+                container,
                 KILN_INPUT_SLOTS_RANGE.getMin() + 1,
                 INPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
             )
         );
-        this.addSlot(new KilnInputSlot(container,
+        this.addSlot(
+            new KilnInputSlot(
+                container,
                 KILN_INPUT_SLOTS_RANGE.getMax(),
                 INPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
             )
         );
         
-        this.addSlot(new KilnOutputSlot(container,
+        this.addSlot(
+            new KilnOutputSlot(
+                container,
                 KILN_OUTPUT_SLOTS_RANGE.getMin(),
                 OUTPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
             )
         );
-        this.addSlot(new KilnOutputSlot(container,
+        this.addSlot(
+            new KilnOutputSlot(
+                container,
                 KILN_OUTPUT_SLOTS_RANGE.getMin() + 1,
                 OUTPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
             )
         );
-        this.addSlot(new KilnOutputSlot(container,
+        this.addSlot(
+            new KilnOutputSlot(
+                container,
                 KILN_OUTPUT_SLOTS_RANGE.getMax(),
                 OUTPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
             )
         );
         
-        CrispUIUtils.addGridSlots(inventory, INVENTORY_SLOTS_GRID_START_INDEX,
-            INVENTORY_SLOTS_START_X_POS, INVENTORY_SLOTS_START_Y_POS,
-            INVENTORY_SLOTS_TOTAL_ROWS, INVENTORY_SLOTS_TOTAL_COLS,
+        CrispUIUtils.addGridSlots(
+            inventory,
+            INVENTORY_SLOTS_GRID_START_INDEX,
+            INVENTORY_SLOTS_START_X_POS,
+            INVENTORY_SLOTS_START_Y_POS,
+            INVENTORY_SLOTS_TOTAL_ROWS,
+            INVENTORY_SLOTS_TOTAL_COLS,
             Slot::new,
             this::addSlot
         );
-        CrispUIUtils.addGridSlots(inventory, HOTBAR_SLOTS_GRID_START_INDEX,
-            HOTBAR_SLOTS_START_X_POS, HOTBAR_SLOTS_START_Y_POS,
-            HOTBAR_SLOTS_TOTAL_ROWS, HOTBAR_SLOTS_TOTAL_COLS,
+        CrispUIUtils.addGridSlots(
+            inventory,
+            HOTBAR_SLOTS_GRID_START_INDEX,
+            HOTBAR_SLOTS_START_X_POS,
+            HOTBAR_SLOTS_START_Y_POS,
+            HOTBAR_SLOTS_TOTAL_ROWS,
+            HOTBAR_SLOTS_TOTAL_COLS,
             Slot::new,
             this::addSlot
         );
@@ -166,8 +183,7 @@ public final class KilnMenu extends AbstractContainerMenu
     }
     //endregion
     
-    //  region
-    //* Interaction Logics
+    //region Interact Logics
     @Override public @NotNull ItemStack quickMoveStack(@NotNull Player player, int index)
     {
         final Slot slot = this.slots.get(index);
@@ -222,6 +238,7 @@ public final class KilnMenu extends AbstractContainerMenu
     }
     //endregion
     
+    //region Helpers
     /**
      * A helper method for {@link #quickMoveStack(Player, int)}.<br>
      * It was used to solve the problem of verbose method parameters of {@link #moveItemStackTo moveItemStackTo()},

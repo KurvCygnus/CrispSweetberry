@@ -33,6 +33,7 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
      * <b><i>It defines the format of recipe JSON</b></i>.
      */
     private final MapCodec<KilnRecipe> mapCodec;
+    
     /**
      * <b><u>{@link net.minecraft.network.codec.StreamCodec StreamCodec}</b></u> is the director of <b>network sync</b>.<br>
      * <b><i>It makes sure that unionData from server won't go wrong</b></i>.

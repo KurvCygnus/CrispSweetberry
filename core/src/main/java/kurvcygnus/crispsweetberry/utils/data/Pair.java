@@ -10,11 +10,13 @@ package kurvcygnus.crispsweetberry.utils.data;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>
+public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, Serializable
 {
     public Pair
     {
@@ -26,5 +28,6 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
     
     @Override public @NotNull R getValue() { return this.right; }
     
-    @Contract(value = "_ -> fail", pure = true) @Override public R setValue(@NotNull R value) { throw new UnsupportedOperationException(); }
+    @Contract(value = "_ -> fail", pure = true) @Override public R setValue(@Nullable R value)
+        { throw new UnsupportedOperationException("This is an immutable Class. Value mutation is not allowed!"); }
 }

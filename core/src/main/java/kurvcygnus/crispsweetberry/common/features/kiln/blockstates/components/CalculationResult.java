@@ -8,8 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.LogicalResult;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -24,8 +22,8 @@ import org.jetbrains.annotations.Range;
 public record CalculationResult(
     @Range(from = 0, to = 1) double currentRealProgress,
     @Range(from = 0, to = 1) double currentVisualProgress, 
-    @NotNull LogicalResult logicalResult,
-    @NotNull VisualTrend trend
+    @NotNull KilnEnumCollections.LogicalResult logicalResult,
+    @NotNull KilnEnumCollections.VisualTrend trend
 )
 {
     @Contract("_, _ -> new")
@@ -34,8 +32,8 @@ public record CalculationResult(
         return new CalculationResult(
             currentRealProgress,
             currentVisualProgress,
-            LogicalResult.INVALID,
-            VisualTrend.NORMAL
+            KilnEnumCollections.LogicalResult.INVALID,
+            KilnEnumCollections.VisualTrend.NORMAL
         );
     }
 }

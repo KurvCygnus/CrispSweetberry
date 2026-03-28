@@ -80,8 +80,7 @@ If you have any questions, feel free to ask.
       <a id="region"></a>
 
       ```java
-      //  region
-      //*:=== Section of this region
+      //region Section of this region
 
       // Fields, constructors, methods, etc.
 

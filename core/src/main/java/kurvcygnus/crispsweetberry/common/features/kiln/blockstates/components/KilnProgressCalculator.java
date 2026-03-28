@@ -11,8 +11,6 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.LogicalResult;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.enums.VisualTrend;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
@@ -24,6 +22,7 @@ import org.slf4j.event.Level;
 import java.util.Objects;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.KILN_INPUT_SLOTS_RANGE;
+import static kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections.*;
 import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCarriableExtensions.*;
 
 /**
@@ -37,25 +36,27 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCa
 public final class KilnProgressCalculator implements ICalculatorBridge
 {
     private static final double NORMAL_PROGRESS_RATE = 0.005D;
-    public static final double STANDARD_PROCESS_FACTOR = 1D;
-    public static final int BALANCE_STATE_STANDARD_TICKS = 40;
+    private static final double STANDARD_PROCESS_FACTOR = 1D;
+    private static final int BALANCE_STATE_STANDARD_TICKS = 40;
     
     private NonNullList<KilnRecipe> recipes = NonNullList.withSize(KILN_INPUT_SLOTS_RANGE.size(), KilnBlockEntity.EMPTY_RECIPE);
     
     /**
-     * We should use <u>{@link Double}</u> instead of primitive componentExecutionType {@code double},
+     * We should use <u>{@link Double#NaN}</u> instead of other value,
      * when it comes to cases like empty content, putting stuff inside should go to
      * {@code WORKING} variant, not {@code BALANCING}.</u>
+     * @implNote <u>{@link Double#NaN}</u> is not a number that really exists, it is defined by the memory layout of the variable,
+     * and it doesn't equal to everything, including itself.
      */
-    private @Nullable Double lastProcessFactor = null;
-    private @Range(from = 0, to = 40) @MagicConstant(intValues = BALANCE_STATE_STANDARD_TICKS) byte balanceTick = 0;
+    private double lastProcessFactor = Double.NaN;
+    private @Range(from = 0, to = BALANCE_STATE_STANDARD_TICKS) @MagicConstant(intValues = BALANCE_STATE_STANDARD_TICKS) byte balanceTick = 0;
     private double balanceRate = 0D;
     private VisualTrend balanceTrend = VisualTrend.NORMAL;
     
     /**
      * This field is used for return early in <u>{@link #calculateRates calculateRates()}</u>.<br>
      * It's named "nonWorking" since the standard procession is uncertain, due to BALANCE stuff.<br>
-     * It is only reliable when <u>{@link KilnBlockEntity.ProcessionState}</u> is <u>{@link KilnBlockEntity.ProcessionState#COOLDOWN COOLDOWN}</u>.
+     * It is only reliable when <u>{@link ProcessionState}</u> is <u>{@link ProcessionState#COOLDOWN COOLDOWN}</u>.
      */
     private LogicalResult nonWorkingLogicalResult = LogicalResult.SKIP;
     
@@ -77,7 +78,6 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 if(!hasWarnedRecipeLengthMismatch || CrispConfig.KILN_BE_CAL_DEBUG.get())
                 {
                     LOGGER.warn("Kiln recipes' length do NOT match, go check codes!");
-                    
                     hasWarnedRecipeLengthMismatch = true;
                 }
                 return;
@@ -93,6 +93,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                         LOGGER.error("Denied new recipe for its invalidity. Null element start at -> 'Index {}'", index);
                         hasWarnedNullRecipe = true;
                     }
+                    
                     return;
                 }
             }
@@ -109,13 +110,13 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     }
     
     @Contract("_, _, _ -> new") @CheckReturnValue
-    public @NotNull CalculationResult calculateRates(double currentRealProgress, double currentVisualProgress, @NotNull KilnBlockEntity.ProcessionState processState)
+    public @NotNull CalculationResult calculateRates(double currentRealProgress, double currentVisualProgress, @NotNull ProcessionState processState)
     {
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("CALCULATION"))
         {
-            if(processState != KilnBlockEntity.ProcessionState.WORKING)
+            if(processState != ProcessionState.WORKING)
             {
-                this.lastProcessFactor = null;
+                this.lastProcessFactor = Double.NaN;
                 this.balanceTick = 0;
                 this.balanceRate = 0D;
                 
@@ -139,10 +140,23 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             final byte remainingTicks = (byte) (BALANCE_STATE_STANDARD_TICKS - this.balanceTick);
             
             handle.changeMarker("CAL_CHECK");
-            LOGGER.debug("recipes = {}, lastFactor = {}, processState = {}{}",
-                this.recipes.toString(), this.lastProcessFactor, processState.name(),
-                this.balanceTick > 0 ? ", %d balance tick%s remain%s".formatted
-                    (remainingTicks, remainingTicks == 1 ? "s" : "", remainingTicks == 1 ? "" : "s") : ""
+            LOGGER.debug(
+                "recipes = {}, lastFactor = {}, processState = {}{}",
+                this.recipes.toString(),
+                this.lastProcessFactor,
+                processState.name(),
+                this.balanceTick > 0 ?
+                    ", %d balance tick%s remain%s".
+                    formatted(
+                        remainingTicks,
+                        remainingTicks == 1 ?
+                        "s" :
+                        "",
+                        remainingTicks == 1 ?
+                        "" :
+                        "s"
+                    ) :
+                    ""
             );
             
             final double currentProcessFactor = evaluateFactor();
@@ -163,8 +177,14 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 handle.changeMarker("CAL_ERROR");
                 if(!hasWarnedAbnormalFactor || CrispConfig.KILN_BE_CAL_DEBUG.get())
                 {
-                    LOGGER.warn("Calculation error! Returning the value of args as result. Reason: Variable \"currentProgressFactor\" happens to be " +
-                        "a non-positive double number, which will cause calculation result abnormal. {}", MiscConstants.FEEDBACK_MESSAGE
+                    LOGGER.warn("""
+                        Calculation error!
+                        Returning the value of args as result. Reason: Variable "currentProgressFactor" happens to be a non-positive double number,
+                        which will cause calculation result abnormal.
+                        
+                        {}
+                        """,
+                        MiscConstants.FEEDBACK_MESSAGE
                     );
                     hasWarnedAbnormalFactor = true;
                 }
@@ -176,18 +196,22 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             
             final boolean shouldBalance;
             
-            if(this.lastProcessFactor != null)
+            if(!Double.isNaN(this.lastProcessFactor))
                 shouldBalance = Double.compare(this.lastProcessFactor, currentProcessFactor) != 0 && currentRealProgress > 0D;
             else
                 shouldBalance = false;
             
             if(shouldBalance)
-                this.balanceTrend = currentProcessFactor > this.lastProcessFactor ? VisualTrend.BALANCE : VisualTrend.BURST;
+                this.balanceTrend = currentProcessFactor > this.lastProcessFactor ?
+                    VisualTrend.BALANCE :
+                    VisualTrend.BURST;
             
-            if(Objects.requireNonNullElse(this.lastProcessFactor, -1D) != currentProcessFactor)
+            //! Double.NaN is not a number that really exists, it is defined by the layout of this double variable,
+            //! and it doesn't equal to everything, including itself.
+            if((Double.isNaN(this.lastProcessFactor) ? -1D : this.lastProcessFactor) != currentProcessFactor)
             {
                 handle.changeMarker("CAL_DATA_INFO");
-                LOGGER.debug("Factors: C: {}, L: {}", currentProcessFactor, Objects.requireNonNullElse(this.lastProcessFactor, "N/A"));
+                LOGGER.debug("Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor);
             }
             
             this.lastProcessFactor = currentProcessFactor;
@@ -244,13 +268,16 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 handle.changeMarker("CAL_NORMAL_ERROR");
                 LOGGER.when(CrispConfig.KILN_BE_CAL_DEBUG.get()).error(
                     "ProgressPair doesn't match. R: {}, V: {}",
-                    newRealProgress, newVisualProgress
+                    newRealProgress,
+                    newVisualProgress
                 );
             }
             
             handle.changeMarker("CAL_NORMAL");
             LOGGER.debug("Rate: {}, progressPairValue: R: {}, V: {}",
-                realChangeRate, newRealProgress, newVisualProgress
+                realChangeRate,
+                newRealProgress,
+                newVisualProgress
             );
             
             return new CalculationResult(
@@ -265,7 +292,6 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     @Override public double onCarriedSequence()
     {
         final double currentProcessFactor = this.evaluateFactor();
-        
         return NORMAL_PROGRESS_RATE / currentProcessFactor;
     }
     
@@ -275,7 +301,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
         double visualProgress = context.visualProgress();
         double carryingTime = context.carryingTime();
         
-        if(context.state() != KilnBlockEntity.ProcessionState.WORKING)
+        if(context.state() != ProcessionState.WORKING)
             return AtomicCalculationResult.withNoProduct(
                 Math.max(0, realProgress - NORMAL_PROGRESS_RATE * carryingTime),
                 Math.max(0, visualProgress - NORMAL_PROGRESS_RATE * carryingTime),
@@ -354,12 +380,20 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 return Double.NaN;
             }
             
-            currentProcessFactor = canUseAverageReward ? (revaluateFactor / nonEmptyCount) : multipliedFactor;
+            currentProcessFactor = canUseAverageReward ?
+                (revaluateFactor / nonEmptyCount) :
+                multipliedFactor;
             
             handle.changeMarker("STRATEGY_SELECT");
-            LOGGER.debug("strategy = \"{}\", totalFactor = {}{}",
-                canUseAverageReward ? "Average" : "Multiply", currentProcessFactor,
-                canUseAverageReward ? ", non-empty recipes: %d".formatted(nonEmptyCount) : ""
+            LOGGER.debug(
+                "strategy = \"{}\", totalFactor = {}{}",
+                canUseAverageReward ?
+                    "Average" :
+                    "Multiply",
+                currentProcessFactor,
+                canUseAverageReward ?
+                    ", non-empty recipes: %d".formatted(nonEmptyCount) :
+                    ""
             );
         }
         
