@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.config.gui;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -61,7 +61,7 @@ public final class CrispConfigScreen extends Screen
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) ->
             {
                 CrispConfig.SPEC.save();
-                CrispFunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
+                FunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
             }
         ).bounds(x, this.height - 28, buttonWidth, 20).build());
     }
@@ -78,6 +78,6 @@ public final class CrispConfigScreen extends Screen
     public void onClose()
     {
         CrispConfig.SPEC.save();
-        CrispFunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
+        FunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
     }
 }

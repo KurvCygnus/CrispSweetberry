@@ -1,3 +1,13 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
+//? Main build script: [[../build.gradle]]
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -63,19 +73,20 @@ neoForge {
 
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 
     compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.25.1.332")
-
     runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.25.1.332")
 
     compileOnly("maven.modrinth:jade:15.10.5+neoforge")
-
     runtimeOnly("maven.modrinth:jade:15.10.5+neoforge")
     
     compileOnly(project(':i18n-api'))
 
+    //* [[I18nProcessor]] generates files, which is OK on local device, but not Github CI environment.
+    //* So we need to an arg to disable APT on CI environment.
+    //* Arg is defined in [[../.github/workflows/build.yml]].
     if(!project.hasProperty('githubCI'))
         annotationProcessor(project(':i18n-processor'))
 }

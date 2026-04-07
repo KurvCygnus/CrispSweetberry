@@ -15,10 +15,10 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryD
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -55,7 +55,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         @NotNull BlockState targetState,
         @Nullable LivingEntity targetEntity,
         @NotNull BlockEntity targetBlockEntity,
-        @NotNull Function<BlockState, CarryBlockPlaceContext> contextGenerator,
+        @NotNull Function<BlockState, StatedBlockPlaceContext> contextGenerator,
         @Nullable CarryID optionalUUID
     ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalUUID); }
     
@@ -72,7 +72,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         if(optionalAdapter.isEmpty())
         {
             LOGGER.error("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntity.toString());
-            return HandleResult.failed();
+            return HandleResult.FAILED;
         }
         
         final AbstractBlockEntityCarryAdapter<?> adapter = optionalAdapter.get();
@@ -108,14 +108,14 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
             warn(
                 "BlockEntity \"{}\"'s adapter has no uuid. This is a persistent issue. {}",
                 blockEntity.toString(),
-                MiscConstants.FEEDBACK_MESSAGE
+                MetainfoConstants.FEEDBACK_MESSAGE
             );
         
         final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.unionData();
         
-        final CarryBlockPlaceContext context = getContextGenerator().apply(blockEntityDataHolder.getState());
+        final StatedBlockPlaceContext context = getContextGenerator().apply(blockEntityDataHolder.getState());
         
-        //! AbstractBlockEntityAdapter's init implicitly creates blockEntity.
+        //! [[AbstractBlockEntityCarryAdapter]]'s init implicitly creates blockEntity.
         //! However, Minecraft only allows the creation of a new blockEntity when the targetBlock is corresponded.
         //! We have to treat such a case specially.
         //! THANK YOU, MOJANG
@@ -123,7 +123,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         {
             LOGGER.debug("Cannot place block to process blockEntity, return the process result as failed.");
             context.cancelPlacement();
-            return HandleResult.failed();
+            return HandleResult.FAILED;
         }
         
         final var optionalAdapter = createAdapter(blockEntityDataHolder.getType(), targetPos, targetState);
@@ -131,7 +131,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         if(optionalAdapter.isEmpty())
         {
             LOGGER.error("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntity.toString());
-            return HandleResult.failed();
+            return HandleResult.FAILED;
         }
         
         final AbstractBlockEntityCarryAdapter<? extends BlockEntity> adapter = optionalAdapter.get();
@@ -154,7 +154,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         if(!context.cancelPlacement())
         {
             LOGGER.debug("Cannot cancel the emulation of the blockEntity's unbox! return the process result as failed.");
-            return HandleResult.failed();
+            return HandleResult.FAILED;
         }
         
         return HandleResult.unbox(
@@ -177,7 +177,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         return Objects.requireNonNull(
             BlockEntityType.getKey(getTargetBlockEntity().getType()),
             "Assertion failed: Param \"blockEntity\"'s ResourceLocation is null. This only means the internal logic is flawed, or get misused. %s".
-                formatted(MiscConstants.FEEDBACK_MESSAGE)
+                formatted(MetainfoConstants.FEEDBACK_MESSAGE)
         );
     }
     
@@ -204,7 +204,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
                                """.
                             formatted(
                                 blockEntityType.toString(),
-                                MiscConstants.FEEDBACK_MESSAGE
+                                MetainfoConstants.FEEDBACK_MESSAGE
                             )
                     )
                 )

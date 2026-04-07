@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.Abstra
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +81,7 @@ implements CarriableBlockExtensions.ICarryBlockStackable
                 Assertion failed: Field "block" happens to be null, this shouldn't be happen, which usually means
                 method is called at improper time, with improper param. %s
                 """.
-                formatted(MiscConstants.FEEDBACK_MESSAGE)
+                formatted(MetainfoConstants.FEEDBACK_MESSAGE)
         );
         
         return block;

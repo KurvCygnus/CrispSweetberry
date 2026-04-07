@@ -7,7 +7,7 @@
 //==============================================================================
 
 /**
- * This package contains Quality of Life (QoL) improvements and small functional tweaks.<br>
+ * This package overlaps Quality of Life (QoL) improvements and small functional tweaks.<br>
  * <br>
  * Each QoL improvement should be treated as an independent domain logic unit,<br>
  * whose sub-package usually consists of:

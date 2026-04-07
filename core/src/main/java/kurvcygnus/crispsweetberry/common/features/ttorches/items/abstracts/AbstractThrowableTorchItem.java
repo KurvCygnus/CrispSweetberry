@@ -10,8 +10,8 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
-import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
-import kurvcygnus.crispsweetberry.utils.projectile.ITriProjectileFunction;
+import kurvcygnus.crispsweetberry.utils.base.functions.ITriProjectileFunction;
+import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.sounds.SoundEvent;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.PROJECTILE_SHOOT_Z_POS;
+import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.PROJECTILE_SHOOT_Z_POS;
 
 /**
  * The <b>basic</b> of <b>all throwable torches</b>.

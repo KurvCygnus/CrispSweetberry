@@ -73,34 +73,33 @@ public interface ICarryRegistry
         @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory
     );
     
-    @FunctionalInterface interface ICarryBlockEntityAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>>
+    @FunctionalInterface non-sealed interface ICarryBlockEntityAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>>
     extends IBaseCarryAdapterFactory<E, A> 
     {
         @Override @NotNull A create(E blockEntity);
         
-        @Override default @NotNull String getType() { return "blockEntity"; }
+        @Override default @NotNull CarryType getType() { return CarryType.BLOCK_ENTITY; }
     }
     
-    @FunctionalInterface interface ICarryBlockAdapterFactory<B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
+    @FunctionalInterface non-sealed interface ICarryBlockAdapterFactory<B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
     extends IBaseCarryAdapterFactory<B, A> 
     {
         @Override @NotNull A create(B block);
         
-        @Override default @NotNull String getType() { return "block"; }
+        @Override default @NotNull CarryType getType() { return CarryType.BLOCK; }
     }
     
-    @FunctionalInterface interface ICarryEntityAdapterFactory<E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
+    @FunctionalInterface non-sealed interface ICarryEntityAdapterFactory<E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
     extends IBaseCarryAdapterFactory<E, A>
     {
         @Override @NotNull A create(E entity);
         
-        @Override default @NotNull String getType() { return "entity"; }
+        @Override default @NotNull CarryType getType() { return CarryType.ENTITY; }
     }
     
-    @FunctionalInterface interface IBaseCarryAdapterFactory<C, A extends AbstractCarryAdapter<?>> 
+    sealed interface IBaseCarryAdapterFactory<C, A extends AbstractCarryAdapter<?>>
     {
         @NotNull A create(C object);
-        
-        default @NotNull String getType() { return "awa"; }
+        @NotNull CarryType getType();
     }
 }

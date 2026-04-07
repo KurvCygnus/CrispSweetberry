@@ -1,3 +1,26 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
+//? This is the main build script for this mod.
+//? It mainly processes repo source, constant definition and environment setup.
+
+//* Sub Modules:
+//* 1. Core [[./core/build.gradle]]
+//* 2. Data Generation [[./datagen/build.gradle]]
+//* 3. I18n Annotation API [[./i18n-api/build.gradle]]
+//* 4. I18n Processor [[./i18n-processor/build.gradle]]
+
+//* Property configs:
+//* 1. Gradle Config [[./gradle.properties]]
+//? Stores mod version, environment version, custom property, etc.
+//* 2. Mod Metainfo [[./core/src/main/resources/META-INF/neoforge.mods.toml]]
+//? Archives the metainfo, mixin configs, in-game dependency infos.
+
 plugins {
     id 'java-library'
     id 'maven-publish'

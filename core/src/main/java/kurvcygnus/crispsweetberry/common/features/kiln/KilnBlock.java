@@ -11,9 +11,9 @@ package kurvcygnus.crispsweetberry.common.features.kiln;
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.misc.CrispVisualUtils;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.VisualUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -61,8 +61,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.*;
-import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.*;
 
 /**
  * The <b>physically interactable, seen</b> part of the Kiln Block.<br>
@@ -114,7 +114,7 @@ public final class KilnBlock extends BaseEntityBlock
      */
     @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.MODEL; }
     
-    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(CrispFunctionalUtils.noArgCodec(KilnBlock::new)); }
+    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(FunctionalUtils.noArgCodec(KilnBlock::new)); }
     //endregion
     
     //region World Logic & Life Cycles
@@ -188,7 +188,7 @@ public final class KilnBlock extends BaseEntityBlock
     )
     {
         final ItemStack stack = new ItemStack(this);
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(DefinitionUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         return stack;
     }
     
@@ -198,7 +198,7 @@ public final class KilnBlock extends BaseEntityBlock
         
         for(final ItemStack stack: drops)
             if(stack.is(this.asItem()))
-                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(CrispDefUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(DefinitionUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         
         return drops;
     }
@@ -296,7 +296,7 @@ public final class KilnBlock extends BaseEntityBlock
         final double PARTICLE_Y_OFFSET = random.nextDouble() * 6.0 / 16.0;
         final double PARTICLE_Z_OFFSET = directionAxis == Direction.Axis.Z ? (double) direction.getStepZ() * 0.52 : PARTICLE_BASE_RANDOM_OFFSET;
         
-        CrispVisualUtils.addParticles(level,
+        VisualUtils.addParticles(level,
             X_POS + PARTICLE_X_OFFSET, Y_POS + PARTICLE_Y_OFFSET, Z_POS + PARTICLE_Z_OFFSET, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED,
             ParticleTypes.SMOKE, ParticleTypes.FLAME
         );

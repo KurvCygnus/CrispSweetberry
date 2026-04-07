@@ -1,3 +1,19 @@
+# ===============================================================================
+# = Copyright (C) 2026 Kurv Cygnus                                              =
+# = This file is part of Crisp Sweetberry.                                      =
+# = Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+# = it under the terms of the GNU Lesser General Public License as published by =
+# = the Free Software Foundation, either version 3 of the License.              =
+# ===============================================================================
+
+#? This is the metainfo configuration of this mod, CrispSweetberry,
+#? which stores the Loader Version, Mod Name, Dependency, Mixin Configs, etc.
+
+#* Mixin Index:
+#* 1. Spyglass Mixin [[../crispsweetberry.spyglass.mixins.json]]
+#* 2. T Torch Series Mixin [[../crispsweetberry.ttorches.mixins.json]]
+#* 3. Carry Crate Mixin [[../crispsweetberry.carrycrate.mixins.json]]
+
 modLoader="javafml"
 
 loaderVersion="${loader_version_range}"
@@ -12,8 +28,7 @@ displayName="Crisp Sweetberry"
 # A URL to query for updates for this mod. See the JSON update specification https://docs.neoforged.net/docs/misc/updatechecker/
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 
-# A URL for the "homepage" for this mod, displayed in the mod UI
-#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
+displayURL="https://github.com/KurvCygnus/CrispSweetberry/"
 
 logoFile="mod_title.png"
 
@@ -74,9 +89,6 @@ config="crispsweetberry.carrycrate.mixins.json"
 #    versionRange = "PlaceHolder"
 #    ordering = "BEFORE"
 #    side = "BOTH"
-
-[modproperties.crispsweetberry."yumi:entrypoints"]
-    "lambdynlights:initializer" = "kurvcygnus.crispsweetberry.integrations.LambDynamicLightsInitializer"
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't

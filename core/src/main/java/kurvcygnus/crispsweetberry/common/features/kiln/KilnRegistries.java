@@ -16,9 +16,9 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnScreen;
 import kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeSerializer;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -84,7 +84,7 @@ public enum KilnRegistries implements IRegistrant
         KILN_STAT_REGISTER
     );
     
-    @SubscribeEvent static void registerCarry(@NotNull CarryAdapterRegisterEvent event) { event.register(KILN_BLOCK_ENTITY.get(), blockEntity -> new KilnBlockEntityCarryAdapter(blockEntity)); }
+    @SubscribeEvent static void registerCarry(@NotNull CarryAdapterRegisterEvent event) { event.register(KILN_BLOCK_ENTITY.get(), KilnBlockEntityCarryAdapter::new); }
     
     /**
      * This event assigns value to kiln item, depending on block's property <u>{@link KilnBlock#LIT}</u>.<br>
@@ -97,7 +97,7 @@ public enum KilnRegistries implements IRegistrant
         event.enqueueWork(() ->
             ItemProperties.register(
                 KilnRegistries.KILN_BLOCK_ITEM.value(),
-                CrispDefUtils.getModNamespacedLocation("lit"),
+                DefinitionUtils.getModNamespacedLocation("lit"),
                 (stack, level, entity, seed) ->
                 {
                     final CustomData data = stack.get(DataComponents.CUSTOM_DATA);
@@ -161,6 +161,6 @@ public enum KilnRegistries implements IRegistrant
         key = "stat.crispsweetberry.interact_with_kiln"
     )
     public static final Holder<ResourceLocation> INTERACT_WITH_KILN = KILN_STAT_REGISTER.register("interact_with_kiln", () -> 
-        CrispDefUtils.getModNamespacedLocation("interact_with_kiln")
+        DefinitionUtils.getModNamespacedLocation("interact_with_kiln")
     );
 }

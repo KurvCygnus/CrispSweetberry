@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.bus.api.IEventBus;

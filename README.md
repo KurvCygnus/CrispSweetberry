@@ -65,7 +65,7 @@ Crisp Sweetberry primarily focuses on:
 
 Crisp Sweetberry is currently available **only** for:
 
-* **Minecraft 26.1**, and **Minecraft 1.21.1** as LTS
+* **Minecraft 26.1**
 * **NeoForge Mod Loader**
 
 Major updates will be released in **themed waves**, similar to official Minecraft updates.\
@@ -75,7 +75,7 @@ If certain extensible features become popular enough, they may be split into sta
 
 ## Installation
 
-1. Download **NeoForge** for **Minecraft 26.1** / **Minecraft 1.21.1**.
+1. Download **NeoForge** for **Minecraft 26.1**.
    You can find detailed installation instructions in NeoForge’s official documentation:
    at [this link](https://docs.neoforged.net/user/docs/)
 
@@ -103,7 +103,7 @@ When reporting issues, please include:
 ⚠️ Feedback submitted in inappropriate channels or without sufficient information may not receive a response.
 
 * Join our Discord: *(placeholder)*
-* Submit an Issue: *(placeholder)*
+* Submit an Issue: [Github Issues](https://github.com/KurvCygnus/CrispSweetberry/issues)
 
 ---
 
@@ -112,7 +112,9 @@ When reporting issues, please include:
 Below are the contributors to Crisp Sweetberry.\
 Every contributor is an important part of the community.
 
-*Placeholder UwU*
+### Core Contributors
+
+- Maintainer: [Kurv Cygnus](https://github.com/KurvCygnus)
 
 ---
 

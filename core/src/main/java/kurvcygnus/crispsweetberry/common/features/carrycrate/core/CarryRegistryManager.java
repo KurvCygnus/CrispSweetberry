@@ -19,10 +19,10 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAda
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
-import kurvcygnus.crispsweetberry.utils.ui.CrispUIUtils;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.UIUtils;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
+import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
 
 @ApiStatus.Internal @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryRegistryManager implements ICarryRegistry
@@ -69,7 +69,7 @@ public enum CarryRegistryManager implements ICarryRegistry
     private static final HashMap<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();
     
     private static final Map<CarryType, HashMap<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_MAPS =
-        CrispDefUtils.createImmutableEnumMap(
+        DefinitionUtils.createImmutableEnumMap(
             CarryType.class,
             map ->
             {
@@ -80,7 +80,7 @@ public enum CarryRegistryManager implements ICarryRegistry
         );
     
     private static final Map<CarryType, HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>>> RECOVER_MAPS =
-        CrispDefUtils.createImmutableEnumMap(
+        DefinitionUtils.createImmutableEnumMap(
             CarryType.class,
             map ->
             {
@@ -96,7 +96,7 @@ public enum CarryRegistryManager implements ICarryRegistry
     {
         requireNonNull(
             CrispSweetberry.CRISP_BUS,
-            "Fatal: ModBus seems to be null! %s".formatted(MiscConstants.FEEDBACK_MESSAGE)
+            "Fatal: ModBus seems to be null! %s".formatted(MetainfoConstants.FEEDBACK_MESSAGE)
         ).
             post(new CarryAdapterRegisterEvent(CarryRegistryManager.INST));
         
@@ -145,11 +145,11 @@ public enum CarryRegistryManager implements ICarryRegistry
                 animalType ->
                 {
                     //! Seems hacky? Actually, this is the best reality solution of such a situation.
-                    //! EntityType has a method #getBaseClass(), which actually turns out to be hard-coded, returning "Entity.class" only.
+                    //! EntityType has a method [[EntityType#getBaseClass()]], which actually turns out to be hard-coded, returning "Entity.class" only.
                     //! So, Animal.class#isAssignableFrom(Class<?>) will not work.
-                    //! Then, how about EntityTypeTest#forClass(Class<F>)?
+                    //! Then, how about [[EntityTypeTest#forClass(Class<F>)]]?
                     //! That is reliable, but all of its return values are not EntityType, we can't use it.
-                    //! What about EntityType#create(Level)?
+                    //! What about [[EntityType#create(Level)]]?
                     //! Level is unaccessible during game initialization, doing that is even more hacky than this.
                     //! Besides, dummy level is a hard stuff, this doesn't worth it.
                     try
@@ -284,7 +284,7 @@ public enum CarryRegistryManager implements ICarryRegistry
         LOGGER.debug("Registered entity \"{}\".", translationID);
         
         ENTITY_REGISTRY.put(castedEntity, castedFactory);
-        TRANSLATION_REGISTRY.put(resourceLocation, CrispUIUtils.dimmedText(translationID));
+        TRANSLATION_REGISTRY.put(resourceLocation, UIUtils.dimmedText(translationID));
         RECOVERY_ENTITY_REGISTRY.put(EntityType.getKey(entityType), castedFactory);
     }
     //endregion
@@ -305,7 +305,7 @@ public enum CarryRegistryManager implements ICarryRegistry
         
         BLOCK_ENTITY_REGISTRY.put(blockEntityType, carryAdapterBlockEntityFactory);
         RECOVERY_BLOCK_ENTITY_REGISTRY.put(resourceLocation, carryAdapterBlockEntityFactory);
-        TRANSLATION_REGISTRY.put(resourceLocation, CrispUIUtils.dimmedText(Util.makeDescriptionId("block", resourceLocation)));
+        TRANSLATION_REGISTRY.put(resourceLocation, UIUtils.dimmedText(Util.makeDescriptionId("block", resourceLocation)));
         
         LOGGER.debug("Registered blockEntity \"{}\".", blockEntityType.toString());
     }
@@ -327,7 +327,7 @@ public enum CarryRegistryManager implements ICarryRegistry
         
         BLOCK_REGISTRY.put(block, carryAdapterBlockAdapterFactory);
         RECOVERY_BLOCK_REGISTRY.put(resourceLocation, carryAdapterBlockAdapterFactory);
-        TRANSLATION_REGISTRY.put(resourceLocation, CrispUIUtils.dimmedText(translationID));
+        TRANSLATION_REGISTRY.put(resourceLocation, UIUtils.dimmedText(translationID));
         LOGGER.debug("Registered block \"{}\".", block.getDescriptionId());
     }
     
@@ -348,7 +348,7 @@ public enum CarryRegistryManager implements ICarryRegistry
         
         ENTITY_REGISTRY.put(entityType, carryEntityAdapterFactory);
         RECOVERY_ENTITY_REGISTRY.put(resourceLocation, carryEntityAdapterFactory);
-        TRANSLATION_REGISTRY.put(resourceLocation, CrispUIUtils.dimmedText(translationID));
+        TRANSLATION_REGISTRY.put(resourceLocation, UIUtils.dimmedText(translationID));
         LOGGER.debug("Registered entity \"{}\".", entityType.getDescriptionId());
     }
     
@@ -377,7 +377,7 @@ public enum CarryRegistryManager implements ICarryRegistry
     //endregion
     
     //region Getters
-    @SuppressWarnings("unchecked")//! Danger, but relatively safe as long as it is only used by internals.
+    @SuppressWarnings("unchecked")//! Danger, but relatively safe as long as the param is matched, mismatch only happens when caller did it by design.
     <F extends IBaseCarryAdapterFactory<?, ?>, K> @NotNull Optional<F> searchFactory(@NotNull CarryType carryType, @NotNull K key)
     {
         final Class<?> keyType = carryType.boundClass();
@@ -414,12 +414,6 @@ public enum CarryRegistryManager implements ICarryRegistry
     }
     
     public @NotNull Optional<Component> getCombinedContentTranslation(@NotNull ResourceLocation resourceLocation)
-    {
-        requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");
-        LOGGER.debug("Query: {}", resourceLocation.toString());
-        final Optional<Component> text = Optional.ofNullable(TRANSLATION_REGISTRY.get(resourceLocation));
-        
-        return text.map(CarryCrateConstants.UI__CARRY_CRATE__CONTENT_PREFIX.copy()::append);
-    }
+        { return getContentTranslation(resourceLocation).map(CarryCrateConstants.UI__CARRY_CRATE__CONTENT_PREFIX.get()::append); }
     //endregion
 }

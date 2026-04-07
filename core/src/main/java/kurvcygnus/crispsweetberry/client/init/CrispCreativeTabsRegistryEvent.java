@@ -10,9 +10,9 @@ package kurvcygnus.crispsweetberry.client.init;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
-import kurvcygnus.crispsweetberry.utils.registry.objects.TabEntry;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.core.registry.TabEntry;
 import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;

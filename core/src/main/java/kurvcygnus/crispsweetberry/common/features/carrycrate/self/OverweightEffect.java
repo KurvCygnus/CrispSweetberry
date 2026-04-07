@@ -12,10 +12,11 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.misc.CrispMathUtils;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.MathUtils;
+import kurvcygnus.crispsweetberry.utils.constants.DummyFunctionalConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.effect.MobEffect;
@@ -25,6 +26,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.util.Lazy;
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateCo
 public final class OverweightEffect extends MobEffect
 {
     public static final String OVERWEIGHT_KEY = "effect.overweight";
-    public static final ResourceLocation OVERWEIGHT_ID = CrispDefUtils.getModNamespacedLocation(OVERWEIGHT_KEY);
+    public static final ResourceLocation OVERWEIGHT_ID = DefinitionUtils.getModNamespacedLocation(OVERWEIGHT_KEY);
     public static final Lazy<MobEffectInstance> EFFECT_INST = Lazy.of(
         () -> new MobEffectInstance(CarryCrateRegistries.OVERWEIGHT, MobEffectInstance.INFINITE_DURATION)
     );
@@ -65,7 +67,7 @@ public final class OverweightEffect extends MobEffect
             "This static constructor is only used for registration, provide DeferredRegister<MobEffect>!"
         );
         
-        CrispFunctionalUtils.throwIf(
+        FunctionalUtils.throwIf(
             !Objects.equals(deferredRegister.getNamespace(), CrispSweetberry.NAMESPACE),
             "External usage is not allowed!",
             IllegalArgumentException::new
@@ -79,27 +81,31 @@ public final class OverweightEffect extends MobEffect
         );
     }
     
-    public static float updateFactorAndEffect(@NotNull Player player, @NotNull CarryData data, boolean isPickingUp)
-        { return updateFactorAndEffect(player, data, isPickingUp, () -> {}); }
+    //? TODO: Check Factor, and try update when player changes gamemode.
+    public static float updateFactorAndEffect(@NotNull Player player, @NotNull CarryData data, @NotNull TriState state)
+        { return updateFactorAndEffect(player, data, state, DummyFunctionalConstants.DO_NOTHING_RUN); }
     
-    public static float updateFactorAndEffect(@NotNull Player player, @NotNull CarryData data, boolean isPickingUp, @NotNull Runnable unacceptableCallback)
+    public static float updateFactorAndEffect(@NotNull Player player, @NotNull CarryData data, @NotNull TriState state, @NotNull Runnable unacceptableCallback)
     {
         Objects.requireNonNull(player, "Param \"player\" must not be null!");
         Objects.requireNonNull(data, "Param \"data\" must not be null!");
+        Objects.requireNonNull(state, "Param \"state\" must not be null!");
         Objects.requireNonNull(unacceptableCallback, "Param \"unacceptableCallback\" must not be null!");
         
         final float layerFactor = data.unionData() instanceof CarryData.CarryBlockDataHolder holder ?
             (float) 1 / holder.getMaxCarryCount() :
             1F;
         
-        final float newFactor = Math.max(
-            0F,
-            player.getData(CarryCrateRegistries.CARRY_FACTOR.get()) +
-                CrispMathUtils.negativeIf(
-                    !isPickingUp,
+        final float newFactor = state.isDefault() ?
+            0F :
+            Math.max(
+                0F,
+                player.getData(CarryCrateRegistries.CARRY_FACTOR.get()) +
+                MathUtils.negativeIf(
+                    state.isFalse(),
                     data.causesOverweight() ? 1F : 0.5F
                 ) * layerFactor
-        );
+            );
         
         LOGGER.debug("Evaluated new factor value {}.", newFactor);
         

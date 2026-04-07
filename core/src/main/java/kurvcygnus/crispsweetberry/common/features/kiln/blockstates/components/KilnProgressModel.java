@@ -9,8 +9,9 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import com.mojang.logging.LogUtils;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,8 +38,10 @@ public final class KilnProgressModel
     
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "PROGRESS_MISMATCH");
     
-    public KilnProgressModel()
+    public KilnProgressModel(@NotNull KilnBlockEntity blockEntity)
     {
+        Objects.requireNonNull(blockEntity, "Param \"blockEntity\" must not be null!");
+        
         this.realProgress = 0D;
         this.visualProgress = 0D;
         this.trend = KilnEnumCollections.VisualTrend.TIP;
@@ -61,10 +64,12 @@ public final class KilnProgressModel
         if(this.realProgress >= 1D)
         {
             if(this.visualProgress < 1D)
-                LOGGER.warn("Kiln Model encountered a abnormal situation. Detail: visualProgress does not match realProgress when procession is " +
-                        "already done. visualProgress: {} \n{}",
+                LOGGER.warn("""
+                        Kiln Model encountered a abnormal situation. Detail: visualProgress does not match realProgress when procession is \
+                        already done. visualProgress: {}{}
+                        """,
                     this.visualProgress,
-                    MiscConstants.FEEDBACK_MESSAGE
+                    MetainfoConstants.FEEDBACK_MESSAGE
                 );
             
             this.realProgress = isStateless ? this.realProgress % 1 : 0D;

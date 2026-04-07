@@ -27,10 +27,21 @@ If you have any questions, feel free to ask.
    //  e.g.
    //* This is an important comment!
    //! This is a comment that explains potential errors.
+   //? This is a comment that records your confusion, TODO, or the explaination in build script and config.
    ```
+   
+   Also, you can write *reference* in comments, with pattern `[[]]`, both file and class reference are OK.
 
 3. All nullability annotations must come from **JetBrains annotations**
    (e.g. `@NotNull`, `@Nullable`) to avoid ambiguity caused by mixed annotation systems.
+
+4. After cloning the repo, **please initialize your local repo with these commands**:
+   ```shell
+    git config filter.hide-i18n.clean "sed 's/^i18n_path=.*/#i18n_path=/'"
+    git config filter.hide-i18n.smudge "cat"
+   ```
+   Then go to [Gradle Property Config](./gradle.properties) to set up your own translation generate location.\
+   These commands make sure that your own property config won't commited to git repo, and also Github Repo.
 
 ---
 
@@ -87,7 +98,8 @@ If you have any questions, feel free to ask.
       //endregion
       ```
 
-   **This will help everyone to understand the code easier, and faster**.
+   **This will help everyone to understand the code easier, and faster**.\
+   *(In IDEA, you can look the region structure of a unknown code by "Structure" function in the side toolbar)*
 
 6. For codes that are not too complicated, especially the simple inheritance implementation of a class,
    we don't force you to strictly follow the rules above, except the fifth rule, we believe that code should always be clean and readable. 

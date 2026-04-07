@@ -14,9 +14,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.Abstract
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -52,7 +52,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         @Nullable BlockState targetState,
         @NotNull LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
-        @Nullable Function<BlockState, CarryBlockPlaceContext> contextGenerator,
+        @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
         @Nullable CarryID optionalCarryID
     ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalCarryID); }
     
@@ -66,7 +66,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         if(!targetEntity.saveAsPassenger(tagData))
         {
             LOGGER.error("Error: Can not get entity \"{}\"'s unionData, interaction failed.");
-            return HandleResult.failed();
+            return HandleResult.FAILED;
         }
         
         final var optionalAdapter = createAdapter(targetEntity);
@@ -74,7 +74,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         if(optionalAdapter.isEmpty())
         {
             LOGGER.error("Cannot find entity \"{}\"'s adapter!", targetEntity.toString());
-            return HandleResult.failed();
+            return HandleResult.FAILED;
         }
         
         final AbstractEntityCarryAdapter<?> adapter = optionalAdapter.get();

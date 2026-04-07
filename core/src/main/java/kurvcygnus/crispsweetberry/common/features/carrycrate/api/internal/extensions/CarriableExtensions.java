@@ -11,7 +11,6 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.exten
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -95,14 +94,6 @@ public final class CarriableExtensions
          * <u>{@link net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity AbstractFurnaceBlockEntity.class}</u>)
          */
         @NotNull Class<?> getSupportedType();
-    }
-    
-    //? TODO: UI Ass stuff
-    public interface ICarryDisplayable
-    {
-        default void initRenderComponents(@NotNull ClientTooltipComponent... components) {}
-        
-        default void display() {}
     }
     
     public record TickingContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, @NotNull CarryData data, @NotNull String uuid, int slotId) {}

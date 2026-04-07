@@ -10,12 +10,12 @@ package kurvcygnus.crispsweetberry;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
-import kurvcygnus.crispsweetberry.utils.registry.objects.TabEntry;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.core.registry.TabEntry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -60,8 +60,8 @@ public final class CrispSweetberry
         LOGGER.info("Collecting annotation info...");
         final ModFileScanData scanData = modContainer.getModInfo().getOwningFile().getFile().getScanResult();
         
-        final List<ModFileScanData.AnnotationData> annotationData = scanData.getAnnotations().stream().filter(data -> 
-            ANNOTATIONS.contains(data.annotationType().getClassName())
+        final List<ModFileScanData.AnnotationData> annotationData = scanData.getAnnotations().stream().filter(
+            data -> ANNOTATIONS.contains(data.annotationType().getClassName())
         ).toList();
         
         LOGGER.info("Annotation collection completed!");
@@ -118,7 +118,7 @@ public final class CrispSweetberry
                     {
                         final IRegistrant registrant = (IRegistrant) clazz.getEnumConstants()[0];
                         
-                        CrispFunctionalUtils.throwIf(
+                        FunctionalUtils.throwIf(
                             !LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()),
                             String.format("Invalid priority: %s", registrant.getPriority().priority()),
                             IllegalArgumentException::new

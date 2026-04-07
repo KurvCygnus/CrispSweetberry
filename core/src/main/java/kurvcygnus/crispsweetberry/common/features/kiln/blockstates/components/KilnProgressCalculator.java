@@ -12,8 +12,8 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.NonNullList;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.*;
@@ -35,6 +35,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCa
 @ApiStatus.Internal
 public final class KilnProgressCalculator implements ICalculatorBridge
 {
+    //region Constants, Fields & Constructor
     private static final double NORMAL_PROGRESS_RATE = 0.005D;
     private static final double STANDARD_PROCESS_FACTOR = 1D;
     private static final int BALANCE_STATE_STANDARD_TICKS = 40;
@@ -69,44 +70,69 @@ public final class KilnProgressCalculator implements ICalculatorBridge
         MarkLogger.allowWhen(Level.DEBUG, MarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_CAL_DEBUG)
     );
     
-    public void setRecipesAndResultType(@NotNull NonNullList<KilnRecipe> recipes, @NotNull LogicalResult logicalResult)
+    public KilnProgressCalculator(@NotNull KilnBlockEntity blockEntity) { Objects.requireNonNull(blockEntity, "Param \"blockEntity\" must not be null!"); }
+    //endregion
+    
+    //region Calculation Logics
+    @CheckReturnValue private double evaluateFactor()
     {
-        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("ABNORMAL_RECIPES"))
+        double multipliedFactor = STANDARD_PROCESS_FACTOR;
+        double revaluateFactor = 0D;
+        boolean canUseAverageReward = true;
+        byte nonEmptyCount = 0;
+        final double currentProcessFactor;
+        
+        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("FACTOR_CAL"))
         {
-            if(this.recipes.size() != recipes.size())
+            for(final KilnRecipe recipe: recipes)
             {
-                if(!hasWarnedRecipeLengthMismatch || CrispConfig.KILN_BE_CAL_DEBUG.get())
+                LOGGER.debug(
+                    "Factor of recipe({}): {}",
+                    recipe,
+                    recipe.processFactor()
+                );
+                
+                //! Explanation: processFactor smaller than STANDARD_PROCESS_FACTOR means it is a recipe that processes faster than normal
+                //! process time, multiplying these value in such situation would lead to an imbalance.
+                //! Therefore, taking the average value of three small factors is the best solution.
+                //! Of course, this method will not be used if any of the value is greater than STANDARD_PROCESS_FACTOR.
+                if(recipe.processFactor() <= STANDARD_PROCESS_FACTOR)
+                    revaluateFactor += recipe.processFactor();
+                else
+                    canUseAverageReward = false;
+                
+                if(!Objects.equals(recipe, KilnBlockEntity.EMPTY_RECIPE))
                 {
-                    LOGGER.warn("Kiln recipes' length do NOT match, go check codes!");
-                    hasWarnedRecipeLengthMismatch = true;
+                    nonEmptyCount++;
+                    multipliedFactor *= recipe.processFactor();
                 }
-                return;
             }
             
-            for(int index = 0; index < recipes.size(); index++)
+            if(canUseAverageReward && nonEmptyCount == 0)
             {
-                //noinspection ConstantValue
-                if(recipes.get(index) == null)//! Defense check.
-                {
-                    if(!hasWarnedNullRecipe || CrispConfig.KILN_BE_CAL_DEBUG.get())
-                    {
-                        LOGGER.error("Denied new recipe for its invalidity. Null element start at -> 'Index {}'", index);
-                        hasWarnedNullRecipe = true;
-                    }
-                    
-                    return;
-                }
+                handle.changeMarker("FACTOR_ERR");
+                LOGGER.error("Recipe collection happens to be all empty! Content: {}", recipes.toString());
+                return Double.NaN;
             }
+            
+            currentProcessFactor = canUseAverageReward ?
+                (revaluateFactor / nonEmptyCount) :
+                multipliedFactor;
+            
+            handle.changeMarker("STRATEGY_SELECT");
+            LOGGER.debug(
+                "strategy = \"{}\", totalFactor = {}{}",
+                canUseAverageReward ?
+                    "Average" :
+                    "Multiply",
+                currentProcessFactor,
+                canUseAverageReward ?
+                    ", non-empty recipes: %d".formatted(nonEmptyCount) :
+                    ""
+            );
         }
         
-        this.recipes = recipes;
-        this.nonWorkingLogicalResult = logicalResult;
-    }
-    
-    public void synchronize(byte balanceTick, double balanceRate)
-    {
-        this.balanceTick = (byte) Math.clamp(balanceTick, 0, BALANCE_STATE_STANDARD_TICKS);
-        this.balanceRate = balanceRate;
+        return currentProcessFactor;
     }
     
     @Contract("_, _, _ -> new") @CheckReturnValue
@@ -114,13 +140,14 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     {
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("CALCULATION"))
         {
+            //region I: Boundary Check & Initialization
             if(processState != ProcessionState.WORKING)
             {
                 this.lastProcessFactor = Double.NaN;
                 this.balanceTick = 0;
                 this.balanceRate = 0D;
                 
-                //* Defensive measures are taken at KilnProgressModel#synchronize().
+                //* Defensive measures are taken at [[KilnProgressModel#synchronize()]].
                 final double decreasedRealProgress = currentRealProgress - NORMAL_PROGRESS_RATE;
                 final double decreasedVisualProgress = currentVisualProgress - NORMAL_PROGRESS_RATE;
                 
@@ -184,7 +211,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                         
                         {}
                         """,
-                        MiscConstants.FEEDBACK_MESSAGE
+                        MetainfoConstants.FEEDBACK_MESSAGE
                     );
                     hasWarnedAbnormalFactor = true;
                 }
@@ -193,7 +220,9 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 
                 return CalculationResult.unexpectedResult(currentRealProgress, currentVisualProgress);
             }
+            //endregion
             
+            //region II: Balance Check
             final boolean shouldBalance;
             
             if(!Double.isNaN(this.lastProcessFactor))
@@ -206,14 +235,16 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                     VisualTrend.BALANCE :
                     VisualTrend.BURST;
             
-            //! Double.NaN is not a number that really exists, it is defined by the layout of this double variable,
+            //! [[Double#NaN]] is not a number that really exists, it is defined by the layout of this double variable,
             //! and it doesn't equal to everything, including itself.
             if((Double.isNaN(this.lastProcessFactor) ? -1D : this.lastProcessFactor) != currentProcessFactor)
             {
                 handle.changeMarker("CAL_DATA_INFO");
                 LOGGER.debug("Factors: C: {}, L: {}", currentProcessFactor, this.lastProcessFactor);
             }
+            //endregion
             
+            //region III: Progress Calculation
             this.lastProcessFactor = currentProcessFactor;
             
             final double realChangeRate = NORMAL_PROGRESS_RATE / currentProcessFactor;
@@ -267,7 +298,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             {
                 handle.changeMarker("CAL_NORMAL_ERROR");
                 LOGGER.when(CrispConfig.KILN_BE_CAL_DEBUG.get()).error(
-                    "ProgressPair doesn't match. R: {}, V: {}",
+                    "ProgressPair doesn't fold. R: {}, V: {}",
                     newRealProgress,
                     newVisualProgress
                 );
@@ -286,9 +317,12 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 LogicalResult.CONTINUE,
                 VisualTrend.NORMAL
             );
+            //endregion
         }
     }
+    //endregion
     
+    //region Carry Compat
     @Override public double onCarriedSequence()
     {
         final double currentProcessFactor = this.evaluateFactor();
@@ -340,67 +374,51 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             )
         );
     }
+    //endregion
     
-    @CheckReturnValue private double evaluateFactor()
-    {
-        double multipliedFactor = STANDARD_PROCESS_FACTOR;
-        double revaluateFactor = 0D;
-        boolean canUseAverageReward = true;
-        byte nonEmptyCount = 0;
-        final double currentProcessFactor;
-        
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("FACTOR_CAL"))
-        {
-            for(final KilnRecipe recipe: recipes)
-            {
-                LOGGER.debug("Factor of recipe({}): {}",
-                    recipe, recipe.processFactor()
-                );
-                
-                //! Explanation: processFactor smaller than STANDARD_PROCESS_FACTOR means it is a recipe that processes faster than normal
-                //! process time, multiplying these value in such situation would lead to an imbalance.
-                //! Therefore, taking the average value of three small factors is the best solution.
-                //! Of course, this method will not be used if any of the value is greater than STANDARD_PROCESS_FACTOR.
-                if(recipe.processFactor() <= STANDARD_PROCESS_FACTOR)
-                    revaluateFactor += recipe.processFactor();
-                else
-                    canUseAverageReward = false;
-                
-                if(!Objects.equals(recipe, KilnBlockEntity.EMPTY_RECIPE))
-                {
-                    nonEmptyCount++;
-                    multipliedFactor *= recipe.processFactor();
-                }
-            }
-            
-            if(canUseAverageReward && nonEmptyCount == 0)
-            {
-                handle.changeMarker("FACTOR_ERR");
-                LOGGER.error("Recipe collection happens to be all empty! Content: {}", recipes.toString());
-                return Double.NaN;
-            }
-            
-            currentProcessFactor = canUseAverageReward ?
-                (revaluateFactor / nonEmptyCount) :
-                multipliedFactor;
-            
-            handle.changeMarker("STRATEGY_SELECT");
-            LOGGER.debug(
-                "strategy = \"{}\", totalFactor = {}{}",
-                canUseAverageReward ?
-                    "Average" :
-                    "Multiply",
-                currentProcessFactor,
-                canUseAverageReward ?
-                    ", non-empty recipes: %d".formatted(nonEmptyCount) :
-                    ""
-            );
-        }
-        
-        return currentProcessFactor;
-    }
-    
+    //region Getters & Setters
     public byte getBalanceTick() { return balanceTick; }
     
     public double getBalanceRate() { return balanceRate; }
+    
+    public void setRecipesAndResultType(@NotNull NonNullList<KilnRecipe> recipes, @NotNull LogicalResult logicalResult)
+    {
+        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("ABNORMAL_RECIPES"))
+        {
+            if(this.recipes.size() != recipes.size())
+            {
+                if(!hasWarnedRecipeLengthMismatch || CrispConfig.KILN_BE_CAL_DEBUG.get())
+                {
+                    LOGGER.warn("Kiln recipes' length do NOT fold, go check codes!");
+                    hasWarnedRecipeLengthMismatch = true;
+                }
+                return;
+            }
+            
+            for(int index = 0; index < recipes.size(); index++)
+            {
+                //noinspection ConstantValue
+                if(recipes.get(index) == null)//! Defense check.
+                {
+                    if(!hasWarnedNullRecipe || CrispConfig.KILN_BE_CAL_DEBUG.get())
+                    {
+                        LOGGER.error("Denied new recipe for its invalidity. Null element start at -> 'Index {}'", index);
+                        hasWarnedNullRecipe = true;
+                    }
+                    
+                    return;
+                }
+            }
+        }
+        
+        this.recipes = recipes;
+        this.nonWorkingLogicalResult = logicalResult;
+    }
+    
+    public void synchronize(byte balanceTick, double balanceRate)
+    {
+        this.balanceTick = (byte) Math.clamp(balanceTick, 0, BALANCE_STATE_STANDARD_TICKS);
+        this.balanceRate = balanceRate;
+    }
+    //endregion
 }

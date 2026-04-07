@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.phys.AABB;
@@ -57,8 +57,9 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
                         formatted(entity.getName().getString(), volume, MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
                 );
             
-            this.penaltyRate = (int) (DEFAULT_PENALTY_RATE /
-                ((volume == 0D ? MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME : volume) / MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME));
+            this.penaltyRate = (int) (
+                DEFAULT_PENALTY_RATE / (volume == 0D ? MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME : volume) * MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME
+            );
         }
         else//! The registry will grantee that this statement will only be used in the implementation.
             this.penaltyRate = -1;

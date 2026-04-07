@@ -7,7 +7,7 @@
 //==============================================================================
 
 /**
- * This package contains the main playable content of the mod, as well as the corresponding implementations, such as registries and events.<br><br>
+ * This package overlaps the main playable content of the mod, as well as the corresponding implementations, such as registries and events.<br><br>
  * <b>
  * NOTE: <br>
  * The final location of the code implementing a content depends on its attributes and size.</b><br>

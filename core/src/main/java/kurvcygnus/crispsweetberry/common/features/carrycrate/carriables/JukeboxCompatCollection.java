@@ -121,9 +121,9 @@ public final class JukeboxCompatCollection
         {
             final MusicInfo info = playList.get(carryID);
             
-            //* This levelEvent is actually LevelRenderer#playJukeboxSong(Holder<JukeboxSong>, BlockPos).
+            //* This levelEvent is actually [[LevelRenderer#playJukeboxSong(Holder<JukeboxSong>, BlockPos)]].
             //* It is only implemented in client side, and doesn't exist in abstract class,
-            //* So we can only call Level#levelEvent(Player, int, BlockPos, int).
+            //* So we can only call [[LevelAccessor#levelEvent(Player, int, BlockPos, int)]].
             //* On Serverside, this will send a packet to clientside,
             //* so there's no need to worry about sync stuff.
             level.levelEvent(null, 1010, pos, info.songID);

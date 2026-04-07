@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
+import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
 
 /**
  * This is a basic implementation of coin series' essential <u>{@link ICoinType contract}</u>,

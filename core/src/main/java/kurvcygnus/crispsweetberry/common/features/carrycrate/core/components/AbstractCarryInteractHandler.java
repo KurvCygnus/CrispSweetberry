@@ -10,13 +10,16 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.components;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection;
-import kurvcygnus.crispsweetberry.utils.data.Pair;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.utils.base.lang.Pair;
+import kurvcygnus.crispsweetberry.utils.base.trait.IBitmaskedEnum;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -28,15 +31,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.util.TriState;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.OperationType.*;
 
 /**
  * The basic of carry crate's I/O<i>(in/out)</i> handler.<br>
@@ -52,7 +58,7 @@ import static java.util.Objects.requireNonNull;
 public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEntityInteractHandler, CarryBlockInteractHandler, CarryEntityInteractHandler
 {
     protected static final String MISUSE_FAIL_MSG = 
-        "Assertion failed: \"unionData\" must not be null. This only means the internal logic has flawed, or get misused. %s".formatted(MiscConstants.FEEDBACK_MESSAGE);
+        "Assertion failed: \"unionData\" must not be null. This only means the internal logic has flawed, or get misused. %s".formatted(MetainfoConstants.FEEDBACK_MESSAGE);
     
     protected final ServerLevel level;
     
@@ -67,7 +73,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     private final @Nullable BlockState targetState;
     private final @Nullable LivingEntity targetEntity;
     private final @Nullable BlockEntity targetBlockEntity;
-    private final @Nullable Function<BlockState, CarryBlockPlaceContext> contextGenerator;
+    private final @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator;
     protected final @Nullable CarryID optionalCarryID;
     protected final boolean hasData;
     
@@ -79,7 +85,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         @Nullable BlockState targetState,
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
-        @Nullable Function<BlockState, CarryBlockPlaceContext> contextGenerator,
+        @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
         @Nullable CarryID optionalCarryID
     )
     {
@@ -136,10 +142,11 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             "ItemStack \"{}\" has CarryID \"{}\", but has no carryData, returning \"PASS\" as interact result. This is a serious persistent issue. {}",
             carryCrate.toString(),
             optionalCarryID,
-            MiscConstants.FEEDBACK_MESSAGE
+            MetainfoConstants.FEEDBACK_MESSAGE
         );
         
-        //! From this#handle(UseOnContext), #unbox(CarryBlockPlaceContext) only have two cases:
+        //! From [[AbstractCarryInteractHandler#handle(UseOnContext)]],
+        //! [[AbstractCarryInteractHandler#unbox(StatedBlockPlaceContext)]] only have two cases:
         //! 1. optionalUUID is null.
         //! 2. unionData is null.
         //! So we can do this assertion.
@@ -203,7 +210,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     /**
      * @apiNote <span style="color: red">Throws <u>{@link NullPointerException NPE}</u> the caller is <u>{@link CarryEntityInteractHandler}</u>.</span>
      */
-    protected final @NotNull Function<BlockState, CarryBlockPlaceContext> getContextGenerator()
+    protected final @NotNull Function<BlockState, StatedBlockPlaceContext> getContextGenerator()
     {
         requireNonNull(
             contextGenerator,
@@ -215,31 +222,72 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     
     /**
      * The result object, holding the procession result, and the sequence of following operations.
-     * @since 1.0 Release
-     * @param data The serialized unionData of the carry object.
-     * @param flags The operations that will be processed by <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine Engine}</u>.<br>
-     *              <i>Based on <u><a href="https://en.wikipedia.org/wiki/Mask_(computing)">Bitmask</a></u>.</i>
-     * @param result Used by <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine Engine}</u>, passing as the
-     *               <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem Carry Crate}</u>'s interact result.
-     * @param carryID The collection of this carry object's <u>{@link ResourceLocation}</u> and UUID.
      * @author Kurv Cygnus
+     * @since 1.0 Release
      */
-    public record HandleResult(
-        @NotNull Optional<CarryData> data,
-        @Range(from = 0, to = Integer.MAX_VALUE) int flags,
-        @NotNull InteractionResult result,
-        @NotNull Optional<CarryID> carryID,
-        @NotNull Optional<BlockEntityType<?>> blockEntityType
-    )
+    public static final class HandleResult
     {
-        private static final int LISTENER_ADD    = 1;// 1 << 0
-        private static final int LISTENER_REMOVE = 2;// 2 << 0
+        private static final int LISTENER_ADD    = LISTENER.shiftTrue();//  1
+        private static final int LISTENER_REMOVE = LISTENER.shiftFalse();// 2
         
-        private static final int COMPONENT_INSERT = 1 << 2;// 4
-        private static final int COMPONENT_REMOVE = 2 << 2;// 8
+        private static final int COMPONENT_INSERT = COMPONENT.shiftTrue();//  4
+        private static final int COMPONENT_REMOVE = COMPONENT.shiftFalse();// 8
         
-        private static final int TARGET_TAKE    = 1 << 4;// 16
-        private static final int TARGET_RELEASE = 2 << 4;// 32
+        private static final int TARGET_TAKE    = TARGET.shiftTrue();//  16
+        private static final int TARGET_RELEASE = TARGET.shiftFalse();// 32
+
+        
+        /**
+         * Represents the expected situation of failed attempt.
+         */
+        public static final HandleResult FAILED = new HandleResult(
+            null,
+            0,
+            InteractionResult.FAIL,
+            null,
+            null
+        );
+        
+        /**
+         * The serialized data of the carry object.
+         */
+        private final @Nullable CarryData data;
+        
+        /**
+         * The operations that will be processed by <u>{@link CarryEngine Engine}</u>.<br>
+         * <i>Based on <u><a href="https://en.wikipedia.org/wiki/Mask_(computing)">Bitmask</a></u>.</i>
+         * @see OperationType
+         */
+        @MagicConstant(flagsFromClass = HandleResult.class) private final @Range(from = 0, to = Integer.MAX_VALUE) int flags;
+        
+        /**
+         * Used by <u>{@link CarryEngine Engine}</u>, passing as the
+         * <u>{@link CarryCrateItem Carry Crate}</u>'s interact result.
+         */
+        private final @NotNull InteractionResult result;
+        
+        /**
+         * The collection of this carry object's <u>{@link ResourceLocation}</u> and UUID.
+         */
+        private final @Nullable CarryID carryID;
+        private final @Nullable BlockEntityType<?> blockEntityType;
+        
+        private HandleResult(
+            @Nullable CarryData data,
+            @Range(from = 0, to = Integer.MAX_VALUE) @MagicConstant(flagsFromClass = HandleResult.class) int flags,
+            @NotNull InteractionResult result,
+            @Nullable CarryID carryID,
+            @Nullable BlockEntityType<?> blockEntityType
+        )
+        {
+            requireNonNull(result, "Param \"result\" must not be null!");
+            
+            this.data            = data;
+            this.flags           = flags;
+            this.result          = result;
+            this.carryID         = carryID;
+            this.blockEntityType = blockEntityType;
+        }
         
         public static @NotNull HandleResult boxIn(
             @NotNull CarryData carryData,
@@ -248,6 +296,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         
         /**
          * Represents the expected procession result of <u>{@link #boxIn()}</u> method.
+         *
          * @param addAsExtra Decides whether the following procession is increase the value of {@code carryCount}.
          *                   <span style="color: red">Only meant to be used by <u>{@link CarryBlockInteractHandler}</u>.</span>
          */
@@ -258,7 +307,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         )
         {
             requireNonNull(carryData, "Param \"carryData\" must not be null!");
-            CrispFunctionalUtils.throwIf(
+            FunctionalUtils.throwIf(
                 carryID == null && !addAsExtra,
                 "Param \"uuid\" must not be null when unionData won't be added as extra!",
                 IllegalArgumentException::new
@@ -267,25 +316,11 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             final int flags = COMPONENT_INSERT | TARGET_TAKE | (addAsExtra ? 0 : LISTENER_ADD);
             
             return new HandleResult(
-                Optional.of(carryData),
+                carryData,
                 flags,
                 InteractionResult.SUCCESS,
-                Optional.ofNullable(carryID),
-                Optional.empty()
-            );
-        }
-        
-        /**
-         * Represents the expected situation of failed attempt.
-         */
-        public static @NotNull HandleResult failed()
-        {
-            return new HandleResult(
-                Optional.empty(),
-                0,
-                InteractionResult.FAIL,
-                Optional.empty(),
-                Optional.empty()
+                carryID,
+                null
             );
         }
         
@@ -298,11 +333,11 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             requireNonNull(carryID, "Param \"carryID\" must not be null!");
             
             return new HandleResult(
-                Optional.empty(),
+                null,
                 LISTENER_REMOVE,
                 InteractionResult.PASS,
-                Optional.of(carryID),
-                Optional.empty()
+                carryID,
+                null
             );
         }
         
@@ -332,48 +367,75 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
                 LISTENER_REMOVE | COMPONENT_REMOVE | TARGET_RELEASE;
             
             return new HandleResult(
-                Optional.of(data),
+                data,
                 flags,
                 InteractionResult.SUCCESS,
-                Optional.ofNullable(carryID),
-                Optional.ofNullable(blockEntityType)
+                carryID,
+                blockEntityType
             );
         }
         
-        public @NotNull Pair<OperationType, TriState> getListenerState()
-            { return new Pair<>(OperationType.LISTENER, OperationType.LISTENER.getTriFlag(flags)); }
+        public @NotNull Pair<OperationType, TriState> getListenerState() { return new Pair<>(LISTENER, LISTENER.compute(flags)); }
+        public @NotNull Pair<OperationType, TriState> getComponentState() { return new Pair<>(COMPONENT, COMPONENT.compute(flags)); }
+        public @NotNull Pair<OperationType, TriState> getTargetState() { return new Pair<>(TARGET, TARGET.compute(flags)); }
         
-        public @NotNull Pair<OperationType, TriState> getComponentState()
-            { return new Pair<>(OperationType.COMPONENT, OperationType.COMPONENT.getTriFlag(flags)); }
+        public @NotNull Optional<CarryData> data() { return Optional.ofNullable(data); }
         
-        public @NotNull Pair<OperationType, TriState> getTargetState()
-            { return new Pair<>(OperationType.TARGET, OperationType.TARGET.getTriFlag(flags)); }
-    }
-    
-    public enum OperationType
-    {
-        LISTENER(0),
-        COMPONENT(2),
-        TARGET(4);
+        public @NotNull InteractionResult result() { return result; }
         
-        private static final int MASK = 0x3;
-        private static final int STATE_TRUE = 1;
-        private static final int STATE_FALSE = 2;
+        public @NotNull Optional<CarryID> carryID() { return Optional.ofNullable(carryID); }
         
-        private final int shift;
+        public @NotNull Optional<BlockEntityType<?>> blockEntityType() { return Optional.ofNullable(blockEntityType); }
         
-        OperationType(int shift) { this.shift = shift; }
-        
-        public @NotNull TriState getTriFlag(int flag)
+        @Override public boolean equals(@Nullable Object obj)
         {
-            final int state = (flag >> shift) & MASK;
-            
-            return switch(state)
-            {
-                case STATE_TRUE -> TriState.TRUE;
-                case STATE_FALSE -> TriState.FALSE;
-                default -> TriState.DEFAULT;
-            };
+            return obj instanceof HandleResult that &&
+                Objects.equals(this.data, that.data) &&
+                this.flags == that.flags &&
+                Objects.equals(this.result, that.result) &&
+                Objects.equals(this.carryID, that.carryID) &&
+                Objects.equals(this.blockEntityType, that.blockEntityType);
+        }
+        
+        @Override public int hashCode() { return Objects.hash(data, flags, result, carryID, blockEntityType); }
+        
+        /**
+         * @apiNote <b>It is recommend to use this in debug only. It brings more performance penalty comparing to most <u>{@link Object#toString() toStrings}</u>.</b>
+         */
+        @Override public @NotNull String toString()
+        {
+            return """
+                   
+                   HandleResult
+                   {
+                       data: %s
+                       flags: %s
+                       result: %s
+                       carryID: %s
+                       blockEntityType: %s
+                   }
+                   """.
+                formatted(
+                    this.data,
+                    """
+                        
+                        {
+                            Listener: %s
+                            Component: %s
+                            Target: %s
+                        }
+                        """.
+                        formatted(
+                            this.getListenerState().toString(),
+                            this.getComponentState().toString(),
+                            this.getTargetState().toString()
+                        ),
+                    this.result,
+                    this.carryID,
+                    this.blockEntityType
+                );
         }
     }
+    
+    public enum OperationType implements IBitmaskedEnum<OperationType> { LISTENER, COMPONENT, TARGET }
 }

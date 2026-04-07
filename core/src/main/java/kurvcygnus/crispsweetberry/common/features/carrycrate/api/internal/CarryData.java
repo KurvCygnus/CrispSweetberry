@@ -15,7 +15,7 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -70,7 +70,7 @@ public final class CarryData
     {
         Objects.requireNonNull(carryType, "Param \"carryType\" must not be null!");
         Objects.requireNonNull(unionData, "Param \"unionData\" must not be null!");
-        CrispFunctionalUtils.throwIf(startTime < 0, "Param \"startTime\" must be greater than 0!", IllegalArgumentException::new);
+        FunctionalUtils.throwIf(startTime < 0, "Param \"startTime\" must be greater than 0!", IllegalArgumentException::new);
         
         this.carryType = carryType;
         this.unionData = unionData;
@@ -163,14 +163,8 @@ public final class CarryData
     
     @Override public boolean equals(@Nullable Object obj)
     {
-        if(obj == this)
-            return true;
-        if(obj == null || obj.getClass() != this.getClass())
-            return false;
-        
-        final CarryData that = (CarryData) obj;
-        
-        return Objects.equals(this.carryType, that.carryType) &&
+        return obj instanceof CarryData that &&
+            Objects.equals(this.carryType, that.carryType) &&
             Objects.equals(this.unionData, that.unionData) &&
             this.startTime == that.startTime;
     }
@@ -226,18 +220,18 @@ public final class CarryData
     public static final class CarryBlockDataHolder extends CarryDataBaseHolder
     {
         public static final MapCodec<CarryBlockDataHolder> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
-                Codec.INT.fieldOf("penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
-                BlockState.CODEC.fieldOf("state").forGetter(CarryBlockDataHolder::getState),
-                Codec.INT.fieldOf("carry_count").forGetter(CarryBlockDataHolder::getCarryCount),
-                Codec.INT.fieldOf("max_carry_count").forGetter(CarryBlockDataHolder::getMaxCarryCount)
+                Codec.INT.fieldOf(        "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
+                BlockState.CODEC.fieldOf( "state").forGetter(CarryBlockDataHolder::getState),
+                Codec.INT.fieldOf(        "carry_count").forGetter(CarryBlockDataHolder::getCarryCount),
+                Codec.INT.fieldOf(        "max_carry_count").forGetter(CarryBlockDataHolder::getMaxCarryCount)
             ).apply(inst, CarryBlockDataHolder::new)
         );
         
         public static final StreamCodec<ByteBuf, CarryBlockDataHolder> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, CarryDataBaseHolder::getPenaltyRate,
+            ByteBufCodecs.VAR_INT,                     CarryDataBaseHolder::getPenaltyRate,
             ByteBufCodecs.fromCodec(BlockState.CODEC), CarryBlockDataHolder::getState,
-            ByteBufCodecs.VAR_INT, CarryBlockDataHolder::getCarryCount,
-            ByteBufCodecs.VAR_INT, CarryBlockDataHolder::getMaxCarryCount,
+            ByteBufCodecs.VAR_INT,                     CarryBlockDataHolder::getCarryCount,
+            ByteBufCodecs.VAR_INT,                     CarryBlockDataHolder::getMaxCarryCount,
             CarryBlockDataHolder::new
         );
         
@@ -256,11 +250,11 @@ public final class CarryData
             super(penaltyRate);
             
             Objects.requireNonNull(state, "Param \"state\" must not be null!");
-            CrispFunctionalUtils.throwIf(carryCount < 1, "Param \"carryCount\" must be a positive integer!", IllegalArgumentException::new);
-            CrispFunctionalUtils.throwIf(maxCarryCount < 1, "Param \"maxCarryCount\" must be a positive integer!", IllegalArgumentException::new);
+            FunctionalUtils.throwIf(carryCount < 1, "Param \"carryCount\" must be a positive integer!", IllegalArgumentException::new);
+            FunctionalUtils.throwIf(maxCarryCount < 1, "Param \"maxCarryCount\" must be a positive integer!", IllegalArgumentException::new);
             
-            this.state = state;
-            this.carryCount = carryCount;
+            this.state         = state;
+            this.carryCount    = carryCount;
             this.maxCarryCount = maxCarryCount;
         }
         
@@ -270,7 +264,7 @@ public final class CarryData
         
         public @Range(from = 1, to = Integer.MAX_VALUE) int getMaxCarryCount() { return maxCarryCount; }
         
-        @SuppressWarnings("unchecked")//! Unsafe casting, but is relatively markAsSafe as it is only used in internals.
+        @SuppressWarnings("unchecked")//! Unsafe casting, but is relatively safe as it is only used in internals.
         @Override public @NotNull <T> T getCreationData() { return (T) this.state.getBlock(); }
         
         @Override public @NotNull CarryType getBoundType() { return CarryType.BLOCK; }
@@ -294,16 +288,16 @@ public final class CarryData
     public static final class CarryEntityDataHolder extends CarryDataBaseHolder
     {
         public static final MapCodec<CarryEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
-                Codec.INT.fieldOf("penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
-                BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("type").forGetter(CarryEntityDataHolder::getType),
-                CompoundTag.CODEC.fieldOf("tag_data").forGetter(CarryEntityDataHolder::getTagData)
+                Codec.INT.fieldOf(                                   "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
+                BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(CarryEntityDataHolder::getType),
+                CompoundTag.CODEC.fieldOf(                           "tag_data").forGetter(CarryEntityDataHolder::getTagData)
             ).apply(inst, CarryEntityDataHolder::new)
         );
         
         public static final StreamCodec<ByteBuf, CarryEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, CarryDataBaseHolder::getPenaltyRate,
+            ByteBufCodecs.VAR_INT,                                                CarryDataBaseHolder::getPenaltyRate,
             ByteBufCodecs.fromCodec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()), CarryEntityDataHolder::getType,
-            ByteBufCodecs.COMPOUND_TAG, CarryEntityDataHolder::getTagData,
+            ByteBufCodecs.COMPOUND_TAG,                                           CarryEntityDataHolder::getTagData,
             CarryEntityDataHolder::new
         );
         
@@ -316,7 +310,7 @@ public final class CarryData
             Objects.requireNonNull(type, "Param \"type\" must not be null!");
             Objects.requireNonNull(tagData, "Param \"tagData\" must not be null!");
             
-            this.type = type;
+            this.type    = type;
             this.tagData = tagData;
         }
         
@@ -347,18 +341,18 @@ public final class CarryData
     public static final class CarryBlockEntityDataHolder extends CarryDataBaseHolder
     {
         public static final MapCodec<CarryBlockEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
-                Codec.INT.fieldOf("penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
-                BlockState.CODEC.fieldOf("state").forGetter(CarryBlockEntityDataHolder::getState),
-                BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec().fieldOf("type").forGetter(CarryBlockEntityDataHolder::getType),
-                CompoundTag.CODEC.fieldOf("tag_data").forGetter(CarryBlockEntityDataHolder::getTagData)
+                Codec.INT.fieldOf(                                         "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
+                BlockState.CODEC.fieldOf(                                  "state").forGetter(CarryBlockEntityDataHolder::getState),
+                BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(CarryBlockEntityDataHolder::getType),
+                CompoundTag.CODEC.fieldOf(                                 "tag_data").forGetter(CarryBlockEntityDataHolder::getTagData)
             ).apply(inst, CarryBlockEntityDataHolder::new)
         );
         
         public static final StreamCodec<ByteBuf, CarryBlockEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, CarryDataBaseHolder::getPenaltyRate,
-            ByteBufCodecs.fromCodec(BlockState.CODEC), CarryBlockEntityDataHolder::getState,
+            ByteBufCodecs.VAR_INT,                                                      CarryDataBaseHolder::getPenaltyRate,
+            ByteBufCodecs.fromCodec(BlockState.CODEC),                                  CarryBlockEntityDataHolder::getState,
             ByteBufCodecs.fromCodec(BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec()), CarryBlockEntityDataHolder::getType,
-            ByteBufCodecs.COMPOUND_TAG, CarryBlockEntityDataHolder::getTagData,
+            ByteBufCodecs.COMPOUND_TAG,                                                 CarryBlockEntityDataHolder::getTagData,
             CarryBlockEntityDataHolder::new
         );
         
@@ -379,8 +373,8 @@ public final class CarryData
             Objects.requireNonNull(type, "Param \"componentExecutionType\" must not be null!");
             Objects.requireNonNull(tagData, "Param \"tagData\" must not be null!");
             
-            this.state = state;
-            this.type = type;
+            this.state   = state;
+            this.type    = type;
             this.tagData = tagData;
         }
         

@@ -8,8 +8,8 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
-import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -35,9 +35,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.*;
-import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_PITCH;
-import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_VOLUME;
-import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_PITCH;
+import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_VOLUME;
 import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
 /**
@@ -77,7 +77,7 @@ public abstract class AbstractTemporaryTorchBehavior
         if(!isStateLengthLegal)
         {
             //noinspection NonStrictComparisonCanBeEquality
-            CrispFunctionalUtils.throwIf(
+            FunctionalUtils.throwIf(
                 stateLength <= 0,//! Defensive check.
                 "The attachTag length of tempo torches should be a positive integer! Current length: %d".formatted(stateLength),
                 IllegalArgumentException::new

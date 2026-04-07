@@ -17,11 +17,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 
+@ApiStatus.Internal
 public final class CarryInteractContextCollection
 {
     public sealed interface ICarryInteractContext
@@ -44,6 +47,8 @@ public final class CarryInteractContextCollection
     
     public record CarryBlocklikeInteractContext(@NotNull UseOnContext context) implements ICarryInteractContext
     {
+        public CarryBlocklikeInteractContext { Objects.requireNonNull(context, "Param \"context\" must not be null!"); }
+        
         @Override public @NotNull ItemStack getCarryCrate() { return context.getItemInHand(); }
         
         @Override public @NotNull Level getLevel() { return context.getLevel(); }
@@ -55,6 +60,13 @@ public final class CarryInteractContextCollection
     
     public record CarryEntityInteractContext(@NotNull ItemStack carryCrate, @NotNull Player player, @NotNull LivingEntity target) implements ICarryInteractContext
     {
+        public CarryEntityInteractContext
+        {
+            Objects.requireNonNull(carryCrate, "Param \"carryCrate\" must not be null!");
+            Objects.requireNonNull(player, "Param \"player\" must not be null!");
+            Objects.requireNonNull(target, "Param \"target\" must not be null!");
+        }
+        
         @Override public @NotNull ItemStack getCarryCrate() { return carryCrate; }
         
         @Override public @NotNull Level getLevel() { return player.level(); }

@@ -7,7 +7,7 @@
 //==============================================================================
 
 /**
- * This package contains large, self-contained gameplay features.
+ * This package overlaps large, self-contained gameplay features.
  * A feature usually consists of:<ul>
  * <li>Blocks / Items</li>
  * <li>BlockEntities</li>

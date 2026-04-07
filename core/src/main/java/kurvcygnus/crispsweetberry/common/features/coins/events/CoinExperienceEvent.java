@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.coins.events;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
@@ -90,7 +90,7 @@ public final class CoinExperienceEvent
         final ItemStack result = event.getInventory().getItem(UNIVERSAL_RESULT_SLOT_INDEX);
         int coinCount = 0;
         
-        for(int inputIndex = ranger.getMin(); ranger.inRange(inputIndex); inputIndex++)
+        for(int inputIndex = ranger.min(); ranger.inRange(inputIndex); inputIndex++)
         {
             final ItemStack material = event.getInventory().getItem(inputIndex);
             
@@ -98,7 +98,7 @@ public final class CoinExperienceEvent
             {
                 coinCount++;
                 
-                if(inputIndex == ranger.getMax() && coinCount == 1 && CoinRecipeCollectEvent.getCoinDisassembleRecipes().containsKey(result.getItem()))
+                if(inputIndex == ranger.max() && coinCount == 1 && CoinRecipeCollectEvent.getCoinDisassembleRecipes().containsKey(result.getItem()))
                 {
                     final Player player = event.getEntity();
                     final ServerLevel level = (ServerLevel) player.level();

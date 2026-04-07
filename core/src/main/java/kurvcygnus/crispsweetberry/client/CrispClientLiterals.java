@@ -8,8 +8,13 @@
 
 package kurvcygnus.crispsweetberry.client;
 
+import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
+import kurvcygnus.crispsweetberry.utils.UIUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+
+import java.util.function.Supplier;
 
 public final class CrispClientLiterals
 {
@@ -25,4 +30,12 @@ public final class CrispClientLiterals
         key = CRISP_CONTROL_MENU_CATEGORY_KEY
     )
     public static final Component CRISP_CONTROL_MENU_CATEGORY = Component.translatable(CRISP_CONTROL_MENU_CATEGORY_KEY);
+    
+    @AutoI18n({
+        "en_us = Hold Shift for more information...",
+        "lol_us = Krouch 4 info lol",
+        "zh_cn = 按住Shift以获取详细信息..."
+    })
+    public static final Supplier<MutableComponent> UI__SHIFT_FOR_MORE_INFO = () ->
+        UIUtils.dimmedItalicText("%s.ui.shift_for_more_info".formatted(CrispSweetberry.NAMESPACE));
 }

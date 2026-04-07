@@ -22,7 +22,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -74,15 +74,15 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     //region Constants & Fields
     //*:=== Constants
     private static final int[] INPUT_SLOTS = {
-        KILN_INPUT_SLOTS_RANGE.getMin(),
-        KILN_INPUT_SLOTS_RANGE.getMin() + 1,
-        KILN_INPUT_SLOTS_RANGE.getMax()
+        KILN_INPUT_SLOTS_RANGE.min(),
+        KILN_INPUT_SLOTS_RANGE.min() + 1,
+        KILN_INPUT_SLOTS_RANGE.max()
     };
     
     private static final int[] OUTPUT_SLOTS = {
-        KILN_OUTPUT_SLOTS_RANGE.getMin(),
-        KILN_OUTPUT_SLOTS_RANGE.getMin() + 1,
-        KILN_OUTPUT_SLOTS_RANGE.getMax()
+        KILN_OUTPUT_SLOTS_RANGE.min(),
+        KILN_OUTPUT_SLOTS_RANGE.min() + 1,
+        KILN_OUTPUT_SLOTS_RANGE.max()
     };
     
     private static final String NBT_TAG_VISUAL_PROGRESS = "visualProgress";
@@ -110,8 +110,8 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
      * Field <u>{@link KilnProgressModel KilnProgressModel}</u> keeps
      * both real and visual progress of the kiln, and the model itself has some private methods specifically for fixing value.
      */
-    private final KilnProgressModel model = new KilnProgressModel();
-    private final KilnProgressCalculator calculator = new KilnProgressCalculator();
+    private final KilnProgressModel model = new KilnProgressModel(this);
+    private final KilnProgressCalculator calculator = new KilnProgressCalculator(this);
     private final ContainerData data = new KilnContainerData(this);
     
     //*:== Logical Procession Data
@@ -217,9 +217,9 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
         
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
-            for(int slotIndex = KILN_INPUT_SLOTS_RANGE.getMin(); KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
+            for(int slotIndex = KILN_INPUT_SLOTS_RANGE.min(); KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
             {
-                final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.getMin();
+                final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.min();
                 final ItemStack stackInSlot = containerItems.get(slotIndex);
                 
                 LOGGER.debug("slotIndex: {}, cacheIndex: {}, content: {}",
@@ -409,7 +409,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
         //* Emulation succeed, then apply emulated results.
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
         {
-            final int outputIndex = index + KILN_OUTPUT_SLOTS_RANGE.getMin();
+            final int outputIndex = index + KILN_OUTPUT_SLOTS_RANGE.min();
             blockEntity.containerItems.set(outputIndex, emulatedOutputSlots.get(index).copy());
         }
         
@@ -444,7 +444,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                     invalidAttempts++;
                     
                     if(emptyStackIndex == null && emulatedOutputStack.isEmpty())
-                        emptyStackIndex = attemptSlotIndex;//! Only assigns the earliest matched index to emptyStackIndex to make sure the merge
+                        emptyStackIndex = attemptSlotIndex;//! Only assigns the earliest matched index to emptyStackIndex to make sure the union
                                                            //! behavior is same as vanilla.
                     
                     if(invalidAttempts >= 3)
@@ -494,7 +494,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
         if(level == null || level.isClientSide)
             return false;
         
-        for(int index = KILN_INPUT_SLOTS_RANGE.getMin(); KILN_INPUT_SLOTS_RANGE.inRange(index); index++)
+        for(int index = KILN_INPUT_SLOTS_RANGE.min(); KILN_INPUT_SLOTS_RANGE.inRange(index); index++)
         {
             final ItemStack stack = blockEntity.containerItems.get(index);
             final ItemStack remainingStack;

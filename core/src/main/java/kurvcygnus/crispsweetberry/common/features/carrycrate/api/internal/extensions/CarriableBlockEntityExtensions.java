@@ -15,7 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarriableLifecycle;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -94,7 +94,7 @@ public final class CarriableBlockEntityExtensions
             method is called at improper time, with improper param.
             
             %s
-            """.formatted(MiscConstants.FEEDBACK_MESSAGE);
+            """.formatted(MetainfoConstants.FEEDBACK_MESSAGE);
         
         /**
          * A fallback penalty Rate getter for registration validation, and edge case fallback.
@@ -151,7 +151,7 @@ public final class CarriableBlockEntityExtensions
          *  )
          *  {
          *      final CompoundTag dataTag = blockEntity.saveCustomOnly(registries);
-         *      tag.merge(dataTag);
+         *      tag.union(dataTag);
          *  }
          * }</pre>
          */

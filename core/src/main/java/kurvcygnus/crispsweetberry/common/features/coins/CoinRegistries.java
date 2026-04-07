@@ -15,8 +15,8 @@ import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.SetCoinCount
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;

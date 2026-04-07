@@ -61,14 +61,14 @@
 
 ## 模组信息
 
-澄莓物语目前仅适用于我的世界**26.1**, 和**1.21.1** *(长期支持)* 的**NeoForge**模组加载器. 大版本的升级将伴随着**一系列新特性，以及一个相应的主题**, 就像官方的我的世界更新一样.\
+澄莓物语目前仅适用于我的世界**26.1 NeoForge**模组加载器. 大版本的升级将伴随着**一系列新特性，以及一个相应的主题**, 就像官方的我的世界更新一样.\
 如果某些**扩展性强的特性**足够受欢迎，我们会考虑把它们拆分成一些独立的库模组.
 
 ---
 
 ## 安装教程
 
-1. 下载适用于 **Minecraft 26.1** / **Minecraft 1.21.1** 的 **NeoForge** 模组加载器, 你可以访问NeoForge的官方开始文档, 其中包含详细的安装步骤, 请访问[**此链接**](https://docs.neoforged.net/user/docs/).
+1. 下载适用于 **Minecraft 26.1 NeoForge** 模组加载器, 你可以访问NeoForge的官方开始文档, 其中包含详细的安装步骤, 请访问[**此链接**](https://docs.neoforged.net/user/docs/).
 2. 从我们的发布页面或CurseForge、Modrinth下载 **Crisp Sweetberry** 模组文件.
 3. 把**澄莓物语**的模组文件放入你自己的安装过**NeoForge**的我的世界的 **`mods`** 文件夹中.
 4. **现在你可以开始玩了! 享受澄莓物语的乐趣吧!**
@@ -82,7 +82,7 @@
 
 点击[这里](PLACEHOLDER)来加入我们的Discord服务器!
 
-点击[这里](PLACEHOLDER)来进行游戏反馈!
+点击[这里](https://github.com/KurvCygnus/CrispSweetberry/issues)来进行游戏反馈!
 
 ---
 
@@ -90,7 +90,9 @@
 
 以下是澄莓物语的贡献者们, 每个人都是我们社区的重要成员!
 
-*占位符 UwU*
+### 核心维护者
+
+- 项目发起 & 主维护者: [Kurv Cygnus](https://github.com/KurvCygnus)
 
 ---
 

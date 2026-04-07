@@ -9,14 +9,15 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.self;
 
 import com.mojang.logging.LogUtils;
+import kurvcygnus.crispsweetberry.client.CrispClientLiterals;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.base.extension.StackableToolBlockItem;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -24,7 +25,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
@@ -32,19 +32,19 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.IntFunction;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants.*;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.CarryBlocklikeInteractContext;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.CarryEntityInteractContext;
 
-public final class CarryCrateItem extends BlockItem implements IStackableTool<CarryCrateItem>
+public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
 {
-    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final Logger LOGGER = LogUtils.getLogger();
     
     public CarryCrateItem() { super(CarryCrateRegistries.CARRY_CRATE_BLOCK.value(), new Properties()); }
     
@@ -63,9 +63,7 @@ public final class CarryCrateItem extends BlockItem implements IStackableTool<Ca
         if(player == null)
             return InteractionResult.PASS;
         
-        final boolean isCrunching = player.isShiftKeyDown();
-        
-        if(!isCrunching)
+        if(!player.isShiftKeyDown())
         {
             if(context.getItemInHand().has(CarryCrateRegistries.CARRY_CRATE_DATA.get()) || context.getItemInHand().has(CarryCrateRegistries.CARRY_ID.get()))
                 return InteractionResult.PASS;
@@ -85,7 +83,7 @@ public final class CarryCrateItem extends BlockItem implements IStackableTool<Ca
             !(stack.getItem() instanceof CarryCrateItem) ||
             !stack.has(CarryCrateRegistries.CARRY_ID.get()) ||
             !stack.has(CarryCrateRegistries.CARRY_CRATE_DATA.get())
-        ) return;//! Due to C/S sync, and also the competitive state between this method and CarryEngine, early return at here can prevent potential NPE.
+        ) return;//! Due to C/S sync, and also the competitive state between this method and [[CarryEngine]], early return at here can prevent potential NPE.
         
         CarryEngine.carryingTick(this, stack, level, entity, slotId);
     }
@@ -104,20 +102,13 @@ public final class CarryCrateItem extends BlockItem implements IStackableTool<Ca
             CARRY_CRATE_MAX_DURABILITY
         );
         
-        final IntFunction<Component> rangerSearch = index ->
-            switch(index)
-            {
-                case LOW_DURA_INDEX -> UI__CARRY_CRATE__LOW_DURABILITY_DESCRIPTION;
-                case MEDIUM_DURA_INDEX -> UI__CARRY_CRATE__MEDIUM_DURABILITY_DESCRIPTION;
-                case HIGH_DURA_INDEX -> UI__CARRY_CRATE__HIGH_DURABILITY_DESCRIPTION;
-                default -> throw new IllegalStateException("Impossible Index: %d".formatted(index));
-            };
-        
-        final Component durabilityText = rangerSearch.apply(CrispRanger.inRangers(durability, DURABILITY_RANGERS));
-        tooltipComponents.add(durabilityText);
+        tooltipComponents.add(DESCRIPTION_DISPATCHER.getValueOrThrow(durability));
         
         if(!tooltipFlag.hasShiftDown())
+        {
+            tooltipComponents.add(CrispClientLiterals.UI__SHIFT_FOR_MORE_INFO.get());
             return;
+        }
         
         final Optional<CarryID> optionalID = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_ID.get()));
         
@@ -133,7 +124,7 @@ public final class CarryCrateItem extends BlockItem implements IStackableTool<Ca
         
         final Optional<CarryData> optionalData = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()));
         
-        optionalData.ifPresent(
+        optionalData.ifPresentOrElse(
             data ->
             {
                 if(!data.carryType().equals(CarryType.BLOCK))
@@ -144,19 +135,17 @@ public final class CarryCrateItem extends BlockItem implements IStackableTool<Ca
                 if(blockDataHolder.getMaxCarryCount() <= 1)
                     return;
                 
-                tooltipComponents.add(UI_CARRY_CRATE__LAYER_PREFIX.copy().
-                    append(String.valueOf(blockDataHolder.getCarryCount())).
-                    append(UI_CARRY_CRATE__LAYER_SUFFIX)
+                tooltipComponents.add(
+                    UI__CARRY_CRATE__LAYER_PREFIX.get().
+                        append(String.valueOf(blockDataHolder.getCarryCount())).
+                        append(UI__CARRY_CRATE__LAYER_SUFFIX.get())
                 );
-            }
+            },
+            () -> tooltipComponents.add(UI__CARRY_CRATE__LAYER_PREFIX.get().append(UI__CARRY_CRATE__LAYER_EMPTY.get()))
         );
     }
     
-    @Override public boolean isBarVisible(@NotNull ItemStack stack) { return IStackableTool.super.isBarVisible(stack); }
-    
-    @Override public int getBarWidth(@NotNull ItemStack stack) { return IStackableTool.super.getBarWidth(stack); }
-    
-    @Override public int getBarColor(@NotNull ItemStack stack) { return IStackableTool.super.getBarColor(stack); }
+    @Override public @NotNull DataComponentType<Integer> getDataComponent() { return CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get(); }
     
     @Override public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) { return false; }
     
@@ -169,5 +158,5 @@ public final class CarryCrateItem extends BlockItem implements IStackableTool<Ca
     
     @Override public @Range(from = 1, to = Integer.MAX_VALUE) int getPenaltyStandard() { return PENALTY_QUANTITY; }
     
-    @Override public @NotNull MarkLogger getLogger() { return LOGGER; }
+    @Override public @NotNull Logger getLogger() { return LOGGER; }
 }

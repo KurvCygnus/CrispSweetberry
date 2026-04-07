@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Range;
 
 /**
  * This is the base of the existence of the whole kiln recipe.<br>
- * <b><i>It defines the unionData and behavior a kiln recipe contains</b></i>.
+ * <b><i>It defines the unionData and behavior a kiln recipe overlaps</b></i>.
  *
  * @param processFactor The procession of kiln is percentage-based, this variable holds <b>the factor of influencing the final procession rate of kiln</b>,
  *                      which is calculated by cookTime.

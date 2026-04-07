@@ -11,8 +11,8 @@ package kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync;
 import io.netty.buffer.ByteBuf;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class SpyglassPayloads
 {
-    public static final String ORIGINAL_SLOT_TAG = CrispDefUtils.createPersistentTag("spyglass_exchange_slot_index");
+    public static final String ORIGINAL_SLOT_TAG = DefinitionUtils.createPersistentTag("spyglass_exchange_slot_index");
     
     /**
      * This is a custom packet, which is used for telling server to emulate player's item use state, and item exchange.
@@ -49,7 +49,7 @@ public final class SpyglassPayloads
      */
     public record SpyglassPayload(boolean isPressed) implements CustomPacketPayload
     {
-        public static final Type<SpyglassPayload> TYPE = new Type<>(CrispDefUtils.getModNamespacedLocation("qol/spyglass/packet"));
+        public static final Type<SpyglassPayload> TYPE = new Type<>(DefinitionUtils.getModNamespacedLocation("qol/spyglass/packet"));
         
         public static final StreamCodec<ByteBuf, SpyglassPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL,
@@ -84,7 +84,7 @@ public final class SpyglassPayloads
                     {
                         final int slot = inventory.findSlotMatchingItem(Items.SPYGLASS.getDefaultInstance());
                         
-                        if(slot != ExampleSlotConstants.NAN && slot != Inventory.SLOT_OFFHAND)
+                        if(slot != ExampleSlotConstants.ERROR && slot != Inventory.SLOT_OFFHAND)
                         {
                             player.getPersistentData().putInt(ORIGINAL_SLOT_TAG, slot);
                             

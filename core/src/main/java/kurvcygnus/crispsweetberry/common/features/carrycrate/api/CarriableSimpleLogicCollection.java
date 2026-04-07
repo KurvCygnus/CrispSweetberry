@@ -12,8 +12,8 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -47,8 +47,7 @@ import java.util.stream.IntStream;
  */
 public final class CarriableSimpleLogicCollection
 {
-    //  region
-    //*:=== Block
+    //region Block
     /**
      * A default implementation of block's break logic.<br>
      * The detailed behavior is dropping the <u>{@link BlockItem}</u> of this <u>{@link net.minecraft.world.level.block.Block Block}</u>.
@@ -72,8 +71,7 @@ public final class CarriableSimpleLogicCollection
     }
     //endregion
     
-    //  region
-    //*:=== BlockEntity
+    //region BlockEntity
     /**
      * This interface provides a simple yet universal <u>{@link #getPenaltyRate(E) penaltyRate formula}</u> for blockEntity adapters.
      * @param <E> The blockEntity this adapter takes responsibility of.
@@ -110,7 +108,7 @@ public final class CarriableSimpleLogicCollection
      * @author Kurv Cygnus
      */
     @ApiStatus.Internal
-    private interface ILoadableTagItems
+    private sealed interface ILoadableTagItems
     {
         /**
          * Get the tag ID for this <u>{@link BlockEntity}</u>'s items.
@@ -131,7 +129,7 @@ public final class CarriableSimpleLogicCollection
             for(int index = 0; index < listtag.size(); index++)
             {
                 final CompoundTag compoundtag = listtag.getCompound(index);
-                final int slotIndex = compoundtag.getByte("Slot") & 255;
+                final int slotIndex = compoundtag.getByte("Slot") & 255;//! Magic Number from Vanilla.
                 
                 //noinspection ConstantValue
                 if(slotIndex >= 0 && slotIndex < items.size())//! Defensive check, and also follow vanilla's logic.
@@ -148,7 +146,7 @@ public final class CarriableSimpleLogicCollection
      * you should override method <u>{@link #getItemsTagID()}</u>.
      * @since 1.0 Release
      */
-    public interface ISimpleBlockEntityPenaltyDropLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
+    public non-sealed interface ISimpleBlockEntityPenaltyDropLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
     {
         @Override default @NotNull CarryData onPenaltyDrop(CarriableExtensions.@NotNull TickingContext context)
         {
@@ -209,7 +207,7 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ISimpleBlockEntityBreakLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
+    public non-sealed interface ISimpleBlockEntityBreakLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
     {
         @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryBlockEntityDataHolder dataHolder, long elapsedTime)
         {
@@ -223,8 +221,7 @@ public final class CarriableSimpleLogicCollection
     }
     //endregion
     
-    //  region
-    //*:=== Entity
+    //region Entity
     /**
      * Provides a simple break logic for <u>{@link net.minecraft.world.entity.LivingEntity Entites}</u>.
      * @since 1.0 Release
@@ -246,9 +243,9 @@ public final class CarriableSimpleLogicCollection
             }
             else
                 getLogger().error(
-                    "Cannot instantiate entity with its unionData \"{}\". This is a serious serialization issue. {}",
+                    "Cannot instantiate entity with its data \"{}\". This is a serious serialization issue. {}",
                     dataTag.toString(),
-                    MiscConstants.FEEDBACK_MESSAGE
+                    MetainfoConstants.FEEDBACK_MESSAGE
                 );
         }
         

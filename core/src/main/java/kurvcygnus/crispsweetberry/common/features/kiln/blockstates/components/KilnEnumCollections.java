@@ -47,7 +47,7 @@ public final class KilnEnumCollections
      * @since 1.0 Release
      * @author Kurv Cygnus
      * @see KilnProgressCalculator#calculateRates Usage
-     * @see KilnBlockEntity#serverTick Result variants
+     * @see KilnBlockEntity#serverTick result variants
      */
     @ApiStatus.Internal public enum LogicalResult
     {

@@ -28,9 +28,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.qol.spyglass.SpyglassClientRegistries.SPYGLASS_ZOOM;
-import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_PITCH;
-import static kurvcygnus.crispsweetberry.utils.definitions.SoundConstants.NORMAL_SOUND_VOLUME;
-import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.NAN;
+import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.ERROR;
+import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_PITCH;
+import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_VOLUME;
 
 /**
  * This handles clientside zoom stuff.
@@ -107,8 +107,8 @@ public final class SpyglassQuickZoomEvent
         
         hotkeyPressed = SPYGLASS_ZOOM.isDown();
         
-        hasSpyglass = player.getInventory().offhand.getFirst().is(Items.SPYGLASS) ||//! Slot match should be the later one, because it brings more performance penalty.
-            player.getInventory().findSlotMatchingItem(Items.SPYGLASS.getDefaultInstance()) != NAN;
+        hasSpyglass = player.getInventory().offhand.getFirst().is(Items.SPYGLASS) ||//! Slot fold should be the later one, because it brings more performance penalty.
+            player.getInventory().findSlotMatchingItem(Items.SPYGLASS.getDefaultInstance()) != ERROR;
         
         if(isZooming())
             switch(zoomState)

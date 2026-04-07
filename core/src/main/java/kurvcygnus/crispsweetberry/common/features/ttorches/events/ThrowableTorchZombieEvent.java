@@ -10,7 +10,8 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRangeMap;
+import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -23,8 +24,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity.HIT_STD_EXTEND_FIRE_TICKS;
 import static kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity.HIT_STD_MAX_TICKS;
@@ -42,10 +41,14 @@ final class ThrowableTorchZombieEvent
     private static final CrispRanger DEEP_RANGE = CrispRanger.closed(-23, 16);
     private static final CrispRanger NORMAL_RANGE = CrispRanger.closed(17, 320);
     
-    private static final List<CrispRanger> RANGERS = List.of(
-        DEEPEST_RANGE,
-        DEEP_RANGE,
-        NORMAL_RANGE
+    private static final CrispRangeMap<Integer> DEPTH_RANDOM_MAPPER = CrispRangeMap.create(
+        map ->
+        {
+            map.put(DEEPEST_RANGE, 7);
+            map.put(DEEP_RANGE, 5);
+            map.put(NORMAL_RANGE, 3);
+        },
+        CrispRangeMap.THROW
     );
     
     @SubscribeEvent static void onNewZombieSpawn(@NotNull EntityJoinLevelEvent event)
@@ -66,14 +69,7 @@ final class ThrowableTorchZombieEvent
             if(random.nextFloat() > 0.05)
                 return;
             
-            final int count;
-            
-            switch(CrispRanger.inRangers(entity.getBlockY(), RANGERS))
-            {
-                case 0 -> count = random.nextInt(7) + 1;
-                case 1 -> count = random.nextInt(5) + 1;
-                default -> count = random.nextInt(3) + 1;
-            }
+            final int count = random.nextInt(DEPTH_RANDOM_MAPPER.getValueOrThrow(entity.getBlockY())) + 1;
             
             final ItemStack throwableTorch = TTorchRegistries.THROWABLE_TORCH.value().getDefaultInstance();
             

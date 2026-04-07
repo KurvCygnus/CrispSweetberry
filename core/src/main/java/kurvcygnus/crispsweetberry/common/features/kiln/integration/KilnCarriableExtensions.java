@@ -17,7 +17,7 @@ import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections.*;
-import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.NAN;
+import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.ERROR;
 
 public final class KilnCarriableExtensions
 {
@@ -57,6 +57,6 @@ public final class KilnCarriableExtensions
             double visualProgress,
             @NotNull LogicalResult logicalResult,
             @NotNull VisualTrend trend
-        ) { return new AtomicCalculationResult(NAN, new CalculationResult(realProgress, visualProgress, logicalResult, trend)); }
+        ) { return new AtomicCalculationResult(ERROR, new CalculationResult(realProgress, visualProgress, logicalResult, trend)); }
     }
 }

@@ -14,9 +14,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractB
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -53,7 +53,7 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
         @NotNull BlockState targetState,
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
-        @NotNull Function<BlockState, CarryBlockPlaceContext> contextGenerator,
+        @NotNull Function<BlockState, StatedBlockPlaceContext> contextGenerator,
         @Nullable CarryID optionalCarryID
     ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalCarryID); }
     
@@ -67,7 +67,7 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
         if(optionalAdapter.isEmpty())
         {
             LOGGER.error("Cannot find block \"{}\"'s adapter!", targetState.getBlock().getDescriptionId());
-            return HandleResult.failed();
+            return HandleResult.FAILED;
         }
         
         final AbstractBlockCarryAdapter<?> adapter = optionalAdapter.get();

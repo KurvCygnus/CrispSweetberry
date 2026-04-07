@@ -18,8 +18,8 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.Abst
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
-import kurvcygnus.crispsweetberry.utils.definitions.SoundConstants;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -55,7 +55,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.LIGHT_PROPERTY;
-import static kurvcygnus.crispsweetberry.utils.projectile.ProjectileConstants.*;
+import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
 
 /**
  * The basic of all thrown torch entities.

@@ -43,6 +43,7 @@ import java.util.regex.Matcher;
  */
 @SupportedAnnotationTypes("kurvcygnus.crispsweetberry.annotations.AutoI18n")
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
+@SupportedOptions({"i18nPath", "modid"})
 public final class I18nProcessor extends AbstractProcessor
 {
     private static final String OBJECT            = "java.lang.Object";

@@ -14,9 +14,9 @@ import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnDummyBlockEntity;
-import kurvcygnus.crispsweetberry.utils.ui.CrispUIUtils;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
-import kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants;
+import kurvcygnus.crispsweetberry.utils.UIUtils;
+import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
-import static kurvcygnus.crispsweetberry.utils.ui.constants.ExampleSlotConstants.*;
+import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.*;
 
 /**
  * The <b>user interface part</b> of the Kiln Block.<br>
@@ -90,21 +90,21 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnInputSlot(
                 container,
-                KILN_INPUT_SLOTS_RANGE.getMin(),
+                KILN_INPUT_SLOTS_RANGE.min(),
                 INPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
             )
         );
         this.addSlot(
             new KilnInputSlot(
                 container,
-                KILN_INPUT_SLOTS_RANGE.getMin() + 1,
+                KILN_INPUT_SLOTS_RANGE.min() + 1,
                 INPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
             )
         );
         this.addSlot(
             new KilnInputSlot(
                 container,
-                KILN_INPUT_SLOTS_RANGE.getMax(),
+                KILN_INPUT_SLOTS_RANGE.max(),
                 INPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
             )
         );
@@ -112,26 +112,26 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnOutputSlot(
                 container,
-                KILN_OUTPUT_SLOTS_RANGE.getMin(),
+                KILN_OUTPUT_SLOTS_RANGE.min(),
                 OUTPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
             )
         );
         this.addSlot(
             new KilnOutputSlot(
                 container,
-                KILN_OUTPUT_SLOTS_RANGE.getMin() + 1,
+                KILN_OUTPUT_SLOTS_RANGE.min() + 1,
                 OUTPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
             )
         );
         this.addSlot(
             new KilnOutputSlot(
                 container,
-                KILN_OUTPUT_SLOTS_RANGE.getMax(),
+                KILN_OUTPUT_SLOTS_RANGE.max(),
                 OUTPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
             )
         );
         
-        CrispUIUtils.addGridSlots(
+        UIUtils.addGridSlots(
             inventory,
             INVENTORY_SLOTS_GRID_START_INDEX,
             INVENTORY_SLOTS_START_X_POS,
@@ -141,7 +141,7 @@ public final class KilnMenu extends AbstractContainerMenu
             Slot::new,
             this::addSlot
         );
-        CrispUIUtils.addGridSlots(
+        UIUtils.addGridSlots(
             inventory,
             HOTBAR_SLOTS_GRID_START_INDEX,
             HOTBAR_SLOTS_START_X_POS,
@@ -197,6 +197,8 @@ public final class KilnMenu extends AbstractContainerMenu
         final int rangeIndex = CrispRanger.inRangers(index, SLOT_RANGERS);
         final boolean hasMoved;
         
+        //? This can be refactored by [[CrispRangeMap]], but we refused to do this,
+        //? since it has to use Functional Interfaces, like [[BiFunction]]<[[ItemStack]], [[IQuadMoveStackPredicate]], Boolean>, which is a nightmare for readers.
         switch(rangeIndex)
         {
             case ABNORMAL_RANGE -> throw new IllegalStateException("Unexpected range index: " + rangeIndex);
@@ -248,7 +250,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * @see ExampleSlotConstants More details about these constants
      */
     private boolean moveToSlotRange(ItemStack interactStack, CrispRanger ranger, boolean reverseDirection)
-        { return CrispUIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
+        { return UIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
     
     /**
      * A helper method for {@link #quickMoveStack(Player, int)}.<br>

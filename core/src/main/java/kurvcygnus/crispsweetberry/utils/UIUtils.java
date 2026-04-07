@@ -1,0 +1,125 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
+package kurvcygnus.crispsweetberry.utils;
+
+import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.base.functions.IQuadMoveStackPredicate;
+import kurvcygnus.crispsweetberry.utils.base.functions.IQuadSlotSupplier;
+import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
+
+import static java.util.Objects.requireNonNull;
+import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.CORRECTION_INDEX;
+import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.SLOT_GAP;
+
+/**
+ * A collection of some simple helpers for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu UI stuff}</u>.
+ * @apiNote Being tortured by {@code AbstractMenu#moveItemStackTo()}?<br>
+ * <u>{@link CrispRanger#inRangers CrispRanger#inRangers()}</u> may help you out.
+ * @since 1.0 Release
+ */
+public final class UIUtils
+{
+    private UIUtils() { throw new IllegalAccessError("Class \"UIUtils\" is not meant to be instantized!"); }
+    
+    /**
+     * A utility method to <b>batch initialize and add slots in a grid layout</b> to a menu.<br>
+     * This is commonly used for universal UI components like <b>player inventories and hotbars</b>.
+     * @implSpec Example:<pre>{@code 
+     *  UIUtils.addGridSlots(
+     *      inventory, 
+     *      BACKPACK_SLOTS_RANGE.min(),
+     *      INVENTORY_SLOTS_START_X_POS,
+     *      INVENTORY_SLOTS_START_Y_POS,
+     *      INVENTORY_SLOTS_TOTAL_ROWS,
+     *      INVENTORY_SLOTS_TOTAL_COLS,
+     *      Slot::new,
+     *      this::addSlot
+     *  );
+     * }</pre>
+     * All constants can be found at <u>{@link ExampleSlotConstants}</u>.
+     * @throws IllegalArgumentException When {@code rows} and {@code cols} are non-positive integers.
+     */
+    public static <C extends Container> void addGridSlots(
+        @NotNull C container,
+        int startIndex,
+        int startX,
+        int startY,
+        int rows,
+        int cols,
+        @NotNull IQuadSlotSupplier<C, ? extends Slot> slotFactory,
+        @NotNull Consumer<Slot> consumer
+    ) throws IllegalArgumentException
+    {
+        requireNonNull(container, "Param \"container\" cannot be null!(1st param)");
+        requireNonNull(slotFactory, "Param \"slotFactory\" cannot be null!(7th param)");
+        requireNonNull(consumer, "Param \"consumer\" cannot be null!(8th param)");
+        
+        FunctionalUtils.throwIf(
+            rows <= 0 || cols <= 0,
+            "Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: %d, cols: %d".formatted(rows, cols),
+            IllegalArgumentException::new
+        );
+        
+        for(int row = 0; row < rows; row++)
+            for(int col = 0; col < cols; col++)
+            {
+                final int slotIndex = startIndex + (col + row * cols);
+                final int xPos = startX + col * SLOT_GAP;
+                final int yPos = startY + row * SLOT_GAP;
+                
+                consumer.accept(slotFactory.create(container, slotIndex, xPos, yPos));
+            }
+    }
+    
+    /**
+     * A utility method to make {@code #moveItemStackTo()} in the <u>{@link net.minecraft.world.inventory.AbstractContainerMenu containers}</u> more simple.
+     * @apiNote <b>The original method's implementation logic uses <i>closedOpen</i> style, and this utility has fixed it to standard <i>closed</i> style</b>. 
+     * <i>Don't forget about this!</i>
+     * @implSpec Example:<pre>{@code 
+     *  moveStackByRanger(stack, ranger, flag, this::moveItemStackTo);
+     * }</pre>
+     * @see ExampleSlotConstants Furnace Layout Index Reference
+     * @see CrispRanger Ranger
+     */
+    public static boolean 
+    moveStackByRanger(@NotNull ItemStack interactStack, @NotNull CrispRanger ranger, boolean reverseDirection, @NotNull IQuadMoveStackPredicate predicate)
+    {
+        requireNonNull(interactStack, "Param \"interactStack\" cannot be null!");
+        requireNonNull(ranger, "Param \"ranger\" cannot be null!");
+        requireNonNull(predicate, "Param \"predicate\" cannot be null!");
+        
+        return predicate.test(interactStack, ranger.min(), ranger.max() + CORRECTION_INDEX, reverseDirection);
+    }
+    
+    public static @NotNull MutableComponent dimmedText(@NotNull String transKey) { return dimmedText(transKey, false); }
+    
+    public static @NotNull MutableComponent dimmedItalicText(@NotNull String transKey) { return dimmedText(transKey, true); }
+    
+    /**
+     * @implNote Font styles like <u>{@link ChatFormatting#ITALIC}</u> doesn't have a color value,
+     * and colors like <u>{@link ChatFormatting#GOLD}</u> obviously will have, so we can do an assertion here.
+     */
+    @SuppressWarnings("DataFlowIssue") private static @NotNull MutableComponent dimmedText(@NotNull String transKey, boolean italic)
+    {
+        requireNonNull(transKey, "Param \"transKey\" must not be null!");
+        
+        final MutableComponent text = Component.translatable(transKey).withColor(ChatFormatting.DARK_GRAY.getColor());
+        
+        return italic ? text.withStyle(ChatFormatting.ITALIC) : text;
+    }
+}

@@ -23,18 +23,19 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.HandleResult;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.OperationTask;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -63,6 +64,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData.CarryBlockEntityDataHolder;
+import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.OperationType;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.*;
 
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
@@ -70,13 +72,14 @@ public enum CarryEngine
 {
     INST;
     
+    //region Fields
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")//! Its query usage is taken by LISTENER_MAPS.
     private static final HashMap<CarryID, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_CARRY_LISTENERS = new HashMap<>();
     private static final HashMap<CarryID, ICarryEntityAdapterFactory<?, ?>> ENTITY_CARRY_LISTENERS = new HashMap<>();
     private static final HashMap<CarryID, ICarryBlockAdapterFactory<?, ?>> BLOCK_CARRY_LISTENERS = new HashMap<>();
     
-    private static final Map<CarryType, HashMap<CarryID, ? extends ICarryRegistry.IBaseCarryAdapterFactory<?, ?>>> LISTENER_MAPS =
-        CrispDefUtils.createImmutableEnumMap(
+    private static final Map<CarryType, HashMap<CarryID, ? extends IBaseCarryAdapterFactory<?, ?>>> LISTENER_MAPS =
+        DefinitionUtils.createImmutableEnumMap(
             CarryType.class,
             map ->
             {
@@ -87,8 +90,16 @@ public enum CarryEngine
         );
     
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_ENGINE");
+    //endregion
     
-    static final class CarryListenerSaveData extends SavedData
+    //region Initialization Data & Engine Persistent Lifecycle
+    /**
+     * This is the definition of the instantized <u>{@link CarryEngine#LISTENER_MAPS}</u>.<br>
+     * <b>It exists to make sure that boxed Carry Crate's data won't get lost</b>.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     */
+    private static final class CarryListenerSaveData extends SavedData
     {
         static final String UUID = "uuid";
         static final String ID = "id";
@@ -117,9 +128,13 @@ public enum CarryEngine
             return tag;
         }
         
-        public static @NotNull CarryListenerSaveData get(@NotNull ServerLevel level)
+        public static @NotNull CarryListenerSaveData get(@NotNull MinecraftServer server)
         {
-            final DimensionDataStorage storage = level.getDataStorage();
+            //! Explanation: Minecraft saves most world data by dimension.
+            //! [[CarryEngine#LISTENER_MAPS]] is expected to be cross-dimensional,
+            //! and in such a case, we choose to use [[Level#OVERWORLD]] as standard.
+            final DimensionDataStorage storage = server.overworld().getDataStorage();
+            
             final SavedData.Factory<CarryListenerSaveData> factory = new Factory<>(
                 CarryListenerSaveData::new,
                 CarryListenerSaveData::load
@@ -139,6 +154,7 @@ public enum CarryEngine
         public @NotNull Optional<ListTag> getEntries() { return Optional.ofNullable(entries); }
     }
     
+    @SuppressWarnings("unchecked")//! Unsafe casting, however, with the restrict of enum [[CarryType]], it is actually safe.
     @SubscribeEvent static void startEngine(@NotNull ServerStartedEvent event)
     {
         try(var handle = LOGGER.pushMarker("CARRY_INIT"))
@@ -149,62 +165,50 @@ public enum CarryEngine
             ENTITY_CARRY_LISTENERS.clear();
             LOGGER.debug("Clean completed.");
             
-            final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer().overworld());
+            final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer());
             handle.changeMarker("CARRY_DATA_RECOVER");
             
-            LOGGER.when(data.getEntries().isPresent()).debug("SavedData acquired. Continue to recover listeners.");
-                
             data.getEntries().ifPresent(
-                listTag -> listTag.stream().
-                    filter(CompoundTag.class::isInstance).
-                    map(CompoundTag.class::cast).
-                    forEach(
-                        entryTag ->
-                        {
-                            final String id = entryTag.getString(CarryListenerSaveData.ID);
-                            final String uuid = entryTag.getString(CarryListenerSaveData.UUID);
-                            final CarryID fullID = new CarryID(id, uuid);
-                            LOGGER.debug("Got CarryID: [ResourceLocation: \"{}\", UUID: \"{}\"]", id, uuid);
-                            
-                            final ResourceLocation resourceLocation = ResourceLocation.parse(id);
-                            
-                            final var optionalAdapter = CarryRegistryManager.INST.searchFactory(resourceLocation);
-                            
-                            if(optionalAdapter.isEmpty())
+                listTag ->
+                {
+                    LOGGER.debug("SavedData acquired. Continue to recover listeners.");
+                    listTag.stream().
+                        filter(CompoundTag.class::isInstance).
+                        map(CompoundTag.class::cast).
+                        forEach(
+                            entryTag ->
                             {
-                                LOGGER.error("Entry with ID \"{}\" doesn't have a corresponded factory!", resourceLocation);
-                                return;
+                                final String id = entryTag.getString(CarryListenerSaveData.ID);
+                                final String uuid = entryTag.getString(CarryListenerSaveData.UUID);
+                                final CarryID fullID = new CarryID(id, uuid);
+                                LOGGER.debug("Got CarryID: [ResourceLocation: \"{}\", UUID: \"{}\"]", id, uuid);
+                                
+                                final ResourceLocation resourceLocation = ResourceLocation.parse(id);
+                                
+                                final Optional<? extends IBaseCarryAdapterFactory<?, ?>> optionalAdapter = CarryRegistryManager.INST.searchFactory(resourceLocation);
+                                
+                                if(optionalAdapter.isEmpty())
+                                {
+                                    LOGGER.error("Entry with ID \"{}\" doesn't have a corresponded factory!", resourceLocation);
+                                    return;
+                                }
+                                
+                                final ICarryRegistry.IBaseCarryAdapterFactory<?, ?> adapter = optionalAdapter.get();
+                                ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_MAPS.get(adapter.getType())).put(fullID, adapter);
+                                
+                                LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType().name(), fullID);
                             }
-                            
-                            final ICarryRegistry.IBaseCarryAdapterFactory<?, ?> adapter = optionalAdapter.get();
-                            
-                            switch(adapter)
-                            {
-                                case ICarryRegistry.ICarryBlockAdapterFactory<?, ?> blockAdapterFactory ->
-                                    BLOCK_CARRY_LISTENERS.put(fullID, blockAdapterFactory);
-                                case ICarryRegistry.ICarryBlockEntityAdapterFactory<?, ?> blockEntityAdapterFactory ->
-                                    BLOCK_ENTITY_CARRY_LISTENERS.put(
-                                        fullID,
-                                        blockEntityAdapterFactory
-                                    );
-                                case ICarryRegistry.ICarryEntityAdapterFactory<?, ?> entityAdapterFactory ->
-                                    ENTITY_CARRY_LISTENERS.put(fullID, entityAdapterFactory);
-                                case null, default -> throw new IllegalStateException(
-                                    "This is an unachievable case: Adapter \"%s\" doesn't belongs to any type that exists!".
-                                    formatted(optionalAdapter.get())
-                                );
-                            }
-                            
-                            LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType(), fullID);
-                        }
-                    )
+                        );
+                }
             );
             
             handle.changeMarker("CARRY_ENGINE_STARTED");
             LOGGER.debug("Listeners recovered. Carry engine, start!");
         }
     }
+    //endregion
     
+    //region Carry Core Logics
     public static void carryingTick(
         @NotNull CarryCrateItem carryCrateItem,
         @NotNull ItemStack carryCrate,
@@ -221,7 +225,7 @@ public enum CarryEngine
         
         final CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        assert carryID != null;//! carryCrate#has() has granted the safety.
+        assert carryID != null;//! [[DataComponentHolder#has()]] has granted the safety.
         assert data != null;
         
         final CarriableExtensions.TickingContext context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid(), slotId);
@@ -272,7 +276,7 @@ public enum CarryEngine
                 OverweightEffect.updateFactorAndEffect(
                     player,
                     data,
-                    false
+                    TriState.FALSE
                 );
                 
                 carryCrate.remove(CarryCrateRegistries.CARRY_CRATE_DATA.get());
@@ -306,6 +310,8 @@ public enum CarryEngine
         
         try(final var handle = LOGGER.pushMarker("INTERACT_START"))
         {
+            //region Initialization
+            //* Do not split initialization as an independent method, it increases the amount of Context data class, and doesn't have any obvious effect.
             final @Nullable BlockState targetState;
             final @Nullable BlockEntity targetBlockEntity;
             final @Nullable LivingEntity targetEntity;
@@ -316,6 +322,8 @@ public enum CarryEngine
             final Optional<Player> optionalPlayer = context.getPlayer();
             final ItemStack carryCrate = context.getCarryCrate();
             final Optional<CarryData> optionalData = context.getCarryData();
+            
+            LOGGER.debug("Start Interaction. Checking object action.");
             
             final @Nullable CarryType action = switch(context)
             {
@@ -345,10 +353,9 @@ public enum CarryEngine
                     {
                         final CarryData data = optionalData.get();
                         
-                        if(data.unionData() instanceof CarryBlockEntityDataHolder holder)
-                            targetBlockEntity = holder.getType().create(interactPos, holder.getState());
-                        else
-                            targetBlockEntity = null;
+                        targetBlockEntity = data.unionData() instanceof CarryBlockEntityDataHolder holder ?
+                            holder.getType().create(interactPos, holder.getState()) :
+                            null;
                         
                         yield data.unionData().getBoundType();
                     }
@@ -374,11 +381,13 @@ public enum CarryEngine
             };
             
             if(action == null)
-                return InteractionResult.PASS;
+                return null;
             
             handle.changeMarker("ACTION_SELECT");
             LOGGER.debug("Picking {} as the current action.", action.name());
+            //endregion
             
+            //region Process Logics
             if(level.isClientSide)
             {
                 handle.changeMarker("CLIENT_HANDLE");
@@ -410,7 +419,9 @@ public enum CarryEngine
             
             final HandleResult result = handler.handle();
             interactionResultRef.set(result.result());
+            //endregion
             
+            //region Post-Process(Operation Dispatching)
             final var listenerPair = result.getListenerState();
             final var componentPair = result.getComponentState();
             final var targetPair = result.getTargetState();
@@ -424,6 +435,7 @@ public enum CarryEngine
                         if(state.isDefault())
                             return;
                         
+                        LOGGER.debug("Listener data changed. Mark saveData as dirtied.");
                         markDirty(serverLevel);
                     }
                 ),
@@ -435,8 +447,9 @@ public enum CarryEngine
                         if(!state.isTrue())
                             return;
                         
-                        result.data().ifPresent(//* This is referenced by CarryOperationContext ↓ It is OK to use.
-                            data -> giveCrate(serverLevel, serverPlayer, data, state, newCrate)
+                        LOGGER.debug("Trying to insert data into carry crate.");
+                        result.data().ifPresent(//* This is referenced by [[CarryOperationContext]] ↓ It is OK to use.
+                            data -> giveCrateWithEffect(serverLevel, serverPlayer, data, state, newCrate)
                         );
                     }
                 ),
@@ -445,9 +458,10 @@ public enum CarryEngine
                     targetPair.right(),
                     state ->
                     {
-                        if(!state.isTrue())
+                        if(!state.isTrue() || carryCrate.getCount() == 1)
                             return;
                         
+                        LOGGER.debug("CarryCrate's count has exceed 1({}). Do shrink action.", carryCrate.getCount());
                         carryCrate.shrink(1);
                     }
                 )
@@ -468,10 +482,10 @@ public enum CarryEngine
                         Optional.ofNullable(targetEntity),
                         (operationType, triState) ->
                         {
-                            if(!operationType.equals(AbstractCarryInteractHandler.OperationType.COMPONENT))
+                            if(!operationType.equals(OperationType.COMPONENT))
                                 return carryCrate;
                             
-                            return triState.isTrue() ? newCrate : carryCrate;
+                            return triState.isTrue() && carryCrate.getCount() > 1 ? newCrate : carryCrate;
                         },
                         (HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_MAPS.get(action),
                         serverLevel,
@@ -481,21 +495,24 @@ public enum CarryEngine
                             //! This Function is used by blocklike cases,
                             //! in such a case, useOnContext won't be null.
                             assert useOnContext != null;
-                            return new CarryBlockPlaceContext(useOnContext, blockState);
+                            return new StatedBlockPlaceContext(useOnContext, blockState);
                         },
                         operation.callback()
                     ),
                     //! Here is safe, no value compete.
                     //! Among all operations, only TARGET uses this,
-                    //! thus, changing the executions' signature is worse than passing a atomic ref.
-                    operation.type().equals(AbstractCarryInteractHandler.OperationType.TARGET) ? interactionResultRef : null
+                    //! thus, changing the executions' return type signature is worse than passing a atomic ref.
+                    operation.type().equals(OperationType.TARGET) ? interactionResultRef : null
                 );
             }
+            //endregion
         }
         
         return interactionResultRef.get();
     }
+    //endregion
     
+    //region Helpers
     private static @Nullable CarryType validateBlocklikeAction(@NotNull CarryType carryType, @NotNull BlockEntity blockEntity, @NotNull BlockState blockState)
     {
         if(CarryRegistryManager.INST.searchFactory(carryType, carryType.equals(CarryType.BLOCK_ENTITY) ? blockEntity.getType() : blockState.getBlock()).isEmpty())
@@ -509,12 +526,12 @@ public enum CarryEngine
         return carryType;
     }
     
-    private static void giveCrate(@NotNull ServerLevel level, @NotNull ServerPlayer player, @NotNull CarryData data, @NotNull TriState state, @NotNull ItemStack newCrate)
+    private static void giveCrateWithEffect(@NotNull ServerLevel level, @NotNull ServerPlayer player, @NotNull CarryData data, @NotNull TriState state, @NotNull ItemStack newCrate)
     {
         OverweightEffect.updateFactorAndEffect(
             player,
             data,
-            state.isTrue(),
+            state,
             () ->
             {
                 if(player.getInventory().add(newCrate))
@@ -526,7 +543,7 @@ public enum CarryEngine
         );
     }
     
-    private static void markDirty(@NotNull ServerLevel level) { CarryListenerSaveData.get(level.getServer().overworld()).setDirty(); }
+    private static void markDirty(@NotNull ServerLevel level) { CarryListenerSaveData.get(level.getServer()).setDirty(); }
     
     private static @NotNull ItemStack copyCrate(@NotNull ItemStack itemStack)
     {
@@ -537,4 +554,5 @@ public enum CarryEngine
         
         return newCrate;
     }
+    //endregion
 }

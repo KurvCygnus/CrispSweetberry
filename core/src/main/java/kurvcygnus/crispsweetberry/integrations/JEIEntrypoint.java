@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnScreen;
 import kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnJEICompat;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.*;
@@ -39,7 +39,7 @@ public enum JEIEntrypoint implements IModPlugin
 {
     INST;
     
-    @Override public @NotNull ResourceLocation getPluginUid() { return CrispDefUtils.getModNamespacedLocation("jei_integration"); }
+    @Override public @NotNull ResourceLocation getPluginUid() { return DefinitionUtils.getModNamespacedLocation("jei_integration"); }
     
     @Override public void registerRecipes(@NotNull IRecipeRegistration registration)
     {
@@ -65,7 +65,7 @@ public enum JEIEntrypoint implements IModPlugin
             JEI_KILN_RECIPE_TYPE, 
             KILN_INPUT_START_INDEX,
             KILN_SLOT_COUNT_FOR_EACH_TYPE,
-            KILN_INVENTORY_SLOTS_RANGE.getMin(),
+            KILN_INVENTORY_SLOTS_RANGE.min(),
             KILN_INVENTORY_SLOTS_RANGE.size()
         );
     }

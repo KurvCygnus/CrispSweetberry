@@ -15,9 +15,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.Abs
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.CarryBlockEntityInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.CarryBlockInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.CarryEntityInteractHandler;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
@@ -47,21 +47,21 @@ import java.util.function.Function;
 @ApiStatus.Internal
 public enum CarryType implements StringRepresentable
 {
-    @SuppressWarnings("DataFlowIssue")//! See #createHandler(). It grantees the null safety for BLOCK_ENTITY.
+    @SuppressWarnings("DataFlowIssue")//! See [[CarryType#createHandler()]]. It grantees the null safety for BLOCK_ENTITY.
     BLOCK_ENTITY(
         CarryData.CarryBlockEntityDataHolder.CODEC,
         CarryData.CarryBlockEntityDataHolder.STREAM_CODEC,
         CarryBlockEntityInteractHandler::new,
         BlockEntityType.class
     ),
-    @SuppressWarnings("DataFlowIssue")//! See #createHandler(). It grantees the null safety for BLOCK.
+    @SuppressWarnings("DataFlowIssue")//! See [[CarryType#createHandler()]]. It grantees the null safety for BLOCK.
     BLOCK(
         CarryData.CarryBlockDataHolder.CODEC,
         CarryData.CarryBlockDataHolder.STREAM_CODEC,
         CarryBlockInteractHandler::new,
         Block.class
     ),
-    @SuppressWarnings("DataFlowIssue")//! See #createHandler(). It grantees the null safety for ENTITY.
+    @SuppressWarnings("DataFlowIssue")//! See [[CarryType#createHandler()]]. It grantees the null safety for ENTITY.
     ENTITY(
         CarryData.CarryEntityDataHolder.CODEC,
         CarryData.CarryEntityDataHolder.STREAM_CODEC,
@@ -99,7 +99,7 @@ public enum CarryType implements StringRepresentable
         @Nullable CarryID optionalUUID
     )
     {
-        CrispFunctionalUtils.doIf(
+        FunctionalUtils.doIf(
             this == BLOCK_ENTITY, () ->
                 Objects.requireNonNull(targetBlockEntity, "Param \"targetBlockEntity\" must not be null!")
         );
@@ -123,13 +123,12 @@ public enum CarryType implements StringRepresentable
             targetBlockEntity,
             context == null ?
                 null :
-                blockState -> new CarryBlockPlaceContext(context, blockState),
+                blockState -> new StatedBlockPlaceContext(context, blockState),
             optionalUUID
         );
     }
     
-    @Override
-    public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
+    @Override public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
     
     public @NotNull MapCodec<? extends CarryData.CarryDataBaseHolder> codec() { return codec; }
     
@@ -150,7 +149,7 @@ public enum CarryType implements StringRepresentable
             @Nullable BlockState targetState,
             @Nullable LivingEntity targetEntity,
             @Nullable BlockEntity targetBlockEntity,
-            @Nullable Function<BlockState, CarryBlockPlaceContext> contextGenerator,
+            @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
             @Nullable CarryID optionalUUID
         );
     }

@@ -41,8 +41,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
 public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity>
 extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IAtomicCarriable, ICarrySerializable, IBlockEntityCarryLifecycle<E>
 {
-    //  region
-    //*:=== Core Logics
+    //region Core Logics
     /**
      * @apiNote During <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
      * with <b>{@code null}</b> as adapter's param, since <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u> shouldn't use it.
@@ -113,7 +112,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
      *  )
      *  {
      *      final CompoundTag dataTag = blockEntity.saveCustomOnly(registries);
-     *      tag.merge(dataTag);
+     *      tag.union(dataTag);
      *  }
      * }</pre>
      */
@@ -126,15 +125,14 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
     protected abstract void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
     //endregion
     
-    //  region
-    //*:=== Bridge methods
+    //region Bridge methods
     
     /**
      * {@inheritDoc}
      */
     @Override public final void onCarriedSequence(@NotNull CarriedContext context)
     {
-        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See [[AbstractBlockEntityCarryAdapter#blockEntity]]'s Javadoc.
         this.onCarriedSequence(context, blockEntity);
     }
     
@@ -143,7 +141,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
      */
     @Override public final void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context)
     {
-        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See [[AbstractBlockEntityCarryAdapter#blockEntity]]'s Javadoc.
         this.onPlacedProcess(level, elapsedTime, context, this.blockEntity);
     }
     
@@ -152,7 +150,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
      */
     @Override public final void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
     {
-        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See [[AbstractBlockEntityCarryAdapter#blockEntity]]'s Javadoc.
         this.saveCarryTag(tag, registries, this.blockEntity);
     }
     
@@ -161,7 +159,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
      */
     @Override public final void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
     {
-        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See blockEntity's Javadoc.
+        Objects.requireNonNull(this.blockEntity, INVALID_CALL_FAIL_MESSAGE);//! See [[AbstractBlockEntityCarryAdapter#blockEntity]]'s Javadoc.
         this.loadCarryTag(tag, registries, this.blockEntity);
     }
     

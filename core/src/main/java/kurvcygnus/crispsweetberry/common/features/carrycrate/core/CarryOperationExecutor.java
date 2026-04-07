@@ -13,12 +13,13 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistrie
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryBlockPlaceContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.misc.MiscConstants;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.utils.constants.DummyFunctionalConstants;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.util.TriState;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,13 +49,12 @@ import java.util.function.Function;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.OperationType;
 
-public enum CarryOperationExecutor
+@ApiStatus.Internal
+enum CarryOperationExecutor
 {
     INST;
     
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_LOGIC");
-    private static final BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>> DO_NOTHING =
-        (var1, var2) -> {};
     
     //region Exact Actions
     //*:=== Listener
@@ -64,10 +65,10 @@ public enum CarryOperationExecutor
         
         final CarryData data = context.optionalData.get();
         final var creationData = data.unionData().getCreationData();
-        final var factory = CarryRegistryManager.INST.searchFactory(data.carryType(), creationData);
+        final var optionalFactory = CarryRegistryManager.INST.searchFactory(data.carryType(), creationData);
         
-        factory.ifPresentOrElse(
-            f -> context.targetMap.put(context.optionalID.get(), f),
+        optionalFactory.ifPresentOrElse(
+            factory -> context.targetMap.put(context.optionalID.get(), factory),
             () -> LOGGER.debug("Can't find the factory! Detailed serach key: {}", creationData.toString())
         );
     }
@@ -124,7 +125,7 @@ public enum CarryOperationExecutor
                 final CarryData.CarryBlockDataHolder holder = data.unionData();
                 blocklikeTargetReleaseAction(context, holder.getState(), resultReference);
             },
-            () -> LOGGER.warn("carryData doesn't exist, but the operation is still release.\n{}.", MiscConstants.FEEDBACK_MESSAGE)
+            () -> LOGGER.warn("carryData doesn't exist, but the operation is still \"RELEASE\".\n{}.", MetainfoConstants.FEEDBACK_MESSAGE)
         );
     }
     
@@ -136,7 +137,7 @@ public enum CarryOperationExecutor
                 final CarryData.CarryBlockEntityDataHolder holder = data.unionData();
                 blocklikeTargetReleaseAction(context, holder.getState(), resultReference);
             },
-            () -> LOGGER.warn("carryData doesn't exist, but the operation is still release.\n{}.", MiscConstants.FEEDBACK_MESSAGE)
+            () -> LOGGER.warn("carryData doesn't exist, but the operation is still \"RELEASE\".\n{}.", MetainfoConstants.FEEDBACK_MESSAGE)
         );
     }
     
@@ -149,10 +150,10 @@ public enum CarryOperationExecutor
         assert context.optionalData.isPresent();
         
         final CarryData data = context.optionalData.get();
-        final CarryBlockPlaceContext placeContext = context.placeContextFunction.apply(stateToPlace);
+        final StatedBlockPlaceContext placeContext = context.placeContextFunction.apply(stateToPlace);
         resultReference.set(placeContext.performPlace());
         
-        CrispFunctionalUtils.doIf(
+        FunctionalUtils.doIf(
             data.carryType().equals(CarryType.BLOCK_ENTITY),
             () -> blockEntityTargetReleaseExtra(context, stateToPlace)
         );
@@ -179,7 +180,7 @@ public enum CarryOperationExecutor
                         """.
                         formatted(
                             type.toString(),
-                            MiscConstants.FEEDBACK_MESSAGE
+                            MetainfoConstants.FEEDBACK_MESSAGE
                         )
                 );
                 
@@ -222,52 +223,57 @@ public enum CarryOperationExecutor
     //endregion
     
     //region TriState Operation Dispatchers
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> LISTENER_LOGICS = CrispDefUtils.createImmutableEnumMap(
+    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
+    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> LISTENER_LOGICS = DefinitionUtils.createImmutableEnumMap(
         TriState.class,
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::listenerAddAction);
-            map.put(TriState.DEFAULT, DO_NOTHING);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::listenerRemoveAction);
         }
     );
     
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> COMPONENT_LOGICS = CrispDefUtils.createImmutableEnumMap(
+    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
+    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> COMPONENT_LOGICS = DefinitionUtils.createImmutableEnumMap(
         TriState.class,
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::componentInsertAction);
-            map.put(TriState.DEFAULT, DO_NOTHING);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::componentRemoveAction);
         }
     );
     
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> BLOCK_TARGET_LOGICS = CrispDefUtils.createImmutableEnumMap(
+    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
+    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> BLOCK_TARGET_LOGICS = DefinitionUtils.createImmutableEnumMap(
         TriState.class,
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
-            map.put(TriState.DEFAULT, DO_NOTHING);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::blockTargetReleasePreAction);
         }
     );
     
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> BLOCK_ENTITY_TARGET_LOGICS = CrispDefUtils.createImmutableEnumMap(
+    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
+    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> BLOCK_ENTITY_TARGET_LOGICS = DefinitionUtils.createImmutableEnumMap(
         TriState.class,
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
-            map.put(TriState.DEFAULT, DO_NOTHING);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::blockEntityTargetReleasePreAction);
         }
     );
     
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> ENTITY_TARGET_LOGICS = CrispDefUtils.createImmutableEnumMap(
+    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
+    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> ENTITY_TARGET_LOGICS = DefinitionUtils.createImmutableEnumMap(
         TriState.class,
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::entityTargetCaptureAction);
-            map.put(TriState.DEFAULT, DO_NOTHING);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::entityTargetReleaseAction);
         }
     );
@@ -275,7 +281,7 @@ public enum CarryOperationExecutor
     
     //region Operation Type Dispatchers
     private static final Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>
-    LISTENER_TYPE_HANDLER = CrispDefUtils.createImmutableEnumMap(
+    LISTENER_TYPE_HANDLER = DefinitionUtils.createImmutableEnumMap(
         CarryType.class,
         map ->
         {
@@ -285,7 +291,7 @@ public enum CarryOperationExecutor
     );
     
     private static final Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>
-    COMPONENT_TYPE_HANDLER = CrispDefUtils.createImmutableEnumMap(
+    COMPONENT_TYPE_HANDLER = DefinitionUtils.createImmutableEnumMap(
         CarryType.class,
         map ->
         {
@@ -295,7 +301,7 @@ public enum CarryOperationExecutor
     );
     
     private static final Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>
-    TARGET_TYPE_HANDLER = CrispDefUtils.createImmutableEnumMap(
+    TARGET_TYPE_HANDLER = DefinitionUtils.createImmutableEnumMap(
         CarryType.class,
         map ->
         {
@@ -309,7 +315,7 @@ public enum CarryOperationExecutor
     //region Core Dispatch Logics
     private static final Map<OperationType, Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>>
     ACTION_DISPATCHER =
-        CrispDefUtils.createImmutableEnumMap(
+        DefinitionUtils.createImmutableEnumMap(
         OperationType.class,
         map ->
         {
@@ -319,7 +325,7 @@ public enum CarryOperationExecutor
         }
     );
     
-    public static void execute(
+    static void execute(
         @NotNull OperationType operationType,
         @NotNull CarryType carryType,
         @NotNull TriState state,
@@ -333,7 +339,7 @@ public enum CarryOperationExecutor
     //endregion
     
     //region Data Object
-    public record CarryOperationContext(
+    record CarryOperationContext(
         @NotNull Optional<CarryData> optionalData,
         @NotNull Optional<CarryID> optionalID,
         @NotNull Optional<BlockEntityType<?>> optionalType,
@@ -342,8 +348,8 @@ public enum CarryOperationExecutor
         @NotNull HashMap<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> targetMap,
         @NotNull ServerLevel level,
         @NotNull BlockPos pos,
-        @NotNull Function<BlockState, CarryBlockPlaceContext> placeContextFunction,
+        @NotNull Function<BlockState, StatedBlockPlaceContext> placeContextFunction,
         @NotNull Consumer<TriState> callback
-    ) { }
+    ) {}
     //endregion
 }

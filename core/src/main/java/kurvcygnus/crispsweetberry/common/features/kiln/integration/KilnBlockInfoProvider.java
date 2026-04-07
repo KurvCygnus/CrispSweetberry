@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.kiln.integration;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -31,7 +31,7 @@ public enum KilnBlockInfoProvider implements IBlockComponentProvider, IServerDat
 {
     INST;
     
-    private static final ResourceLocation UNIQUE_JADE_KILN_ID = CrispDefUtils.getModNamespacedLocation("integration.jade.kiln");
+    private static final ResourceLocation UNIQUE_JADE_KILN_ID = DefinitionUtils.getModNamespacedLocation("integration.jade.kiln");
     private static final String VISUAL_PROGRESS = "visualProgress";
     private static final String VISUAL_ARROW = "visualArrow";
     private static final String CONTENT = "content";

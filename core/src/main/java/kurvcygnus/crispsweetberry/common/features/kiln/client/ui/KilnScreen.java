@@ -11,8 +11,8 @@ package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
-import kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.constants.UIConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -25,8 +25,8 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.*;
-import static kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils.throwIf;
-import static kurvcygnus.crispsweetberry.utils.ui.constants.UIConstants.NO_OFFSET;
+import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
+import static kurvcygnus.crispsweetberry.utils.constants.UIConstants.NO_OFFSET;
 
 /**
  * This the actual user interface for kiln.
@@ -58,13 +58,13 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
     private static final int TIP_HEIGHT = 8;
     
     //! About namespaces: please use "static" to decrease performance penalty.
-    private static final ResourceLocation BACKGROUND_TEXTURE = CrispDefUtils.getModNamespacedLocation("textures/gui/kiln/background.png");
+    private static final ResourceLocation BACKGROUND_TEXTURE = DefinitionUtils.getModNamespacedLocation("textures/gui/kiln/background.png");
     
-    private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/lit_campfire");
-    public static final ResourceLocation PROGRESS_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/progress_arrow");
-    public static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_decrease_arrow");
-    public static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/balance_increase_arrow");
-    public static final ResourceLocation TIP_ARROW_TEXTURE = CrispDefUtils.getModNamespacedLocation("kiln/tip_arrow");
+    private static final ResourceLocation LIT_CAMPFIRE_TEXTURE = DefinitionUtils.getModNamespacedLocation("kiln/lit_campfire");
+    public static final ResourceLocation PROGRESS_ARROW_TEXTURE = DefinitionUtils.getModNamespacedLocation("kiln/progress_arrow");
+    public static final ResourceLocation BALANCE_DECREASE_ARROW_TEXTURE = DefinitionUtils.getModNamespacedLocation("kiln/balance_decrease_arrow");
+    public static final ResourceLocation BALANCE_INCREASE_ARROW_TEXTURE = DefinitionUtils.getModNamespacedLocation("kiln/balance_increase_arrow");
+    public static final ResourceLocation TIP_ARROW_TEXTURE = DefinitionUtils.getModNamespacedLocation("kiln/tip_arrow");
     
     private final KilnInfoWidget widget = new KilnInfoWidget(TIP_X_POS, TIP_Y_POS, TIP_WIDTH, TIP_HEIGHT);
     

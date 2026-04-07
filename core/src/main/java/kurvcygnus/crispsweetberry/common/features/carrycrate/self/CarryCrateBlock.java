@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.self;
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -81,5 +81,5 @@ public final class CarryCrateBlock extends HorizontalDirectionalBlock
         return stacks;
     }
     
-    @Override protected @NotNull MapCodec<CarryCrateBlock> codec() { return simpleCodec(CrispFunctionalUtils.noArgCodec(CarryCrateBlock::new)); }
+    @Override protected @NotNull MapCodec<CarryCrateBlock> codec() { return simpleCodec(FunctionalUtils.noArgCodec(CarryCrateBlock::new)); }
 }

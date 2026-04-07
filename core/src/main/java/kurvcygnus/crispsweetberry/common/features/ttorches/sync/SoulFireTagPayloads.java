@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.sync;
 
 import io.netty.buffer.ByteBuf;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -35,7 +35,7 @@ public final class SoulFireTagPayloads
      */
     public record SoulFireTagPayload(int targetId, boolean attachTag) implements CustomPacketPayload
     {
-        public static final Type<SoulFireTagPayload> TYPE = new Type<>(CrispDefUtils.getModNamespacedLocation("features/ttorch/packet"));
+        public static final Type<SoulFireTagPayload> TYPE = new Type<>(DefinitionUtils.getModNamespacedLocation("features/ttorch/packet"));
         
         public static final StreamCodec<ByteBuf, SoulFireTagPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.INT, SoulFireTagPayload::targetId,

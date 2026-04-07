@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
-import kurvcygnus.crispsweetberry.utils.misc.CrispFunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
@@ -47,7 +47,7 @@ final class CarryCrateInventoryMonitorEvent
         if(!(carryFactor >= MAX_ACCEPTABLE_FACTOR))
             return;
         
-        CrispFunctionalUtils.doIf(isInteractable, () -> event.setCanPickup(TriState.FALSE));
+        FunctionalUtils.doIf(isInteractable, () -> event.setCanPickup(TriState.FALSE));
     }
     
     /**
@@ -67,14 +67,14 @@ final class CarryCrateInventoryMonitorEvent
         
         if(carryFactor >= MAX_ACCEPTABLE_FACTOR)
         {
-            CrispFunctionalUtils.doIf(isInteractable, () -> dropItem(player, itemstack));
+            FunctionalUtils.doIf(isInteractable, () -> dropItem(player, itemstack));
             return;
         }
         
         final CarryData data = itemstack.get(CarryCrateRegistries.CARRY_CRATE_DATA.value());
         Objects.requireNonNull(data, "Param \"data\" must not be null!");
         
-        OverweightEffect.updateFactorAndEffect(player, data, true, () -> dropItem(player, itemstack));
+        OverweightEffect.updateFactorAndEffect(player, data, TriState.TRUE, () -> dropItem(player, itemstack));
     }
     
     @SubscribeEvent static void tossMonitor(@NotNull ItemTossEvent event)
@@ -88,7 +88,7 @@ final class CarryCrateInventoryMonitorEvent
         final CarryData data = itemstack.get(CarryCrateRegistries.CARRY_CRATE_DATA.value());
         Objects.requireNonNull(data, "Param \"data\" must not be null!");
         
-        OverweightEffect.updateFactorAndEffect(player, data, false);
+        OverweightEffect.updateFactorAndEffect(player, data, TriState.FALSE);
     }
     
     private static @Nullable ItemStack getCrateWithCheck(@NotNull Supplier<ItemStack> stackSupplier)

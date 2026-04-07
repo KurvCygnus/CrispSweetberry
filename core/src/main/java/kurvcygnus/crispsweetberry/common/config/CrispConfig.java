@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.config;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
-import kurvcygnus.crispsweetberry.utils.definitions.CrispDefUtils;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -69,12 +69,12 @@ public final class CrispConfig
     {
         KILN_BE_DEBUG = BUILDER.
             comment("Kiln: BlockEntity Debug Log Display Toggle").
-            translation(CrispDefUtils.unwrapTextKey(KILN_BE_DEBUG_TEXT)).
+            translation(DefinitionUtils.unwrapTextKey(KILN_BE_DEBUG_TEXT)).
             define("kilnBEDebug", false);
         
         KILN_BE_CAL_DEBUG = BUILDER.
             comment("Kiln: Calculator Debug Log Display Toggle").
-            translation(CrispDefUtils.unwrapTextKey(KILN_BE_CAL_DEBUG_TEXT)).
+            translation(DefinitionUtils.unwrapTextKey(KILN_BE_CAL_DEBUG_TEXT)).
             define("kilnBECalDebug", false);
         
         KILN_EVENT_DEBUG = BUILDER.

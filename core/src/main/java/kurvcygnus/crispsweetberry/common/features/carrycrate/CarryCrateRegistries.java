@@ -23,8 +23,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateBlock;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
-import kurvcygnus.crispsweetberry.utils.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.registry.annotations.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.base.extension.IStackableTool;
+import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -141,8 +142,7 @@ public enum CarryCrateRegistries implements IRegistrant
         resourceLocation -> new CarryCrateBlock()
     );
     
-    @RegisterToTab
-    @AutoI18n(group = "carry_crate", key = "carry_crate")
+    @RegisterToTab @AutoI18n(group = "carry_crate", key = "carry_crate")
     public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register(
         "carry_crate",
         resourceLocation -> new CarryCrateItem()
@@ -185,10 +185,7 @@ public enum CarryCrateRegistries implements IRegistrant
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STACKABLE_TOOL_DURABILITY =
         CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
             "carry_crate.durability",
-        resourceLocation -> DataComponentType.<Integer>builder().
-                persistent(Codec.INT).
-                networkSynchronized(ByteBufCodecs.INT).
-                build()
+            IStackableTool.getDataComponentTemplate()
         );
     
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(

@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
-import kurvcygnus.crispsweetberry.utils.ui.collects.CrispRanger;
+import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -63,5 +63,5 @@ public final class KilnConstants
     public static final CrispRanger KILN_OUTPUT_SLOTS_RANGE = CrispRanger.closed(KILN_OUTPUT_START_INDEX, KILN_OUTPUT_END_INDEX);
     public static final CrispRanger KILN_BACKPACK_SLOTS_RANGE = CrispRanger.closed(KILN_BACKPACK_START_INDEX, KILN_BACKPACK_END_INDEX);
     public static final CrispRanger KILN_HOTBAR_SLOTS_RANGE = CrispRanger.closed(KILN_HOTBAR_START_INDEX, KILN_HOTBAR_END_INDEX);
-    public static final CrispRanger KILN_INVENTORY_SLOTS_RANGE = CrispRanger.closed(KILN_BACKPACK_SLOTS_RANGE.getMin(), KILN_HOTBAR_SLOTS_RANGE.getMax());
+    public static final CrispRanger KILN_INVENTORY_SLOTS_RANGE = CrispRanger.closed(KILN_BACKPACK_SLOTS_RANGE.min(), KILN_HOTBAR_SLOTS_RANGE.max());
 }
