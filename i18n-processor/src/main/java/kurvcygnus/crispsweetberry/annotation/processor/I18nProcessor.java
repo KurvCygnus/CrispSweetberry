@@ -108,8 +108,7 @@ public final class I18nProcessor extends AbstractProcessor
         this.outputPath = processingEnv.getOptions().get("i18nPath");
         
         if(!hasContent(namespace) || namespace.equals("unknown"))
-            messager.printMessage(
-                Diagnostic.Kind.ERROR,
+            printError(
                 """
                     Unknown namespace. Go to build.gradle and configure it first.
                     
@@ -127,8 +126,8 @@ public final class I18nProcessor extends AbstractProcessor
         
         if(!hasContent(outputPath) || outputPath.equals("default"))
         {
-            messager.printMessage(
-                Diagnostic.Kind.NOTE, """
+            printError(
+                    """
                     Current using default output path: "${targetModule}/build/generated/sources/annotationProcessor/java/main/assets/%s/lang/".
                     
                     We recommend using configured path to prevent the unnecessary manual work.
@@ -169,8 +168,7 @@ public final class I18nProcessor extends AbstractProcessor
         for(final Element element: roundEnv.getElementsAnnotatedWith(AutoI18n.class))
         {
             if(element.getKind() != ElementKind.FIELD)
-                messager.printMessage(
-                    Diagnostic.Kind.ERROR,
+                printError(
                     "%s must be a field.".formatted(element.getSimpleName().toString()),
                     element
                 );
@@ -181,8 +179,7 @@ public final class I18nProcessor extends AbstractProcessor
             {
                 messager.printMessage(
                     Diagnostic.Kind.WARNING,
-                    "Processing exception: The AutoI18n annotation of %s seems to be null. Skipped.".
-                        formatted(element.getSimpleName().toString()),
+                    "Processing exception: The AutoI18n annotation of %s seems to be null. Skipped.".formatted(element.getSimpleName().toString()),
                     element
                 );
                 
@@ -195,13 +192,11 @@ public final class I18nProcessor extends AbstractProcessor
                 element.getSimpleName().toString().toLowerCase().replace("__", ".") :
                 autoI18n.key();
             
-            final String fullKeyScope = parseKeyScope(new ParseContext(namespace, key, element, element.asType(), messager, typeUtil, types));
+            final String fullKeyScope = parseKeyScope(new ParseContext(namespace, key, element, element.asType(), this::printError, typeUtil, types));
             
             if(!hasContent(group) && !hasContent(translations))
-                messager.printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "%s doesn't have a group, and has no translations, or translations include an illegal string.".
-                        formatted(element.getSimpleName().toString()),
+                printError(
+                    "%s doesn't have a group, and has no translations, or translations include an illegal string.".formatted(element.getSimpleName().toString()),
                     element
                 );
             
@@ -229,10 +224,8 @@ public final class I18nProcessor extends AbstractProcessor
                 final Matcher matcher = TRANSLATION_PATTERN.matcher(translation);
                 
                 if(!matcher.matches())
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Mismatched translation grammar: %s -> at %s, index %d".
-                            formatted(translation, element.getSimpleName().toString(), index),
+                    printError(
+                        "Mismatched translation grammar: %s -> at %s, index %d".formatted(translation, element.getSimpleName().toString(), index),
                         element
                     );
                 
@@ -240,18 +233,14 @@ public final class I18nProcessor extends AbstractProcessor
                 final String content = matcher.group(2).replace("&ensp;", " ");
                 
                 if(!hasContent(lang))
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Language is empty -> at %s, index %d".
-                            formatted(element.getSimpleName().toString(), index),
+                    printError(
+                        "Language is empty -> at %s, index %d".formatted(element.getSimpleName().toString(), index),
                         element
                     );
                 
                 if(!hasContent(content))
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Content is empty -> at %s, index %d".
-                            formatted(element.getSimpleName().toString(), index),
+                    printError(
+                        "Content is empty -> at %s, index %d".formatted(element.getSimpleName().toString(), index),
                         element
                     );
                 
@@ -260,12 +249,7 @@ public final class I18nProcessor extends AbstractProcessor
                 if(language.isPresent())
                     translationContent.put(language.get(), content);
                 else
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Language %s doesn't exist!".
-                            formatted(lang),
-                        element
-                    );
+                    printError("Language %s doesn't exist!".formatted(lang), element);
             }
         }
         
@@ -276,21 +260,15 @@ public final class I18nProcessor extends AbstractProcessor
             if(!translationContent.isEmpty())//* Initialize group case.
             {
                 if(groups.containsKey(fullGroup))
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Group %s has been defined for multiple times!".
-                            formatted(fullGroup)
-                    );
+                    printError("Group %s has been defined for multiple times!".formatted(fullGroup));
                 
                 groups.put(fullGroup, translationContent);
             }
             else//* Use group case.
             {
                 if(!groups.containsKey(fullGroup))
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Group \"%s\" doesn't exist in cached groups!".
-                            formatted(fullGroup),
+                    printError(
+                        "Group \"%s\" doesn't exist in cached groups!".formatted(fullGroup),
                         element
                     );
                     
@@ -299,10 +277,8 @@ public final class I18nProcessor extends AbstractProcessor
         }
         
         if(translationLookup.keySet().stream().anyMatch(k -> k.equals(key)))
-            messager.printMessage(
-                Diagnostic.Kind.ERROR,
-                "Key %s has been defined for multiple times!".
-                    formatted(key),
+            printError(
+                "Key %s has been defined for multiple times!".formatted(key),
                 element
             );
         
@@ -323,13 +299,10 @@ public final class I18nProcessor extends AbstractProcessor
                 final Lang lang = contentEntry.getKey();
                 final String content = contentEntry.getValue();
                 
-                final HashMap<String, String> map = translationTable.computeIfAbsent(lang, l -> new HashMap<>());
+                final HashMap<String, String> map = translationTable.computeIfAbsent(lang, $ -> new HashMap<>());
                 
                 if(map.containsKey(key))
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Duplicated translation key -> key: %s".formatted(key)
-                    );
+                    printError("Duplicated translation key -> key: %s".formatted(key));
                 
                 map.put(key, content);
             }
@@ -369,19 +342,23 @@ public final class I18nProcessor extends AbstractProcessor
                             formatted(lang.getCode())
                     );
                 }
-                catch(IOException e)
-                {
-                    messager.printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "Can't create JSON file. Details: %s".formatted(e.getMessage())
-                    );
-                }
+                catch(IOException e) { printError("Can't create JSON file. Details: %s".formatted(e.getMessage())); }
             }
         );
     }
     //endregion
     
     //region Private Utils
+    private void printError(@NotNull String message) { this.printError(message, null); }
+    
+    private void printError(@NotNull String message, @Nullable Element element)
+    {
+        if(element == null)
+            this.messager.printMessage(Diagnostic.Kind.ERROR, message);
+        else
+            this.messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+    }
+    
     private @NotNull Writer getWriter(@NotNull Lang lang) throws IOException
     {
         if(this.outputPath == null)
@@ -396,10 +373,7 @@ public final class I18nProcessor extends AbstractProcessor
         final File dir = new File(this.outputPath, "assets/%s/lang/".formatted(this.namespace));
         
         if(!dir.exists() && !dir.mkdirs())
-            messager.printMessage(
-                Diagnostic.Kind.ERROR,
-                "Can't create directory: %s".formatted(this.outputPath)
-            );
+            printError("Can't create directory: %s".formatted(this.outputPath));
         
         final File file = new File(dir, "%s.json".formatted(lang.getCode()));
         
@@ -440,11 +414,7 @@ public final class I18nProcessor extends AbstractProcessor
             
             if(typeUtil.isSameType(typeMirror, object))
             {
-                messager.printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "The type at index %d seems to be null. Stopping procession.".
-                        formatted(index)
-                );
+                printError("The type at index %d seems to be null. Stopping procession.".formatted(index));
                 return UNSUPPORTED_INDEX;
             }
             

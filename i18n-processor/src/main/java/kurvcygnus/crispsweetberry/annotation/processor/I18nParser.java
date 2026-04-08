@@ -10,12 +10,10 @@ package kurvcygnus.crispsweetberry.annotation.processor;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 import java.util.List;
 import java.util.function.Function;
 
@@ -27,7 +25,7 @@ final class I18nParser
     {
         final Element element = context.element();
         final TypeMirror elementType = context.elementType();
-        final Messager messager = context.messager();
+        final var printError = context.printError();
         final Types typeUtils = context.typeUtils();
         
         if(elementType instanceof DeclaredType declaredType)
@@ -35,33 +33,18 @@ final class I18nParser
             final List<? extends TypeMirror> args = declaredType.getTypeArguments();
             
             if(args.isEmpty())
-                messager.printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "Can't get the generic arg of %s.".
-                        formatted(element.getSimpleName().toString()),
-                    element
-                );
+                printError.accept("Can't get the generic arg of %s.".formatted(element.getSimpleName().toString()));
             
             final TypeMirror rawArg = args.getFirst();
             
             for(final TypeMirror typeMirror: context.typeMirrors())
                 if(typeUtils.isAssignable(typeUtils.erasure(rawArg), typeMirror))
-                    return recurse.apply(context);
+                    return recurse.apply(context.recursed(rawArg));
             
-            messager.printMessage(
-                Diagnostic.Kind.ERROR,
-                "The detailed generic arg of %s can't be assigned from supported types.".
-                    formatted(element.getSimpleName().toString()),
-                element
-            );
+            printError.accept("The detailed generic arg of %s can't be assigned from supported types.".formatted(element.getSimpleName().toString()));
         }
         
-        messager.printMessage(
-            Diagnostic.Kind.ERROR,
-            "%s has abnormal elementType!".
-                formatted(element.getSimpleName().toString()),
-            element
-        );
+        printError.accept("%s has abnormal elementType!".formatted(element.getSimpleName().toString()));
         
         return "Ouch";
     }

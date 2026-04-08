@@ -10,19 +10,19 @@ package kurvcygnus.crispsweetberry.annotation.processor;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 record ParseContext(
     @NotNull String namespace,
     @NotNull String key,
     @NotNull Element element,
     @NotNull TypeMirror elementType,
-    @NotNull Messager messager,
+    @NotNull Consumer<String> printError,
     @NotNull Types typeUtils,
     @NotNull List<TypeMirror> typeMirrors
 )
@@ -33,8 +33,22 @@ record ParseContext(
         Objects.requireNonNull(key, "Param \"key\" must not be null!");
         Objects.requireNonNull(element, "Param \"element\" must not be null!");
         Objects.requireNonNull(elementType, "Param \"elementType\" must not be null!");
-        Objects.requireNonNull(messager, "Param \"messager\" must not be null!");
+        Objects.requireNonNull(printError, "Param \"printError\" must not be null!");
         Objects.requireNonNull(typeUtils, "Param \"typeUtils\" must not be null!");
         Objects.requireNonNull(typeMirrors, "Param \"typeMirrors\" must not be null!");
+    }
+    
+    @NotNull ParseContext recursed(@NotNull TypeMirror genericArg)
+    {
+        Objects.requireNonNull(genericArg, "Param \"genericArg\" must not be null!");
+        return new ParseContext(
+            namespace,
+            key,
+            element,
+            genericArg,
+            printError,
+            typeUtils,
+            typeMirrors
+        );
     }
 }

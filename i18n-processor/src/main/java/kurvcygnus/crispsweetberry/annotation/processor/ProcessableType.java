@@ -11,11 +11,9 @@ package kurvcygnus.crispsweetberry.annotation.processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
-import javax.tools.Diagnostic;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -71,12 +69,9 @@ enum ProcessableType
         "java.lang.Object",
         (context, func) ->
         {
-            final Element element = context.element();
-            context.messager().printMessage(
-                Diagnostic.Kind.ERROR,
+            context.printError().accept(
                 "Can't deduce the type of %s. Go check dependency configuration.".
-                    formatted(element.getSimpleName().toString()),
-                element
+                    formatted(context.element().getSimpleName().toString())
             );
             
             return "Ouch";
