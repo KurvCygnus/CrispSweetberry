@@ -42,7 +42,7 @@ import java.util.function.BooleanSupplier;
  * )</i>
  * @param <E> The <u>{@link Enum}</u> it bounds to.
  */
-public interface IBitmaskedEnum<E extends Enum<E>>
+public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
 {
     //region Mask Constants & Lookups
     int MASK    = 0x3;

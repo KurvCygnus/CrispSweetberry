@@ -30,7 +30,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistri
  * <br><br>
  * Soul fire variant has a unique feature, with <u>{@link net.minecraft.world.level.block.SoulFireBlock SoulFireBlock}</u> enhanced:<br>
  * The soul fire, now is real, which could deals unextinguishable fire, whose implementation can be found at 
- * <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.mixin here}</u>.
+ * <u>{@link kurvcygnus.crispsweetberry.common.features.ttorches.mixins here}</u>.
  * @author Kurv Cygnus
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulTorchBlock Floor Torch
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.blocks.soul.TemporarySoulWallTorchBlock Wall Torch
