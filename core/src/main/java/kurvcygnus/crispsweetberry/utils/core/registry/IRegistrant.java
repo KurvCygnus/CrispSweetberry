@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.utils.core.registry;
 
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.neoforged.bus.api.IEventBus;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -36,7 +37,8 @@ import org.jetbrains.annotations.Range;
  *     </li>
  *     <li>
  *         Q: Isn't manually adjusting initialization priorities troublesome?<br>
- *         A: Yeah, you got me. This is the only tricky issue we are deal with. TODO: Rewrite
+ *         A: Yeah, you got me. This is the only tricky issue we are deal with. Despite adjusting neither this our solution's property nor the traditional one are annoying,
+ *         our solution's issue is implicit property view, I don't deny that, <b>this is a trade-off.</b>
  *     </li>
  * </ul>
  * @since Release 1.0
@@ -59,7 +61,7 @@ public interface IRegistrant
      */
     @NotNull PriorityPair getPriority();
     
-    default int getFullPriority() { return getPriority().priorityRange().getPriority() + getPriority().priority; }
+    @ApiStatus.NonExtendable default int getFullPriority() { return getPriority().priorityRange().getPriority() + getPriority().priority; }
     
     record PriorityPair(@NotNull PriorityRange priorityRange, @Range(from = 1, to = 999) int priority)
     {

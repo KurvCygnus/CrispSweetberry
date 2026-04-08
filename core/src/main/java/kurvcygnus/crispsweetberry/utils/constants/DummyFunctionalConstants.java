@@ -22,10 +22,10 @@ public final class DummyFunctionalConstants
 {
     private DummyFunctionalConstants() { throw new IllegalAccessError("Class \"DummyFunctionalConstants\" is not meant to be instantized!"); }
     
-    public static final Consumer<?> DO_NOTHING_CONSUMER = ignored -> {};
-    public static final BiConsumer<?, ?> DO_NOTHING_CONSUMER2 = (var1, var2) -> {};
-    public static final ITriConsumer<?, ?, ?> DO_NOTHING_CONSUMER3 = (var1, var2, var3) -> {};
-    public static final Runnable DO_NOTHING_RUN = () -> {};
+    public static final Consumer<?> DO_NOTHING = ignored -> {};
+    public static final BiConsumer<?, ?> DO_NOTHING_BI = (var1, var2) -> {};
+    public static final ITriConsumer<?, ?, ?> DO_NOTHING_TRI = (var1, var2, var3) -> {};
+    public static final Runnable RUN_NOTHING = () -> {};
     public static final Callable<Void> VOID_CALL = () -> null;
     public static final BooleanSupplier ALWAYS_TRUE = () -> true;
     public static final BooleanSupplier ALWAYS_FALSE = () -> false;

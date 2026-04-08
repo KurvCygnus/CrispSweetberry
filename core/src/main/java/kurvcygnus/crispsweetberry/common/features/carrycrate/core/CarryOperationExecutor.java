@@ -229,7 +229,7 @@ enum CarryOperationExecutor
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::listenerAddAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::listenerRemoveAction);
         }
     );
@@ -240,7 +240,7 @@ enum CarryOperationExecutor
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::componentInsertAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::componentRemoveAction);
         }
     );
@@ -251,7 +251,7 @@ enum CarryOperationExecutor
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::blockTargetReleasePreAction);
         }
     );
@@ -262,7 +262,7 @@ enum CarryOperationExecutor
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::blockEntityTargetReleasePreAction);
         }
     );
@@ -273,7 +273,7 @@ enum CarryOperationExecutor
         map ->
         {
             map.put(TriState.TRUE, CarryOperationExecutor.INST::entityTargetCaptureAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_CONSUMER2);
+            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
             map.put(TriState.FALSE, CarryOperationExecutor.INST::entityTargetReleaseAction);
         }
     );

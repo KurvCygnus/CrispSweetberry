@@ -58,14 +58,14 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,
         @NotNull ServerLevel level
-    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, null, (Consumer<I>) DummyFunctionalConstants.DO_NOTHING_CONSUMER); }
+    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, null, (Consumer<I>) DummyFunctionalConstants.DO_NOTHING); }
     
     @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
     default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,
         @NotNull ServerLevel level,
         @Nullable LivingEntity livingEntity
-    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, livingEntity, (Consumer<I>) DummyFunctionalConstants.DO_NOTHING_CONSUMER); }
+    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, livingEntity, (Consumer<I>) DummyFunctionalConstants.DO_NOTHING); }
     
     default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,

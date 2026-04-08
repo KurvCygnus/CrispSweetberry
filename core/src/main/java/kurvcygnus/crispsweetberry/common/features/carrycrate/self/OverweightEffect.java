@@ -30,6 +30,7 @@ import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -81,20 +82,26 @@ public final class OverweightEffect extends MobEffect
         );
     }
     
-    //? TODO: Check Factor, and try update when player changes gamemode.
-    public static float updateFactorAndEffect(@NotNull Player player, @NotNull CarryData data, @NotNull TriState state)
-        { return updateFactorAndEffect(player, data, state, DummyFunctionalConstants.DO_NOTHING_RUN); }
+    @SuppressWarnings("UnusedReturnValue") public static float updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state)
+        { return updateFactorAndEffect(player, data, state, DummyFunctionalConstants.RUN_NOTHING); }
     
-    public static float updateFactorAndEffect(@NotNull Player player, @NotNull CarryData data, @NotNull TriState state, @NotNull Runnable unacceptableCallback)
+    public static float updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state, @NotNull Runnable unacceptableCallback)
     {
         Objects.requireNonNull(player, "Param \"player\" must not be null!");
-        Objects.requireNonNull(data, "Param \"data\" must not be null!");
         Objects.requireNonNull(state, "Param \"state\" must not be null!");
         Objects.requireNonNull(unacceptableCallback, "Param \"unacceptableCallback\" must not be null!");
         
-        final float layerFactor = data.unionData() instanceof CarryData.CarryBlockDataHolder holder ?
-            (float) 1 / holder.getMaxCarryCount() :
-            1F;
+        FunctionalUtils.throwIf(
+            !state.equals(TriState.DEFAULT) && data == null,
+            "Illegal Composition: non-DEFAULT means side effect will be invoked, param \"data\" must not be null!",
+            IllegalArgumentException::new
+        );
+        
+        final float layerFactor = data == null ?
+            1F :
+            data.unionData() instanceof CarryData.CarryBlockDataHolder holder ?
+                (float) 1 / holder.getMaxCarryCount() :
+                1F;
         
         final float newFactor = state.isDefault() ?
             0F :
@@ -103,7 +110,7 @@ public final class OverweightEffect extends MobEffect
                 player.getData(CarryCrateRegistries.CARRY_FACTOR.get()) +
                 MathUtils.negativeIf(
                     state.isFalse(),
-                    data.causesOverweight() ? 1F : 0.5F
+                    data == null ? 0F : data.causesOverweight() ? 1F : 0.5F
                 ) * layerFactor
             );
         

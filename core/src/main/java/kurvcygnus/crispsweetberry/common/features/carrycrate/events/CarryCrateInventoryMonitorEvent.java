@@ -22,6 +22,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,9 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateCo
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 final class CarryCrateInventoryMonitorEvent
 {
+    @SubscribeEvent static void gamemodeMonitor(@NotNull PlayerEvent.PlayerChangeGameModeEvent event)
+        { OverweightEffect.updateFactorAndEffect(event.getEntity(), null, TriState.DEFAULT); }
+    
     @SubscribeEvent static void pickupPreMonitor(@NotNull ItemEntityPickupEvent.Pre event)
     {
         final ItemStack itemStack = getCrateWithCheck(event.getItemEntity()::getItem);

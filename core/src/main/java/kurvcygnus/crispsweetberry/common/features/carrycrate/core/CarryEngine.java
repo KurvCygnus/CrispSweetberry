@@ -89,7 +89,7 @@ public enum CarryEngine
             }
         );
     
-    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_ENGINE");
+    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     //endregion
     
     //region Initialization Data & Engine Persistent Lifecycle
@@ -110,21 +110,24 @@ public enum CarryEngine
         
         @Override public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
         {
-            final ListTag entryList = new ListTag();
-            
-            final BiConsumer<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> insertToData =
-                (id, ignored) ->
-                {
-                    final CompoundTag entry = new CompoundTag();
-                    entry.putString(ID, id.id());
-                    entry.putString(UUID, id.uuid());
-                    entryList.add(entry);
-                    LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid(), id.id());
-                };
-            
-            LISTENER_MAPS.values().forEach(map -> map.forEach(insertToData));
-            
-            tag.put(ENTRIES, entryList);
+            try(var ignored = LOGGER.pushMarker("PERSISTENT"))
+            {
+                final ListTag entryList = new ListTag();
+                
+                final BiConsumer<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> insertToData =
+                    (id, $) ->
+                    {
+                        final CompoundTag entry = new CompoundTag();
+                        entry.putString(ID, id.id());
+                        entry.putString(UUID, id.uuid());
+                        entryList.add(entry);
+                        LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid(), id.id());
+                    };
+                
+                LISTENER_MAPS.values().forEach(map -> map.forEach(insertToData));
+                
+                tag.put(ENTRIES, entryList);
+            }
             return tag;
         }
         
@@ -300,13 +303,13 @@ public enum CarryEngine
         carryCrate.set(CarryCrateRegistries.CARRY_TICK_COUNTER.get(), currentCounter + 1);
     }
     
-    //? TODO Known issues:
-    //? 1. Give crate always gives a new stack, instead of mut itself on single stack case.
-    //? 2. Effect Update is weird.
+    //? TODO:
+    //? 1. [[BlockEntity]] Box I/O logic & [[Entity]] Persistent issue. These two are just old friends before refactoring.
+    //? 2. Stacked boxing also has persistent issue.
     @SuppressWarnings("unchecked")//! Safe Casting.
     public static @Nullable InteractionResult interact(@NotNull ICarryInteractContext context)
     {
-        final AtomicReference<InteractionResult> interactionResultRef = new AtomicReference<>(null);
+        final var interactionResultRef = new AtomicReference<InteractionResult>(null);
         
         try(final var handle = LOGGER.pushMarker("INTERACT_START"))
         {
@@ -364,7 +367,7 @@ public enum CarryEngine
                         targetBlockEntity = context.getLevel().getBlockEntity(interactPos);
                         final CarryType result = targetBlockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
                         
-                        //! As you can see, once the CarryType is BLOCK_ENTITY, "targetBlockEntity" won't be null.
+                        //! As you can see, once the [[CarryType]] is BLOCK_ENTITY, "targetBlockEntity" won't be null.
                         assert targetBlockEntity != null;
                         yield validateBlocklikeAction(result, targetBlockEntity, targetState);
                     }
@@ -528,19 +531,13 @@ public enum CarryEngine
     
     private static void giveCrateWithEffect(@NotNull ServerLevel level, @NotNull ServerPlayer player, @NotNull CarryData data, @NotNull TriState state, @NotNull ItemStack newCrate)
     {
-        OverweightEffect.updateFactorAndEffect(
-            player,
-            data,
-            state,
-            () ->
-            {
-                if(player.getInventory().add(newCrate))
-                    return;
-                
-                final BlockPos pos = player.getOnPos();
-                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), newCrate);
-            }
-        );
+        OverweightEffect.updateFactorAndEffect(player, data, state);
+        
+        if(player.getInventory().add(newCrate))
+            return;
+        
+        final BlockPos pos = player.getOnPos();
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), newCrate);
     }
     
     private static void markDirty(@NotNull ServerLevel level) { CarryListenerSaveData.get(level.getServer()).setDirty(); }

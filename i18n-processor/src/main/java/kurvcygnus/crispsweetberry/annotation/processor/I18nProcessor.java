@@ -59,7 +59,7 @@ public final class I18nProcessor extends AbstractProcessor
         {
             "thz iz": "TA2TY FRUT uwu, vrshen: %s, nah taoch tiz or kat wil biat ya!",
         """.formatted(VERSION);
-    private static final BinaryOperator<String> ENTRY_TEMPLATE = (key, value) -> "    \"%s\" : \"%s\"".formatted(key, escape(value));
+    private static final BinaryOperator<String> ENTRY_TEMPLATE = (key, value) -> "    \"%s\": \"%s\"".formatted(key, escape(value));
     
     /**
      * <u>{@link Messager}</u> is the logger of Compile-Time.<br><br>

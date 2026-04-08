@@ -82,7 +82,8 @@ public enum KilnRecipeManager
         newRecipeMap.values().forEach(l -> l.removeIf(Objects::isNull));
         
         //? TODO: Better filter.
-        final var totalRecipes = newRecipeMap.entrySet().stream().collect(Collectors.partitioningBy(
+        final var totalRecipes = newRecipeMap.entrySet().stream().collect(
+            Collectors.partitioningBy(
             entry -> entry.getValue().stream().anyMatch(KilnRecipe::isBanned),
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
             )

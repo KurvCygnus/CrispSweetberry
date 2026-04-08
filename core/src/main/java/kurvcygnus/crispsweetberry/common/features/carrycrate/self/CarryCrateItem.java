@@ -102,13 +102,13 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
             CARRY_CRATE_MAX_DURABILITY
         );
         
-        tooltipComponents.add(DESCRIPTION_DISPATCHER.getValueOrThrow(durability));
-        
         if(!tooltipFlag.hasShiftDown())
         {
             tooltipComponents.add(CrispClientLiterals.UI__SHIFT_FOR_MORE_INFO.get());
             return;
         }
+        
+        tooltipComponents.add(DESCRIPTION_DISPATCHER.getValueOrThrow(durability));
         
         final Optional<CarryID> optionalID = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_ID.get()));
         
