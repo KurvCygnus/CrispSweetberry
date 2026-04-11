@@ -34,6 +34,7 @@
    ```shell
     git config filter.hide-i18n.clean "sed 's/^i18n_path=.*/#i18n_path=/'"
     git config filter.hide-i18n.smudge "cat"
+    git add --renormalize .
    ```
    然后再去 [Gradle属性配置](./gradle.properties) 中配置你个人的翻译文件生成位置.\
    这些指令会保证你的本地配置不会被提交到本地仓库里, 更不会被上传到 Github 的仓库.

@@ -64,7 +64,7 @@ enum CarryOperationExecutor
             return;
         
         final CarryData data = context.optionalData.get();
-        final var creationData = data.unionData().getCreationData();
+        final Object creationData = data.unionData().getCreationData();
         final var optionalFactory = CarryRegistryManager.INST.searchFactory(data.carryType(), creationData);
         
         optionalFactory.ifPresentOrElse(
@@ -77,7 +77,6 @@ enum CarryOperationExecutor
     {
         if(context.optionalID.isEmpty())
             return;
-        
         context.targetMap.remove(context.optionalID.get());
     }
     

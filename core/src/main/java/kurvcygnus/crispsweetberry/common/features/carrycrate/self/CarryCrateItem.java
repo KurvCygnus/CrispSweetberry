@@ -97,34 +97,28 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
     {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
         
-        final int durability = Objects.requireNonNullElse(
-            stack.get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()),
-            CARRY_CRATE_MAX_DURABILITY
-        );
-        
         if(!tooltipFlag.hasShiftDown())
         {
             tooltipComponents.add(CrispClientLiterals.UI__SHIFT_FOR_MORE_INFO.get());
             return;
         }
         
-        tooltipComponents.add(DESCRIPTION_DISPATCHER.getValueOrThrow(durability));
-        
-        final Optional<CarryID> optionalID = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_ID.get()));
-        
-        LOGGER.debug("{}", optionalID);
-        
-        final Optional<Component> optionalContentNameText = optionalID.flatMap(
-            id -> CarryRegistryManager.INST.getCombinedContentTranslation(ResourceLocation.parse(id.id()))
+        final int durability = Objects.requireNonNullElse(
+            stack.get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()),
+            CARRY_CRATE_MAX_DURABILITY
         );
         
-        LOGGER.debug("{}", optionalContentNameText);
+        tooltipComponents.add(DESCRIPTION_DISPATCHER.getValueOrThrow(durability));
         
-        optionalContentNameText.ifPresent(tooltipComponents::add);
+        final @Nullable CarryID carryID = stack.get(CarryCrateRegistries.CARRY_ID.get());
+        
+        if(carryID != null)
+            CarryRegistryManager.INST.
+                getCombinedContentTranslation(ResourceLocation.parse(carryID.id())).ifPresent(tooltipComponents::add);
         
         final Optional<CarryData> optionalData = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()));
         
-        optionalData.ifPresentOrElse(
+        optionalData.ifPresent(
             data ->
             {
                 if(!data.carryType().equals(CarryType.BLOCK))
@@ -140,8 +134,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
                         append(String.valueOf(blockDataHolder.getCarryCount())).
                         append(UI__CARRY_CRATE__LAYER_SUFFIX.get())
                 );
-            },
-            () -> tooltipComponents.add(UI__CARRY_CRATE__LAYER_PREFIX.get().append(UI__CARRY_CRATE__LAYER_EMPTY.get()))
+            }
         );
     }
     

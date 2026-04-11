@@ -93,7 +93,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
     @Override protected @NotNull HandleResult unbox() 
     {
         if(!hasData)
-            return handleEx();
+            return handleException();
         
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
         Objects.requireNonNull(data, MISUSE_FAIL_MSG);

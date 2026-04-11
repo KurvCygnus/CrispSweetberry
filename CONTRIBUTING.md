@@ -39,6 +39,7 @@ If you have any questions, feel free to ask.
    ```shell
     git config filter.hide-i18n.clean "sed 's/^i18n_path=.*/#i18n_path=/'"
     git config filter.hide-i18n.smudge "cat"
+    git add --renormalize .
    ```
    Then go to [Gradle Property Config](./gradle.properties) to set up your own translation generate location.\
    These commands make sure that your own property config won't commited to git repo, and also Github Repo.

@@ -15,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpyglassItem;
@@ -103,7 +104,7 @@ public final class SpyglassQuickZoomEvent
             return;
         
         if(player.isUsingItem() && player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SpyglassItem)
-                return;//! No repeat use.
+            return;//! No repeat use.
         
         hotkeyPressed = SPYGLASS_ZOOM.isDown();
         
@@ -132,13 +133,13 @@ public final class SpyglassQuickZoomEvent
                 PacketDistributor.sendToServer(new SpyglassPayloads.SpyglassPayload(false));
             }
             case RELEASED -> zoomState = ZoomState.IDLE;
-            default -> { }
+            default -> {}
         }
     }
     
     @SubscribeEvent static void zoom(@NotNull ComputeFovModifierEvent event)
     {
-        if(!isZooming()) 
+        if(!isZooming())
             return;
         
         final Minecraft instance = Minecraft.getInstance();
@@ -149,7 +150,7 @@ public final class SpyglassQuickZoomEvent
         event.setNewFovModifier(SpyglassItem.ZOOM_FOV_MODIFIER);
     }
     
-    @SubscribeEvent static void speedEdit(@NotNull MovementInputUpdateEvent event)//? TODO: Behavior mismatch. Vanilla won't stop sprinting immediately after using.
+    @SubscribeEvent static void speedEdit(@NotNull MovementInputUpdateEvent event)
     {
         if(!isZooming())
             return;
@@ -157,8 +158,14 @@ public final class SpyglassQuickZoomEvent
         event.getInput().leftImpulse *= SPYGLASS_MOVEMENT_FACTOR;
         event.getInput().forwardImpulse *= SPYGLASS_MOVEMENT_FACTOR;
         
-        if(event.getEntity().isSprinting())
-            event.getEntity().setSprinting(false);
+        final Entity player = event.getEntity();
+        
+        if(!player.isSprinting())
+            return;
+        
+        while(isZooming())                 //* This is vanilla logic:
+            if(player.isSprinting())       //* When player uses Spyglass at sprinting, sprinting won't be canceled,
+                player.setSprinting(false);//* however, once stopped sprinting manually, the following attempt won't be allowed.
     }
     
     public static boolean isZooming() { return hotkeyPressed && hasSpyglass; }

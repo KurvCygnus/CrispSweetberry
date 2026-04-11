@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.utils.base.extension;
 
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,4 +19,8 @@ public abstract class StackableToolBlockItem<T extends StackableToolBlockItem<T>
 {
     public StackableToolBlockItem(@NotNull Block block, Properties properties)
         { super(Objects.requireNonNull(block, "Param \"block\" must not be null!"), properties); }
+    
+    @Override public boolean isBarVisible(@NotNull ItemStack stack) { return IStackableTool.super.isBarVisible(stack); }
+    @Override public int getBarWidth(@NotNull ItemStack stack) { return IStackableTool.super.getBarWidth(stack); }
+    @Override public int getBarColor(@NotNull ItemStack stack) { return IStackableTool.super.getBarColor(stack); }
 }

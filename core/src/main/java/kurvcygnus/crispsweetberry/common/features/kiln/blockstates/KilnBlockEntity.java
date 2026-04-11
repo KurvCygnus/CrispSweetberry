@@ -15,7 +15,6 @@ import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.CalculationResult;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
@@ -54,6 +53,7 @@ import java.util.Optional;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.TRUE;
+import static kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections.*;
 import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCarriableExtensions.*;
 
 /**
@@ -112,10 +112,10 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
      */
     private final KilnProgressModel model = new KilnProgressModel(this);
     private final KilnProgressCalculator calculator = new KilnProgressCalculator(this);
-    private final ContainerData data = new KilnContainerData(this);
+    private final KilnContainerData data = new KilnContainerData(this);
     
     //*:== Logical Procession Data
-    private KilnEnumCollections.InputState inputState = KilnEnumCollections.InputState.ALL_EMPTY;
+    private InputState inputState = InputState.ALL_EMPTY;
     private float experience = 0F;
     
     private static final MarkLogger LOGGER = MarkLogger.configuredLogger(
@@ -128,7 +128,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
         static final @NotNull EmulateResult FAILED = new EmulateResult(false, 0F);
         
         static @NotNull EmulateResult success(@Range(from = 0, to = (long) Float.MAX_VALUE) float exp)
-        { return new EmulateResult(true, exp); }
+            { return new EmulateResult(true, exp); }
     }
     //endregion
     
@@ -211,9 +211,9 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     
     private void updateInputSlotsInfo()
     {
-        inputState = KilnEnumCollections.InputState.ALL_EMPTY;
+        inputState = InputState.ALL_EMPTY;
         
-        final KilnEnumCollections.LogicalResult nonWorkingLogicalResult;
+        final LogicalResult nonWorkingLogicalResult;
         
         try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
@@ -230,7 +230,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                     recipeCache.set(slotIndex, EMPTY_RECIPE);
                 else if(canSmelt(stackInSlot))
                 {
-                    if(inputState != KilnEnumCollections.InputState.VALID)
+                    if(inputState != InputState.VALID)
                     {
                         handle.changeMarker("INPUT_STATE_CHANGED");
                         LOGGER.debug("{} -> VALID (at slot {}, stack: {})",
@@ -238,7 +238,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                         );
                     }
                     
-                    inputState = KilnEnumCollections.InputState.VALID;
+                    inputState = InputState.VALID;
                     final Optional<KilnRecipe> optionalKilnRecipe = getKilnRecipe(stackInSlot);
                     
                     if(optionalKilnRecipe.isPresent())
@@ -251,7 +251,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                         {
                             //* Kiln doesn't support blasting recipes since they require huge heats, which can't afforded by kiln,
                             //* and thus, we should tip players about this.
-                            inputState = KilnEnumCollections.InputState.HAS_TIP;
+                            inputState = InputState.HAS_TIP;
                             break;
                         }
                     }
@@ -309,8 +309,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     public static void serverTick(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull KilnBlockEntity blockEntity)
     {
         final boolean isIgnited = state.getValue(KilnBlock.LIT);
-        
-        final KilnEnumCollections.ProcessionState currentState = blockEntity.deduceProcessState(isIgnited);
+        final ProcessionState currentState = blockEntity.deduceProcessState(isIgnited);
         
         final CalculationResult result = blockEntity.calculator.calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
         
@@ -375,20 +374,20 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     }
     
     /**
-     * @apiNote Block <u>{@link KilnEnumCollections.LogicalResult#BALANCING BALANCING}</u>
+     * @apiNote Block <u>{@link LogicalResult#BALANCING BALANCING}</u>
      * is strictly considered as a special variation of
-     * <u>{@link KilnEnumCollections.ProcessionState#WORKING WORKING}</u>, instead of being an independent attachTag,
+     * <u>{@link ProcessionState#WORKING WORKING}</u>, instead of being an independent attachTag,
      * it's deduced, only being used in
      * <u>{@link KilnProgressCalculator#calculateRates Calculation}</u>
      * and returned as a part of <u>{@link CalculationResult CalculationResult}</u>
      * for menu visual change.
      */
-    private @NotNull KilnEnumCollections.ProcessionState deduceProcessState(boolean isIgnited)
+    private @NotNull ProcessionState deduceProcessState(boolean isIgnited)
     {
-        if(!isIgnited || this.inputState != KilnEnumCollections.InputState.VALID)
-            return KilnEnumCollections.ProcessionState.COOLDOWN;
+        if(!isIgnited || this.inputState != InputState.VALID)
+            return ProcessionState.COOLDOWN;
         
-        return KilnEnumCollections.ProcessionState.WORKING;
+        return ProcessionState.WORKING;
     }
     
     private static @NotNull EmulateResult processInputItems(@NotNull KilnBlockEntity blockEntity, @NotNull Level level)
@@ -541,11 +540,11 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
         final byte loadedBalanceTick = tag.contains(NBT_TAG_BALANCE_TICK, Tag.TAG_BYTE) ? tag.getByte(NBT_TAG_BALANCE_TICK) : 0;
         final double loadedBalanceRate = tag.contains(NBT_TAG_BALANCE_RATE, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_BALANCE_RATE) : 0D;
         
-        this.model.synchronize(loadedRealProgress, loadedVisualProgress, KilnEnumCollections.VisualTrend.NONE, loadedLitProperty == TRUE);
+        this.model.synchronize(loadedRealProgress, loadedVisualProgress, VisualTrend.NONE, loadedLitProperty == TRUE);
         this.calculator.synchronize(loadedBalanceTick, loadedBalanceRate);
         
         this.experience = loadedExp;
-        this.inputState = KilnEnumCollections.InputState.ALL_EMPTY;
+        this.inputState = InputState.ALL_EMPTY;
         this.updateInputSlotsInfo();
     }
     
@@ -580,7 +579,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
             this.model.getRealProgress(),
             this.model.getVisualProgress(),
             context.realRate(),
-            context.isLit() ? KilnEnumCollections.ProcessionState.WORKING : KilnEnumCollections.ProcessionState.COOLDOWN
+            context.isLit() ? ProcessionState.WORKING : ProcessionState.COOLDOWN
         ));
         
         internalTick(level, pos, this, result.calculationResult(), context.isLit(), result.theoreticalProcessRound(), true);
@@ -600,8 +599,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
     
     public @NotNull Optional<KilnRecipe> getKilnRecipe(@NotNull ItemStack stackInSlot)
     {
-        final Optional<NonNullList<KilnRecipe>> list = Optional.ofNullable(KilnRecipeManager.INST.getRecipes().get(stackInSlot.getItem()));
-        
+        final var list = KilnRecipeManager.INST.getRecipes(stackInSlot.getItem());
         return list.map(List::getFirst);//? TODO: Polymorph support
     }
     

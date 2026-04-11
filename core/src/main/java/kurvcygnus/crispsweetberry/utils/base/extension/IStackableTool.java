@@ -45,9 +45,9 @@ import java.util.function.Function;
  * <hr>
  * Also, <u>{@link #isBarVisible(ItemStack)}</u>, <u>{@link #getBarColor(ItemStack)}</u> and <u>{@link #getBarWidth(ItemStack)}</u> are defined
  * by <u>{@link Item}</u> class, which means, <b>you need to delegate these methods manually, as <u>{@link Item}</u> forces devs to implement that
- * (<i>Or↑↓→, you can use <u>{@link StackableToolItem}</u> and <u>{@link StackableToolBlockItem}</u></i>)</b>.
+ * (<i>Or, you can use <u>{@link StackableToolItem}</u> and <u>{@link StackableToolBlockItem}</u></i>, they are
+ * <u><a href="https://docs.oracle.com/javase/tutorial/java/IandI/defaultmethods.html">Bridge Abstracts</a></u>, which don't have that issue)</b>.
  */
-@ApiStatus.Internal
 public interface IStackableTool<I extends Item & IStackableTool<I>>
 {
     @Range(from = 1, to = Integer.MAX_VALUE) int getMaxDurability();
@@ -67,13 +67,13 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
         @Nullable LivingEntity livingEntity
     ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, livingEntity, (Consumer<I>) DummyFunctionalConstants.DO_NOTHING); }
     
-    default boolean hurtAndBreak(
+    @ApiStatus.NonExtendable default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,
         @NotNull ServerLevel level,
         @NotNull Consumer<I> breakSequence
     ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, null, breakSequence); }
     
-    default boolean hurtAndBreak(
+    @ApiStatus.NonExtendable default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,
         @NotNull ServerLevel level,
         @Nullable LivingEntity livingEntity,
@@ -81,7 +81,7 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, livingEntity, breakSequence); }
     
     @SuppressWarnings("unchecked")//! See comments below: Line 127.
-    default boolean hurtAndBreak(
+    @ApiStatus.NonExtendable default boolean hurtAndBreak(
         int damage,
         @NotNull ItemStack itemStack,
         @NotNull ServerLevel level,
@@ -91,19 +91,19 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     {
         final Logger logger = getLogger();
         final DataComponentType<Integer> dataComponent = getDataComponent();
-        final BiConsumer<String, @Nullable Integer> print = (msg, args) -> FunctionalUtils.doIfNonNull(logger, log -> log.debug(msg, args));
+        final BiConsumer<String, @Nullable Integer> debug = (msg, args) -> FunctionalUtils.doIfNonNull(logger, log -> log.debug(msg, args));
         
         if(!(itemStack.getItem() instanceof IStackableTool<?>))
         {
-            print.accept("Param \"itemStack\" is not a stackable tool. Returning false.", null);
+            debug.accept("Param \"itemStack\" is not a stackable tool. Returning false.", null);
             return false;
         }
         
         if(livingEntity == null)
-            return false;
+            return false;//! Duar penalty should only happen when an [[Entity]] holds it.
         
         final int durability = Objects.requireNonNullElse(itemStack.get(dataComponent), getMaxDurability());
-        print.accept("Got the durability of this stack: {}", durability);
+        debug.accept("Got the durability of this stack: {}", durability);
         
         if(livingEntity.hasInfiniteMaterials() && damage > 0)
         {
@@ -111,14 +111,14 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
             
             if(damage < 0)
             {
-                print.accept("No damage. Returning false.", null);
+                debug.accept("No damage. Returning false.", null);
                 return false;
             }
         }
         
         if(durability - damage > 0)
         {
-            print.accept("Stackable tool didn't break, current durability is {}", durability - damage);
+            debug.accept("Stackable tool didn't break, current durability is {}", durability - damage);
             itemStack.set(dataComponent, durability - damage);
             return false;
         }
@@ -131,7 +131,7 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
         
         if(livingEntity instanceof Player player)
         {
-            print.accept("Stack is held by player. Try play sound.", null);
+            debug.accept("Stack is held by player. Try play sound.", null);
             level.playSound(null, player.getOnPos(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1.0F, 1.0F);
         }
             
@@ -143,15 +143,15 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     }
     
     @SuppressWarnings("unused")//! This is implicitly used by [[StackableToolItem]] and [[StackableToolBlockItem]], with interface-class inheritance trick.
-    default boolean isBarVisible(@NotNull ItemStack stack)
+    @ApiStatus.NonExtendable default boolean isBarVisible(@NotNull ItemStack stack)
     {
         //noinspection DataFlowIssue
-        return !(stack.get(this::getDataComponent) == null ||//! IDEA's dataflow is seemingly flawed at here.
+        return !(!stack.has(this::getDataComponent) ||//! IDEA's dataflow is seemingly flawed at here.
             stack.get(this::getDataComponent) == getMaxDurability());
     }
     
     @SuppressWarnings("unused")//! This is implicitly used by [[StackableToolItem]] and [[StackableToolBlockItem]], with interface-class inheritance trick.
-    default int getBarWidth(@NotNull ItemStack stack)
+    @ApiStatus.NonExtendable default int getBarWidth(@NotNull ItemStack stack)
     {
         //! Obviously that this will only be called when [[Item#isBarVisible]] is true.
         //  noinspection DataFlowIssue
@@ -173,8 +173,11 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     
     @NotNull DataComponentType<Integer> getDataComponent();
     
-    @Nullable Logger getLogger();
+    @ApiStatus.OverrideOnly default @Nullable Logger getLogger() { return null; }
     
+    /**
+     * Produces a simple <u>{@link DataComponentType}</u>'s definition template, which is can, and should be used by <u>{@link IStackableTool#getDataComponent()}</u>.
+     */
     static @NotNull Function<ResourceLocation, DataComponentType<Integer>> getDataComponentTemplate()
     {
         return resourceLocation -> DataComponentType.<Integer>builder().

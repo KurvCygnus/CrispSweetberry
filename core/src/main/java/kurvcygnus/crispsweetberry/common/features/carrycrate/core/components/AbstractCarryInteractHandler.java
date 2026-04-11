@@ -136,7 +136,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         return carryID;
     }
     
-    protected final @NotNull HandleResult handleEx()
+    protected final @NotNull HandleResult handleException()
     {
         getLogger().error(
             "ItemStack \"{}\" has CarryID \"{}\", but has no carryData, returning \"PASS\" as interact result. This is a serious persistent issue. {}",
@@ -227,6 +227,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
      */
     public static final class HandleResult
     {
+        //region Constants
         private static final int LISTENER_ADD    = LISTENER.shiftTrue();//  1
         private static final int LISTENER_REMOVE = LISTENER.shiftFalse();// 2
         
@@ -247,7 +248,9 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             null,
             null
         );
+        //endregion
         
+        //region Fields
         /**
          * The serialized data of the carry object.
          */
@@ -271,7 +274,9 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
          */
         private final @Nullable CarryID carryID;
         private final @Nullable BlockEntityType<?> blockEntityType;
+        //endregion
         
+        //region Base Constructor & Static Factories
         private HandleResult(
             @Nullable CarryData data,
             @Range(from = 0, to = Integer.MAX_VALUE) @MagicConstant(flagsFromClass = HandleResult.class) int flags,
@@ -374,7 +379,9 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
                 blockEntityType
             );
         }
+        //endregion
         
+        //region Operation Parsers & Getters
         public @NotNull Pair<OperationType, TriState> getListenerState() { return new Pair<>(LISTENER, LISTENER.compute(flags)); }
         public @NotNull Pair<OperationType, TriState> getComponentState() { return new Pair<>(COMPONENT, COMPONENT.compute(flags)); }
         public @NotNull Pair<OperationType, TriState> getTargetState() { return new Pair<>(TARGET, TARGET.compute(flags)); }
@@ -386,7 +393,9 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         public @NotNull Optional<CarryID> carryID() { return Optional.ofNullable(carryID); }
         
         public @NotNull Optional<BlockEntityType<?>> blockEntityType() { return Optional.ofNullable(blockEntityType); }
+        //endregion
         
+        //region Misc Methods & Enum Definition
         @Override public boolean equals(@Nullable Object obj)
         {
             return obj instanceof HandleResult that &&
@@ -438,4 +447,5 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     }
     
     public enum OperationType implements IBitmaskedEnum<OperationType> { LISTENER, COMPONENT, TARGET }
+    //endregion
 }

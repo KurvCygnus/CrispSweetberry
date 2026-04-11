@@ -20,10 +20,7 @@ import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
 
 import java.util.ArrayDeque;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -277,7 +274,7 @@ public final class MarkLogger
      * @return A predicate that returns {@code true} if the log should be performed.
      * @apiNote <span style="color: 95cc6d">The value of {@code extra} is <b>dynamic</b></span>, it will changed with the formula of the <u>{@link Predicate}</u>.
      */
-    public static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, Supplier<Boolean> extra)
+    public static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, BooleanSupplier extra)
         { return leveledCondition(level, situation, extra, false); }
     
     /**
@@ -319,7 +316,7 @@ public final class MarkLogger
      * @return A predicate that returns {@code true} if the log should be performed.
      * @apiNote <span style="color: 95cc6d">The value of {@code extra} is <b>dynamic</b></span>, it will changed with the formula of the <u>{@link Predicate}</u>.
      */
-    public static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, Supplier<Boolean> extra)
+    public static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, BooleanSupplier extra)
         { return leveledCondition(level, situation, extra, true); }
     //endregion
     
@@ -824,12 +821,17 @@ public final class MarkLogger
         return baseName + suffix.toUpperCase();
     }
     
-    private static @NotNull Predicate<Level> leveledCondition(@NotNull Level level, @NotNull ConditionSituation situation, Supplier<Boolean> extra, boolean reverse)
+    private static @NotNull Predicate<Level> leveledCondition(
+        @NotNull Level level,
+        @NotNull ConditionSituation situation,
+        @NotNull BooleanSupplier extra,
+        boolean reverse
+    )
     {
         requireNonNull(level, "Param \"level\" must not be null!");
         requireNonNull(situation, "Param \"situation\" must not be null!");
         
-        return l -> reverse == situation.condition.test(l, level) || extra.get();
+        return l -> reverse == situation.condition.test(l, level) || extra.getAsBoolean();
     }
     
     public enum ConditionSituation

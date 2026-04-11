@@ -88,7 +88,7 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
     @Override public @NotNull HandleResult unbox()
     {
         if(!hasData)
-            return handleEx();
+            return handleException();
         
         final BlockState targetState = getTargetState();
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());

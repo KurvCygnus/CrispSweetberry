@@ -96,7 +96,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
     @Override protected @NotNull HandleResult unbox()
     {
         if(!hasData)
-            return handleEx();
+            return handleException();
         
         final BlockState targetState = getTargetState();
         final BlockPos targetPos = getTargetPos();

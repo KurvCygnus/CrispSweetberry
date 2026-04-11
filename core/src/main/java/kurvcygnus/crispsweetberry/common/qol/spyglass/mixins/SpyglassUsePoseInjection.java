@@ -39,7 +39,7 @@ public final class SpyglassUsePoseInjection
     @Inject(method = "getArmPose", at = @At("HEAD"), cancellable = true) private static void 
     armPoseInject(@NotNull AbstractClientPlayer player, @NotNull InteractionHand hand, @NotNull CallbackInfoReturnable<HumanoidModel.ArmPose> callback)
     {
-        //! Explain: #getArmPose sets both two arms' pose. If no hand detect, both two hands will be SPYGLASS, which is similar to bow's pose.
+        //! Explain: [[PlayerRenderer#getArmPose]] sets both two arms' pose. If no hand detect, both two hands will be SPYGLASS, which is similar to bow's pose.
         if(!Objects.equals(hand, InteractionHand.OFF_HAND) || !player.isScoping())
             return;
         

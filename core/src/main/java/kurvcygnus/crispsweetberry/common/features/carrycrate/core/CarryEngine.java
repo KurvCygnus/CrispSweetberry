@@ -78,7 +78,7 @@ public enum CarryEngine
     private static final HashMap<CarryID, ICarryEntityAdapterFactory<?, ?>> ENTITY_CARRY_LISTENERS = new HashMap<>();
     private static final HashMap<CarryID, ICarryBlockAdapterFactory<?, ?>> BLOCK_CARRY_LISTENERS = new HashMap<>();
     
-    private static final Map<CarryType, HashMap<CarryID, ? extends IBaseCarryAdapterFactory<?, ?>>> LISTENER_MAPS =
+    private static final Map<CarryType, HashMap<CarryID, ? extends IBaseCarryAdapterFactory<?, ?>>> LISTENER_LOOKUP =
         DefinitionUtils.createImmutableEnumMap(
             CarryType.class,
             map ->
@@ -94,7 +94,7 @@ public enum CarryEngine
     
     //region Initialization Data & Engine Persistent Lifecycle
     /**
-     * This is the definition of the instantized <u>{@link CarryEngine#LISTENER_MAPS}</u>.<br>
+     * This is the definition of the instantized <u>{@link CarryEngine#LISTENER_LOOKUP}</u>.<br>
      * <b>It exists to make sure that boxed Carry Crate's data won't get lost</b>.
      * @since 1.0 Release
      * @author Kurv Cygnus
@@ -124,7 +124,7 @@ public enum CarryEngine
                         LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid(), id.id());
                     };
                 
-                LISTENER_MAPS.values().forEach(map -> map.forEach(insertToData));
+                LISTENER_LOOKUP.values().forEach(map -> map.forEach(insertToData));
                 
                 tag.put(ENTRIES, entryList);
             }
@@ -134,7 +134,7 @@ public enum CarryEngine
         public static @NotNull CarryListenerSaveData get(@NotNull MinecraftServer server)
         {
             //! Explanation: Minecraft saves most world data by dimension.
-            //! [[CarryEngine#LISTENER_MAPS]] is expected to be cross-dimensional,
+            //! [[CarryEngine#LISTENER_LOOKUP]] is expected to be cross-dimensional,
             //! and in such a case, we choose to use [[Level#OVERWORLD]] as standard.
             final DimensionDataStorage storage = server.overworld().getDataStorage();
             
@@ -197,7 +197,7 @@ public enum CarryEngine
                                 }
                                 
                                 final ICarryRegistry.IBaseCarryAdapterFactory<?, ?> adapter = optionalAdapter.get();
-                                ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_MAPS.get(adapter.getType())).put(fullID, adapter);
+                                ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(adapter.getType())).put(fullID, adapter);
                                 
                                 LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType().name(), fullID);
                             }
@@ -231,10 +231,10 @@ public enum CarryEngine
         assert carryID != null;//! [[DataComponentHolder#has()]] has granted the safety.
         assert data != null;
         
-        final CarriableExtensions.TickingContext context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid(), slotId);
+        final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid(), slotId);
         
         final int penaltyRate = data.unionData().getPenaltyRate();
-        final AtomicReference<AbstractCarryAdapter<?>> adapter = new AtomicReference<>(null);
+        final var adapter = new AtomicReference<AbstractCarryAdapter<?>>(null);
         
         final Consumer<HashMap<CarryID, ? extends ICarryRegistry.IBaseCarryAdapterFactory<?, ?>>> tickAction =
             map ->
@@ -248,7 +248,7 @@ public enum CarryEngine
                 adapter.get().carryingTick(context);
             };
         
-        tickAction.accept(LISTENER_MAPS.get(data.carryType()));
+        tickAction.accept(LISTENER_LOOKUP.get(data.carryType()));
         
         if(adapter.get() == null)//! Due to C/S sync, and also the competitive state between carry operation and map, returning at here can prevent potential NPE.
             return;
@@ -303,15 +303,13 @@ public enum CarryEngine
         carryCrate.set(CarryCrateRegistries.CARRY_TICK_COUNTER.get(), currentCounter + 1);
     }
     
-    //? TODO:
-    //? 1. [[BlockEntity]] Box I/O logic & [[Entity]] Persistent issue. These two are just old friends before refactoring.
-    //? 2. Stacked boxing also has persistent issue.
+    //? TODO: WRONG IMPLEMENTATION. Command Dispatchment is a DANGEROUS TECK DEBT. ONWARD TO FUNCTIONAL PIPELINE.
     @SuppressWarnings("unchecked")//! Safe Casting.
     public static @Nullable InteractionResult interact(@NotNull ICarryInteractContext context)
     {
-        final var interactionResultRef = new AtomicReference<InteractionResult>(null);
+        final var interactionResultRef = new AtomicReference<@Nullable InteractionResult>(null);
         
-        try(final var handle = LOGGER.pushMarker("INTERACT_START"))
+        try(final var handle = LOGGER.pushMarker("INTERACT_INIT"))
         {
             //region Initialization
             //* Do not split initialization as an independent method, it increases the amount of Context data class, and doesn't have any obvious effect.
@@ -326,7 +324,11 @@ public enum CarryEngine
             final ItemStack carryCrate = context.getCarryCrate();
             final Optional<CarryData> optionalData = context.getCarryData();
             
-            LOGGER.debug("Start Interaction. Checking object action.");
+            LOGGER.debug(
+                "State of this interaction: Player: {}, Data: {}",
+                optionalPlayer.map(player -> player.getDisplayName().getString()).orElse("N/A"),
+                optionalData.map(CarryData::toString).orElse("N/A")
+            );
             
             final @Nullable CarryType action = switch(context)
             {
@@ -379,7 +381,7 @@ public enum CarryEngine
                     useOnContext = null;
                     
                     targetEntity = entity.target();
-                    yield optionalPlayer.map(player -> CarryType.ENTITY).orElse(null);
+                    yield optionalPlayer.map($ -> CarryType.ENTITY).orElse(null);
                 }
             };
             
@@ -387,7 +389,7 @@ public enum CarryEngine
                 return null;
             
             handle.changeMarker("ACTION_SELECT");
-            LOGGER.debug("Picking {} as the current action.", action.name());
+            LOGGER.debug("Current action: {}.", action.name());
             //endregion
             
             //region Process Logics
@@ -403,8 +405,6 @@ public enum CarryEngine
             final ItemStack newCrate = copyCrate(carryCrate);
             
             handle.changeMarker("CARRY_ID_QUERY");
-            LOGGER.debug("Trying to get the CarryID of this carry crate...");
-            
             final @Nullable CarryID carryID = context.getCarryID();
             LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
             
@@ -437,8 +437,6 @@ public enum CarryEngine
                     {
                         if(state.isDefault())
                             return;
-                        
-                        LOGGER.debug("Listener data changed. Mark saveData as dirtied.");
                         markDirty(serverLevel);
                     }
                 ),
@@ -452,7 +450,19 @@ public enum CarryEngine
                         
                         LOGGER.debug("Trying to insert data into carry crate.");
                         result.data().ifPresent(//* This is referenced by [[CarryOperationContext]] ↓ It is OK to use.
-                            data -> giveCrateWithEffect(serverLevel, serverPlayer, data, state, newCrate)
+                            data ->
+                                giveCrateWithEffect(
+                                    serverLevel,
+                                    serverPlayer,
+                                    data,
+                                    state,
+                                    pickCrate(
+                                        carryCrate,
+                                        newCrate,
+                                        OperationType.COMPONENT,
+                                        state
+                                    )
+                                )
                         );
                     }
                 ),
@@ -461,7 +471,7 @@ public enum CarryEngine
                     targetPair.right(),
                     state ->
                     {
-                        if(!state.isTrue() || carryCrate.getCount() == 1)
+                        if(!state.isTrue() || carryCrate.getCount() <= 1)
                             return;
                         
                         LOGGER.debug("CarryCrate's count has exceed 1({}). Do shrink action.", carryCrate.getCount());
@@ -471,9 +481,8 @@ public enum CarryEngine
             );
             
             handle.changeMarker("OPERATION_CONFIRM");
+            LOGGER.debug("Operation confirmed: \n{}.", unfoldTaskList(operations));
             for(final OperationTask operation: operations)
-            {
-                LOGGER.debug("Operation parsed: Type: {}, State: {}. Start executing.", operation.type().name(), operation.state().name());
                 CarryOperationExecutor.execute(
                     operation.type(),
                     action,
@@ -483,14 +492,8 @@ public enum CarryEngine
                         result.carryID(),
                         result.blockEntityType(),
                         Optional.ofNullable(targetEntity),
-                        (operationType, triState) ->
-                        {
-                            if(!operationType.equals(OperationType.COMPONENT))
-                                return carryCrate;
-                            
-                            return triState.isTrue() && carryCrate.getCount() > 1 ? newCrate : carryCrate;
-                        },
-                        (HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_MAPS.get(action),
+                        (operationType, triState) -> pickCrate(carryCrate, newCrate, operationType, triState),
+                        (HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(action),
                         serverLevel,
                         interactPos,
                         blockState ->
@@ -507,8 +510,11 @@ public enum CarryEngine
                     //! thus, changing the executions' return type signature is worse than passing a atomic ref.
                     operation.type().equals(OperationType.TARGET) ? interactionResultRef : null
                 );
-            }
             //endregion
+            
+            //noinspection DataFlowIssue
+            LOGGER.debug("Final interaction result: {}", interactionResultRef.get().name());//! null means use [[BlockItem#useOn]],
+                                                                                                     //! and it only appears in early returns.
         }
         
         return interactionResultRef.get();
@@ -540,7 +546,30 @@ public enum CarryEngine
         Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), newCrate);
     }
     
-    private static void markDirty(@NotNull ServerLevel level) { CarryListenerSaveData.get(level.getServer()).setDirty(); }
+    private static @NotNull ItemStack pickCrate(@NotNull ItemStack oldCrate, @NotNull ItemStack newCrate, @NotNull OperationType operation, @NotNull TriState state)
+    {
+        if(!operation.equals(OperationType.COMPONENT))
+        {
+            LOGGER.debug("Old");
+            return oldCrate;
+        }
+        
+        if(state.isTrue() && oldCrate.getCount() > 1)
+        {
+            LOGGER.debug("New");
+            return newCrate;
+        }
+        
+        LOGGER.debug("Old");
+        return oldCrate;
+    }
+    
+    private static void markDirty(@NotNull ServerLevel level)
+    {
+        final CarryListenerSaveData saveData = CarryListenerSaveData.get(level.getServer());
+        LOGGER.when(!saveData.isDirty()).debug("Listener data changed. Mark saveData as dirtied.");
+        saveData.setDirty();
+    }
     
     private static @NotNull ItemStack copyCrate(@NotNull ItemStack itemStack)
     {
@@ -550,6 +579,19 @@ public enum CarryEngine
             newCrate.set(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get(), itemStack.get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()));
         
         return newCrate;
+    }
+    
+    private static @NotNull String unfoldTaskList(@NotNull List<OperationTask> taskList)
+    {
+        Objects.requireNonNull(taskList, "Param \"taskList\" must not be null!");
+        final StringBuilder builder = new StringBuilder("{\n");
+        
+        for(final OperationTask task: taskList)
+            builder.append("    Type: %s, State: %s\n".formatted(task.type().name(), task.state().name()));
+        
+        builder.append("}");
+        
+        return builder.toString();
     }
     //endregion
 }

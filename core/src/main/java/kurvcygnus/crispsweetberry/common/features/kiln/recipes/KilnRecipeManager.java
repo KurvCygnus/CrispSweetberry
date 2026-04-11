@@ -61,19 +61,12 @@ public enum KilnRecipeManager
             {
                 final NonNullList<KilnRecipe> rebuiltInstances = NonNullList.create();
                 
-                l.forEach(v ->
-                    {
-                        final KilnRecipe instance = new KilnRecipe(
-                            v.ingredient(),
-                            v.result(),
-                            v.processFactor(),
-                            v.experience(),
-                            v.isBanned()
-                        );
-                        
-                        rebuiltInstances.add(instance);
-                    }
-                );
+                //! The only implementer of [[IKilnRecipeView]] is [[KilnRecipe]], and [[KilnRecipe]] is immutable,
+                //! so casting is better than stupidly rebuilding instances.
+                l.stream().
+                    filter(KilnRecipe.class::isInstance).
+                    map(KilnRecipe.class::cast).
+                    forEach(rebuiltInstances::add);
                 
                 newRecipeMap.put(i, rebuiltInstances);
             }
@@ -84,7 +77,8 @@ public enum KilnRecipeManager
         //? TODO: Better filter.
         final var totalRecipes = newRecipeMap.entrySet().stream().collect(
             Collectors.partitioningBy(
-            entry -> entry.getValue().stream().anyMatch(KilnRecipe::isBanned),
+            entry ->
+                entry.getValue().stream().anyMatch(KilnRecipe::isBanned),
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
             )
         );
@@ -100,11 +94,11 @@ public enum KilnRecipeManager
         KilnJEICompat.INST.pushRecipesToJEI();
     }
     
-    public @NotNull Map<Item, NonNullList<KilnRecipe>> getRecipes() { return recipes; }
+    public @NotNull Optional<NonNullList<KilnRecipe>> getRecipes(@NotNull Item item) { return Optional.ofNullable(recipes.get(item)); }
     
-    public @NotNull Map<Item, NonNullList<KilnRecipe>> getNormalRecipes() { return normalRecipes; }
+    public @NotNull Optional<NonNullList<KilnRecipe>> getNormalRecipes(@NotNull Item item) { return Optional.ofNullable(normalRecipes.get(item)); }
     
-    public @NotNull Map<Item, NonNullList<KilnRecipe>> getBannedRecipes() { return bannedRecipes; }
+    public @NotNull Optional<NonNullList<KilnRecipe>> getBannedRecipes(@NotNull Item item) { return Optional.ofNullable(bannedRecipes.get(item)); }
     
     public @NotNull List<KilnRecipe> getRecipesList() { return recipesList; }
 }

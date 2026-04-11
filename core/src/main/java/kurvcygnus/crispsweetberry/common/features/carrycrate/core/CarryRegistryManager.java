@@ -40,6 +40,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -68,7 +69,7 @@ public enum CarryRegistryManager implements ICarryRegistry
     
     private static final HashMap<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();
     
-    private static final Map<CarryType, HashMap<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_MAPS =
+    private static final Map<CarryType, HashMap<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_LOOKUP =
         DefinitionUtils.createImmutableEnumMap(
             CarryType.class,
             map ->
@@ -79,7 +80,7 @@ public enum CarryRegistryManager implements ICarryRegistry
             }
         );
     
-    private static final Map<CarryType, HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>>> RECOVER_MAPS =
+    private static final Map<CarryType, HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>>> RECOVER_LOOKUP =
         DefinitionUtils.createImmutableEnumMap(
             CarryType.class,
             map ->
@@ -145,12 +146,12 @@ public enum CarryRegistryManager implements ICarryRegistry
                 animalType ->
                 {
                     //! Seems hacky? Actually, this is the best reality solution of such a situation.
-                    //! EntityType has a method [[EntityType#getBaseClass()]], which actually turns out to be hard-coded, returning "Entity.class" only.
+                    //! [[EntityType]] has a method [[EntityType#getBaseClass()]], which actually turns out to be hard-coded, returning "Entity.class" only.
                     //! So, Animal.class#isAssignableFrom(Class<?>) will not work.
                     //! Then, how about [[EntityTypeTest#forClass(Class<F>)]]?
                     //! That is reliable, but all of its return values are not EntityType, we can't use it.
                     //! What about [[EntityType#create(Level)]]?
-                    //! Level is unaccessible during game initialization, doing that is even more hacky than this.
+                    //! [[Level]] is unaccessible during game initialization, doing that is even more hacky than this.
                     //! Besides, dummy level is a hard stuff, this doesn't worth it.
                     try
                     {
@@ -380,31 +381,36 @@ public enum CarryRegistryManager implements ICarryRegistry
     @SuppressWarnings("unchecked")//! Danger, but relatively safe as long as the param is matched, mismatch only happens when caller did it by design.
     <F extends IBaseCarryAdapterFactory<?, ?>, K> @NotNull Optional<F> searchFactory(@NotNull CarryType carryType, @NotNull K key)
     {
+        requireNonNull(carryType, "Param \"carryType\" must not be null!");
+        requireNonNull(key, "Param \"key\" must not be null!");
+        
         final Class<?> keyType = carryType.boundClass();
         
         if(!keyType.isAssignableFrom(key.getClass()))
             throw new IllegalArgumentException("Invalid factory creation type! Expected: %s, got: %s".formatted(keyType, key.getClass()));
         
-        return Optional.ofNullable((F) REGISTRY_MAPS.get(carryType).get(keyType.cast(key)));
+        return Optional.ofNullable((F) REGISTRY_LOOKUP.get(carryType).get(keyType.cast(key)));
     }
     
     @SuppressWarnings("unchecked")//! Safe casting.
     <F extends IBaseCarryAdapterFactory<?, ?>> @NotNull Optional<F> searchFactory(@NotNull ResourceLocation resourceLocation)
     {
-        for(final HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>> map: RECOVER_MAPS.values())
+        requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");
+        
+        for(final HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>> map: RECOVER_LOOKUP.values())
             if(map.containsKey(resourceLocation))
                 return Optional.ofNullable((F) map.get(resourceLocation));
         
         return Optional.empty();
     }
     
-    public @NotNull Optional<ICarryBlockEntityAdapterFactory<?, ?>> getBlockEntityAdapter(@NotNull BlockEntityType<?> blockEntityType)
+    public @NotNull Optional<ICarryBlockEntityAdapterFactory<?, ?>> getBlockEntityAdapter(@Nullable BlockEntityType<?> blockEntityType)
         { return Optional.ofNullable(BLOCK_ENTITY_REGISTRY.get(blockEntityType)); }
     
-    public @NotNull Optional<ICarryBlockAdapterFactory<?, ?>> getBlockAdapter(@NotNull Block block)
+    public @NotNull Optional<ICarryBlockAdapterFactory<?, ?>> getBlockAdapter(@Nullable Block block)
         { return Optional.ofNullable(BLOCK_REGISTRY.get(block)); }
     
-    public @NotNull Optional<ICarryEntityAdapterFactory<?, ?>> getEntityAdapter(@NotNull EntityType<?> entityType)
+    public @NotNull Optional<ICarryEntityAdapterFactory<?, ?>> getEntityAdapter(@Nullable EntityType<?> entityType)
         { return Optional.ofNullable(ENTITY_REGISTRY.get(entityType)); }
     
     public @NotNull Optional<Component> getContentTranslation(@NotNull ResourceLocation resourceLocation)
@@ -414,6 +420,9 @@ public enum CarryRegistryManager implements ICarryRegistry
     }
     
     public @NotNull Optional<Component> getCombinedContentTranslation(@NotNull ResourceLocation resourceLocation)
-        { return getContentTranslation(resourceLocation).map(CarryCrateConstants.UI__CARRY_CRATE__CONTENT_PREFIX.get()::append); }
+    {
+        requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");
+        return getContentTranslation(resourceLocation).map(CarryCrateConstants.UI__CARRY_CRATE__CONTENT_PREFIX.get()::append);
+    }
     //endregion
 }
