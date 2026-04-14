@@ -35,7 +35,7 @@ public final class CarryInteractContextCollection
         @NotNull Optional<Player> getPlayer();
         
         default @Nullable CarryID getCarryID() { return getCarryCrate().get(CarryCrateRegistries.CARRY_ID.get()); }
-        default @NotNull Optional<CarryData> getCarryData() { return Optional.ofNullable(getCarryCrate().get(CarryCrateRegistries.CARRY_CRATE_DATA.get())); }
+        default @Nullable CarryData getCarryData() { return getCarryCrate().get(CarryCrateRegistries.CARRY_CRATE_DATA.get()); }
         
         default boolean isDamaged()
         {

@@ -13,10 +13,8 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryD
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
-import kurvcygnus.crispsweetberry.utils.base.lang.Pair;
 import kurvcygnus.crispsweetberry.utils.base.trait.IBitmaskedEnum;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
@@ -24,7 +22,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -37,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -244,7 +240,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         public static final HandleResult FAILED = new HandleResult(
             null,
             0,
-            InteractionResult.FAIL,
             null,
             null
         );
@@ -264,12 +259,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         @MagicConstant(flagsFromClass = HandleResult.class) private final @Range(from = 0, to = Integer.MAX_VALUE) int flags;
         
         /**
-         * Used by <u>{@link CarryEngine Engine}</u>, passing as the
-         * <u>{@link CarryCrateItem Carry Crate}</u>'s interact result.
-         */
-        private final @NotNull InteractionResult result;
-        
-        /**
          * The collection of this carry object's <u>{@link ResourceLocation}</u> and UUID.
          */
         private final @Nullable CarryID carryID;
@@ -280,16 +269,12 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         private HandleResult(
             @Nullable CarryData data,
             @Range(from = 0, to = Integer.MAX_VALUE) @MagicConstant(flagsFromClass = HandleResult.class) int flags,
-            @NotNull InteractionResult result,
             @Nullable CarryID carryID,
             @Nullable BlockEntityType<?> blockEntityType
         )
         {
-            requireNonNull(result, "Param \"result\" must not be null!");
-            
             this.data            = data;
             this.flags           = flags;
-            this.result          = result;
             this.carryID         = carryID;
             this.blockEntityType = blockEntityType;
         }
@@ -323,7 +308,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             return new HandleResult(
                 carryData,
                 flags,
-                InteractionResult.SUCCESS,
                 carryID,
                 null
             );
@@ -340,7 +324,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             return new HandleResult(
                 null,
                 LISTENER_REMOVE,
-                InteractionResult.PASS,
                 carryID,
                 null
             );
@@ -374,7 +357,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             return new HandleResult(
                 data,
                 flags,
-                InteractionResult.SUCCESS,
                 carryID,
                 blockEntityType
             );
@@ -382,17 +364,15 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         //endregion
         
         //region Operation Parsers & Getters
-        public @NotNull Pair<OperationType, TriState> getListenerState() { return new Pair<>(LISTENER, LISTENER.compute(flags)); }
-        public @NotNull Pair<OperationType, TriState> getComponentState() { return new Pair<>(COMPONENT, COMPONENT.compute(flags)); }
-        public @NotNull Pair<OperationType, TriState> getTargetState() { return new Pair<>(TARGET, TARGET.compute(flags)); }
+        public @NotNull TriState getListenerState() { return LISTENER.compute(flags); }
+        public @NotNull TriState getComponentState() { return COMPONENT.compute(flags); }
+        public @NotNull TriState getTargetState() { return TARGET.compute(flags); }
         
-        public @NotNull Optional<CarryData> data() { return Optional.ofNullable(data); }
+        public @Nullable CarryData data() { return data; }
         
-        public @NotNull InteractionResult result() { return result; }
+        public @Nullable CarryID carryID() { return carryID; }
         
-        public @NotNull Optional<CarryID> carryID() { return Optional.ofNullable(carryID); }
-        
-        public @NotNull Optional<BlockEntityType<?>> blockEntityType() { return Optional.ofNullable(blockEntityType); }
+        public @Nullable BlockEntityType<?> blockEntityType() { return blockEntityType; }
         //endregion
         
         //region Misc Methods & Enum Definition
@@ -401,12 +381,11 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             return obj instanceof HandleResult that &&
                 Objects.equals(this.data, that.data) &&
                 this.flags == that.flags &&
-                Objects.equals(this.result, that.result) &&
                 Objects.equals(this.carryID, that.carryID) &&
                 Objects.equals(this.blockEntityType, that.blockEntityType);
         }
         
-        @Override public int hashCode() { return Objects.hash(data, flags, result, carryID, blockEntityType); }
+        @Override public int hashCode() { return Objects.hash(data, flags, carryID, blockEntityType); }
         
         /**
          * @apiNote <b>It is recommend to use this in debug only. It brings more performance penalty comparing to most <u>{@link Object#toString() toStrings}</u>.</b>
@@ -419,7 +398,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
                    {
                        data: %s
                        flags: %s
-                       result: %s
                        carryID: %s
                        blockEntityType: %s
                    }
@@ -439,7 +417,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
                             this.getComponentState().toString(),
                             this.getTargetState().toString()
                         ),
-                    this.result,
                     this.carryID,
                     this.blockEntityType
                 );

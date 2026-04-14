@@ -479,7 +479,7 @@ public enum TTorchRegistries implements IRegistrant
     
     //*:=== Redstone TTorch Dispatchers
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> UNWAXED_REDSTONE_TTORCH_LOOKUP =
-        DefinitionUtils.createImmutableEnumMap(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
             {
                 map.put(OxidizeState.NORMAL, TEMPORARY_REDSTONE_TORCH);
                 map.put(OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_TORCH);
@@ -489,7 +489,7 @@ public enum TTorchRegistries implements IRegistrant
         );
     
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> UNWAXED_WALL_REDSTONE_TTORCH_LOOKUP =
-        DefinitionUtils.createImmutableEnumMap(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
             {
                 map.put(OxidizeState.NORMAL, TEMPORARY_REDSTONE_WALL_TORCH);
                 map.put(OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH);
@@ -499,7 +499,7 @@ public enum TTorchRegistries implements IRegistrant
         );
     
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> WAXED_REDSTONE_TTORCH_LOOKUP = 
-        DefinitionUtils.createImmutableEnumMap(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
             {
                 map.put(OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_TORCH);
                 map.put(OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_TORCH);
@@ -509,7 +509,7 @@ public enum TTorchRegistries implements IRegistrant
         );
     
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> WAXED_WALL_REDSTONE_TTORCH_LOOKUP = 
-        DefinitionUtils.createImmutableEnumMap(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
             {
                 map.put(OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_WALL_TORCH);
                 map.put(OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH);

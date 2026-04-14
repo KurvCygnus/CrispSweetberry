@@ -12,21 +12,20 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
-import kurvcygnus.crispsweetberry.utils.constants.DummyFunctionalConstants;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryPipelineTask;
+import kurvcygnus.crispsweetberry.utils.base.lang.IResult;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -37,17 +36,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.OperationType;
 
 @ApiStatus.Internal
 enum CarryOperationExecutor
@@ -56,299 +47,354 @@ enum CarryOperationExecutor
     
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_LOGIC");
     
-    //region Exact Actions
-    //*:=== Listener
-    private void listenerAddAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    @NotNull InteractionResult execute(@NotNull CarryPipelineTask task)
     {
-        if(context.optionalData.isEmpty() || context.optionalID.isEmpty())
-            return;
-        
-        final CarryData data = context.optionalData.get();
-        final Object creationData = data.unionData().getCreationData();
-        final var optionalFactory = CarryRegistryManager.INST.searchFactory(data.carryType(), creationData);
-        
-        optionalFactory.ifPresentOrElse(
-            factory -> context.targetMap.put(context.optionalID.get(), factory),
-            () -> LOGGER.debug("Can't find the factory! Detailed serach key: {}", creationData.toString())
-        );
+        return IResult.<CarryPipelineTask, BrokenCarryPipelineException>of(task).
+            flatMap(CarryOperationExecutor.INST::listenerProcess).
+            flatMap(CarryOperationExecutor.INST::componentProcess).
+            flatMap(CarryOperationExecutor.INST::targetProcess).
+            fold(
+                CarryPipelineTask::result,
+                ex ->
+                {
+                    LOGGER.error(
+                        """
+                        An error occurred while executing carry pipeline tasks.
+                        
+                        Happens at: {}
+                        Error Details: {}
+                        
+                        The detailed pipeline task of this round of execution: {}
+                        
+                        This is a serious logic issue. {}
+                        """,
+                        ex.type,
+                        ex.getMessage(),
+                        ex.causeData,
+                        MetainfoConstants.FEEDBACK_MESSAGE,
+                        ex.wrappedException
+                    );
+                    
+                    return ex.causeData.result();
+                }
+            );
     }
     
-    private void listenerRemoveAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> listenerProcess(@NotNull CarryPipelineTask task)
     {
-        if(context.optionalID.isEmpty())
-            return;
-        context.targetMap.remove(context.optionalID.get());
+        final @Nullable CarryID carryID = task.id();
+        final @Nullable CarryData carryData = task.data();
+        final TriState listener = task.listener();
+        
+        if(carryID == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.listener(
+                    task.pass(),
+                    "Listener's mutation failed, because the CarryID's value is invalid.",
+                    IllegalArgumentException::new,
+                    listener
+                )
+            );
+        
+        switch(listener)
+        {
+            case TRUE ->
+            {
+                if(carryData == null)
+                    return IResult.ofFailed(
+                        BrokenCarryPipelineException.listener(
+                            task.pass(),
+                            "Listener's mutation failed because the CarryData's value is invalid, which is required by insert.",
+                            IllegalArgumentException::new,
+                            TriState.TRUE
+                        )
+                    );
+                
+                final Object creationData = carryData.unionData().getCreationData();
+                final var factory = CarryRegistryManager.INST.searchFactory(task.type(), creationData);
+                
+                if(factory.isEmpty())
+                    return IResult.ofFailed(
+                        BrokenCarryPipelineException.listener(
+                            task.pass(),
+                            "Cannot find %s's Carry Factory!".formatted(creationData),
+                            NoSuchElementException::new,
+                            TriState.TRUE
+                        )
+                    );
+                
+                task.listenerInsert().accept(carryID, factory.get());
+            }
+            case FALSE -> task.listenerRemove().accept(carryID);
+            default -> {}
+        }
+        
+        if(!listener.isDefault())
+            task.markDirty();
+        
+        return IResult.of(task.success());
     }
     
-    //*:=== Component
-    private void componentInsertAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> componentProcess(@NotNull CarryPipelineTask task)
     {
-        final BiFunction<ItemStack, String, String> printTemplate =
-            (itemStack, name) -> "Can't invoke %s's data insertion on itemStack \"%s\", because it is null!".formatted(name, itemStack.toString());
+        final @Nullable CarryID carryID = task.id();
+        final @Nullable CarryData carryData = task.data();
+        final TriState component = task.component();
         
-        final ItemStack carryCrate = context.carryCrate.apply(OperationType.COMPONENT, TriState.TRUE);
+        if(carryID == null || carryData == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.component(
+                    task.pass(),
+                    "Component mutation failed, because part, or all of the parameters' value are invalid. id: %s, data: %s".formatted(carryID, carryData),
+                    IllegalArgumentException::new,
+                    component
+                )
+            );
         
-        context.optionalData.ifPresentOrElse(
-            data -> carryCrate.set(CarryCrateRegistries.CARRY_CRATE_DATA.get(), data),
-            () -> LOGGER.warn(printTemplate.apply(carryCrate, "carryData"))
-        );
+        final ItemStack crate = task.crate();
+        final boolean producesCopy = component.isTrue() && crate.getCount() > 1;
         
-        context.optionalID.ifPresentOrElse(
-            id -> carryCrate.set(CarryCrateRegistries.CARRY_ID.get(), id),
-            () -> LOGGER.warn(printTemplate.apply(carryCrate, "carryID"))
-        );
+        switch(component)
+        {
+            case TRUE ->
+            {
+                final ItemStack crateToMutate = producesCopy ? copyCrate(crate) : crate;
+                
+                crateToMutate.set(CarryCrateRegistries.CARRY_ID.get(), carryID);
+                crateToMutate.set(CarryCrateRegistries.CARRY_CRATE_DATA.get(), carryData);
+                
+                if(producesCopy)
+                {
+                    crate.shrink(1);
+                    final var player = task.player();
+                    if(!player.addItem(crateToMutate))
+                    {
+                        final var pos = player.getOnPos();
+                        Containers.dropItemStack(task.level(), pos.getX(), pos.getY(), pos.getZ(), crateToMutate);
+                    }
+                }
+            }
+            case FALSE ->
+            {
+                crate.remove(CarryCrateRegistries.CARRY_CRATE_DATA.get());
+                crate.remove(CarryCrateRegistries.CARRY_ID.get());
+                crate.remove(CarryCrateRegistries.CARRY_TICK_COUNTER.get());
+            }
+            default -> {}
+        }
+        
+        return IResult.of(task.success());
     }
     
-    private void componentRemoveAction(@NotNull CarryOperationContext context, @Nullable AtomicReference<InteractionResult> resultReference)
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> targetProcess(@NotNull CarryPipelineTask task)
     {
-        final ItemStack carryCrate = context.carryCrate.apply(OperationType.COMPONENT, TriState.FALSE);
-        carryCrate.remove(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        carryCrate.remove(CarryCrateRegistries.CARRY_ID.get());
-        carryCrate.remove(CarryCrateRegistries.CARRY_TICK_COUNTER.get());
+        final @Nullable var executeResult = switch(task.target())
+        {
+            case TRUE ->
+            {
+                if(task.type().equals(CarryType.ENTITY))
+                    yield entityTargetCapture(task);
+                yield blocklikeTargetCapture(task);
+            }
+            case FALSE ->
+            {
+                if(task.type().equals(CarryType.ENTITY))
+                    yield entityTargetRelease(task);
+                yield blocklikeTargetRelease(task);
+            }
+            default -> null;
+        };
+        
+        return Objects.requireNonNullElse(executeResult, IResult.of(task.success()));
     }
     
-    //*:=== Target
-    private void blocklikeTargetCaptureAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> blocklikeTargetCapture(@NotNull CarryPipelineTask task)
     {
-        final ServerLevel level = context.level;
-        final BlockPos pos = context.pos;
-        level.setBlockAndUpdate(pos, Blocks.VOID_AIR.defaultBlockState());
+        final var level = task.level();
+        final var pos = task.interactPos();
+        
+        if(!level.setBlockAndUpdate(pos, Blocks.VOID_AIR.defaultBlockState()))
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.pass(),
+                    "Unable to change position <%d, %d, %d>'s blockstate! Original Blockstate: %s".
+                        formatted(pos.getX(), pos.getY(), pos.getZ(), level.getBlockState(pos).toString()),
+                    IllegalAccessError::new,
+                    task.type(),
+                    TriState.TRUE
+                )
+            );
+        
         level.playSound(null, pos, SoundEvents.SCAFFOLDING_STEP, SoundSource.BLOCKS, 1.0F, 1.0F);
-    }
-    
-    private void blockTargetReleasePreAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
-    {
-        context.optionalData.ifPresentOrElse(
-            data ->
-            {
-                final CarryData.CarryBlockDataHolder holder = data.unionData();
-                blocklikeTargetReleaseAction(context, holder.getState(), resultReference);
-            },
-            () -> LOGGER.warn("carryData doesn't exist, but the operation is still \"RELEASE\".\n{}.", MetainfoConstants.FEEDBACK_MESSAGE)
-        );
-    }
-    
-    private void blockEntityTargetReleasePreAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
-    {
-        context.optionalData.ifPresentOrElse(
-            data ->
-            {
-                final CarryData.CarryBlockEntityDataHolder holder = data.unionData();
-                blocklikeTargetReleaseAction(context, holder.getState(), resultReference);
-            },
-            () -> LOGGER.warn("carryData doesn't exist, but the operation is still \"RELEASE\".\n{}.", MetainfoConstants.FEEDBACK_MESSAGE)
-        );
-    }
-    
-    private void blocklikeTargetReleaseAction(
-        @NotNull CarryOperationContext context,
-        @NotNull BlockState stateToPlace,
-        @NotNull AtomicReference<InteractionResult> resultReference
-    )
-    {
-        assert context.optionalData.isPresent();
         
-        final CarryData data = context.optionalData.get();
-        final StatedBlockPlaceContext placeContext = context.placeContextFunction.apply(stateToPlace);
-        resultReference.set(placeContext.performPlace());
-        
-        FunctionalUtils.doIf(
-            data.carryType().equals(CarryType.BLOCK_ENTITY),
-            () -> blockEntityTargetReleaseExtra(context, stateToPlace)
-        );
+        return IResult.of(task.success());
     }
     
-    private void blockEntityTargetReleaseExtra(@NotNull CarryOperationContext context, @NotNull BlockState stateToPlace)
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> blocklikeTargetRelease(@NotNull CarryPipelineTask task)
     {
-        assert context.optionalData.isPresent();
-        final CarryData.CarryBlockEntityDataHolder holder = context.optionalData.get().unionData();
-        final BlockPos pos = context.pos;
+        final CarryData carryData = task.data();
+        final @Nullable var contextFunction = task.placeContext();
         
-        context.optionalType.ifPresentOrElse(
-            type ->
-            {
-                final BlockEntity blockEntity = Objects.requireNonNull(
-                    type.create(pos, stateToPlace),
+        if(carryData == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.pass(),
+                    "Carry Crate's content release failed because the CarryData's value is invalid, which is required by insert.",
+                    IllegalArgumentException::new,
+                    task.type(),
+                    TriState.FALSE
+                )
+            );
+        
+        if(contextFunction == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.pass(),
+                    "The Function that creating contexts placing blocks is not present!",
+                    IllegalArgumentException::new,
+                    task.type(),
+                    TriState.FALSE
+                )
+            );
+        
+        final BlockState stateToPlace = getBlocklikeState(carryData, task.type());
+        final InteractionResult placeResult = task.placeContext().apply(stateToPlace).performPlace();
+        
+        if(placeResult.equals(InteractionResult.FAIL))
+            return IResult.of(task.fail());
+        
+        if(task.type().equals(CarryType.BLOCK_ENTITY))
+            return blockEntityReleaseExtra(task);
+        
+        return IResult.of(task.success());
+    }
+    
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> blockEntityReleaseExtra(@NotNull CarryPipelineTask task)
+    {
+        final @Nullable BlockEntityType<?> blockEntityType = task.blockEntityType();
+        
+        if(blockEntityType == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.pass(),
+                    "The BlockEntityType of this blockEntity is not present!",
+                    IllegalArgumentException::new,
+                    CarryType.BLOCK_ENTITY,
+                    TriState.FALSE
+                )
+            );
+        
+        assert task.data() != null;
+        final CarryData.CarryBlockEntityDataHolder holder = task.data().unionData();
+        final BlockState stateToPlace = holder.getState();
+        final BlockPos pos = task.interactPos();
+        final ServerLevel level = task.level();
+        final @Nullable BlockEntity blockEntity = blockEntityType.create(pos, stateToPlace);
+        
+        if(blockEntity == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.fail(),
                     """
-                        Fetal:
                         Failed to create blockEntity "%s"'s adapter.
                         This usually means the blockEntity's type registration itself has dataflow issues,
                         or this method is called at improper time.
-                        
-                        %s
                         """.
-                        formatted(
-                            type.toString(),
-                            MetainfoConstants.FEEDBACK_MESSAGE
-                        )
-                );
-                
-                blockEntity.loadCustomOnly(holder.getTagData(), context.level.registryAccess());
-                context.level.blockEntityChanged(pos);
-            },
-            () -> LOGGER.error("The CarryType is BLOCK_ENTITY, but result's blockEntityType is empty!")
-        );
+                        formatted(blockEntityType.toString()),
+                    IllegalStateException::new,
+                    CarryType.BLOCK_ENTITY,
+                    TriState.FALSE
+                )
+            );
+        
+        blockEntity.loadCustomOnly(holder.getTagData(), level.registryAccess());
+        level.blockEntityChanged(pos);
+        
+        return IResult.of(task.success());
     }
     
-    private void entityTargetCaptureAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> entityTargetCapture(@NotNull CarryPipelineTask task)
     {
-        context.optionalEntity.ifPresentOrElse(
-            entity -> entity.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER),
-            () -> LOGGER.error("The CarryType is ENTITY, but result's entity is empty!")
-        );
+        final @Nullable LivingEntity entity = task.entity();
+        
+        if(entity == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.pass(),
+                    "Illegal operation: The entity to capture does not exist!",
+                    IllegalArgumentException::new,
+                    CarryType.ENTITY,
+                    TriState.TRUE
+                )
+            );
+        
+        entity.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
+        return IResult.of(task.success());
     }
     
-    private void entityTargetReleaseAction(@NotNull CarryOperationContext context, @NotNull AtomicReference<InteractionResult> resultReference)
+    private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> entityTargetRelease(@NotNull CarryPipelineTask task)
     {
-        context.optionalData.ifPresentOrElse(
-            data ->
+        final @Nullable CarryData carryData = task.data();
+        
+        if(carryData == null)
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.pass(),
+                    "Carry Crate's content release failed because the CarryData's value is invalid, which is required by insert.",
+                    IllegalArgumentException::new,
+                    CarryType.ENTITY,
+                    TriState.FALSE
+                )
+            );
+        
+        final ServerLevel level = task.level();
+        final CarryData.CarryEntityDataHolder holder = carryData.unionData();
+        final Optional<Entity> entityToSpawn = EntityType.create(holder.getTagData(), level);
+        
+        if(entityToSpawn.isEmpty())
+            return IResult.ofFailed(
+                BrokenCarryPipelineException.target(
+                    task.fail(),
+                    "The entity that CarryData holds doesn't exist!",
+                    IllegalArgumentException::new,
+                    CarryType.ENTITY,
+                    TriState.FALSE
+                )
+            );
+        
+        final BlockPos spawnPos = task.interactPos();
+        final Entity entity = entityToSpawn.get();
+        entity.moveTo(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
+        level.addFreshEntity(entity);
+        
+        return IResult.of(task.success());
+    }
+    
+    private static @NotNull ItemStack copyCrate(@NotNull ItemStack crate)
+    {
+        final ItemStack newCrate = new ItemStack(CarryCrateRegistries.CARRY_CRATE_ITEM.value());
+        
+        if(crate.has(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()))
+            newCrate.set(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get(), crate.get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()));
+        
+        return newCrate;
+    }
+    
+    private static @NotNull BlockState getBlocklikeState(@NotNull CarryData data, @NotNull CarryType type)
+    {
+        return switch(type)
+        {
+            case BLOCK ->
             {
-                final CarryData.CarryEntityDataHolder holder = data.unionData();
-                final Optional<Entity> entityToSpawn = EntityType.create(holder.getTagData(), context.level);
-                
-                entityToSpawn.ifPresentOrElse(
-                    entity ->
-                    {
-                        final BlockPos pos = context.pos;
-                        entity.moveTo(pos.getX(), pos.getY(), pos.getZ());
-                        context.level.addFreshEntity(entity);
-                    },
-                    () -> LOGGER.error("The entity that carryData holds doesn't exist!")
-                );
-            },
-            () -> LOGGER.error("The CarryType is ENTITY, but result's carryData is empty!")
-        );
+                final CarryData.CarryBlockDataHolder holder = data.unionData();
+                yield holder.getState();
+            }
+            case BLOCK_ENTITY ->
+            {
+                final CarryData.CarryBlockEntityDataHolder holder = data.unionData();
+                yield holder.getState();
+            }
+            case ENTITY -> throw new IllegalArgumentException("Assertion failed: Param \"type\" must not be ENTITY!");
+        };
     }
-    //endregion
-    
-    //region TriState Operation Dispatchers
-    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> LISTENER_LOGICS = DefinitionUtils.createImmutableEnumMap(
-        TriState.class,
-        map ->
-        {
-            map.put(TriState.TRUE, CarryOperationExecutor.INST::listenerAddAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
-            map.put(TriState.FALSE, CarryOperationExecutor.INST::listenerRemoveAction);
-        }
-    );
-    
-    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> COMPONENT_LOGICS = DefinitionUtils.createImmutableEnumMap(
-        TriState.class,
-        map ->
-        {
-            map.put(TriState.TRUE, CarryOperationExecutor.INST::componentInsertAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
-            map.put(TriState.FALSE, CarryOperationExecutor.INST::componentRemoveAction);
-        }
-    );
-    
-    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> BLOCK_TARGET_LOGICS = DefinitionUtils.createImmutableEnumMap(
-        TriState.class,
-        map ->
-        {
-            map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
-            map.put(TriState.FALSE, CarryOperationExecutor.INST::blockTargetReleasePreAction);
-        }
-    );
-    
-    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> BLOCK_ENTITY_TARGET_LOGICS = DefinitionUtils.createImmutableEnumMap(
-        TriState.class,
-        map ->
-        {
-            map.put(TriState.TRUE, CarryOperationExecutor.INST::blocklikeTargetCaptureAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
-            map.put(TriState.FALSE, CarryOperationExecutor.INST::blockEntityTargetReleasePreAction);
-        }
-    );
-    
-    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
-    private static final Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>> ENTITY_TARGET_LOGICS = DefinitionUtils.createImmutableEnumMap(
-        TriState.class,
-        map ->
-        {
-            map.put(TriState.TRUE, CarryOperationExecutor.INST::entityTargetCaptureAction);
-            map.put(TriState.DEFAULT, (BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>) DummyFunctionalConstants.DO_NOTHING_BI);
-            map.put(TriState.FALSE, CarryOperationExecutor.INST::entityTargetReleaseAction);
-        }
-    );
-    //endregion
-    
-    //region Operation Type Dispatchers
-    private static final Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>
-    LISTENER_TYPE_HANDLER = DefinitionUtils.createImmutableEnumMap(
-        CarryType.class,
-        map ->
-        {
-            for(final CarryType type: CarryType.values())
-                map.put(type, LISTENER_LOGICS);
-        }
-    );
-    
-    private static final Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>
-    COMPONENT_TYPE_HANDLER = DefinitionUtils.createImmutableEnumMap(
-        CarryType.class,
-        map ->
-        {
-            for(final CarryType type: CarryType.values())
-                map.put(type, COMPONENT_LOGICS);
-        }
-    );
-    
-    private static final Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>
-    TARGET_TYPE_HANDLER = DefinitionUtils.createImmutableEnumMap(
-        CarryType.class,
-        map ->
-        {
-            map.put(CarryType.BLOCK, BLOCK_TARGET_LOGICS);
-            map.put(CarryType.BLOCK_ENTITY, BLOCK_ENTITY_TARGET_LOGICS);
-            map.put(CarryType.ENTITY, ENTITY_TARGET_LOGICS);
-        }
-    );
-    //endregion
-    
-    //region Core Dispatch Logics
-    private static final Map<OperationType, Map<CarryType, Map<TriState, BiConsumer<CarryOperationContext, AtomicReference<InteractionResult>>>>>
-    ACTION_DISPATCHER =
-        DefinitionUtils.createImmutableEnumMap(
-        OperationType.class,
-        map ->
-        {
-            map.put(OperationType.LISTENER, LISTENER_TYPE_HANDLER);
-            map.put(OperationType.COMPONENT, COMPONENT_TYPE_HANDLER);
-            map.put(OperationType.TARGET, TARGET_TYPE_HANDLER);
-        }
-    );
-    
-    static void execute(
-        @NotNull OperationType operationType,
-        @NotNull CarryType carryType,
-        @NotNull TriState state,
-        @NotNull CarryOperationContext context,
-        @Nullable AtomicReference<InteractionResult> resultReference
-    )
-    {
-        ACTION_DISPATCHER.get(operationType).get(carryType).get(state).accept(context, resultReference);
-        context.callback.accept(state);
-    }
-    //endregion
-    
-    //region Data Object
-    record CarryOperationContext(
-        @NotNull Optional<CarryData> optionalData,
-        @NotNull Optional<CarryID> optionalID,
-        @NotNull Optional<BlockEntityType<?>> optionalType,
-        @NotNull Optional<Entity> optionalEntity,
-        @NotNull BiFunction<OperationType, TriState, ItemStack> carryCrate,
-        @NotNull HashMap<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> targetMap,
-        @NotNull ServerLevel level,
-        @NotNull BlockPos pos,
-        @NotNull Function<BlockState, StatedBlockPlaceContext> placeContextFunction,
-        @NotNull Consumer<TriState> callback
-    ) {}
-    //endregion
 }

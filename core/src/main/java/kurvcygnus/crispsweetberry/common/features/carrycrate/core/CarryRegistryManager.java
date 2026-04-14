@@ -70,7 +70,7 @@ public enum CarryRegistryManager implements ICarryRegistry
     private static final HashMap<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();
     
     private static final Map<CarryType, HashMap<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_LOOKUP =
-        DefinitionUtils.createImmutableEnumMap(
+        DefinitionUtils.createImmutableEnumMapWithCheck(
             CarryType.class,
             map ->
             {
@@ -81,7 +81,7 @@ public enum CarryRegistryManager implements ICarryRegistry
         );
     
     private static final Map<CarryType, HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>>> RECOVER_LOOKUP =
-        DefinitionUtils.createImmutableEnumMap(
+        DefinitionUtils.createImmutableEnumMapWithCheck(
             CarryType.class,
             map ->
             {

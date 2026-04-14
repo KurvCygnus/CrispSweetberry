@@ -15,35 +15,36 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-final class SuccessResult<TValue, TException extends Throwable> implements IResult<TValue, TException>
+final class SuccessResult<T, E extends Throwable> implements IResult<T, E>
 {
-    private final @NotNull TValue value;
+    private final @NotNull T value;
     
-    SuccessResult(@NotNull TValue value)
+    SuccessResult(@NotNull T value)
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         this.value = value;
     }
     
     @Override public boolean isSucceed() { return true; }
-    @Override public void ifSucceed(@NotNull Consumer<TValue> action) { action.accept(value); }
+    @Override public void ifSucceed(@NotNull Consumer<T> action) { action.accept(value); }
     
-    @Override public @NotNull <TNewValue> IResult<TNewValue, TException> map(@NotNull Function<? super TValue, ? extends TNewValue> mapper)
-        { return new SuccessResult<>(mapper.apply(value)); }
-    @Override public @NotNull <TNewException extends Throwable> IResult<TValue, TNewException> mapException(@NotNull Function<? super Throwable, ? extends TNewException> mapper)
+    @Override public @NotNull <U> IResult<U, E> map(@NotNull Function<? super T, ? extends U> mapper) { return new SuccessResult<>(mapper.apply(value)); }
+    
+    @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper)
         { return new SuccessResult<>(value); }
-    @Override public @NotNull <TNewValue> IResult<TNewValue, TException> flatMap(@NotNull Function<? super TValue, ? extends IResult<TNewValue, TException>> mapper)
-        { return mapper.apply(value); }
     
-    @Override public @NotNull TValue orThrow() { return value; }
-    @Override public @NotNull TValue orElse(@NotNull TValue defaultValue) { return value; }
-    @Override public @NotNull TValue orElseGet(@NotNull Function<? super TException, ? extends TValue> mapper) { return value; }
-    @Override public @NotNull <TNewValue> TNewValue fold(
-        @NotNull Function<? super TValue, ? extends TNewValue> success,
-        @NotNull Function<? super TException, ? extends TNewValue> fail
-    ) { return success.apply(value); }
+    @Override public @NotNull <U> IResult<U, E> flatMap(@NotNull Function<? super T, ? extends IResult<U, E>> mapper) { return mapper.apply(value); }
     
-    @Override public boolean equals(@Nullable Object obj) { return obj instanceof SuccessResult<?, ?> that && Objects.equals(value, that.value); }
+    @Override public @NotNull T orThrow() { return value; }
+    
+    @Override public @NotNull T orElse(@NotNull T defaultValue) { return value; }
+    
+    @Override public @NotNull T orElseGet(@NotNull Function<? super E, ? extends T> mapper) { return value; }
+    
+    @Override public @NotNull <U> U fold(@NotNull Function<? super T, ? extends U> success, @NotNull Function<? super E, ? extends U> fail)
+        { return success.apply(value); }
+    
+    @Override public boolean equals(@Nullable Object obj) { return this == obj || obj instanceof SuccessResult<?, ?> that && Objects.equals(value, that.value); }
     
     @Override public int hashCode() { return Objects.hash(value); }
     

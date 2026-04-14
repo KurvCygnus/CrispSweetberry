@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.utils;
 
-import com.google.common.collect.Maps;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import net.minecraft.nbt.CompoundTag;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -72,7 +72,7 @@ public final class DefinitionUtils
      * @see EnumMap
      */
     public static <E extends Enum<E>, V>
-    @Unmodifiable @NotNull Map<E, V> createImmutableEnumMap(@NotNull Class<E> enumClass, @NotNull Consumer<EnumMap<E, V>> dataInsertAction)
+    @Unmodifiable @NotNull Map<E, V> createImmutableEnumMapWithCheck(@NotNull Class<E> enumClass, @NotNull Consumer<EnumMap<E, V>> dataInsertAction)
     {
         requireNonNull(enumClass, "Param \"enumClass\" must not be null!");
         requireNonNull(dataInsertAction, "Param \"dataInsertAction\" must not be null!");
@@ -80,7 +80,11 @@ public final class DefinitionUtils
         final EnumMap<E, V> enumMap = new EnumMap<>(enumClass);
         dataInsertAction.accept(enumMap);
         
-        return Maps.immutableEnumMap(enumMap);
+        for(final E enumConstant: enumClass.getEnumConstants())
+            if(!enumMap.containsKey(enumConstant))
+                throw new IllegalStateException("Enum constant \"%s\" does not own a corresponded value!".formatted(enumConstant));
+        
+        return Collections.unmodifiableMap(enumMap);
     }
     
     /**
