@@ -201,10 +201,6 @@ public final class CarryPipelineTask
                 id: %s
                 entity: %s
                 blockEntityType: %s
-                listenerInsert: %s
-                listenerRemove: %s
-                markDirty: %s
-                placeContext: %s
                 result: %s
             }
             """.
@@ -221,10 +217,6 @@ public final class CarryPipelineTask
                 id,
                 entity,
                 blockEntityType,
-                listenerInsert,
-                listenerRemove,
-                markDirty,
-                placeContext,
                 result
             );
     }

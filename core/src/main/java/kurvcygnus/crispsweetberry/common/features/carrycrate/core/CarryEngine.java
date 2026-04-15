@@ -74,7 +74,6 @@ public enum CarryEngine
     INST;
     
     //region Fields
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")//! Its query usage is taken by LISTENER_MAPS.
     private static final HashMap<CarryID, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_CARRY_LISTENERS = new HashMap<>();
     private static final HashMap<CarryID, ICarryEntityAdapterFactory<?, ?>> ENTITY_CARRY_LISTENERS = new HashMap<>();
     private static final HashMap<CarryID, ICarryBlockAdapterFactory<?, ?>> BLOCK_CARRY_LISTENERS = new HashMap<>();
@@ -84,7 +83,7 @@ public enum CarryEngine
             CarryType.class,
             map ->
             {
-                map.put(CarryType.BLOCK_ENTITY, BLOCK_CARRY_LISTENERS);
+                map.put(CarryType.BLOCK_ENTITY, BLOCK_ENTITY_CARRY_LISTENERS);
                 map.put(CarryType.ENTITY, ENTITY_CARRY_LISTENERS);
                 map.put(CarryType.BLOCK, BLOCK_CARRY_LISTENERS);
             }
