@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
+import org.slf4j.spi.LoggingEventBuilder;
 
 import java.util.ArrayDeque;
 import java.util.function.*;
@@ -26,28 +27,28 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * This is a simple wrapper for SLF4J's <u>{@link Logger}</u>. It reduces the verbosity of passing <u>{@link Marker}</u> to log functions.
+ *
+ * @author Kurv Cygnus
  * @apiNote We recommend using {@code SCREAMING_SNAKE_CASE} for <u>{@link Marker}</u>, because it is more attractive, and easy to search.<br>
  * <b>This logger uses <u>{@link ThreadLocal}</u>. Do not leak <u>{@link MarkerHandle MarkerHandle}</u> across async boundaries</b>.
  * @since 1.0 Release
- * @author Kurv Cygnus
  */
-@SuppressWarnings("unused")
-public final class MarkLogger
+public final class MarkLogger implements Logger
 {
     //  region Fields & Constants
     /**
-     * The core of this wrapper. All log functions are actually executed by this. 
+     * The core of this wrapper. All log functions are actually executed by this.
      */
     private final @NotNull Logger logger;
     
     /**
-     * The <u>{@link Marker}</u> used for logging. At non-error and non-warn cases, and with no key, it 
+     * The <u>{@link Marker}</u> used for logging. At non-error and non-warn cases, and with no key, it
      * is the marker that will be used for display.
      */
     private final @Nullable Marker defaultMarker;
     
     /**
-     * The <u>{@link Marker}</u> exclusively used for error level logging. With no key, it 
+     * The <u>{@link Marker}</u> exclusively used for error level logging. With no key, it
      * is the marker that will be used for display.
      */
     private final @Nullable Marker errorMarker;
@@ -59,15 +60,15 @@ public final class MarkLogger
     private final @Nullable Marker warnMarker;
     
     /**
-     * The marker collections based on <u>{@link java.util.Stack Stack}</u>(or more precisely, <u>{@link ArrayDeque}</u>), 
+     * The marker collections based on <u>{@link java.util.Stack Stack}</u>(or more precisely, <u>{@link ArrayDeque}</u>),
      * and <u>{@link ThreadLocal}</u>(Out of prevent context pollution, and implement inexplicit context passing).<br>
      * As long as this deque has a single <u>{@link Marker}</u>, both three markers above
      * (<u>{@link #defaultMarker}</u>, <u>{@link #errorMarker}</u> and <u>{@link #warnMarker}</u>) will all be overridden.<br>
-     * 
-     * @apiNote Usually, {@code mutableMarker} will only exists in a limited key with <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>, 
-     * which is recommended to be used with 
-     * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>, 
-     * unexpected situations will only happen in neither directly use <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>, 
+     *
+     * @apiNote Usually, {@code mutableMarker} will only exists in a limited key with <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>,
+     * which is recommended to be used with
+     * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>,
+     * unexpected situations will only happen in neither directly use <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>,
      * nor using {@code Reflection}, <b>both two situations are not recommended, or supposed to be happened</b>.
      * <br>
      * <br>
@@ -92,6 +93,9 @@ public final class MarkLogger
         @NotNull Predicate<Level> condition
     )
     {
+        if(logger instanceof MarkLogger)
+            throw new IllegalArgumentException("The logger to be wrapped is MarkLogger, this will cause nested wrapping, which is not allowed!");
+        
         this.logger = requireNonNull(logger, "Param \"logger\" must not be null!");
         this.defaultMarker = defaultMarker;
         this.errorMarker = errorMarker;
@@ -102,13 +106,13 @@ public final class MarkLogger
     /**
      * Produces a standard logger with no default marker.
      *
+     * @throws NullPointerException When {@code logger} is {@code null}
      * @apiNote Using <u>{@link LogUtils#getLogger()}</u> is recommended rather than
      * <u>{@link org.slf4j.LoggerFactory#getLogger(String) LoggerFactory#markedLogger()}</u>,
      * since Mojang did some configuration on former one, it is more compatible.
      * @implSpec <pre>{@code
      *  private static final MarkLogger LOGGER = MarkLogger.marklessLogger(...);
      * }</pre>
-     * @throws NullPointerException When {@code logger} is {@code null}
      */
     @Contract("_ -> new")
     public static @NotNull MarkLogger marklessLogger(@NotNull Logger logger)
@@ -119,16 +123,17 @@ public final class MarkLogger
     
     /**
      * Produces a standard logger, which automatically deals marker.
-     * @apiNote Using <u>{@link LogUtils#getLogger()}</u> is recommended rather than 
-     * <u>{@link org.slf4j.LoggerFactory#getLogger(String) LoggerFactory#markedLogger()}</u>, 
+     *
+     * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
+     * @apiNote Using <u>{@link LogUtils#getLogger()}</u> is recommended rather than
+     * <u>{@link org.slf4j.LoggerFactory#getLogger(String) LoggerFactory#markedLogger()}</u>,
      * since Mojang did some configuration on former one, it is more compatible.
-     * @implSpec <pre>{@code 
+     * @implSpec <pre>{@code
      *  private static final MarkLogger LOGGER = MarkLogger.markedLogger(
      *      LogUtils.getLogger(),
      *      MarkerFactory.getMarker("Foo")
      *  );
      * }</pre>
-     * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
      */
     @Contract("_, _ -> new")
     public static @NotNull MarkLogger markedLogger(@NotNull Logger logger, @NotNull Marker marker)
@@ -142,6 +147,7 @@ public final class MarkLogger
     /**
      * Produces a standard logger, which automatically deals marker.
      *
+     * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
      * @apiNote Using <u>{@link LogUtils#getLogger()}</u> is recommended rather than
      * <u>{@link org.slf4j.LoggerFactory#getLogger(String) LoggerFactory#markedLogger()}</u>,
      * since Mojang did some configuration on former one, it is more compatible.
@@ -151,7 +157,6 @@ public final class MarkLogger
      *      "Foo"
      *  );
      * }</pre>
-     * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
      */
     @Contract("_, _ -> new")
     public static @NotNull MarkLogger markedLogger(@NotNull Logger logger, @NotNull String mark)
@@ -165,8 +170,10 @@ public final class MarkLogger
     }
     
     /**
-     * Produces a special logger, whose have two extra unique markers with {@code _ERR} and {@code _WARN} suffixes to override 
+     * Produces a special logger, whose have two extra unique markers with {@code _ERR} and {@code _WARN} suffixes to override
      * <u>{@link #defaultMarker}</u> in corresponded log level functions.
+     *
+     * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
      * @implSpec <pre>{@code
      *  private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(
      *      LogUtils.getLogger(),
@@ -175,12 +182,11 @@ public final class MarkLogger
      * }</pre>
      * <hr>
      * Produces these markers:
-     * <pre>{@code 
+     * <pre>{@code
      *  // foo -> foo_err(For error log funcs)
      *  // BAR -> BAR_WARN(For warn log funcs)
      * }</pre>
      * <i>Current suffix conversion is quite simple, since we don't think it needs to support all text cases.</i>
-     * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
      */
     @Contract("_, _ -> new")
     public static @NotNull MarkLogger withMarkerSuffixes(@NotNull Logger logger, @NotNull Marker marker)
@@ -198,6 +204,7 @@ public final class MarkLogger
      * Produces a special logger, whose have two extra unique markers with {@code _ERR} and {@code _WARN} suffixes to override
      * <u>{@link #defaultMarker}</u> in corresponded log level functions.
      *
+     * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
      * @implSpec <pre>{@code
      *  private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(
      *      LogUtils.getLogger(),
@@ -210,7 +217,6 @@ public final class MarkLogger
      *  // BAR -> BAR_WARN(For warn log funcs)
      * }</pre>
      * <i>Current suffix conversion is quite simple, since we don't think it needs to support all text cases.</i>
-     * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
      */
     @Contract("_, _ -> new")
     public static @NotNull MarkLogger withMarkerSuffixes(@NotNull Logger logger, @NotNull String mark)
@@ -269,7 +275,7 @@ public final class MarkLogger
      *
      * @param level     The reference log level to compare against.
      * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
-     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
      * @param extra     An additional boolean flag to force-enable the log (OR logic).
      * @return A predicate that returns {@code true} if the log should be performed.
      * @apiNote <span style="color: 95cc6d">The value of {@code extra} is <b>dynamic</b></span>, it will changed with the formula of the <u>{@link Predicate}</u>.
@@ -283,7 +289,7 @@ public final class MarkLogger
      *
      * @param level     The reference log level to compare against.
      * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
-     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
      * @param extra     An additional boolean flag to force-enable the log (OR logic).
      * @return A predicate that returns {@code true} if the log should be performed.
      * @apiNote <span style="color: red">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
@@ -297,7 +303,7 @@ public final class MarkLogger
      *
      * @param level     The reference log level to compare against.
      * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
-     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
      * @param extra     An additional boolean flag to force-enable the log (OR logic).
      * @return A predicate that returns {@code true} if the log should be performed.
      * @apiNote <span style="color: red">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
@@ -311,7 +317,7 @@ public final class MarkLogger
      *
      * @param level     The reference log level to compare against.
      * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
-     * <u>{@link ConditionSituation#LOWER LOWER}</u>).
+     *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
      * @param extra     An additional boolean flag to force-enable the log (OR logic).
      * @return A predicate that returns {@code true} if the log should be performed.
      * @apiNote <span style="color: 95cc6d">The value of {@code extra} is <b>dynamic</b></span>, it will changed with the formula of the <u>{@link Predicate}</u>.
@@ -322,11 +328,13 @@ public final class MarkLogger
     
     //  region Scoped Marker Logics
     /**
-     * Push a <u>{@link #mutableMarker temporary marker}</u> to <u>{@link MarkLogger}</u>, 
+     * Push a <u>{@link #mutableMarker temporary marker}</u> to <u>{@link MarkLogger}</u>,
      * and will always be used until current key is ended.<br><br>
-     * <b>Thus, this will only work correctly and normally with 
+     * <b>Thus, this will only work correctly and normally with
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>.
-     * @implSpec <pre>{@code 
+     *
+     * @throws NullPointerException When {@code marker} is {@code null}
+     * @implSpec <pre>{@code
      *  // ↓ "ignored" disables unused warnings.
      *  try(var ignored = LOGGER.pushMarker(MarkerFactory.getMarker("Foo")))
      *  {
@@ -335,7 +343,6 @@ public final class MarkLogger
      *  }
      *  // Out of key, override no longer exists.
      * }</pre>
-     * @throws NullPointerException When {@code marker} is {@code null}
      */
     @Contract("_ -> new")
     public @NotNull MarkerHandle pushMarker(@NotNull Marker marker)
@@ -351,6 +358,7 @@ public final class MarkLogger
      * <b>Thus, this will only work correctly and normally with
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>.
      *
+     * @throws NullPointerException When {@code mark} is {@code null}
      * @implSpec <pre>{@code
      *  // ↓ "ignored" disables unused warnings.
      *  try(var ignored = LOGGER.pushMarker("Foo"))
@@ -360,7 +368,6 @@ public final class MarkLogger
      *  }
      *  // Out of key, override no longer exists.
      * }</pre>
-     * @throws NullPointerException When {@code mark} is {@code null}
      */
     @Contract("_ -> new")
     public @NotNull MarkerHandle pushMarker(@NotNull String mark)
@@ -370,7 +377,7 @@ public final class MarkLogger
     }
     
     /**
-     * A simple class to implement <u>{@link AutoCloseable}</u> for <u>{@link MarkLogger}</u>, making it usable in 
+     * A simple class to implement <u>{@link AutoCloseable}</u> for <u>{@link MarkLogger}</u>, making it usable in
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>.
      *
      * @author Kurv Cygnus
@@ -386,7 +393,9 @@ public final class MarkLogger
         
         /**
          * Changes the temporary marker that key the default one.
-         * @apiNote This should be used in the key of 
+         *
+         * @throws NullPointerException When {@code marker} is {@code null}
+         * @apiNote This should be used in the key of
          * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>,
          * which is started by <u>{@link #pushMarker(Marker)}</u>, or <u>{@link #pushMarker(String)}</u>.
          * @implSpec <pre>{@code
@@ -395,12 +404,11 @@ public final class MarkLogger
          *      // ↓ With marker "Foo".
          *      LOGGER.info("Bar");
          *      handle.changeMarker(MarkerFactory.getMarker("Baz"));
-         *      
+         *
          *      // ↓ With marker "Baz".
          *      LOGGER.info("42");
          *  }
          * }</pre>
-         * @throws NullPointerException When {@code marker} is {@code null}
          */
         public void changeMarker(@NotNull Marker marker)
         {
@@ -411,6 +419,7 @@ public final class MarkLogger
         /**
          * Changes the temporary marker that key the default one.
          *
+         * @throws NullPointerException When {@code mark} is {@code null}
          * @apiNote This should be used in the key of
          * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>,
          * which is started by <u>{@link #pushMarker(Marker)}</u>, or <u>{@link #pushMarker(String)}</u>.
@@ -425,9 +434,8 @@ public final class MarkLogger
          *      LOGGER.info("42");
          *  }
          * }</pre>
-         * @throws NullPointerException When {@code mark} is {@code null}
          */
-        public void changeMarker(@NotNull String mark) 
+        public void changeMarker(@NotNull String mark)
         {
             requireNonNull(mark, "Param \"mark\" must not be null!");
             logger.setTempMarker(MarkerFactory.getMarker(mark));
@@ -435,13 +443,14 @@ public final class MarkLogger
         
         /**
          * Closes this handle and removes the associated <u>{@link Marker}</u> from the <u>{@link ThreadLocal}</u> stack.
+         *
          * @apiNote This method is idempotent. Calling it multiple times will not pop more than one marker.
          * <b>Failure to close this handle (especially in async or pooled thread environments) will lead to
          * <i>Marker Pollution</i></b>.
          */
         @Override public void close()
         {
-            if(closed) 
+            if(closed)
                 return;
             
             final ArrayDeque<Marker> stack = logger.mutableMarker.get();
@@ -463,47 +472,124 @@ public final class MarkLogger
     /**
      * A fluent style API for conditional log.<br>
      * It makes the log method called after it displayed only when this method's param, {@code condition} is true.
+     *
      * @implNote Param {@code condition} will be wrapped in a <u>{@link Supplier}</u> for optimization.
-     * @implSpec <pre>{@code 
+     * @implSpec <pre>{@code
      *  LOGGER.when(foo).info("Bar");
      *  // "Bar" will only be printed when foo is true.
      * }</pre>
      */
-    @Contract("_ -> new") public @NotNull ConditionalLogCommons when(boolean condition) { return new ConditionalLogCommons(this, condition); }
+    @Contract("_ -> new")
+    public @NotNull ConditionalLogCommons when(boolean condition) { return new ConditionalLogCommons(this, condition); }
     
     //*:== Trace
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void trace(@Nullable String message) { this.print(logger::trace, Level.TRACE, getMarker(), message); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void trace(@Nullable String message, Object @Nullable ... args) { this.print(logger::trace, Level.TRACE, getMarker(), message, args); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void trace(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::trace, Level.TRACE, getMarker(), message, throwable); }
     
     //*:== Debug
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void debug(@Nullable String message) { this.print(logger::debug, Level.DEBUG, getMarker(), message); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void debug(@Nullable String message, Object @Nullable ... args) { this.print(logger::debug, Level.DEBUG, getMarker(), message, args); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void debug(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::debug, Level.DEBUG, getMarker(), message, throwable); }
     
     //*:== Info
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void info(@Nullable String message) { this.print(logger::info, Level.INFO, getMarker(), message); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void info(@Nullable String message, Object @Nullable ... args) { this.print(logger::info, Level.INFO, getMarker(), message, args); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void info(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::info, Level.INFO, getMarker(), message, throwable); }
     
     //*:== Warn
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void warn(@Nullable String message) { this.print(logger::warn, Level.WARN, getMarker(), message); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void warn(@Nullable String message, Object @Nullable ... args) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, args); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void warn(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, throwable); }
-
+    
     //*:== Error
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void error(@Nullable String message) { this.print(logger::error, Level.ERROR, getMarker(), message); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void error(@Nullable String message, Object @Nullable ... args) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, args); }
     
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
     public void error(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, throwable); }
     //endregion
     
@@ -713,8 +799,7 @@ public final class MarkLogger
         @NotNull Predicate<Level> predicate,
         @NotNull Level level,
         @Nullable Marker marker,
-        @Nullable String message,
-        Object @Nullable ... args
+        @Nullable String message
     )
     {
         if(predicate.test(level))
@@ -809,9 +894,9 @@ public final class MarkLogger
         
         for(final char c: baseName.toCharArray())
         {
-            if(Character.isUpperCase(c)) 
+            if(Character.isUpperCase(c))
                 hasUppercase = true;
-            if(Character.isLowerCase(c)) 
+            if(Character.isLowerCase(c))
                 hasLowercase = true;
         }
         
@@ -847,9 +932,7 @@ public final class MarkLogger
     
     @Override public @NotNull String toString()
     {
-        //* The first line is usually used by logger's header, so sparing a empty line makes display effect prettier.
         return """
-            
             MarkLogger
             {
                 Logger Name: %s
@@ -882,5 +965,295 @@ public final class MarkLogger
     }
     
     private @NotNull String getNameSafely(@Nullable Marker marker) { return marker == null ? "N/A" : marker.getName(); }
+    //endregion
+    
+    //region SLF4J Integrations
+    /**
+     * {@inheritDoc}
+     */
+    @Override public @NotNull String getName() { return logger.getName(); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isTraceEnabled() { return logger.isTraceEnabled(); }
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void trace(String format, Object arg) { this.print(logger::trace, Level.TRACE, getMarker(), format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void trace(String format, Object arg1, Object arg2) { this.print(logger::trace, Level.TRACE, getMarker(), format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated @Override public boolean isTraceEnabled(Marker marker) { return logger.isTraceEnabled(marker); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated @Override public void trace(Marker marker, String msg) { this.print(logger::trace, Level.TRACE, marker, msg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void trace(Marker marker, String format, Object arg) { this.print(logger::trace, Level.TRACE, marker, format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void trace(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::trace, Level.TRACE, marker, format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void trace(Marker marker, String format, Object... argArray) { this.print(logger::trace, Level.TRACE, marker, format, argArray); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void trace(Marker marker, String msg, Throwable t) { this.print(logger::trace, Level.TRACE, marker, msg, t); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isDebugEnabled() { return logger.isDebugEnabled(); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void debug(String format, Object arg) { this.print(logger::debug, Level.DEBUG, getMarker(), format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void debug(String format, Object arg1, Object arg2) { this.print(logger::debug, Level.DEBUG, getMarker(), format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isDebugEnabled(Marker marker) { return logger.isDebugEnabled(marker); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void debug(Marker marker, String msg) { this.print(logger::debug, Level.DEBUG, marker, msg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void debug(Marker marker, String format, Object arg) { this.print(logger::debug, Level.DEBUG, marker, format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void debug(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::debug, Level.DEBUG, marker, format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void debug(Marker marker, String format, Object... arguments) { this.print(logger::debug, Level.DEBUG, marker, format, arguments); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void debug(Marker marker, String msg, Throwable t) { this.print(logger::debug, Level.DEBUG, marker, msg, t); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isInfoEnabled() { return logger.isInfoEnabled(); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void info(String format, Object arg) { this.print(logger::info, Level.INFO, getMarker(), format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void info(String format, Object arg1, Object arg2) { this.print(logger::info, Level.INFO, getMarker(), format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isInfoEnabled(Marker marker) { return logger.isInfoEnabled(marker); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void info(Marker marker, String msg) { this.print(logger::info, Level.INFO, marker, msg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void info(Marker marker, String format, Object arg) { this.print(logger::info, Level.INFO, marker, format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void info(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::info, Level.INFO, marker, format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void info(Marker marker, String format, Object... arguments) { this.print(logger::info, Level.INFO, marker, format, arguments); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void info(Marker marker, String msg, Throwable t) { this.print(logger::info, Level.INFO, marker, msg, t); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isWarnEnabled() { return logger.isWarnEnabled(); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void warn(String format, Object arg) { this.print(logger::warn, Level.WARN, getMarker(), format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void warn(String format, Object arg1, Object arg2) { this.print(logger::warn, Level.WARN, getMarker(), format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isWarnEnabled(Marker marker) { return logger.isWarnEnabled(marker); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void warn(Marker marker, String msg) { this.print(logger::warn, Level.WARN, marker, msg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void warn(Marker marker, String format, Object arg) { this.print(logger::warn, Level.WARN, marker, format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void warn(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::warn, Level.WARN, marker, format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void warn(Marker marker, String format, Object... arguments) { this.print(logger::warn, Level.WARN, marker, format, arguments); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void warn(Marker marker, String msg, Throwable t) { this.print(logger::warn, Level.WARN, marker, msg, t); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isErrorEnabled() { return logger.isErrorEnabled(); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void error(String format, Object arg) { this.print(logger::error, Level.ERROR, getMarker(), format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     */
+    @Override public void error(String format, Object arg1, Object arg2) { this.print(logger::error, Level.ERROR, getMarker(), format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isErrorEnabled(Marker marker) { return logger.isInfoEnabled(marker); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void error(Marker marker, String msg) { this.print(logger::error, Level.ERROR, marker, msg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void error(Marker marker, String format, Object arg) { this.print(logger::error, Level.ERROR, marker, format, arg); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void error(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::error, Level.ERROR, marker, format, arg1, arg2); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void error(Marker marker, String format, Object... arguments) { this.print(logger::error, Level.ERROR, marker, format, arguments); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void error(Marker marker, String msg, Throwable t) { this.print(logger::error, Level.ERROR, marker, msg, t); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public LoggingEventBuilder makeLoggingEventBuilder(Level level) { return Logger.super.makeLoggingEventBuilder(level); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public LoggingEventBuilder atLevel(Level level) { return Logger.super.atLevel(level); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean isEnabledForLevel(Level level) { return Logger.super.isEnabledForLevel(level); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public LoggingEventBuilder atTrace() { return Logger.super.atTrace(); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public LoggingEventBuilder atDebug() { return Logger.super.atDebug(); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public LoggingEventBuilder atInfo() { return Logger.super.atInfo(); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public LoggingEventBuilder atWarn() { return Logger.super.atWarn(); }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override public LoggingEventBuilder atError() { return Logger.super.atError(); }
     //endregion
 }

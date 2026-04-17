@@ -18,7 +18,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.Adaptive
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
@@ -38,6 +38,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,8 +48,16 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
 
+/**
+ * This is a enum based manager class, which holds the adapter source map,
+ * and the <u>{@link ResourceLocation}</u> map for <u>{@link AbstractCarryAdapter}</u>'s creation,
+ * and also the registration of the <u>{@link CarryAdapterRegisterEvent Exposed Registeration Event}</u>.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see CarryAdapterRegisterEvent Registration Event
+ */
 @ApiStatus.Internal @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
-public enum CarryRegistryManager implements ICarryRegistry
+public enum CarryRegistryManager implements ICarryRegistryView
 {
     INST;
     
@@ -56,17 +65,40 @@ public enum CarryRegistryManager implements ICarryRegistry
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_REGISTRY");
     private static final String ILLEGAL_REGISTER_INFO = "Attempting registration after registry frozen is not allowed!";
     
+    /**
+     * The flag that freezes the mutation access to registry maps.<br>
+     * It will grantee the safety of all registry maps after the <u>{@link CarryRegistryManager#register(FMLLoadCompleteEvent) registration}</u> completed.
+     */
     private boolean frozen = false;
     
     private static final HashMap<BlockEntityType<?>, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_REGISTRY = new HashMap<>();
+    
+    /**
+     * @implNote This map is mainly used for game's <u>{@link net.minecraft.world.level.saveddata.SavedData SavedData}</u>'s
+     * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
+     */
     private static final HashMap<ResourceLocation, ICarryBlockEntityAdapterFactory<?, ?>> RECOVERY_BLOCK_ENTITY_REGISTRY = new HashMap<>();
     
     private static final HashMap<Block, ICarryBlockAdapterFactory<?, ?>> BLOCK_REGISTRY = new HashMap<>();
+    
+    /**
+     * @implNote This map is mainly used for game's <u>{@link net.minecraft.world.level.saveddata.SavedData SavedData}</u>'s
+     * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
+     */
     private static final HashMap<ResourceLocation, ICarryBlockAdapterFactory<?, ?>> RECOVERY_BLOCK_REGISTRY = new HashMap<>();
     
     private static final HashMap<EntityType<?>, ICarryEntityAdapterFactory<?, ?>> ENTITY_REGISTRY = new HashMap<>();
+    
+    /**
+     * @implNote This map is mainly used for game's <u>{@link net.minecraft.world.level.saveddata.SavedData SavedData}</u>'s
+     * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
+     */
     private static final HashMap<ResourceLocation, ICarryEntityAdapterFactory<?, ?>> RECOVERY_ENTITY_REGISTRY = new HashMap<>();
     
+    /**
+     * @implNote This map is mainly used for <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem Carry Crate}</u>'s content display,
+     * it caches the translation key of the content, so its content is depended on current language.
+     */
     private static final HashMap<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();
     
     private static final Map<CarryType, HashMap<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_LOOKUP =
@@ -93,6 +125,12 @@ public enum CarryRegistryManager implements ICarryRegistry
     //endregion
     
     //region Event Lifecycles & Auto Bind Logics
+    
+    /**
+     * This method posts the <u>{@link CarryAdapterRegisterEvent Registration Event}</u>, and also processes
+     * <u>{@link net.minecraft.world.entity.Entity Entity}</u>'s <u>{@link #autoEntityBind() auto registration}</u>.<br>
+     * After all of these are done, <span style="color: red">all registries will be frozen.</span>
+     */
     @SubscribeEvent static void register(@NotNull FMLLoadCompleteEvent event)
     {
         requireNonNull(
@@ -105,9 +143,7 @@ public enum CarryRegistryManager implements ICarryRegistry
             () ->
             {
                 LOGGER.debug("Registration ended, starting Entity Compat Binding...");
-                
                 autoEntityBind();
-                
                 CarryRegistryManager.INST.frozen = true;
                 LOGGER.info("Carry adapters' registration completed!");
             }
@@ -172,7 +208,7 @@ public enum CarryRegistryManager implements ICarryRegistry
     //region Register Boilerplates
     @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>> void register(
         @NotNull BlockEntityType<E> blockEntityType,
-        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
+        @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
         throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
@@ -186,7 +222,7 @@ public enum CarryRegistryManager implements ICarryRegistry
     
     @Override public <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>> void registerUniversal(
         @NotNull Set<? extends BlockEntityType<? extends E>> blockEntityTypes,
-        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
+        @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
         throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
@@ -393,15 +429,15 @@ public enum CarryRegistryManager implements ICarryRegistry
     }
     
     @SuppressWarnings("unchecked")//! Safe casting.
-    <F extends IBaseCarryAdapterFactory<?, ?>> @NotNull Optional<F> searchFactory(@NotNull ResourceLocation resourceLocation)
+    <F extends IBaseCarryAdapterFactory<?, ?>> @Nullable F searchFactory(@NotNull ResourceLocation resourceLocation)
     {
         requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");
         
         for(final HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>> map: RECOVER_LOOKUP.values())
             if(map.containsKey(resourceLocation))
-                return Optional.ofNullable((F) map.get(resourceLocation));
+                return (F) map.get(resourceLocation);
         
-        return Optional.empty();
+        return null;
     }
     
     public @NotNull Optional<ICarryBlockEntityAdapterFactory<?, ?>> getBlockEntityAdapter(@Nullable BlockEntityType<?> blockEntityType)
@@ -413,12 +449,19 @@ public enum CarryRegistryManager implements ICarryRegistry
     public @NotNull Optional<ICarryEntityAdapterFactory<?, ?>> getEntityAdapter(@Nullable EntityType<?> entityType)
         { return Optional.ofNullable(ENTITY_REGISTRY.get(entityType)); }
     
+    /**
+     * Get the translation key by the specific <u>{@link ResourceLocation}</u>.
+     */
     public @NotNull Optional<Component> getContentTranslation(@NotNull ResourceLocation resourceLocation)
     {
         requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");
         return Optional.ofNullable(TRANSLATION_REGISTRY.get(resourceLocation));
     }
     
+    /**
+     * Get the translation key by the specific <u>{@link ResourceLocation}</u>.<br>
+     * If the translation key is found, <b>the text will be combined with the prefix for display.</b>
+     */
     public @NotNull Optional<Component> getCombinedContentTranslation(@NotNull ResourceLocation resourceLocation)
     {
         requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");

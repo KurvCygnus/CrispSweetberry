@@ -393,7 +393,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         @Override public @NotNull String toString()
         {
             return """
-                   
                    HandleResult
                    {
                        data: %s
@@ -406,11 +405,11 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
                     this.data,
                     """
                         
-                        {
-                            Listener: %s
-                            Component: %s
-                            Target: %s
-                        }
+                            {
+                                Listener: %s
+                                Component: %s
+                                Target: %s
+                            }
                         """.
                         formatted(
                             this.getListenerState().toString(),

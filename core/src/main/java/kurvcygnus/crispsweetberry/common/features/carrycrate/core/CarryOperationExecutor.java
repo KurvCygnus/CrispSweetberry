@@ -14,6 +14,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryD
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryPipelineTask;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.utils.base.lang.IResult;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
@@ -49,8 +50,12 @@ enum CarryOperationExecutor
     
     @NotNull InteractionResult execute(@NotNull CarryPipelineTask task)
     {
-        return IResult.<CarryPipelineTask, BrokenCarryPipelineException>of(task).
-            flatMap(CarryOperationExecutor.INST::listenerProcess).
+        //? return IResult.<CarryPipelineTask, BrokenCarryPipelineException>of(task).
+        //?     flatMap(CarryOperationExecutor.INST::listenerProcess).
+        //* ↑ Equals to `return this.listenerProcess(task)`.
+        //* Despite this one is more semantically friendly, it creates one more [[IResult]], brings more performance penalty.
+        
+        return this.listenerProcess(task).
             flatMap(CarryOperationExecutor.INST::componentProcess).
             flatMap(CarryOperationExecutor.INST::targetProcess).
             fold(
@@ -64,13 +69,15 @@ enum CarryOperationExecutor
                         Happens at: {}
                         Error Details: {}
                         
-                        The detailed pipeline task of this round of execution: {}
+                        The detailed pipeline task of this round of execution:
+                        {}
                         
-                        This is a serious logic issue. {}
+                        This is a serious logic issue.
+                        {}
                         """,
                         ex.type,
                         ex.getMessage(),
-                        ex.causeData,
+                        ex.causeData.toString().replace("\n", "\n    "),
                         MetainfoConstants.FEEDBACK_MESSAGE,
                         ex.wrappedException
                     );
@@ -130,7 +137,11 @@ enum CarryOperationExecutor
         }
         
         if(!listener.isDefault())
-            task.markDirty();
+        {
+            final CarryEngine.CarryListenerSaveData saveData = CarryEngine.CarryListenerSaveData.get(task.level().getServer());
+            LOGGER.when(!saveData.isDirty()).debug("Listener data changed. Mark saveData as dirtied.");
+            saveData.setDirty();
+        }
         
         return IResult.of(task.success());
     }
@@ -153,6 +164,7 @@ enum CarryOperationExecutor
         
         final ItemStack crate = task.crate();
         final boolean producesCopy = component.isTrue() && crate.getCount() > 1;
+        LOGGER.debug("Current component process: Copy {}.", producesCopy ? "created" : "ignored");
         
         switch(component)
         {
@@ -188,24 +200,30 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> targetProcess(@NotNull CarryPipelineTask task)
     {
-        final @Nullable var executeResult = switch(task.target())
-        {
-            case TRUE ->
-            {
-                if(task.type().equals(CarryType.ENTITY))
-                    yield entityTargetCapture(task);
-                yield blocklikeTargetCapture(task);
-            }
-            case FALSE ->
-            {
-                if(task.type().equals(CarryType.ENTITY))
-                    yield entityTargetRelease(task);
-                yield blocklikeTargetRelease(task);
-            }
-            default -> null;
-        };
+        //* This can't be done in [[CarryOperationExecutor#componentProcess]],
+        //* because component I/O only means the update of the [[ItemStack]]'s data,
+        //* it can't represent whether the player's carryFactor should change.
+        OverweightEffect.updateFactorAndEffect(task.player(), task.data(), task.target());
         
-        return Objects.requireNonNullElse(executeResult, IResult.of(task.success()));
+        return Objects.requireNonNullElse(
+            switch(task.target())
+            {
+                case TRUE ->
+                {
+                    if(task.type().equals(CarryType.ENTITY))
+                        yield entityTargetCapture(task);
+                    yield blocklikeTargetCapture(task);
+                }
+                case FALSE ->
+                {
+                    if(task.type().equals(CarryType.ENTITY))
+                        yield entityTargetRelease(task);
+                    yield blocklikeTargetRelease(task);
+                }
+                default -> null;
+            },
+            IResult.of(task.success())
+        );
     }
     
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> blocklikeTargetCapture(@NotNull CarryPipelineTask task)
@@ -258,7 +276,7 @@ enum CarryOperationExecutor
             );
         
         final BlockState stateToPlace = getBlocklikeState(carryData, task.type());
-        final InteractionResult placeResult = task.placeContext().apply(stateToPlace).performPlace();
+        final InteractionResult placeResult = task.placeContext().apply(stateToPlace).performPlace(false);
         
         if(placeResult.equals(InteractionResult.FAIL))
             return IResult.of(task.fail());

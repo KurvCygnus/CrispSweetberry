@@ -118,7 +118,6 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
         
         if(durability - damage > 0)
         {
-            debug.accept("Stackable tool didn't break, current durability is {}", durability - damage);
             itemStack.set(dataComponent, durability - damage);
             return false;
         }

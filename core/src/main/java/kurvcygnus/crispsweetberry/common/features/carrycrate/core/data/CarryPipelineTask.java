@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -30,26 +30,50 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * This is a mutable data class which is used in the
+ * <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine#interact(CarryInteractContextCollection.ICarryInteractContext) CarryEngine#interact(ICarryInteractContext)}</u>'s
+ * post-process phase.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @implNote
+ * <h4><b>Some simple Q&A:</b></h4>
+ * <ul>
+ *     <li>
+ *         Isn't this data class <b>too bloat</b>? It has 16 fields, that's not just a few!
+ *         <hr>
+ *         It's not, because all of these fields are essential in interact logics. <b>Choping these fields into
+ *         smaller fields only makes the post-process's context passing more troublesome. Also, field {@code listenerInsert},
+ *         {@code listenerRemove} and {@code placeContext} has already got more decoupling effort than directly passing those raw types.</b>
+ *     </li>
+ *     <li>
+ *         Why not using <b><u>{@link Record}</u></b>, or at least <b>immutable data class</b>?
+ *         <hr>
+ *         The post-process logic implementation is a typical example of <u><a href="https://fsharpforfunandprofit.com/rop/"><b>Railway Oriented Programming</b> </a></u>, which produces some use-then-discard objects,
+ *         thus, if this is immutable, mutating {@code result} will creating a new object, which obviously increases the stress of garbage collector, so
+ *         we decide to take mutable class, which can be passed as a reference, with no those problems.
+ *     </li>
+ * </ul>
+ */
 @ApiStatus.Internal
 public final class CarryPipelineTask
 {
-    private final @NotNull CarryType type;
-    private final @NotNull TriState listener;
-    private final @NotNull TriState component;
-    private final @NotNull TriState target;
-    private final @NotNull ItemStack crate;
-    private final @NotNull ServerLevel level;
-    private final @NotNull ServerPlayer player;
-    private final @NotNull BlockPos interactPos;
+    private final CarryType type;
+    private final TriState listener;
+    private final TriState component;
+    private final TriState target;
+    private final ItemStack crate;
+    private final ServerLevel level;
+    private final ServerPlayer player;
+    private final BlockPos interactPos;
     private final @Nullable CarryData data;
     private final @Nullable CarryID id;
     private final @Nullable LivingEntity entity;
     private final @Nullable BlockEntityType<?> blockEntityType;
-    private final @NotNull BiConsumer<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
-    private final @NotNull Consumer<CarryID> listenerRemove;
-    private final @NotNull Consumer<ServerLevel> markDirty;
+    private final BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
+    private final Consumer<CarryID> listenerRemove;
     private final @Nullable Function<BlockState, StatedBlockPlaceContext> placeContext;
-    private @NotNull InteractionResult result;
+    private InteractionResult result;
     
     public CarryPipelineTask(
         @NotNull CarryType type,
@@ -64,9 +88,8 @@ public final class CarryPipelineTask
         @Nullable CarryID id,
         @Nullable LivingEntity entity,
         @Nullable BlockEntityType<?> blockEntityType,
-        @NotNull BiConsumer<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> listenerInsert,
+        @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert,
         @NotNull Consumer<CarryID> listenerRemove,
-        @NotNull Consumer<ServerLevel> markDirty,
         @Nullable Function<BlockState, StatedBlockPlaceContext> placeContext,
         @NotNull InteractionResult result
     )
@@ -85,7 +108,6 @@ public final class CarryPipelineTask
         this.blockEntityType = blockEntityType;
         this.listenerInsert = listenerInsert;
         this.listenerRemove = listenerRemove;
-        this.markDirty = markDirty;
         this.placeContext = placeContext;
         this.result = result;
     }
@@ -97,45 +119,26 @@ public final class CarryPipelineTask
         return this;
     }
     
-    public @NotNull CarryPipelineTask success() { return assignResultAndReturn(InteractionResult.SUCCESS); }
-    
+    //! Using SUCCESS may lead to [[ItemStack#shrink]].
+    public @NotNull CarryPipelineTask success() { return assignResultAndReturn(InteractionResult.SUCCESS_NO_ITEM_USED); }
     public @NotNull CarryPipelineTask fail() { return assignResultAndReturn(InteractionResult.FAIL); }
-    
     public @NotNull CarryPipelineTask pass() { return assignResultAndReturn(InteractionResult.PASS); }
-    
     public @NotNull CarryType type() { return type; }
-    
     public @NotNull TriState listener() { return listener; }
-    
     public @NotNull TriState component() { return component; }
-    
     public @NotNull TriState target() { return target; }
-    
     public @NotNull ItemStack crate() { return crate; }
-    
     public @NotNull ServerLevel level() { return level; }
-    
     public @NotNull ServerPlayer player() { return player; }
-    
     public @NotNull BlockPos interactPos() { return interactPos; }
-    
     public @Nullable CarryData data() { return data; }
-    
     public @Nullable CarryID id() { return id; }
-    
     public @Nullable LivingEntity entity() { return entity; }
-    
     public @Nullable BlockEntityType<?> blockEntityType() { return blockEntityType; }
-    
-    public @NotNull BiConsumer<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> listenerInsert() { return listenerInsert; }
-    
+    public @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert() { return listenerInsert; }
     public @NotNull Consumer<CarryID> listenerRemove() { return listenerRemove; }
-    
     public @Nullable Function<BlockState, StatedBlockPlaceContext> placeContext() { return placeContext; }
-    
     public @NotNull InteractionResult result() { return result; }
-    
-    public void markDirty() { this.markDirty.accept(level); }
     
     @Override public boolean equals(@Nullable Object obj)
     {
@@ -155,7 +158,6 @@ public final class CarryPipelineTask
                 Objects.equals(blockEntityType, that.blockEntityType) &&
                 Objects.equals(listenerInsert, that.listenerInsert) &&
                 Objects.equals(listenerRemove, that.listenerRemove) &&
-                Objects.equals(markDirty, that.markDirty) &&
                 Objects.equals(placeContext, that.placeContext) &&
                 result == that.result;
     }
@@ -175,10 +177,6 @@ public final class CarryPipelineTask
             id,
             entity,
             blockEntityType,
-            listenerInsert,
-            listenerRemove,
-            markDirty,
-            placeContext,
             result
         );
     }
@@ -186,7 +184,6 @@ public final class CarryPipelineTask
     @Override public @NotNull String toString()
     {
         return """
-            
             CarryPipelineTask
             {
                 type: %s

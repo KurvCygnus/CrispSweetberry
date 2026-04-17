@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
@@ -112,7 +112,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
     
     @SuppressWarnings("unchecked")//! Safe casting UwU
     private static <E extends LivingEntity> AbstractEntityCarryAdapter<? extends E> createAdapter(
-        @NotNull ICarryRegistry.ICarryEntityAdapterFactory<E, ?> factory,
+        @NotNull ICarryRegistryView.ICarryEntityAdapterFactory<E, ?> factory,
         @NotNull LivingEntity entity
     ) { return factory.create((E) entity); }
     

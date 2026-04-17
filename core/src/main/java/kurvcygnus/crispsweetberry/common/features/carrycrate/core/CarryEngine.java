@@ -15,11 +15,11 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Abs
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry.IBaseCarryAdapterFactory;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry.ICarryBlockAdapterFactory;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry.ICarryBlockEntityAdapterFactory;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry.ICarryEntityAdapterFactory;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView.IBaseCarryAdapterFactory;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView.ICarryBlockAdapterFactory;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView.ICarryBlockEntityAdapterFactory;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView.ICarryEntityAdapterFactory;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.HandleResult;
@@ -61,9 +61,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData.CarryBlockEntityDataHolder;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.*;
@@ -99,7 +97,7 @@ public enum CarryEngine
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    private static final class CarryListenerSaveData extends SavedData
+    static final class CarryListenerSaveData extends SavedData
     {
         static final String UUID = "uuid";
         static final String ID = "id";
@@ -114,7 +112,7 @@ public enum CarryEngine
             {
                 final ListTag entryList = new ListTag();
                 
-                final BiConsumer<CarryID, ICarryRegistry.IBaseCarryAdapterFactory<?, ?>> insertToData =
+                final BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> insertToData =
                     (id, $) ->
                     {
                         final CompoundTag entry = new CompoundTag();
@@ -187,16 +185,14 @@ public enum CarryEngine
                                 LOGGER.debug("Got CarryID: [ResourceLocation: \"{}\", UUID: \"{}\"]", id, uuid);
                                 
                                 final ResourceLocation resourceLocation = ResourceLocation.parse(id);
+                                final @Nullable var adapter = CarryRegistryManager.INST.searchFactory(resourceLocation);
                                 
-                                final Optional<? extends IBaseCarryAdapterFactory<?, ?>> optionalAdapter = CarryRegistryManager.INST.searchFactory(resourceLocation);
-                                
-                                if(optionalAdapter.isEmpty())
+                                if(adapter == null)
                                 {
                                     LOGGER.error("Entry with ID \"{}\" doesn't have a corresponded factory!", resourceLocation);
                                     return;
                                 }
                                 
-                                final ICarryRegistry.IBaseCarryAdapterFactory<?, ?> adapter = optionalAdapter.get();
                                 ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(adapter.getType())).put(fullID, adapter);
                                 
                                 LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType().name(), fullID);
@@ -229,31 +225,17 @@ public enum CarryEngine
         final CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
         assert carryID != null;//! [[DataComponentHolder#has()]] has granted the safety.
-        assert data != null;
+        assert data != null;//! `assert` doesn't work in non-debugging environment, it won't bring any extra performance penalty comparing to [[Objects#requireNonNull]].
         
         final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid(), slotId);
         
         final int penaltyRate = data.unionData().getPenaltyRate();
-        final var adapter = new AtomicReference<AbstractCarryAdapter<?>>(null);
+        final var adapter = getCarryAdapter(LISTENER_LOOKUP.get(data.carryType()), carryID);
         
-        final Consumer<HashMap<CarryID, ? extends ICarryRegistry.IBaseCarryAdapterFactory<?, ?>>> tickAction =
-            map ->
-            {
-                final @Nullable IBaseCarryAdapterFactory<?, ?> factory = map.get(carryID);
-                
-                if(factory == null)
-                    return;
-                
-                adapter.set(factory.create(null));
-                adapter.get().carryingTick(context);
-            };
-        
-        tickAction.accept(LISTENER_LOOKUP.get(data.carryType()));
-        
-        if(adapter.get() == null)//! Due to C/S sync, and also the competitive state between carry operation and map, returning at here can prevent potential NPE.
+        if(adapter == null)//! Due to C/S sync, and also the competitive state between carry operation and map, returning at here can prevent potential NPE.
             return;
         
-        final AbstractCarryAdapter<?> carryAdapter = adapter.get();
+        adapter.carryingTick(context);
         
         //! ↓ This has already implicitly checked whether the environment is clientside.
         if(!(entity instanceof ServerPlayer player) || penaltyRate == 0)
@@ -263,13 +245,11 @@ public enum CarryEngine
         
         if(currentCounter + 1 >= penaltyRate && !player.gameMode.isCreative())
         {
-            LOGGER.debug("Tick counter is maxed out, try damaging Crate \"{}\".", carryID);
-            
             if(carryCrateItem.hurtAndBreak(carryCrate, (ServerLevel) level, player))
             {
                 final BlockPos pos = player.getOnPos();
                 
-                carryAdapter.onBreak(
+                adapter.onBreak(
                     level,
                     pos,
                     data.unionData(),
@@ -288,7 +268,7 @@ public enum CarryEngine
             
             if(
                 data.carryType().equals(CarryType.BLOCK_ENTITY) &&
-                carryAdapter instanceof AbstractBlockEntityCarryAdapter<?> blockEntityCarryAdapter &&
+                adapter instanceof AbstractBlockEntityCarryAdapter<?> blockEntityCarryAdapter &&
                 level.getRandom().nextFloat() < (float) carryCrate.getDamageValue() / carryCrate.getMaxDamage()
             )
                 carryCrate.set(
@@ -321,7 +301,7 @@ public enum CarryEngine
             final ItemStack carryCrate = context.getCarryCrate();
             final @Nullable CarryData carryData = context.getCarryData();
             
-            LOGGER.debug(
+            LOGGER.when(!level.isClientSide).debug(
                 "State of this interaction: Player: {}, Data: {}",
                 optionalPlayer.map(player -> player.getDisplayName().getString()).orElse("N/A"),
                 carryData != null ? carryData.toString() : "N/A"
@@ -376,6 +356,7 @@ public enum CarryEngine
                     useOnContext = null;
                     
                     targetEntity = entity.target();
+                    //! If this interaction attempt doesn't have a owner, Engine should refuse to process more logic.
                     yield optionalPlayer.map($ -> CarryType.ENTITY).orElse(null);
                 }
             };
@@ -384,15 +365,15 @@ public enum CarryEngine
                 return null;
             
             handle.changeMarker("ACTION_SELECT");
-            LOGGER.debug("Current action: {}.", action.name());
+            LOGGER.when(!level.isClientSide).debug("Current action: {}.", action.name());
             //endregion
             
             //region Process Logics
             if(level.isClientSide)
             {
                 handle.changeMarker("CLIENT_HANDLE");
-                LOGGER.debug("Current is client side, returning result as \"SUCCESS\".");
-                return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
+                LOGGER.debug("Current is client side, returning result as \"SUCCESS_NO_ITEM_USED\".");
+                return InteractionResult.SUCCESS_NO_ITEM_USED;//! Using SUCCESS, or [[InteractionResult#sidedSuccess]] may lead to [[ItemStack#shrink]].
             }
             
             final ServerLevel serverLevel = (ServerLevel) level;
@@ -418,37 +399,41 @@ public enum CarryEngine
             //endregion
             
             //region Post-Process
-            final var listenerState = result.getListenerState();
-            final var componentState = result.getComponentState();
-            final var targetState = result.getTargetState();
-            
-            final CarryPipelineTask task = new CarryPipelineTask(
-                action,
-                listenerState,
-                componentState,
-                targetState,
-                carryCrate,
-                serverLevel,
-                serverPlayer,
-                interactPos,
-                carryData,
-                result.carryID(),
-                targetEntity,
-                result.blockEntityType(),
-                ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(action))::put,
-                LISTENER_LOOKUP.get(action)::remove,
-                CarryEngine::markDirty,
-                useOnContext != null ? state -> new StatedBlockPlaceContext(useOnContext, state) : null,
-                InteractionResult.PASS
+            return CarryOperationExecutor.INST.execute(
+                new CarryPipelineTask(
+                    action,
+                    result.getListenerState(),
+                    result.getComponentState(),
+                    result.getTargetState(),
+                    carryCrate,
+                    serverLevel,
+                    serverPlayer,
+                    interactPos,
+                    result.data(),
+                    Objects.requireNonNullElse(carryID, result.carryID()),//! If the crate has already own a UUID, we should use it, if not, use the newly generated one.
+                    targetEntity,                                         //! Of course, if both are null, this will throw NPE, that's a bug.
+                    result.blockEntityType(),
+                    ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(action))::put,
+                    LISTENER_LOOKUP.get(action)::remove,
+                    useOnContext != null ? state -> new StatedBlockPlaceContext(useOnContext, state) : null,
+                    InteractionResult.PASS
+                )
             );
-            
-            return CarryOperationExecutor.INST.execute(task);
             //endregion
         }
     }
     //endregion
     
     //region Helpers
+    private static @Nullable AbstractCarryAdapter<?> getCarryAdapter(
+        @NotNull HashMap<CarryID, ? extends ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> map,
+        @NotNull CarryID carryID
+    )
+    {
+        final @Nullable var factory = map.get(carryID);
+        return factory != null ? factory.create(null) : null;
+    }
+    
     private static @Nullable CarryType validateBlocklikeAction(@NotNull CarryType carryType, @NotNull BlockEntity blockEntity, @NotNull BlockState blockState)
     {
         if(CarryRegistryManager.INST.searchFactory(carryType, carryType.equals(CarryType.BLOCK_ENTITY) ? blockEntity.getType() : blockState.getBlock()).isEmpty())
@@ -460,13 +445,6 @@ public enum CarryEngine
         }
         
         return carryType;
-    }
-    
-    private static void markDirty(@NotNull ServerLevel level)
-    {
-        final CarryListenerSaveData saveData = CarryListenerSaveData.get(level.getServer());
-        LOGGER.when(!saveData.isDirty()).debug("Listener data changed. Mark saveData as dirtied.");
-        saveData.setDirty();
     }
     //endregion
 }

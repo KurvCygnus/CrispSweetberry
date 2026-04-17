@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
@@ -119,7 +119,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         //! However, Minecraft only allows the creation of a new blockEntity when the targetBlock is corresponded.
         //! We have to treat such a case specially.
         //! THANK YOU, MOJANG
-        if(!context.performPlace().equals(InteractionResult.CONSUME))
+        if(!context.performPlace(false).equals(InteractionResult.CONSUME))
         {
             LOGGER.debug("Cannot place block to process blockEntity, return the process result as failed.");
             context.cancelPlacement();
@@ -214,7 +214,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
     
     @SuppressWarnings("unchecked")//! Safe casting OwO
     private static <E extends BlockEntity> @NotNull AbstractBlockEntityCarryAdapter<? extends E> createAdapter(
-        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<E, ?> factory,
+        @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<E, ?> factory,
         @NotNull BlockEntity entity
     ) { return factory.create((E) entity); }
     

@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
@@ -136,7 +136,7 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
     
     @SuppressWarnings("unchecked")//! Safe casting awa
     private static <B extends Block> @NotNull AbstractBlockCarryAdapter<? extends B> createAdapter(
-        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<B, ?> factory,
+        @NotNull ICarryRegistryView.ICarryBlockAdapterFactory<B, ?> factory,
         @NotNull Block block
     ) { return factory.create((B) block); }
     

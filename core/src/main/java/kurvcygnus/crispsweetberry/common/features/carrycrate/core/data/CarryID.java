@@ -50,7 +50,6 @@ public record CarryID(@NotNull String id, @NotNull String uuid)
     @Override public @NotNull String toString()
     {
         return """
-            
             CarryID
             {
                 Recovery ID: %s,

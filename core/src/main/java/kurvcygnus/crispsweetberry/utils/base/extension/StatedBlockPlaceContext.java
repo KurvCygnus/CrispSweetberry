@@ -45,7 +45,9 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext
         this.placeState = placeState;
     }
     
-    public @NotNull InteractionResult performPlace()
+    public @NotNull InteractionResult performPlace() { return performPlace(true); }
+    
+    public @NotNull InteractionResult performPlace(boolean doShrink)
     {
         if(!this.placeState.getBlock().isEnabled(this.getLevel().enabledFeatures()) || !this.canPlace())
             return InteractionResult.FAIL;
@@ -83,7 +85,7 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext
         
         level.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(player, currentState));
         
-        if(player == null || !player.getAbilities().instabuild)
+        if(doShrink && (player == null || !player.getAbilities().instabuild))
             itemStack.shrink(1);
         
         return InteractionResult.sidedSuccess(level.isClientSide);

@@ -35,7 +35,7 @@ import java.util.Set;
  * @since 1.0 Release
  */
 @ApiStatus.Internal
-public interface ICarryRegistry
+public interface ICarryRegistryView
 {
     <E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<E>>
     void register(

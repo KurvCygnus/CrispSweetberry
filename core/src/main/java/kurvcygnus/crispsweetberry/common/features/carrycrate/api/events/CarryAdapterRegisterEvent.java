@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.events;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistry;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
@@ -34,9 +34,9 @@ import java.util.Set;
 public final class CarryAdapterRegisterEvent extends Event implements IModBusEvent
 {
     //region Fields & Constructors
-    private final ICarryRegistry carryRegistry;
+    private final ICarryRegistryView carryRegistry;
     
-    public CarryAdapterRegisterEvent(@NotNull ICarryRegistry carryRegistry) { this.carryRegistry = carryRegistry; }
+    public CarryAdapterRegisterEvent(@NotNull ICarryRegistryView carryRegistry) { this.carryRegistry = carryRegistry; }
     //endregion
     
     //region BlockEntity Register Facade
@@ -46,7 +46,7 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
      * @param carryAdapterBlockEntityFactory Bounded Adapter's Contractor
      * @apiNote Please notes that the type that adapter supports must be completely same as blockEntityType's, 
      * even the child blockEntities are not allowed. For universal case, use 
-     * <u>{@link #registerUniversal(Set, ICarryRegistry.ICarryBlockEntityAdapterFactory)}</u> instead.
+     * <u>{@link #registerUniversal(Set, ICarryRegistryView.ICarryBlockEntityAdapterFactory)}</u> instead.
      * @implSpec <pre>{@code
      *  @SubscribeEvent 
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
@@ -71,10 +71,10 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
     @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
     public void register(
         @NotNull BlockEntityType<? extends BlockEntity> blockEntityType,
-        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>> carryAdapterBlockEntityFactory
+        @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>> carryAdapterBlockEntityFactory
     )
     {
-        final var castedFactory = (ICarryRegistry.ICarryBlockEntityAdapterFactory<BlockEntity, AbstractBlockEntityCarryAdapter<BlockEntity>>) 
+        final var castedFactory = (ICarryRegistryView.ICarryBlockEntityAdapterFactory<BlockEntity, AbstractBlockEntityCarryAdapter<BlockEntity>>)
             carryAdapterBlockEntityFactory;
         final var castedType = (BlockEntityType<BlockEntity>) blockEntityType;
         
@@ -104,10 +104,10 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
     @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
     public void registerUniversal(
         @NotNull Set<? extends BlockEntityType<? extends BlockEntity>> blockEntityTypes,
-        @NotNull ICarryRegistry.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>> carryAdapterBlockEntityFactory
+        @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<? extends BlockEntity, ? extends AbstractBlockEntityCarryAdapter<?>> carryAdapterBlockEntityFactory
     ) 
     {
-        final var castedFactory = (ICarryRegistry.ICarryBlockEntityAdapterFactory<BlockEntity, AbstractBlockEntityCarryAdapter<BlockEntity>>)
+        final var castedFactory = (ICarryRegistryView.ICarryBlockEntityAdapterFactory<BlockEntity, AbstractBlockEntityCarryAdapter<BlockEntity>>)
             carryAdapterBlockEntityFactory;
         final var castedTypes = (Set<BlockEntityType<BlockEntity>>) blockEntityTypes;
         
@@ -122,7 +122,7 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
      * @param carryAdapterBlockAdapterFactory Bounded Adapter's Contractor
      * @apiNote Please notes that the type that adapter supports must be completely same as block's,
      * even the child blocks are not allowed. For universal case, use
-     * <u>{@link #registerUniversal(Set, ICarryRegistry.ICarryBlockAdapterFactory)}</u> instead.
+     * <u>{@link #registerUniversal(Set, ICarryRegistryView.ICarryBlockAdapterFactory)}</u> instead.
      * @implSpec <pre>{@code
      *  @SubscribeEvent 
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
@@ -146,11 +146,11 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
      */
     public void register(
         @NotNull Block block,
-        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>> carryAdapterBlockAdapterFactory
+        @NotNull ICarryRegistryView.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>> carryAdapterBlockAdapterFactory
     ) 
     {
         @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
-        final var castedFactory = (ICarryRegistry.ICarryBlockAdapterFactory<Block, AbstractBlockCarryAdapter<Block>>) carryAdapterBlockAdapterFactory;
+        final var castedFactory = (ICarryRegistryView.ICarryBlockAdapterFactory<Block, AbstractBlockCarryAdapter<Block>>) carryAdapterBlockAdapterFactory;
         
         this.carryRegistry.register(block, castedFactory);
     }
@@ -178,11 +178,11 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
     @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
     public void registerUniversal(
         @NotNull Set<? extends Block> blocks,
-        @NotNull ICarryRegistry.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>> carryAdapterBlockAdapterFactory
+        @NotNull ICarryRegistryView.ICarryBlockAdapterFactory<? extends Block, ? extends AbstractBlockCarryAdapter<?>> carryAdapterBlockAdapterFactory
     )
     {
         final var castedBlocks = (Set<Block>) blocks;
-        final var castedFactory = (ICarryRegistry.ICarryBlockAdapterFactory<Block, AbstractBlockCarryAdapter<Block>>) carryAdapterBlockAdapterFactory;
+        final var castedFactory = (ICarryRegistryView.ICarryBlockAdapterFactory<Block, AbstractBlockCarryAdapter<Block>>) carryAdapterBlockAdapterFactory;
         
         this.carryRegistry.registerUniversal(castedBlocks, castedFactory);
     }
@@ -196,7 +196,7 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
      * @param carryEntityAdapterFactory Bounded Adapter's Contractor
      * @apiNote Please notes that the type that adapter supports must be completely same as entityType's,
      * even the child entities are not allowed. For universal case, use
-     * <u>{@link #registerUniversal(Set, ICarryRegistry.ICarryEntityAdapterFactory)}</u> instead.
+     * <u>{@link #registerUniversal(Set, ICarryRegistryView.ICarryEntityAdapterFactory)}</u> instead.
      * @implSpec <pre>{@code
      *  @SubscribeEvent 
      *  static void register(@NotNull CarryAdapterRegisterEvent event)
@@ -221,11 +221,11 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
     @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
     public void register(
         @NotNull EntityType<? extends LivingEntity> entityType,
-        @NotNull ICarryRegistry.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
+        @NotNull ICarryRegistryView.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
     ) 
     {
         final var castedEntity = (EntityType<LivingEntity>) entityType;
-        final var castedFactory = (ICarryRegistry.ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
+        final var castedFactory = (ICarryRegistryView.ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
         
         this.carryRegistry.register(castedEntity, castedFactory);
     }
@@ -253,11 +253,11 @@ public final class CarryAdapterRegisterEvent extends Event implements IModBusEve
     @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
     public void registerUniversal(
         @NotNull Set<? extends EntityType<? extends LivingEntity>> entityTypes,
-        @NotNull ICarryRegistry.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
+        @NotNull ICarryRegistryView.ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
     )
     {
         final var castedEntities = (Set<EntityType<LivingEntity>>) entityTypes;
-        final var castedFactory = (ICarryRegistry.ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
+        final var castedFactory = (ICarryRegistryView.ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
         
         this.carryRegistry.registerUniversal(castedEntities, castedFactory);
     }
