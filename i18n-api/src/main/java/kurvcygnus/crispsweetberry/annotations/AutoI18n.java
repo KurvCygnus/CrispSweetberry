@@ -9,12 +9,12 @@
 package kurvcygnus.crispsweetberry.annotations;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
  * @see #value() Value Rule
  * @see #key() Key Rule
  * @see #group() Group Rule
+ * @see #overrides() Override Rule
  * @see AutoI18n.Lang Supported Languages
  */
 @Target(ElementType.FIELD)
@@ -71,7 +72,16 @@ public @interface AutoI18n
      *         {@code ${Language}}'s parse is strict. For all supported languages, you can found them at <u>{@link Lang}</u>.
      *     </li>
      *     <li>
-     *         If you need trailing or leading whitespaces, please use <b>{@code &ensp;}</b>
+     *         {@code AutoI18n} also provides some extra placeholders to enhance translation writing.
+     *         <ul>
+     *             <li>
+     *                 If you need trailing or leading whitespaces, please use <b>{@code ~@s}</b>.
+     *             </li>
+     *             <li>
+     *                 If you want to use overridden group's original text(if you don't know that, see <u>{@link #group()}</u>), please use <b>{@code ~@^}</b>,
+     *                 it represents the original text.
+     *             </li>
+     *         </ul>
      *     </li>
      * </ul><hr>
      * A simple example: <pre>{@code 
@@ -137,18 +147,28 @@ public @interface AutoI18n
     @NotNull String key() default "";
     
     /**
-     * This declares a group, which can be inherited by other translation entries.
+     * This declares a group, which can be inherited by other translation entries using <u>{@link #overrides()}</u>.
      * @apiNote {@code group()} follows <u><a href="https://en.wikipedia.org/wiki/One_Definition_Rule">one definition rule</a></u>,
      * <b>which means, you should only define it once</b>.
      * <br><br>
      * Declaring a {@code group()} is simple: Write your <u>{@link #value() translations}</u> as usual, then put a group on it, that's all, adding modId
      * is not required, processor will handle this.<br>
-     * Using {@code group()} is also simple: Do not write <u>{@link #value() translations}</u>, directly write {@code group()}, that's all.
-     * <br><br>
+     * Using {@code group()} is also simple: Specify the group you want to override in <u>{@link #overrides()}</u>,
+     * and write your translations if you want to override, the rests will use the group's translations.<br>
+     * <br>
      * {@code group()} is compatible with <u>{@link #key()}</u>.
      */
     @NotNull String group() default "";
     
+    /**
+     * Declares that this translation will use other's translation as base, which needs to declare with <u>{@link #group()}</u>.
+     * @apiNote After properly declared, the translations that is not written will use the base one.<br>
+     * <b>If you want to use append extra text on the original one, please use {@code ~@^} to represent the base text.</b>
+     */
+    @NotNull String overrides() default "";
+    
+    String SUPER = "~@^";
+    String WHITESPACE = "~@s";
     Pattern TRANSLATION_PATTERN = Pattern.compile("^\\s*([a-zA-Z._]+)\\s*=\\s*(.+?)\\s*$", Pattern.DOTALL);
     
     enum Lang
@@ -158,16 +178,12 @@ public @interface AutoI18n
         KO_KR, RU_RU, FR_FR,
         DE_DE, ES_ES;
         
-        private final String code;
+        public @NotNull String getCode() { return this.name().toLowerCase(); }
         
-        Lang() { this.code = this.name().toLowerCase(); }
-        
-        public @NotNull String getCode() { return this.code; }
-        
-        public static @NotNull Optional<Lang> parse(@NotNull String prefix) 
+        public static @Nullable Lang parse(@NotNull String prefix)
         {
-            try { return Optional.of(Lang.valueOf(prefix.toUpperCase())); }
-            catch(IllegalArgumentException e) { return Optional.empty(); }
+            try { return Lang.valueOf(prefix.toUpperCase()); }
+            catch(IllegalArgumentException e) { return null; }
         }
     }
 }

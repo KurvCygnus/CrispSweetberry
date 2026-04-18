@@ -318,7 +318,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         final ResourceLocation resourceLocation = EntityType.getKey(entityType);
         
         final String translationID = entityType.getDescriptionId();
-        LOGGER.debug("Registered entity \"{}\".", translationID);
+        LOGGER.debug("Registered animal \"{}\".", translationID);
         
         ENTITY_REGISTRY.put(castedEntity, castedFactory);
         TRANSLATION_REGISTRY.put(resourceLocation, UIUtils.dimmedText(translationID));

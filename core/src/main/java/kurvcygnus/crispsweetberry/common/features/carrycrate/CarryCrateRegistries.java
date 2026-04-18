@@ -97,7 +97,7 @@ public enum CarryCrateRegistries implements IRegistrant
         event.register(BlockEntityType.BREWING_STAND, BaseVanillaBrewingStandAdapter::new);
         event.register(BlockEntityType.JUKEBOX, JukeboxCompatCollection.JukeboxBlockEntityCarryAdapter::new);
         
-        //* Despite EnderChest belongs to BlockEntity, it can't, and shouldn't be registered at here.
+        //* Despite EnderChest belongs to [[BlockEntity]], it can't, and shouldn't be registered at here.
         //* EnderChest's content stores on player, so we treat it as a normal block.
         event.registerUniversal(
             Set.of(
@@ -142,7 +142,7 @@ public enum CarryCrateRegistries implements IRegistrant
         resourceLocation -> new CarryCrateBlock()
     );
     
-    @RegisterToTab @AutoI18n(group = "carry_crate", key = "carry_crate")
+    @RegisterToTab @AutoI18n(overrides = "carry_crate", key = "carry_crate")
     public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register(
         "carry_crate",
         resourceLocation -> new CarryCrateItem()

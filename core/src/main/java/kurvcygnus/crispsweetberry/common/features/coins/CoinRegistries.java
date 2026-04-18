@@ -77,8 +77,9 @@ public enum CoinRegistries implements IRegistrant
         "lol_us = Kop rounz thin'",
         "zh_cn = 铜币"
     })
-    public static final DeferredHolder<Item, VanillaCoinItem> COPPER_COIN = COIN_ITEM_REGISTER.register("copper_coin", resourceLocation ->
-        new VanillaCoinItem(() -> COPPER)
+    public static final DeferredHolder<Item, VanillaCoinItem> COPPER_COIN = COIN_ITEM_REGISTER.register(
+        "copper_coin",
+        resourceLocation -> new VanillaCoinItem(() -> COPPER)
     );
     
     @RegisterToTab
@@ -87,8 +88,9 @@ public enum CoinRegistries implements IRegistrant
         "lol_us = Airn rounz thin'",
         "zh_cn = 铁币"
     })
-    public static final DeferredHolder<Item, VanillaCoinItem> IRON_COIN = COIN_ITEM_REGISTER.register("iron_coin", resourceLocation ->
-        new VanillaCoinItem(() -> IRON)
+    public static final DeferredHolder<Item, VanillaCoinItem> IRON_COIN = COIN_ITEM_REGISTER.register(
+        "iron_coin",
+        resourceLocation -> new VanillaCoinItem(() -> IRON)
     );
     
     @RegisterToTab
@@ -97,8 +99,9 @@ public enum CoinRegistries implements IRegistrant
         "lol_us = Shyni rounz thin'",
         "zh_cn = 金币"
     })
-    public static final DeferredHolder<Item, VanillaCoinItem> GOLD_COIN = COIN_ITEM_REGISTER.register("gold_coin", resourceLocation ->
-        new VanillaCoinItem(() -> GOLD)
+    public static final DeferredHolder<Item, VanillaCoinItem> GOLD_COIN = COIN_ITEM_REGISTER.register(
+        "gold_coin",
+        resourceLocation -> new VanillaCoinItem(() -> GOLD)
     );
     
     @RegisterToTab
@@ -107,8 +110,9 @@ public enum CoinRegistries implements IRegistrant
         "lol_us = pez of $$$",
         "zh_cn = 钻石币"
     })
-    public static final DeferredHolder<Item, VanillaCoinItem> DIAMOND_COIN = COIN_ITEM_REGISTER.register("diamond_coin", resourceLocation ->
-        new VanillaCoinItem(() -> DIAMOND)
+    public static final DeferredHolder<Item, VanillaCoinItem> DIAMOND_COIN = COIN_ITEM_REGISTER.register(
+        "diamond_coin",
+        resourceLocation -> new VanillaCoinItem(() -> DIAMOND)
     );
     
     @RegisterToTab
@@ -119,8 +123,9 @@ public enum CoinRegistries implements IRegistrant
         },
         group = "copper_coin"
     )
-    public static final DeferredHolder<Item, VanillaCoinStackItem> COPPER_COIN_STACK = COIN_ITEM_REGISTER.register("copper_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> COPPER)
+    public static final DeferredHolder<Item, VanillaCoinStackItem> COPPER_COIN_STACK = COIN_ITEM_REGISTER.register(
+        "copper_coin_stack",
+        resourceLocation -> new VanillaCoinStackItem(() -> COPPER)
     );
     
     @RegisterToTab
@@ -131,8 +136,9 @@ public enum CoinRegistries implements IRegistrant
         },
         group = "iron_coin"
     )
-    public static final DeferredHolder<Item, VanillaCoinStackItem> IRON_COIN_STACK = COIN_ITEM_REGISTER.register("iron_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> IRON)
+    public static final DeferredHolder<Item, VanillaCoinStackItem> IRON_COIN_STACK = COIN_ITEM_REGISTER.register(
+        "iron_coin_stack",
+        resourceLocation -> new VanillaCoinStackItem(() -> IRON)
     );
     
     @RegisterToTab
@@ -143,8 +149,9 @@ public enum CoinRegistries implements IRegistrant
         },
         group = "gold_coin"
     )
-    public static final DeferredHolder<Item, VanillaCoinStackItem> GOLD_COIN_STACK = COIN_ITEM_REGISTER.register("gold_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> GOLD)
+    public static final DeferredHolder<Item, VanillaCoinStackItem> GOLD_COIN_STACK = COIN_ITEM_REGISTER.register(
+        "gold_coin_stack",
+        resourceLocation -> new VanillaCoinStackItem(() -> GOLD)
     );
     
     @RegisterToTab
@@ -155,27 +162,32 @@ public enum CoinRegistries implements IRegistrant
         },
         group = "diamond_coin"
     )
-    public static final DeferredHolder<Item, VanillaCoinStackItem> DIAMOND_COIN_STACK = COIN_ITEM_REGISTER.register("diamond_coin_stack", resourceLocation ->
-        new VanillaCoinStackItem(() -> DIAMOND)
+    public static final DeferredHolder<Item, VanillaCoinStackItem> DIAMOND_COIN_STACK = COIN_ITEM_REGISTER.register(
+        "diamond_coin_stack",
+        resourceLocation -> new VanillaCoinStackItem(() -> DIAMOND)
     );
     
-    @AutoI18n(group = "copper_coin")
-    public static final DeferredHolder<Block, VanillaCoinStackBlock> COPPER_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("copper_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(Lazy.of(() -> COPPER))
+    @AutoI18n(overrides = "copper_coin")
+    public static final DeferredHolder<Block, VanillaCoinStackBlock> COPPER_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
+        "copper_coin_stack",
+        resourceLocation -> new VanillaCoinStackBlock(Lazy.of(() -> COPPER))
     );
     
-    @AutoI18n(group = "iron_coin")
-    public static final DeferredHolder<Block, VanillaCoinStackBlock> IRON_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("iron_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(Lazy.of(() -> IRON))
+    @AutoI18n(overrides = "iron_coin")
+    public static final DeferredHolder<Block, VanillaCoinStackBlock> IRON_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
+        "iron_coin_stack",
+        resourceLocation -> new VanillaCoinStackBlock(Lazy.of(() -> IRON))
     );
     
-    @AutoI18n(group = "gold_coin")
-    public static final DeferredHolder<Block, VanillaCoinStackBlock> GOLD_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("gold_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(Lazy.of(() -> GOLD))
+    @AutoI18n(overrides = "gold_coin")
+    public static final DeferredHolder<Block, VanillaCoinStackBlock> GOLD_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
+        "gold_coin_stack",
+        resourceLocation -> new VanillaCoinStackBlock(Lazy.of(() -> GOLD))
     );
     
-    @AutoI18n(group = "diamond_coin")
-    public static final DeferredHolder<Block, VanillaCoinStackBlock> DIAMOND_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register("diamond_coin_stack", resourceLocation ->
-        new VanillaCoinStackBlock(Lazy.of(() -> DIAMOND))
+    @AutoI18n(overrides = "diamond_coin")
+    public static final DeferredHolder<Block, VanillaCoinStackBlock> DIAMOND_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
+        "diamond_coin_stack",
+        resourceLocation -> new VanillaCoinStackBlock(Lazy.of(() -> DIAMOND))
     );
 }

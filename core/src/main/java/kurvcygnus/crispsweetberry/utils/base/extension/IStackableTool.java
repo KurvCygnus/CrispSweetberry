@@ -141,7 +141,6 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
         return true;
     }
     
-    @SuppressWarnings("unused")//! This is implicitly used by [[StackableToolItem]] and [[StackableToolBlockItem]], with interface-class inheritance trick.
     @ApiStatus.NonExtendable default boolean isBarVisible(@NotNull ItemStack stack)
     {
         //noinspection DataFlowIssue
@@ -149,7 +148,6 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
             stack.get(this::getDataComponent) == getMaxDurability());
     }
     
-    @SuppressWarnings("unused")//! This is implicitly used by [[StackableToolItem]] and [[StackableToolBlockItem]], with interface-class inheritance trick.
     @ApiStatus.NonExtendable default int getBarWidth(@NotNull ItemStack stack)
     {
         //! Obviously that this will only be called when [[Item#isBarVisible]] is true.
@@ -159,7 +157,6 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
         return Math.round(13.0F - (float) (getMaxDurability() - durability) * 13.0F / (float) getMaxDurability());
     }
     
-    @SuppressWarnings("unused")//! This is implicitly used by [[StackableToolItem]] and [[StackableToolBlockItem]], with interface-class inheritance trick.
     default int getBarColor(@NotNull ItemStack stack)
     {
         final float maxDurability = getMaxDurability();

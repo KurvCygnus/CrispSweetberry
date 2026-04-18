@@ -50,7 +50,6 @@ public final class CarryInteractContextCollection
         default boolean isDamaged()
         {
             final @Nullable Integer durability = getCarryCrate().get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get());
-            
             return durability == null || durability < CarryCrateConstants.CARRY_CRATE_MAX_DURABILITY;
         }
     }

@@ -44,10 +44,13 @@ import java.util.Optional;
 @ApiStatus.Internal
 enum CarryOperationExecutor
 {
+    //region Singleton & Constants
     INST;
     
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_LOGIC");
+    //endregion
     
+    //region Main Pipeline
     @NotNull InteractionResult execute(@NotNull CarryPipelineTask task)
     {
         //? return IResult.<CarryPipelineTask, BrokenCarryPipelineException>of(task).
@@ -86,7 +89,9 @@ enum CarryOperationExecutor
                 }
             );
     }
+    //endregion
     
+    //region Sub pipelines
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> listenerProcess(@NotNull CarryPipelineTask task)
     {
         final @Nullable CarryID carryID = task.id();
@@ -387,7 +392,9 @@ enum CarryOperationExecutor
         
         return IResult.of(task.success());
     }
+    //endregion
     
+    //region Private Helpers
     private static @NotNull ItemStack copyCrate(@NotNull ItemStack crate)
     {
         final ItemStack newCrate = new ItemStack(CarryCrateRegistries.CARRY_CRATE_ITEM.value());
@@ -415,4 +422,5 @@ enum CarryOperationExecutor
             case ENTITY -> throw new IllegalArgumentException("Assertion failed: Param \"type\" must not be ENTITY!");
         };
     }
+    //endregion
 }

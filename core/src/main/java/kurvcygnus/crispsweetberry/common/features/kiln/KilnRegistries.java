@@ -132,7 +132,7 @@ public enum KilnRegistries implements IRegistrant
     )
     public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
     
-    @RegisterToTab @AutoI18n(key = "kiln", group = "kiln") public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register(
+    @RegisterToTab @AutoI18n(key = "kiln", overrides = "kiln") public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register(
         "kiln", 
         resourceLocation -> new BlockItem(KILN_BLOCK.value(), new Item.Properties())
     );

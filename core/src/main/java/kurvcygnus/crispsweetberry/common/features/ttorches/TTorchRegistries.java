@@ -94,106 +94,143 @@ public enum TTorchRegistries implements IRegistrant
     }
     //endregion
     
+    //region AutoI18n Groups
+    private static final String THROWABLE_TORCH_ID = "throwable_torch";
+    private static final String THROWABLE_SOUL_TORCH_ID = "throwable_soul_torch";
+    private static final String THROWABLE_REDSTONE_TORCH_ID = "throwable_redstone_torch";
+    
+    private static final String TEMPORARY_TORCH_ID = "temporary_torch";
+    private static final String TEMPORARY_SOUL_TORCH_ID = "temporary_soul_torch";
+    private static final String TEMPORARY_REDSTONE_TORCH_ID = "temporary_redstone_torch";
+    //endregion
+    
     //  region Item Registries
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Throwable Torch",
-        "lol_us = chuk da lite stik",
-        "zh_cn = 投掷火把"
-    })
-    public static final Holder<Item> THROWABLE_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "throwable_torch",
-        resourceLocation -> new ThrowableTorchItem()
-    );
+    @AutoI18n(
+        value = {
+            "en_us = Throwable Torch",
+            "lol_us = chuk da lite stik",
+            "zh_cn = 投掷火把"
+        },
+        group = THROWABLE_TORCH_ID
+    )
+    public static final Holder<Item> THROWABLE_TORCH = THROWABLE_TORCH_REGISTER.register(THROWABLE_TORCH_ID, ThrowableTorchItem::new);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Throwable Soul Torch",
-        "lol_us = COOL GATLING BARREL",
-        "zh_cn = 灵魂投掷火把"
-    })
-    public static final Holder<Item> THROWABLE_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(
-        "throwable_soul_torch",
-        resourceLocation -> new ThrowableSoulTorchItem()
-    );
+    @AutoI18n(
+        value = {
+            "en_us = Throwable Soul Torch",
+            "lol_us = COOL GATLING BARREL",
+            "zh_cn = 灵魂~@^"
+        },
+        overrides = THROWABLE_TORCH_ID,
+        group = THROWABLE_SOUL_TORCH_ID
+    )
+    public static final Holder<Item> THROWABLE_SOUL_TORCH = THROWABLE_TORCH_REGISTER.register(THROWABLE_SOUL_TORCH_ID, ThrowableSoulTorchItem::new);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Throwable Redstone Torch",
-        "lol_us = lite stewberi stik",
-        "zh_cn = 红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Throwable Redstone Torch",
+            "lol_us = lite stewberi stik",
+            "zh_cn = 红石~@^"
+        },
+        overrides = THROWABLE_TORCH_ID,
+        group = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> THROWABLE_REDSTONE_TORCH = 
         getThrowableRedstoneTorch(OxidizeState.NORMAL, false);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Waxed Throwable Redstone Torch",
-        "lol_us = shyni lite stewberi stik",
-        "zh_cn = 涂蜡红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Waxed ~@^",
+            "lol_us = shyni ~@^",
+            "zh_cn = 涂蜡~@^"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_THROWABLE_REDSTONE_TORCH =
         getThrowableRedstoneTorch(OxidizeState.NORMAL, true);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Exposed Throwable Redstone Torch",
-        "lol_us = od lite stewberi stik",
-        "zh_cn = 斑驳红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Exposed ~@^",
+            "lol_us = od ~@^",
+            "zh_cn = 斑驳~@^"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> EXPOSED_THROWABLE_REDSTONE_TORCH = 
         getThrowableRedstoneTorch(OxidizeState.EXPOSED, false);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Waxed Exposed Throwable Redstone Torch",
-        "lol_us = od butt shyni lite stewberi stik",
-        "zh_cn = 涂蜡斑驳红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Waxed Exposed ~@^",
+            "lol_us = od butt shyni ~@^",
+            "zh_cn = 涂蜡斑驳~@^"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_EXPOSED_THROWABLE_REDSTONE_TORCH =
         getThrowableRedstoneTorch(OxidizeState.EXPOSED, true);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Exposed Throwable Redstone Torch",
-        "lol_us = ord lite stewberi stik",
-        "zh_cn = 锈蚀红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Exposed ~@^",
+            "lol_us = ord ~@^",
+            "zh_cn = 锈蚀~@^"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WEATHERED_THROWABLE_REDSTONE_TORCH = 
         getThrowableRedstoneTorch(OxidizeState.WEATHERED, false);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Waxed Exposed Throwable Redstone Torch",
-        "lol_us = ord butt shyni lite stewberi stik",
-        "zh_cn = 涂蜡锈蚀红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Waxed Exposed ~@^",
+            "lol_us = ord butt shyni ~@^",
+            "zh_cn = 涂蜡锈蚀~@^"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_WEATHERED_THROWABLE_REDSTONE_TORCH =
         getThrowableRedstoneTorch(OxidizeState.WEATHERED, true);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Oxidized Throwable Redstone Torch",
-        "lol_us = eww kat hite this stik",
-        "zh_cn = 氧化红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Oxidized ~@^",
+            "lol_us = eww kat hite this stik",
+            "zh_cn = 氧化~@^"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> OXIDIZED_THROWABLE_REDSTONE_TORCH = 
         getThrowableRedstoneTorch(OxidizeState.OXIDIZED, false);
     
     @RegisterToTab
-    @AutoI18n({
-        "en_us = Waxed Oxidized Throwable Redstone Torch",
-        "lol_us = shyni butt eww kat hite this stik",
-        "zh_cn = 涂蜡氧化红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Waxed Oxidized ~@^",
+            "lol_us = shyni butt eww kat stil hite this stik",
+            "zh_cn = 涂蜡氧化~@^"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_OXIDIZED_THROWABLE_REDSTONE_TORCH =
         getThrowableRedstoneTorch(OxidizeState.OXIDIZED, true);
     
     @RegisterToTab
-    @AutoI18n(value = {
-        "en_us = Glowstick",
-        "lol_us = Bluberi stik",
-        "zh_cn = 荧光棒"
+    @AutoI18n(
+        value = {
+            "en_us = Glowstick",
+            "lol_us = Bluberi stik",
+            "zh_cn = 荧光棒"
         },
         group = "glowstick",
         key = "glowstick"
@@ -205,48 +242,51 @@ public enum TTorchRegistries implements IRegistrant
     //endregion
     
     //  region Block Registries
-    @AutoI18n(value = {
+    @AutoI18n(
+        value = {
             "en_us = Thrown Torch",
-            "lol_us = fullee lite stik",
-            "zh_cn = 投掷火把"
+            "lol_us = fullee lite stik"
         },
-        group = "temporary_torch"
+        overrides = THROWABLE_TORCH_ID,
+        group = TEMPORARY_TORCH_ID
     )
     public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temporary_torch",
+        TEMPORARY_TORCH_ID,
         resourceLocation -> new TemporaryTorchBlock()
     );
     
-    @AutoI18n(group = "temporary_torch")
+    @AutoI18n(overrides = TEMPORARY_TORCH_ID)
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_wall_torch",
         resourceLocation -> new TemporaryWallTorchBlock()
     );
     
-    @AutoI18n(value = {
-        "en_us = Thrown Soul Torch",
-        "lol_us = Gatling Barrel",
-        "zh_cn = 投掷灵魂火把"
-    },
-        group = "temporary_soul_torch"
+    @AutoI18n(
+        value = {
+            "en_us = Thrown Soul Torch",
+            "lol_us = Gatling Barrel"
+        },
+        overrides = THROWABLE_SOUL_TORCH_ID,
+        group = TEMPORARY_SOUL_TORCH_ID
     )
     public static final DeferredHolder<Block, TemporarySoulTorchBlock> TEMPORARY_SOUL_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temporary_soul_torch",
+        TEMPORARY_SOUL_TORCH_ID,
         resourceLocation -> new TemporarySoulTorchBlock()
     );
     
-    @AutoI18n(group = "temporary_soul_torch")
+    @AutoI18n(overrides = TEMPORARY_SOUL_TORCH_ID)
     public static final DeferredHolder<Block, TemporarySoulWallTorchBlock> TEMPORARY_SOUL_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
         "temporary_soul_wall_torch",
         resourceLocation -> new TemporarySoulWallTorchBlock()
     );
     
-    @AutoI18n(value = {
+    @AutoI18n(
+        value = {
             "en_us = Temporary Redstone Torch",
-            "lol_us = fullee stewberi stik",
-            "zh_cn = 投掷红石火把"
+            "lol_us = fullee stewberi stik"
         },
-        group = "temporary_redstone_torch"
+        overrides = THROWABLE_REDSTONE_TORCH_ID,
+        group = TEMPORARY_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
         TEMPORARY_TORCH_REGISTER,
@@ -255,7 +295,7 @@ public enum TTorchRegistries implements IRegistrant
         THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "temporary_redstone_torch")
+    @AutoI18n(overrides = TEMPORARY_REDSTONE_TORCH_ID)
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.NORMAL,
@@ -263,11 +303,13 @@ public enum TTorchRegistries implements IRegistrant
         THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(value = {
-            "en_us = Waxed Temporary Redstone Torch",
-            "lol_us = shyni fullee stewberi stik",
-            "zh_cn = 涂蜡投掷红石火把"
+    @AutoI18n(
+        value = {
+            "en_us = Waxed ~@^",
+            "lol_us = shyni ~@^",
+            "zh_cn = 涂蜡~@^"
         },
+        overrides = TEMPORARY_REDSTONE_TORCH_ID,
         group = "waxed_temporary_redstone_torch"
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
@@ -277,7 +319,7 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "waxed_temporary_redstone_torch")
+    @AutoI18n(overrides = "waxed_temporary_redstone_torch")
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.NORMAL,
@@ -285,11 +327,13 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(value = {
-            "en_us = Temporary Redstone Torch",
-            "lol_us = od fullee stewberi stik",
-            "zh_cn = 斑驳投掷红石火把"
+    @AutoI18n(
+        value = {
+            "en_us = Exposed ~@^",
+            "lol_us = od ~@^",
+            "zh_cn = 斑驳~@^"
         },
+        overrides = TEMPORARY_REDSTONE_TORCH_ID,
         group = "exposed_temporary_redstone_torch"
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> EXPOSED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
@@ -299,7 +343,7 @@ public enum TTorchRegistries implements IRegistrant
         EXPOSED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "exposed_temporary_redstone_torch")
+    @AutoI18n(overrides = "exposed_temporary_redstone_torch")
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.EXPOSED,
@@ -307,11 +351,13 @@ public enum TTorchRegistries implements IRegistrant
         EXPOSED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(value = {
-            "en_us = Waxed Exposed Temporary Redstone Torch",
-            "lol_us = od butt shyni fullee stewberi stik",
-            "zh_cn = 涂蜡斑驳投掷红石火把"
+    @AutoI18n(
+        value = {
+            "en_us = Waxed Exposed ~@^",
+            "lol_us = od butt shyni ~@^",
+            "zh_cn = 涂蜡斑驳~@^"
         },
+        overrides = TEMPORARY_REDSTONE_TORCH_ID,
         group = "waxed_exposed_temporary_redstone_torch"
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_EXPOSED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
@@ -321,7 +367,7 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_EXPOSED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "waxed_exposed_temporary_redstone_torch")
+    @AutoI18n(overrides = "waxed_exposed_temporary_redstone_torch")
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.EXPOSED,
@@ -329,11 +375,13 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_EXPOSED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(value = {
-            "en_us = Temporary Redstone Torch",
-            "lol_us = ord fullee stewberi stik",
-            "zh_cn = 锈蚀投掷红石火把"
+    @AutoI18n(
+        value = {
+            "en_us = Weathered ~@^",
+            "lol_us = ord ~@^",
+            "zh_cn = 锈蚀~@^"
         },
+        overrides = TEMPORARY_REDSTONE_TORCH_ID,
         group = "weathered_temporary_redstone_torch"
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WEATHERED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
@@ -343,7 +391,7 @@ public enum TTorchRegistries implements IRegistrant
         WEATHERED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "weathered_temporary_redstone_torch")
+    @AutoI18n(overrides = "weathered_temporary_redstone_torch")
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.WEATHERED,
@@ -351,11 +399,13 @@ public enum TTorchRegistries implements IRegistrant
         WEATHERED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(value = {
-            "en_us = Waxed Weathered Temporary Redstone Torch",
-            "lol_us = ord butt shyni fullee stewberi stik",
-            "zh_cn = 涂蜡锈蚀投掷红石火把"
+    @AutoI18n(
+        value = {
+            "en_us = Waxed Weathered ~@^",
+            "lol_us = ord butt shyni ~@^",
+            "zh_cn = 涂蜡锈蚀~@^"
         },
+        overrides = TEMPORARY_REDSTONE_TORCH_ID,
         group = "waxed_weathered_temporary_redstone_torch"
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_WEATHERED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
@@ -365,7 +415,7 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_WEATHERED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "waxed_weathered_temporary_redstone_torch")
+    @AutoI18n(overrides = "waxed_weathered_temporary_redstone_torch")
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_WEATHERED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.WEATHERED,
@@ -373,11 +423,13 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_WEATHERED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(value = {
-            "en_us = Temporary Redstone Torch",
+    @AutoI18n(
+        value = {
+            "en_us = Oxidized ~@^",
             "lol_us = eww kat hite this stik",
-            "zh_cn = 氧化投掷红石火把"
+            "zh_cn = 氧化~@^"
         },
+        overrides = TEMPORARY_REDSTONE_TORCH_ID,
         group = "oxidized_temporary_redstone_torch"
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> OXIDIZED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
@@ -387,7 +439,7 @@ public enum TTorchRegistries implements IRegistrant
         OXIDIZED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "oxidized_temporary_redstone_torch")
+    @AutoI18n(overrides = "oxidized_temporary_redstone_torch")
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.OXIDIZED,
@@ -395,11 +447,13 @@ public enum TTorchRegistries implements IRegistrant
         OXIDIZED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(value = {
-            "en_us = Waxed Oxidized Temporary Redstone Torch",
-            "lol_us = shyni butt eww kat hite this stik",
-            "zh_cn = 涂蜡氧化投掷红石火把"
+    @AutoI18n(
+        value = {
+            "en_us = Waxed Oxidized ~@^",
+            "lol_us = shyni butt eww kat stil hite this stik",
+            "zh_cn = 涂蜡氧化~@^"
         },
+        overrides = TEMPORARY_REDSTONE_TORCH_ID,
         group = "waxed_oxidized_temporary_redstone_torch"
     )
     public static final DeferredHolder<Block, TemporaryRedstoneTorchBlock> WAXED_OXIDIZED_TEMPORARY_REDSTONE_TORCH = getRedstoneTorchBlock(
@@ -409,7 +463,7 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_OXIDIZED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "waxed_oxidized_temporary_redstone_torch")
+    @AutoI18n(overrides = "waxed_oxidized_temporary_redstone_torch")
     public static final DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> WAXED_OXIDIZED_TEMPORARY_REDSTONE_WALL_TORCH = getRedstoneWallTorchBlock(
         TEMPORARY_TORCH_REGISTER,
         OxidizeState.OXIDIZED,
@@ -417,7 +471,7 @@ public enum TTorchRegistries implements IRegistrant
         WAXED_OXIDIZED_THROWABLE_REDSTONE_TORCH
     );
     
-    @AutoI18n(group = "glowstick", key = "glowstick")
+    @AutoI18n(overrides = "glowstick", key = "glowstick")
     public static final DeferredHolder<Block, GlowStickBlock> GLOW_STICK_BLOCK = TEMPORARY_TORCH_REGISTER.register(
         "glow_stick",
         resourceLocation -> new GlowStickBlock()
@@ -427,7 +481,8 @@ public enum TTorchRegistries implements IRegistrant
      * This block is hidden in jade's display.
      * @see kurvcygnus.crispsweetberry.integrations.JadeEntrypoint#registerClient(IWailaClientRegistration) Hidden Implementation
      */
-    @AutoI18n(value = {
+    @AutoI18n(
+        value = {
             "en_us = UwU",
             "lol_us = OwO",
             "zh_cn = QAQ"
@@ -441,30 +496,36 @@ public enum TTorchRegistries implements IRegistrant
     //endregion
     
     //  region Entity Registries
-    @AutoI18n({
-        "en_us = Thrown Torch",
-        "lol_us = Spinn' Stik",
-        "zh_cn = 投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Thrown Torch",
+            "lol_us = Spinn' Stik"
+        },
+        overrides = THROWABLE_TORCH_ID
+    )
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownTorchEntity>> THROWN_TORCH = getTypeHolder("thrown_torch", ThrownTorchEntity::new);
     
-    @AutoI18n({
-        "en_us = Thrown Redstone Torch",
-        "lol_us = Spinn' Stewberi Stik",
-        "zh_cn = 红石投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Thrown Redstone Torch",
+            "lol_us = Spinn' Stewberi Stik"
+        },
+        overrides = THROWABLE_REDSTONE_TORCH_ID
+    )
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownRedstoneTorchEntity>> THROWN_REDSTONE_TORCH = 
         getTypeHolder("thrown_redstone_torch", ThrownRedstoneTorchEntity::new);
     
-    @AutoI18n({
-        "en_us = Throwable Soul Torch",
-        "lol_us = Spinn' Gatling Barrel",
-        "zh_cn = 灵魂投掷火把"
-    })
+    @AutoI18n(
+        value = {
+            "en_us = Throwable Soul Torch",
+            "lol_us = Spinn' Gatling Barrel"
+        },
+        overrides = THROWABLE_SOUL_TORCH_ID
+    )
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownSoulTorchEntity>> THROWN_SOUL_TORCH = 
         getTypeHolder("thrown_soul_torch", ThrownSoulTorchEntity::new);
     
-    @AutoI18n(group = "glowstick", key = "glowstick")
+    @AutoI18n(overrides = "glowstick", key = "glowstick")
     public static final DeferredHolder<EntityType<?>, EntityType<GlowStickEntity>> GLOW_STICK_ENTITY = getTypeHolder("glow_stick", GlowStickEntity::new);
     //endregion
     

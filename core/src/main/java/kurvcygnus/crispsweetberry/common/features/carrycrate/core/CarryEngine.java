@@ -356,7 +356,7 @@ public enum CarryEngine
                     useOnContext = null;
                     
                     targetEntity = entity.target();
-                    //! If this interaction attempt doesn't have a owner, Engine should refuse to process more logic.
+                    //! If this interaction attempt doesn't have a owner, Engine should refuse to process the following logics.
                     yield optionalPlayer.map($ -> CarryType.ENTITY).orElse(null);
                 }
             };

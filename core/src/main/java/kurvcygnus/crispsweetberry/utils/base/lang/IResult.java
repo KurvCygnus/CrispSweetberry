@@ -50,7 +50,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     
     @NotNull @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) T orThrow() throws E;
     
-    @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) T orElse(@NotNull T defaultValue);
+    @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) T orElse(T defaultValue);
     
     T orElseGet(@NotNull Function<? super E, ? extends T> mapper);
     

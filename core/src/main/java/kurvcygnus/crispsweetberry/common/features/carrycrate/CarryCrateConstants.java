@@ -79,33 +79,25 @@ public final class CarryCrateConstants
     //* since it always produces the expected [[MutableComponent]], no [[Component#copy]] required.
     
     @AutoI18n({
-        "en_us = Content:&ensp;",
-        "lol_us = THINZ:&ensp;",
-        "zh_cn = 内容:&ensp;"
+        "en_us = Content:~@s",
+        "lol_us = THINZ:~@s",
+        "zh_cn = 内容:~@s"
     })
     public static final Supplier<MutableComponent> UI__CARRY_CRATE__CONTENT_PREFIX = () ->
         UIUtils.dimmedText("%s.ui.carry_crate.content_prefix".formatted(CrispSweetberry.NAMESPACE));
     
     @AutoI18n({
-        "en_us = Contains&ensp;",
-        "lol_us = I HAV&ensp;",
-        "zh_cn = 装了&ensp;"
+        "en_us = Contains~@s",
+        "lol_us = I HAV~@s",
+        "zh_cn = 装了"
     })
     public static final Supplier<MutableComponent> UI__CARRY_CRATE__LAYER_PREFIX = () ->
         UIUtils.dimmedText("%s.ui.carry_crate.layer_prefix".formatted(CrispSweetberry.NAMESPACE));
     
     @AutoI18n({
-        "en_us = nothing",
-        "lol_us = Ur",
-        "zh_cn = 空"
-    })
-    public static final Supplier<MutableComponent> UI__CARRY_CRATE__LAYER_EMPTY = () ->
-        UIUtils.dimmedText("%s.ui.carry_crate.layer_empty".formatted(CrispSweetberry.NAMESPACE));
-    
-    @AutoI18n({
-        "en_us = &ensp;layers",
-        "lol_us = &ensp;UwU",
-        "zh_cn = &ensp;份"
+        "en_us = ~@slayers",
+        "lol_us = ~@sUwU",
+        "zh_cn = 份"
     })
     public static final Supplier<MutableComponent> UI__CARRY_CRATE__LAYER_SUFFIX = () ->
         UIUtils.dimmedText("%s.ui.carry_crate.layer_suffix".formatted(CrispSweetberry.NAMESPACE));
