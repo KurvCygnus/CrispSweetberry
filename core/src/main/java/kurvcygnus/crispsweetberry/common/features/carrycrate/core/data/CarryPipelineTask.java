@@ -59,8 +59,8 @@ import java.util.function.Function;
 public final class CarryPipelineTask
 {
     private final CarryType type;
-    private final TriState listener;
-    private final TriState component;
+    private TriState listener;
+    private TriState component;
     private final TriState target;
     private final ItemStack crate;
     private final ServerLevel level;
@@ -72,7 +72,7 @@ public final class CarryPipelineTask
     private final @Nullable BlockEntityType<?> blockEntityType;
     private final BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
     private final Consumer<CarryID> listenerRemove;
-    private final @Nullable Function<BlockState, StatedBlockPlaceContext> placeContext;
+    private final @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContext;
     private InteractionResult result;
     
     public CarryPipelineTask(
@@ -94,28 +94,42 @@ public final class CarryPipelineTask
         @NotNull InteractionResult result
     )
     {
-        this.type = type;
-        this.listener = listener;
-        this.component = component;
-        this.target = target;
-        this.crate = crate;
-        this.level = level;
-        this.player = player;
-        this.interactPos = interactPos;
-        this.data = data;
-        this.id = id;
-        this.entity = entity;
+        this.type            = type;
+        this.listener        = listener;
+        this.component       = component;
+        this.target          = target;
+        this.crate           = crate;
+        this.level           = level;
+        this.player          = player;
+        this.interactPos     = interactPos;
+        this.data            = data;
+        this.id              = id;
+        this.entity          = entity;
         this.blockEntityType = blockEntityType;
-        this.listenerInsert = listenerInsert;
-        this.listenerRemove = listenerRemove;
-        this.placeContext = placeContext;
-        this.result = result;
+        this.listenerInsert  = listenerInsert;
+        this.listenerRemove  = listenerRemove;
+        this.placeContext    = placeContext;
+        this.result          = result;
     }
     
     private @NotNull CarryPipelineTask assignResultAndReturn(@NotNull InteractionResult result)
     {
+        if(this.result == result)
+            return this;
+        
         Objects.requireNonNull(result, "Param \"result\" must not be null!");
         this.result = result;
+        return this;
+    }
+    
+    private @NotNull CarryPipelineTask assignTriStateAndReturn(@NotNull TriState result)
+    {
+        if(this.listener == result &&  this.component == result)
+            return this;
+        
+        Objects.requireNonNull(result, "Param \"result\" must not be null!");
+        this.listener = result;
+        this.component = result;
         return this;
     }
     
@@ -123,6 +137,11 @@ public final class CarryPipelineTask
     public @NotNull CarryPipelineTask success() { return assignResultAndReturn(InteractionResult.SUCCESS_NO_ITEM_USED); }
     public @NotNull CarryPipelineTask fail() { return assignResultAndReturn(InteractionResult.FAIL); }
     public @NotNull CarryPipelineTask pass() { return assignResultAndReturn(InteractionResult.PASS); }
+    
+    public @NotNull CarryPipelineTask insert() { return assignTriStateAndReturn(TriState.TRUE); }
+    public @NotNull CarryPipelineTask silense() { return assignTriStateAndReturn(TriState.DEFAULT); }
+    public @NotNull CarryPipelineTask remove() { return assignTriStateAndReturn(TriState.FALSE); }
+    
     public @NotNull CarryType type() { return type; }
     public @NotNull TriState listener() { return listener; }
     public @NotNull TriState component() { return component; }
@@ -135,10 +154,11 @@ public final class CarryPipelineTask
     public @Nullable CarryID id() { return id; }
     public @Nullable LivingEntity entity() { return entity; }
     public @Nullable BlockEntityType<?> blockEntityType() { return blockEntityType; }
-    public @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert() { return listenerInsert; }
-    public @NotNull Consumer<CarryID> listenerRemove() { return listenerRemove; }
     public @Nullable Function<BlockState, StatedBlockPlaceContext> placeContext() { return placeContext; }
     public @NotNull InteractionResult result() { return result; }
+    
+    public void insertListener(@NotNull CarryID id, @NotNull ICarryRegistryView.IBaseCarryAdapterFactory<?, ?> factory) { this.listenerInsert.accept(id, factory); }
+    public void removeListener(@NotNull CarryID id) { this.listenerRemove.accept(id); }
     
     @Override public boolean equals(@Nullable Object obj)
     {

@@ -65,7 +65,7 @@ public final class KilnRecipeCacheEvent
      * Registers a reload listener to handle dynamic changes to recipes during gameplay.
      * @implNote <h4><b>This alternative event exists because recipes in Minecraft are not static.</b></h4>
      * Players or server admins can trigger {@code /reload}
-     * to update datapacks. Without this listener, the Kiln would continue using stale unionData
+     * to update datapacks. Without this listener, the Kiln would continue using stale data
      * from the initial server start, leading to "ghost recipes" or crashes when the underlying
      * recipe objects no longer exist in the manager.
      */
@@ -87,7 +87,7 @@ public final class KilnRecipeCacheEvent
     }
     
     /**
-     * The core logic for filtering and transforming vanilla cooking recipes into Kiln-compatible unionData.
+     * The core logic for filtering and transforming vanilla cooking recipes into Kiln-compatible data.
      */
     private static void collectRecipes(@NotNull RecipeManager manager, @NotNull RegistryAccess registryAccess)
     {

@@ -16,7 +16,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.Car
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.CarryBlockInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.CarryEntityInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.StreamCodec;
@@ -44,8 +43,7 @@ import java.util.function.Function;
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-@ApiStatus.Internal
-public enum CarryType implements StringRepresentable
+@ApiStatus.Internal public enum CarryType implements StringRepresentable
 {
     @SuppressWarnings("DataFlowIssue")//! See [[CarryType#createHandler()]]. It grantees the null safety for BLOCK_ENTITY.
     BLOCK_ENTITY(
@@ -99,19 +97,20 @@ public enum CarryType implements StringRepresentable
         @Nullable CarryID optionalUUID
     )
     {
-        FunctionalUtils.doIf(
-            this == BLOCK_ENTITY, () ->
-                Objects.requireNonNull(targetBlockEntity, "Param \"targetBlockEntity\" must not be null!")
-        );
-        
-        if(this != ENTITY)
+        switch(this)
         {
-            Objects.requireNonNull(targetPos, "Param \"targetPos\" must not be null!");
-            Objects.requireNonNull(targetState, "Param \"targetState\" must not be null!");
-            Objects.requireNonNull(context, "Param \"context\" must not be null!");
+            case BLOCK_ENTITY:
+                Objects.requireNonNull(targetBlockEntity, "Param \"targetBlockEntity\" must not be null!");
+                //! Falling through.
+            case BLOCK:
+                Objects.requireNonNull(targetPos, "Param \"targetPos\" must not be null!");
+                Objects.requireNonNull(targetState, "Param \"targetState\" must not be null!");
+                Objects.requireNonNull(context, "Param \"context\" must not be null!");
+                break;
+            case ENTITY:
+                Objects.requireNonNull(targetEntity, "Param \"targetEntity\" must not be null!");
+                break;
         }
-        else
-            Objects.requireNonNull(targetEntity, "Param \"targetEntity\" must not be null!");
         
         return this.handler.create(
             level,
@@ -121,9 +120,9 @@ public enum CarryType implements StringRepresentable
             targetState,
             targetEntity,
             targetBlockEntity,
-            context == null ?
-                null :
-                blockState -> new StatedBlockPlaceContext(context, blockState),
+            context != null ?
+                blockState -> new StatedBlockPlaceContext(context, blockState) :
+                null,
             optionalUUID
         );
     }
@@ -138,8 +137,7 @@ public enum CarryType implements StringRepresentable
     
     public static final Codec<CarryType> CODEC = StringRepresentable.fromEnum(CarryType::values);
     
-    @FunctionalInterface
-    interface ICarryInteractHandlerFactory<H extends AbstractCarryInteractHandler>
+    @FunctionalInterface private interface ICarryInteractHandlerFactory<H extends AbstractCarryInteractHandler>
     {
         @NotNull H create(
             @NotNull ServerLevel level,

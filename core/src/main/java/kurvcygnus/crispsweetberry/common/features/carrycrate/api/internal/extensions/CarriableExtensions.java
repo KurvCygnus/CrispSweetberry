@@ -56,7 +56,7 @@ public final class CarriableExtensions
         
         /**
          * This decides whether this stuff causes player's speed decrease.<br>
-         * @apiNote <span style="color: red">Setting value to {@code false} doesn't mean it won't cause overweight.</span><br>
+         * @apiNote <span style="color: f84b4b">Setting value to {@code false} doesn't mean it won't cause overweight.</span><br>
          * <b>When player holds stuff that doesn't cause overweight more than 1, overweight will always be applied to player.</b>
          */
         default boolean causesOverweight() { return true; }
@@ -75,7 +75,7 @@ public final class CarriableExtensions
          * This method will be called during carrying.
          * @apiNote All <u>{@link AbstractCarryAdapter adapters}</u> are variables with short lifecycle.
          * During the execution of {@code #carryTick(TickingContext)}, <b>adapters will be created with {@code null} values</b>.<br>
-         * So, <span style="color: red">do not try to get adapters field(block, blockEntity...) and use, <u>{@link NullPointerException NPE}</u> will be thrown.</span>
+         * So, <span style="color: f84b4b">do not try to get adapters field(block, blockEntity...) and use, <u>{@link NullPointerException NPE}</u> will be thrown.</span>
          */
         default void carryingTick(@NotNull TickingContext context) {}
     }

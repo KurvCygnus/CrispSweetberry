@@ -31,7 +31,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -54,8 +53,8 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
         @NotNull Function<BlockState, StatedBlockPlaceContext> contextGenerator,
-        @Nullable CarryID optionalCarryID
-    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalCarryID); }
+        @Nullable CarryID carryID
+    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, carryID); }
     
     @Override public @NotNull HandleResult boxIn()
     {
@@ -92,7 +91,8 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
         
         final BlockState targetState = getTargetState();
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        Objects.requireNonNull(data, MISUSE_FAIL_MSG);
+        
+        assert data != null : MISUSE_FAIL_MSG;
         
         final CarryData.CarryBlockDataHolder blockDataHolder = data.unionData();
         
@@ -122,11 +122,11 @@ public final class CarryBlockInteractHandler extends AbstractCarryInteractHandle
                     data.causesOverweight(),
                     data.startTime()
                 ),
-                optionalCarryID,
+                carryID,
                 true
             );
         
-        return HandleResult.unbox(data, optionalCarryID);
+        return HandleResult.unbox(data, carryID);
     }
     
     @Override protected @NotNull ResourceLocation getCarryResourceLocation() { return BuiltInRegistries.BLOCK.getKey(this.getTargetState().getBlock()); }

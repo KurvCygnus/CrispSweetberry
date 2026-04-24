@@ -85,7 +85,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
     
     /**
      * The pre-process method, which is called before blockEntity's serialization started, and blockEntity's boxIn.<br>
-     * <b>So you can use {@link CarriedContext CarriedContext}</b> to edit unionData, or insert custom behaviors in this method.
+     * <b>So you can use {@link CarriedContext CarriedContext}</b> to edit data, or insert custom behaviors in this method.
      */
     protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull E blockEntity) {}
     
@@ -103,7 +103,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
     protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull E blockEntity) {}
     
     /**
-     * Save <u>{@link BlockEntity}</u>'s unionData as <u>{@link CompoundTag}</u>.<br><br>
+     * Save <u>{@link BlockEntity}</u>'s data as <u>{@link CompoundTag}</u>.<br><br>
      * <span style="color: 95ce6d">If have no specific demand, you can use such a combination:</span><br>
      * <pre>{@code
      *  void saveCarryTag(
@@ -119,7 +119,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
     protected abstract void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);
     
     /**
-     * Load <u>{@link BlockEntity}</u>'s serialized unionData.<br><br>
+     * Load <u>{@link BlockEntity}</u>'s serialized data.<br><br>
      * <span style="color: 95ce6d">If have no specific demand, directly use <u>{@link BlockEntity#loadCustomOnly(CompoundTag, HolderLookup.Provider)}</u> is OK.</span>
      */
     protected abstract void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries, @NotNull E blockEntity);

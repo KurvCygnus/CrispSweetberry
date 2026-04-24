@@ -71,8 +71,7 @@ public final class MarkLogger implements Logger
      * unexpected situations will only happen in neither directly use <u>{@link #pushMarker(String)}</u> or <u>{@link #pushMarker(Marker)}</u>,
      * nor using {@code Reflection}, <b>both two situations are not recommended, or supposed to be happened</b>.
      * <br>
-     * <br>
-     * As mentioned above, do not leak <u>{@link MarkerHandle MarkerHandle}</u> across async boundaries</b>.
+     * As mentioned above, <span style="color: f84b4b">do not leak <u>{@link MarkerHandle MarkerHandle}</u> across async boundaries</b>.</span>
      */
     private final @NotNull ThreadLocal<ArrayDeque<Marker>> mutableMarker = new ThreadLocal<>();
     
@@ -292,7 +291,7 @@ public final class MarkLogger implements Logger
      *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
      * @param extra     An additional boolean flag to force-enable the log (OR logic).
      * @return A predicate that returns {@code true} if the log should be performed.
-     * @apiNote <span style="color: red">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
+     * @apiNote <span style="color: f84b4b">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
      */
     public static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra)
         { return leveledCondition(level, situation, () -> extra, false); }
@@ -306,7 +305,7 @@ public final class MarkLogger implements Logger
      *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
      * @param extra     An additional boolean flag to force-enable the log (OR logic).
      * @return A predicate that returns {@code true} if the log should be performed.
-     * @apiNote <span style="color: red">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
+     * @apiNote <span style="color: f84b4b">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
      */
     public static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra)
         { return leveledCondition(level, situation, () -> extra, true); }
@@ -486,111 +485,110 @@ public final class MarkLogger implements Logger
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void trace(@Nullable String message) { this.print(logger::trace, Level.TRACE, getMarker(), message); }
+    @Override public void trace(@Nullable String message) { this.print(logger::trace, Level.TRACE, getMarker(), message); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void trace(@Nullable String message, Object @Nullable ... args) { this.print(logger::trace, Level.TRACE, getMarker(), message, args); }
+    @Override public void trace(@Nullable String message, Object @Nullable ... args) { this.print(logger::trace, Level.TRACE, getMarker(), message, args); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void trace(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::trace, Level.TRACE, getMarker(), message, throwable); }
+    @Override public void trace(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::trace, Level.TRACE, getMarker(), message, throwable); }
     
     //*:== Debug
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void debug(@Nullable String message) { this.print(logger::debug, Level.DEBUG, getMarker(), message); }
+    @Override public void debug(@Nullable String message) { this.print(logger::debug, Level.DEBUG, getMarker(), message); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void debug(@Nullable String message, Object @Nullable ... args) { this.print(logger::debug, Level.DEBUG, getMarker(), message, args); }
+    @Override public void debug(@Nullable String message, Object @Nullable ... args) { this.print(logger::debug, Level.DEBUG, getMarker(), message, args); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void debug(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::debug, Level.DEBUG, getMarker(), message, throwable); }
+    @Override public void debug(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::debug, Level.DEBUG, getMarker(), message, throwable); }
     
     //*:== Info
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void info(@Nullable String message) { this.print(logger::info, Level.INFO, getMarker(), message); }
+    @Override public void info(@Nullable String message) { this.print(logger::info, Level.INFO, getMarker(), message); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void info(@Nullable String message, Object @Nullable ... args) { this.print(logger::info, Level.INFO, getMarker(), message, args); }
+    @Override public void info(@Nullable String message, Object @Nullable ... args) { this.print(logger::info, Level.INFO, getMarker(), message, args); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void info(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::info, Level.INFO, getMarker(), message, throwable); }
+    @Override public void info(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::info, Level.INFO, getMarker(), message, throwable); }
     
     //*:== Warn
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void warn(@Nullable String message) { this.print(logger::warn, Level.WARN, getMarker(), message); }
+    @Override public void warn(@Nullable String message) { this.print(logger::warn, Level.WARN, getMarker(), message); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void warn(@Nullable String message, Object @Nullable ... args) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, args); }
+    @Override public void warn(@Nullable String message, Object @Nullable ... args) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, args); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void warn(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, throwable); }
+    @Override public void warn(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, throwable); }
     
     //*:== Error
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void error(@Nullable String message) { this.print(logger::error, Level.ERROR, getMarker(), message); }
+    @Override public void error(@Nullable String message) { this.print(logger::error, Level.ERROR, getMarker(), message); }
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
+     */
+    @Override public void error(@Nullable String message, Object @Nullable ... args) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, args); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    public void error(@Nullable String message, Object @Nullable ... args) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, args); }
-    
-    /**
-     * {@inheritDoc}
-     *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
-     */
-    public void error(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, throwable); }
+    @Override public void error(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, throwable); }
     //endregion
     
     //  region Log Common Extras
@@ -980,13 +978,13 @@ public final class MarkLogger implements Logger
     
     /**
      * {@inheritDoc}
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void trace(String format, Object arg) { this.print(logger::trace, Level.TRACE, getMarker(), format, arg); }
     
     /**
      * {@inheritDoc}
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void trace(String format, Object arg1, Object arg2) { this.print(logger::trace, Level.TRACE, getMarker(), format, arg1, arg2); }
     
@@ -1028,14 +1026,14 @@ public final class MarkLogger implements Logger
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void debug(String format, Object arg) { this.print(logger::debug, Level.DEBUG, getMarker(), format, arg); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void debug(String format, Object arg1, Object arg2) { this.print(logger::debug, Level.DEBUG, getMarker(), format, arg1, arg2); }
     
@@ -1077,14 +1075,14 @@ public final class MarkLogger implements Logger
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void info(String format, Object arg) { this.print(logger::info, Level.INFO, getMarker(), format, arg); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void info(String format, Object arg1, Object arg2) { this.print(logger::info, Level.INFO, getMarker(), format, arg1, arg2); }
     
@@ -1126,14 +1124,14 @@ public final class MarkLogger implements Logger
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void warn(String format, Object arg) { this.print(logger::warn, Level.WARN, getMarker(), format, arg); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void warn(String format, Object arg1, Object arg2) { this.print(logger::warn, Level.WARN, getMarker(), format, arg1, arg2); }
     
@@ -1175,14 +1173,14 @@ public final class MarkLogger implements Logger
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void error(String format, Object arg) { this.print(logger::error, Level.ERROR, getMarker(), format, arg); }
     
     /**
      * {@inheritDoc}
      *
-     * @apiNote This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.
+     * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override public void error(String format, Object arg1, Object arg2) { this.print(logger::error, Level.ERROR, getMarker(), format, arg1, arg2); }
     

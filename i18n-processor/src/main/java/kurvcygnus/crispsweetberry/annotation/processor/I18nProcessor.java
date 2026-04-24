@@ -35,7 +35,16 @@ import java.util.regex.Matcher;
 
 import static kurvcygnus.crispsweetberry.annotations.AutoI18n.*;
 
-//? TODO: Stricter, and better error check.
+/*
+ TODO:
+ [x] Stricter, and better error check.
+ [ ] Support `~@d{textToDiscard}` for [[AutoI18n#key]].
+ [ ] Support `~@s{length}`.
+ [ ] Consider `~~@` to escape??? TBH, will there really someone write strange stuff like this?
+ [ ] [[I18nProcessor#parseTranslations]] may need refactor in the future...
+*/
+
+//? TODO: Moving to Minecraft 26.1, with java 25!!!!!!! No need to compat YarnMap!
 
 /**
  * This is the processor of annotation <u>{@link AutoI18n}</u>, it iterates, checks, collects, and finally generates 
@@ -45,7 +54,7 @@ import static kurvcygnus.crispsweetberry.annotations.AutoI18n.*;
  * @see AutoI18n Annotation
  */
 @SupportedAnnotationTypes("kurvcygnus.crispsweetberry.annotations.AutoI18n")
-@SupportedSourceVersion(SourceVersion.RELEASE_21)//? TODO: Move to Minecraft 26.1, with java 25!!!!!!! No need to compat YarnMap!
+@SupportedSourceVersion(SourceVersion.RELEASE_21)
 @SupportedOptions({"i18nPath", "modid"})
 public final class I18nProcessor extends AbstractProcessor
 {
@@ -65,24 +74,24 @@ public final class I18nProcessor extends AbstractProcessor
     
     /**
      * <u>{@link Messager}</u> is the logger of Compile-Time.<br><br>
-     * Different from normal coding, <u>{@link AbstractProcessor annotation processor}</u> can't use loggers because 
-     * context passing issues, and more importantly, <u>{@link Messager#printMessage(Diagnostic.Kind, CharSequence)}</u> can 
-     * terminate compile and throw error when <u>{@link javax.tools.Diagnostic.Kind Diagnostic Kind}</u> is <u>{@link javax.tools.Diagnostic.Kind#ERROR ERROR}</u>, 
+     * Different from normal coding, <u>{@link AbstractProcessor annotation processor}</u> can't use loggers because
+     * context passing issues, and more importantly, <u>{@link Messager#printMessage(Diagnostic.Kind, CharSequence)}</u> can
+     * terminate compile and throw error when <u>{@link javax.tools.Diagnostic.Kind Diagnostic Kind}</u> is <u>{@link javax.tools.Diagnostic.Kind#ERROR ERROR}</u>,
      * this is essential in <u>{@link AbstractProcessor annotation processor}</u>, despite directly use {@code throw new MyException} will also terminate the compile,
      * however, it will splat a lot of garbage error stack traces to make your head explode in the end.<br><br>
      * Thus, using <u>{@link Messager}</u> to log stuff is basically a must in <u>{@link AbstractProcessor annotation processor}</u>.
      */
-    private Messager messager;
-    private Filer filer;
+    private final LazyVariable<Messager> messager = LazyVariable.create();
+    private final LazyVariable<Filer> filer = LazyVariable.create();
     
     /**
      * <u>{@link Types}</u> is the utility of <u>{@link TypeMirror}</u>, it is a must in deducing detailed types.
      * @see Types
      */
-    private Types typeUtil;
+    private final LazyVariable<Types> typeUtil = LazyVariable.create();
     
-    private String namespace;
-    private TypeMirror object;
+    private final LazyVariable<String> namespace = LazyVariable.create();
+    private final LazyVariable<TypeMirror> object = LazyVariable.create();
     
     /**
      * All actually nullable. This can be caused by incorrect configuration of dependency, and other reasons.<br>
@@ -100,19 +109,23 @@ public final class I18nProcessor extends AbstractProcessor
     @Override public synchronized void init(@NotNull ProcessingEnvironment processingEnv)
     {
         super.init(processingEnv);
-        this.messager = processingEnv.getMessager();
-        this.filer = processingEnv.getFiler();
-        this.typeUtil = processingEnv.getTypeUtils();
         final Elements elementUtil = processingEnv.getElementUtils();
-        this.namespace = processingEnv.getOptions().get("modid");
-        this.object = elementUtil.getTypeElement(ProcessableType.UNSUPPORTED.fqcn).asType();
-        this.types = ProcessableType.initializeTypes(elementUtil, this.object);
+        
+        this.messager.bound(processingEnv.getMessager());
+        this.filer.bound(processingEnv.getFiler());
+        this.typeUtil.bound(processingEnv.getTypeUtils());
+        this.namespace.bound(processingEnv.getOptions().get("modid"));
+        this.object.bound(elementUtil.getTypeElement(ProcessableType.UNSUPPORTED.fqcn).asType());
+        this.types = ProcessableType.initializeTypes(elementUtil, this.object.get());
         this.outputPath = processingEnv.getOptions().get("i18nPath");
         
-        if(!hasContent(namespace) || namespace.equals("unknown"))
+        if(!hasContent(namespace.get()) || namespace.get().equals("unknown"))
             printError(
                 """
-                    Unknown namespace. Go to build.gradle and configure it first.
+                    Can't get the namespace of this project.
+                    This may be caused by:
+                    
+                    1. The param hasn't been configured.
                     
                     Example:
                     ```
@@ -122,14 +135,22 @@ public final class I18nProcessor extends AbstractProcessor
                         }
                     }
                     ```
-                    Having other issues? Please feed back at %PLACEHOLDER%.
+                    
+                    2. The namespace is not specfied in gradle.properties.
+                    
+                    Example:
+                    ```
+                    mod_id=foobarbaz
+                    ```
+                    
+                    Having other issues? Please feed back at https://github.com/KurvCygnus/CrispSweetberry/issues.
                     """
             );
         
         if(!hasContent(outputPath) || outputPath.equals("default"))
         {
             printError(
-                    """
+                """
                     Current using default output path: "${targetModule}/build/generated/sources/annotationProcessor/java/main/assets/%s/lang/".
                     
                     We recommend using configured path to prevent the unnecessary manual work.
@@ -144,13 +165,18 @@ public final class I18nProcessor extends AbstractProcessor
                     Don't forget to add config to your gradle.properties:
                     ```
                     i18n_path=${your_path}
-                    // Use absolute path instead of relative path.
-                    // Also, don't leek your absolute path on github XD
+                    # Use absolute path instead of relative path.
+                    # Also, don't leek your absolute path on github XD
                     ```
                     """.formatted(namespace)
             );
             outputPath = null;
         }
+        else if(!new File(outputPath).isDirectory())
+            printError(
+                "Current path: \"%s\" is unusable.\n This can caused by access property, non-existence of directory, and the instance path refers to is a file."
+                    .formatted(outputPath)
+            );
     }
     //endregion
     
@@ -179,7 +205,7 @@ public final class I18nProcessor extends AbstractProcessor
             
             if(autoI18n == null)
             {
-                messager.printMessage(
+                messager.get().printMessage(
                     Diagnostic.Kind.WARNING,
                     "Processing exception: The AutoI18n annotation of %s seems to be null. Skipped.".formatted(element.getSimpleName().toString()),
                     element
@@ -195,7 +221,7 @@ public final class I18nProcessor extends AbstractProcessor
                 element.getSimpleName().toString().toLowerCase().replace("__", ".") :
                 autoI18n.key();
             
-            final String fullKeyScope = parseKeyScope(new ParseContext(namespace, key, element, element.asType(), this::printError, typeUtil, types));
+            final String fullKeyScope = parseKeyScope(new ParseContext(namespace.get(), key, element, element.asType(), this::printError, typeUtil.get(), types));
             
             if(!hasContent(translations) && !hasContent(group) && !hasContent(overrides))
                 printError(
@@ -371,7 +397,7 @@ public final class I18nProcessor extends AbstractProcessor
                     }
                     
                     writer.write("}");
-                    messager.printMessage(
+                    messager.get().printMessage(
                         Diagnostic.Kind.NOTE,
                         "Generated %s.json.".
                             formatted(lang.getCode())
@@ -389,16 +415,16 @@ public final class I18nProcessor extends AbstractProcessor
     private void printError(@NotNull String message, @Nullable Element element)
     {
         if(element == null)
-            this.messager.printMessage(Diagnostic.Kind.ERROR, message);
+            this.messager.get().printMessage(Diagnostic.Kind.ERROR, message);
         else
-            this.messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+            this.messager.get().printMessage(Diagnostic.Kind.ERROR, message, element);
     }
     
     private @NotNull Writer getWriter(@NotNull Lang lang) throws IOException
     {
         if(this.outputPath == null)
         {
-            return filer.createResource(
+            return filer.get().createResource(
                 StandardLocation.SOURCE_OUTPUT,
                 "",
                 "assets/%s/lang/%s.json".formatted(this.namespace, lang.getCode())
@@ -457,11 +483,13 @@ public final class I18nProcessor extends AbstractProcessor
     
     private int inTypes(@NotNull TypeMirror mirror)
     {
+        final var typeUtil = this.typeUtil.get();
+        
         for(int index = 0; index < types.size(); index++)
         {
             final @Nullable TypeMirror typeMirror = typeUtil.erasure(types.get(index));
             
-            if(typeUtil.isSameType(typeMirror, object))
+            if(typeUtil.isSameType(typeMirror, object.get()))
             {
                 printError("The type at index %d seems to be null. Stopping procession.".formatted(index));
                 return UNSUPPORTED_INDEX;

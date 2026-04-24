@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants.MAX_ACCEPTABLE_FACTOR;
 
@@ -39,7 +38,7 @@ final class CarryCrateInventoryMonitorEvent
     
     @SubscribeEvent static void pickupPreMonitor(@NotNull ItemEntityPickupEvent.Pre event)
     {
-        final ItemStack itemStack = getCrateWithCheck(event.getItemEntity()::getItem);
+        final ItemStack itemStack = getCrateWithCheck(event.getItemEntity().getItem());
         
         if(itemStack == null)
             return;
@@ -48,7 +47,7 @@ final class CarryCrateInventoryMonitorEvent
         final boolean isInteractable = !(player.isCreative() || player.isSpectator());
         final float carryFactor = player.getData(CarryCrateRegistries.CARRY_FACTOR.get());
         
-        if(!(carryFactor >= MAX_ACCEPTABLE_FACTOR))
+        if(carryFactor < MAX_ACCEPTABLE_FACTOR)
             return;
         
         FunctionalUtils.doIf(isInteractable, () -> event.setCanPickup(TriState.FALSE));
@@ -60,7 +59,7 @@ final class CarryCrateInventoryMonitorEvent
      */
     @SubscribeEvent static void pickupPostMonitor(@NotNull ItemEntityPickupEvent.Post event)
     {
-        final ItemStack itemstack = getCrateWithCheck(event::getCurrentStack);
+        final ItemStack itemstack = getCrateWithCheck(event.getCurrentStack());
         
         if(itemstack == null)
             return;
@@ -83,7 +82,7 @@ final class CarryCrateInventoryMonitorEvent
     
     @SubscribeEvent static void tossMonitor(@NotNull ItemTossEvent event)
     {
-        final ItemStack itemstack = getCrateWithCheck(event.getEntity()::getItem);
+        final ItemStack itemstack = getCrateWithCheck(event.getEntity().getItem());
         
         if(itemstack == null)
             return;
@@ -95,13 +94,12 @@ final class CarryCrateInventoryMonitorEvent
         OverweightEffect.updateFactorAndEffect(player, data, TriState.FALSE);
     }
     
-    private static @Nullable ItemStack getCrateWithCheck(@NotNull Supplier<ItemStack> stackSupplier)
+    private static @Nullable ItemStack getCrateWithCheck(@NotNull ItemStack stack)
     {
-        final ItemStack itemstack = stackSupplier.get();
-        if(itemstack.isEmpty() || !itemstack.is(CarryCrateRegistries.CARRY_CRATE_ITEM.value()) || !itemstack.has(CarryCrateRegistries.CARRY_CRATE_DATA.value()))
+        if(stack.isEmpty() || !stack.is(CarryCrateRegistries.CARRY_CRATE_ITEM.value()) || !stack.has(CarryCrateRegistries.CARRY_CRATE_DATA.value()))
             return null;
         
-        return itemstack;
+        return stack;
     }
     
     private static void dropItem(@NotNull Player player, @NotNull ItemStack itemstack)

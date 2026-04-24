@@ -19,6 +19,9 @@ import java.util.function.Function;
 
 final class I18nParser
 {
+    static final String NAMESPACE_PLACE_HOLDER = "~@namespace";
+    static final String KEY_PLACE_HOLDER = "~@key";
+    
     private I18nParser() { throw new IllegalAccessError("Class \"I18nParser\" is not meant to be instantized!"); }
     
     static @NotNull String recursiveParse(@NotNull ParseContext context, @NotNull Function<ParseContext, String> recurse)
@@ -50,10 +53,10 @@ final class I18nParser
     }
     
     static @NotNull String simplestParse(@NotNull String prefix, @NotNull ParseContext context)
-        { return simpleParse("%s.@namespace.@key".formatted(prefix), context); }
+        { return simpleParse("%s.%s.%s".formatted(prefix, NAMESPACE_PLACE_HOLDER, KEY_PLACE_HOLDER), context); }
     
     static @NotNull String simpleParse(@NotNull String template, @NotNull ParseContext parseContext)
-        { return template.replaceAll("@namespace", parseContext.namespace()).replace("@key", parseContext.key()); }
+        { return template.replaceAll(NAMESPACE_PLACE_HOLDER, parseContext.namespace()).replace(KEY_PLACE_HOLDER, parseContext.key()); }
     
     static @NotNull String polymorphismParse(@NotNull ParseContext context)
     {

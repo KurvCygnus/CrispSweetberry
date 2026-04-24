@@ -50,7 +50,7 @@ import snownee.jade.api.IWailaClientRegistration;
 import java.util.List;
 import java.util.Map;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.ITRedstoneTorchExtensions.*;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TRedstoneTorchExtensions.*;
 
 /**
  * This registers everything that relates to throwable torch series.<br>
@@ -235,10 +235,7 @@ public enum TTorchRegistries implements IRegistrant
         group = "glowstick",
         key = "glowstick"
     )
-    public static final Holder<Item> GLOWSTICK_ITEM = THROWABLE_TORCH_REGISTER.register(
-        "glowstick",
-        resourceLocation -> new GlowStickItem()
-    );
+    public static final Holder<Item> GLOWSTICK_ITEM = THROWABLE_TORCH_REGISTER.register("glowstick", GlowStickItem::new);
     //endregion
     
     //  region Block Registries
@@ -251,14 +248,12 @@ public enum TTorchRegistries implements IRegistrant
         group = TEMPORARY_TORCH_ID
     )
     public static final DeferredHolder<Block, TemporaryTorchBlock> TEMPORARY_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        TEMPORARY_TORCH_ID,
-        resourceLocation -> new TemporaryTorchBlock()
+        TEMPORARY_TORCH_ID, TemporaryTorchBlock::new
     );
     
     @AutoI18n(overrides = TEMPORARY_TORCH_ID)
     public static final DeferredHolder<Block, TemporaryWallTorchBlock> TEMPORARY_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temporary_wall_torch",
-        resourceLocation -> new TemporaryWallTorchBlock()
+        "temporary_wall_torch", TemporaryWallTorchBlock::new
     );
     
     @AutoI18n(
@@ -270,14 +265,12 @@ public enum TTorchRegistries implements IRegistrant
         group = TEMPORARY_SOUL_TORCH_ID
     )
     public static final DeferredHolder<Block, TemporarySoulTorchBlock> TEMPORARY_SOUL_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        TEMPORARY_SOUL_TORCH_ID,
-        resourceLocation -> new TemporarySoulTorchBlock()
+        TEMPORARY_SOUL_TORCH_ID, TemporarySoulTorchBlock::new
     );
     
     @AutoI18n(overrides = TEMPORARY_SOUL_TORCH_ID)
     public static final DeferredHolder<Block, TemporarySoulWallTorchBlock> TEMPORARY_SOUL_WALL_TORCH = TEMPORARY_TORCH_REGISTER.register(
-        "temporary_soul_wall_torch",
-        resourceLocation -> new TemporarySoulWallTorchBlock()
+        "temporary_soul_wall_torch", TemporarySoulWallTorchBlock::new
     );
     
     @AutoI18n(
@@ -474,7 +467,7 @@ public enum TTorchRegistries implements IRegistrant
     @AutoI18n(overrides = "glowstick", key = "glowstick")
     public static final DeferredHolder<Block, GlowStickBlock> GLOW_STICK_BLOCK = TEMPORARY_TORCH_REGISTER.register(
         "glow_stick",
-        resourceLocation -> new GlowStickBlock()
+        GlowStickBlock::new
     );
     
     /**
@@ -491,7 +484,7 @@ public enum TTorchRegistries implements IRegistrant
     )
     public static final Holder<Block> FAKE_LIGHT_BLOCK = TEMPORARY_TORCH_REGISTER.register(
         "fake_light_block",
-        resourceLocation -> new FakeLightBlock()
+        FakeLightBlock::new
     );
     //endregion
     
@@ -604,13 +597,16 @@ public enum TTorchRegistries implements IRegistrant
     private static @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> getThrowableRedstoneTorch(@NotNull OxidizeState state, boolean waxed)
     {
         return THROWABLE_TORCH_REGISTER.register(
-            "%s%sthrowable_redstone_torch".formatted(waxed ? 
-                "waxed_" : "",
+            "%s%sthrowable_redstone_torch".formatted(
+                waxed ?
+                "waxed_" :
+                    "",
                 state.equals(OxidizeState.NORMAL) ?
-                    "" : "%s_".
+                    "" :
+                    "%s_".
                     formatted(state.name().toLowerCase())
             ),
-            resourceLocation -> new ThrowableRedstoneTorchItem(state, waxed)
+            () -> new ThrowableRedstoneTorchItem(state, waxed)
         );
     }
     //endregion

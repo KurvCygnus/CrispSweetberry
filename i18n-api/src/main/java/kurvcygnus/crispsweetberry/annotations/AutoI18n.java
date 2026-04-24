@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  * which means you should <u><a href="https://www.jetbrains.com/help/idea/annotation-processors-support.html">enable config in IDEA</a></u>.<br>
  * For details, please see {@code GettingStarted.md}.
  * @implSpec <pre>
- *  &#64;AutoI18n(value = {
+ *  &#64;AutoI18n({
  *      "en_us = Dirt",
  *      "lol_us = Cofe Sdak",
  *      "zh_cn = 泥土"

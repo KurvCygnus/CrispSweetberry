@@ -42,7 +42,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.compone
 
 /**
  * The basic of carry crate's I/O<i>(in/out)</i> handler.<br>
- * It handles unionData process, serialization, and decide the following
+ * It handles data process, serialization, and decide the following
  * logic decisions, which will be passed to <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine Engine}</u> by
  * <u>{@link HandleResult HandleResult}</u>.
  * @since 1.0 Release
@@ -54,7 +54,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.compone
 public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEntityInteractHandler, CarryBlockInteractHandler, CarryEntityInteractHandler
 {
     protected static final String MISUSE_FAIL_MSG = 
-        "Assertion failed: \"unionData\" must not be null. This only means the internal logic has flawed, or get misused. %s".formatted(MetainfoConstants.FEEDBACK_MESSAGE);
+        "Assertion failed: \"data\" must not be null. This only means the internal logic has flawed, or get misused. %s".formatted(MetainfoConstants.FEEDBACK_MESSAGE);
     
     protected final ServerLevel level;
     
@@ -70,7 +70,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     private final @Nullable LivingEntity targetEntity;
     private final @Nullable BlockEntity targetBlockEntity;
     private final @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator;
-    protected final @Nullable CarryID optionalCarryID;
+    protected final @Nullable CarryID carryID;
     protected final boolean hasData;
     
     public AbstractCarryInteractHandler(
@@ -82,7 +82,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
         @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
-        @Nullable CarryID optionalCarryID
+        @Nullable CarryID carryID
     )
     {
         requireNonNull(level, "Param \"level\" must not be null!");
@@ -97,13 +97,13 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         this.targetEntity      = targetEntity;
         this.targetBlockEntity = targetBlockEntity;
         this.contextGenerator  = contextGenerator;
-        this.optionalCarryID   = optionalCarryID;
+        this.carryID = carryID;
         this.hasData           = this.carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get());
     }
     
     public final @NotNull HandleResult handle()
     {
-        if(optionalCarryID == null && !hasData)
+        if(carryID == null && !hasData)
         {
             getLogger().debug("Action was confirmed as \"boxIn\".");
             return boxIn();
@@ -137,24 +137,24 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         getLogger().error(
             "ItemStack \"{}\" has CarryID \"{}\", but has no carryData, returning \"PASS\" as interact result. This is a serious persistent issue. {}",
             carryCrate.toString(),
-            optionalCarryID,
+            carryID,
             MetainfoConstants.FEEDBACK_MESSAGE
         );
         
         //! From [[AbstractCarryInteractHandler#handle(UseOnContext)]],
         //! [[AbstractCarryInteractHandler#unbox(StatedBlockPlaceContext)]] only have two cases:
-        //! 1. optionalUUID is null.
-        //! 2. unionData is null.
+        //! 1. carryID is null.
+        //! 2. data is null.
         //! So we can do this assertion.
-        assert optionalCarryID != null;
+        assert carryID != null;
         
-        return HandleResult.removeWithUUID(optionalCarryID);
+        return HandleResult.removeWithUUID(carryID);
     }
     
     protected abstract @NotNull MarkLogger getLogger();
     
     /**
-     * @apiNote <span style="color: red">Throws <u>{@link NullPointerException NPE}</u> the caller is not <u>{@link CarryBlockEntityInteractHandler}</u>.</span>
+     * @apiNote <span style="color: f84b4b">Throws <u>{@link NullPointerException NPE}</u> the caller is not <u>{@link CarryBlockEntityInteractHandler}</u>.</span>
      */
     protected final @NotNull BlockPos getTargetPos()
     {
@@ -167,7 +167,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     }
     
     /**
-     * @apiNote <span style="color: red">Throws <u>{@link NullPointerException NPE}</u> the caller is <u>{@link CarryEntityInteractHandler}</u>.</span>
+     * @apiNote <span style="color: f84b4b">Throws <u>{@link NullPointerException NPE}</u> the caller is <u>{@link CarryEntityInteractHandler}</u>.</span>
      */
     protected final @NotNull BlockState getTargetState()
     {
@@ -180,7 +180,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     }
     
     /**
-     * @apiNote <span style="color: red">Throws <u>{@link NullPointerException NPE}</u> the caller is not <u>{@link CarryEntityInteractHandler}</u>.</span>
+     * @apiNote <span style="color: f84b4b">Throws <u>{@link NullPointerException NPE}</u> the caller is not <u>{@link CarryEntityInteractHandler}</u>.</span>
      */
     protected final @NotNull LivingEntity getTargetEntity()
     {
@@ -192,7 +192,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     }
     
     /**
-     * @apiNote <span style="color: red">Throws <u>{@link NullPointerException NPE}</u> the caller is not <u>{@link CarryBlockEntityInteractHandler}</u>.</span>
+     * @apiNote <span style="color: f84b4b">Throws <u>{@link NullPointerException NPE}</u> the caller is not <u>{@link CarryBlockEntityInteractHandler}</u>.</span>
      */
     protected final @NotNull BlockEntity getTargetBlockEntity()
     {
@@ -204,16 +204,17 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     }
     
     /**
-     * @apiNote <span style="color: red">Throws <u>{@link NullPointerException NPE}</u> the caller is <u>{@link CarryEntityInteractHandler}</u>.</span>
+     * @apiNote <span style="color: f84b4b">Throws <u>{@link NullPointerException NPE}</u> the caller is <u>{@link CarryEntityInteractHandler}</u>.</span>
      */
-    protected final @NotNull Function<BlockState, StatedBlockPlaceContext> getContextGenerator()
+    protected final @NotNull StatedBlockPlaceContext generatePlaceContext(@NotNull BlockState blockState)
     {
+        requireNonNull(blockState, "Param \"blockState\" must not be null!");
         requireNonNull(
             contextGenerator,
             "Assertion failed: \"placeAction\" must not be null. This only means the code implementation has flawed, or get misused."
         );
         
-        return contextGenerator;
+        return contextGenerator.apply(blockState);
     }
     
     /**
@@ -288,7 +289,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
          * Represents the expected procession result of <u>{@link #boxIn()}</u> method.
          *
          * @param addAsExtra Decides whether the following procession is increase the value of {@code carryCount}.
-         *                   <span style="color: red">Only meant to be used by <u>{@link CarryBlockInteractHandler}</u>.</span>
+         *                   <span style="color: f84b4b">Only meant to be used by <u>{@link CarryBlockInteractHandler}</u>.</span>
          */
         public static @NotNull HandleResult boxIn(
             @NotNull CarryData carryData,
@@ -299,7 +300,7 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             requireNonNull(carryData, "Param \"carryData\" must not be null!");
             FunctionalUtils.throwIf(
                 carryID == null && !addAsExtra,
-                "Param \"uuid\" must not be null when unionData won't be added as extra!",
+                "Param \"uuid\" must not be null when data won't be added as extra!",
                 IllegalArgumentException::new
             );
             

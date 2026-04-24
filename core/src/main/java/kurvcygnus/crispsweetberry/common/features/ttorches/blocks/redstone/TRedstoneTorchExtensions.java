@@ -41,7 +41,7 @@ import java.util.function.ToIntFunction;
  * @see TemporaryRedstoneWallTorchBlock Wall Torch
  * @see TemporaryRedstoneTorchBehavior Behavior
  */
-public final class ITRedstoneTorchExtensions
+public final class TRedstoneTorchExtensions
 {
     /**
      * A simple implementation of vanilla's copper's lifecycle.
@@ -81,7 +81,7 @@ public final class ITRedstoneTorchExtensions
     
     public static @NotNull DeferredHolder<net.minecraft.world.level.block.Block, TemporaryRedstoneTorchBlock> getRedstoneTorchBlock(
         @NotNull DeferredRegister<net.minecraft.world.level.block.Block> register,
-        ITRedstoneTorchExtensions.@NotNull OxidizeState state,
+        TRedstoneTorchExtensions.@NotNull OxidizeState state,
         boolean waxed,
         @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> throwableTorch
     )
@@ -94,7 +94,7 @@ public final class ITRedstoneTorchExtensions
     
     public static @NotNull DeferredHolder<net.minecraft.world.level.block.Block, TemporaryRedstoneWallTorchBlock> getRedstoneWallTorchBlock(
         @NotNull DeferredRegister<net.minecraft.world.level.block.Block> register,
-        ITRedstoneTorchExtensions.@NotNull OxidizeState state,
+        TRedstoneTorchExtensions.@NotNull OxidizeState state,
         boolean waxed,
         @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> throwableTorch
     )
@@ -128,7 +128,7 @@ public final class ITRedstoneTorchExtensions
     }
     
     /**
-     * Carries the unionData that is only used for Block.
+     * Carries the data that is only used for Block.
      */
     interface Block
     {
@@ -141,7 +141,7 @@ public final class ITRedstoneTorchExtensions
     }
     
     /**
-     * Carries the unionData that is only used for Behavior.
+     * Carries the data that is only used for Behavior.
      */
     interface Behavior
     {

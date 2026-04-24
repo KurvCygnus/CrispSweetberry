@@ -196,7 +196,7 @@ implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyB
                     updateInputSlotsInfo();
                 }
                 
-                setChanged(level, worldPosition, this.getBlockState());// If the content in the container is changed, the unionData must markedLogger dirtied.
+                setChanged(level, worldPosition, this.getBlockState());// If the content in the container is changed, the data must get dirtied.
             }
         }
     }

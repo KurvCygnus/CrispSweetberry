@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.entities;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.ITRedstoneTorchExtensions;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TRedstoneTorchExtensions;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -38,24 +38,24 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstrac
  */
 public class ThrownRedstoneTorchEntity extends AbstractThrownTorchEntity
 {
-    private final ITRedstoneTorchExtensions.OxidizeState oxidizeState;
+    private final TRedstoneTorchExtensions.OxidizeState oxidizeState;
     private final boolean waxed;
     
     public ThrownRedstoneTorchEntity(@NotNull EntityType<? extends AbstractThrownTorchEntity> entityType, @NotNull Level level) 
     {
         super(entityType, level);
-        this.oxidizeState = ITRedstoneTorchExtensions.OxidizeState.NORMAL;
+        this.oxidizeState = TRedstoneTorchExtensions.OxidizeState.NORMAL;
         this.waxed = false;
     }
     
-    public ThrownRedstoneTorchEntity(double x, double y, double z, @NotNull Level level, @NotNull ITRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed) 
+    public ThrownRedstoneTorchEntity(double x, double y, double z, @NotNull Level level, @NotNull TRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed)
     { 
         super(THROWN_REDSTONE_TORCH.get(), x, y, z, level);
         this.oxidizeState = oxidizeState;
         this.waxed = waxed;
     }
     
-    public ThrownRedstoneTorchEntity(@NotNull LivingEntity shooter, @NotNull Level level, @NotNull ITRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed) 
+    public ThrownRedstoneTorchEntity(@NotNull LivingEntity shooter, @NotNull Level level, @NotNull TRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed)
     { 
         super(THROWN_REDSTONE_TORCH.get(), shooter, level);
         this.oxidizeState = oxidizeState;
@@ -93,5 +93,5 @@ public class ThrownRedstoneTorchEntity extends AbstractThrownTorchEntity
     
     @Override protected boolean shouldLitMob() { return false; }
     
-    public @NotNull ITRedstoneTorchExtensions.OxidizeState getOxidizeState() { return oxidizeState; }
+    public @NotNull TRedstoneTorchExtensions.OxidizeState getOxidizeState() { return oxidizeState; }
 }

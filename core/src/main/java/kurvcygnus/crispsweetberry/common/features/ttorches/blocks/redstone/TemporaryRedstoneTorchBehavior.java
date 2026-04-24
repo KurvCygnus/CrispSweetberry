@@ -47,7 +47,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstrac
  * <ul>
  *     <li>
  *         <b>Variable Signal Strength:</b> Unlike vanilla redstone torches which always emit a signal of 15, 
- *         the signal strength here is determined by the {@link ITRedstoneTorchExtensions.OxidizeState OxidizeState}. 
+ *         the signal strength here is determined by the {@link TRedstoneTorchExtensions.OxidizeState OxidizeState}.
  *         As the torch oxidizes, the signal strength drops in increments of 3 (15, 12, 9, 6).
  *     </li>
  *     <li>
@@ -68,14 +68,14 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstrac
  * </ul>
  * @since 1.0 Release
  * @author Kurv Cygnus
- * @see ITRedstoneTorchExtensions Extension Interfaces
+ * @see TRedstoneTorchExtensions Extension Interfaces
  * @see TemporaryRedstoneTorchBlock Floor Torch
  * @see TemporaryRedstoneWallTorchBlock Wall Torch
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity Entity
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem Item
  */
 public final class TemporaryRedstoneTorchBehavior
-extends AbstractTemporaryTorchBehavior implements ITRedstoneTorchExtensions.Behavior, ITRedstoneTorchExtensions.Shared
+extends AbstractTemporaryTorchBehavior implements TRedstoneTorchExtensions.Behavior, TRedstoneTorchExtensions.Shared
 {
     public <T extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> TemporaryRedstoneTorchBehavior(@NotNull Lazy<T> torchBlock)
         { super(torchBlock); }
@@ -133,7 +133,7 @@ extends AbstractTemporaryTorchBehavior implements ITRedstoneTorchExtensions.Beha
     
     @Override public @NotNull BlockState getNextStateBlock(boolean isWallTorch, @NotNull BlockState state)
     {
-        final Optional<ITRedstoneTorchExtensions.OxidizeState> oxidizeState = state.getValue(OXIDIZE_STATE).getNextState();
+        final Optional<TRedstoneTorchExtensions.OxidizeState> oxidizeState = state.getValue(OXIDIZE_STATE).getNextState();
         
         return oxidizeState.map(value -> isWallTorch ?
             WALL_REDSTONE_TTORCH_LOOKUP.get(false).get(value).value().defaultBlockState() :
@@ -161,7 +161,7 @@ extends AbstractTemporaryTorchBehavior implements ITRedstoneTorchExtensions.Beha
         if(!isAddingWax && !isRemovingWax)
             return ItemInteractionResult.FAIL;
         
-        final ITRedstoneTorchExtensions.OxidizeState oxidizeState = state.getValue(OXIDIZE_STATE);
+        final TRedstoneTorchExtensions.OxidizeState oxidizeState = state.getValue(OXIDIZE_STATE);
         
         level.playSound(null, pos, waxed ? SoundEvents.AXE_WAX_OFF : SoundEvents.HONEYCOMB_WAX_ON, SoundSource.BLOCKS, 1.0F, 1.0F);
         

@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 /**
- * This is the collection of vanilla's blockEntity's unionData accessors, which involves <b>mixin</b>,
+ * This is the collection of vanilla's blockEntity's data accessors, which involves <b>mixin</b>,
  * and won't be used by external at most situations.
  * @since 1.0 Release
  * @author Kurv Cygnus

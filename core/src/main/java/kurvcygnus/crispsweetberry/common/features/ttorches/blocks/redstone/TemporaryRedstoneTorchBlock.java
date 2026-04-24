@@ -40,18 +40,18 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see TemporaryRedstoneTorchBehavior Logic Implementation
- * @see ITRedstoneTorchExtensions Extension Interfaces
+ * @see TRedstoneTorchExtensions Extension Interfaces
  * @see TemporaryRedstoneWallTorchBlock Floor Torch
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity Entity
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem Item
  */
 public final class TemporaryRedstoneTorchBlock
-extends AbstractTemporaryTorchBlock<TemporaryRedstoneTorchBehavior> implements ITRedstoneTorchExtensions.Block, ITRedstoneTorchExtensions.Shared
+extends AbstractTemporaryTorchBlock<TemporaryRedstoneTorchBehavior> implements TRedstoneTorchExtensions.Block, TRedstoneTorchExtensions.Shared
 {
     private final Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch;
     
     public TemporaryRedstoneTorchBlock
-    (@NotNull ITRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed, @NotNull Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch)
+    (@NotNull TRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed, @NotNull Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch)
     {
         super(
             BASIC_TEMP_TORCH_PROPERTIES.lightLevel(REDSTONE_BRIGHTNESS_FORMULA),
@@ -78,7 +78,7 @@ extends AbstractTemporaryTorchBlock<TemporaryRedstoneTorchBehavior> implements I
     @Override protected @NotNull Supplier<? extends AbstractGenericTorchBlock<TemporaryRedstoneTorchBehavior>> getCodecConstruct()
     {
         return () -> new TemporaryRedstoneTorchBlock(
-            ITRedstoneTorchExtensions.OxidizeState.NORMAL,
+            TRedstoneTorchExtensions.OxidizeState.NORMAL,
             false,
             Lazy.of(TTorchRegistries.THROWABLE_REDSTONE_TORCH)
         );

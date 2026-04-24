@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * A flexible, simple <u><a href="https://en.wikipedia.org/wiki/Tagged_union">Tagged Union Data Object</a></u> for boxed Carry Crate's unionData persistent, and
+ * A flexible, simple <u><a href="https://en.wikipedia.org/wiki/Tagged_union">Tagged Union Data Object</a></u> for boxed Carry Crate's data persistent, and
  * serialization.
  * @since 1.0 Release
  * @author Kurv Cygnus
@@ -142,7 +142,7 @@ public final class CarryData
     //  region Data Getters & Essential methods
     /**
      * Gets the exact dataHolder of a specific type.
-     * @apiNote <span style="color: red">Use it carefully, type mismatch will cause an immediate <u>{@link ClassCastException}</u></span>.
+     * @apiNote <span style="color: f84b4b">Use it carefully, type mismatch will cause an immediate <u>{@link ClassCastException}</u></span>.
      */
     @SuppressWarnings("unchecked")//! Unsafe casting, but is used only by internals.
     public <T extends CarryDataBaseHolder> @NotNull T unionData()
@@ -208,7 +208,7 @@ public final class CarryData
         
         /**
          * This getter method is used by internals for abstracted adapter getting logics.<br>
-         * <span style="color: red">DO NOT USE.</span>
+         * <span style="color: f84b4b">DO NOT USE.</span>
          */
         @ApiStatus.Internal public abstract <T> @NotNull T getCreationData();
         
@@ -219,7 +219,8 @@ public final class CarryData
     
     public static final class CarryBlockDataHolder extends CarryDataBaseHolder
     {
-        public static final MapCodec<CarryBlockDataHolder> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+        public static final MapCodec<CarryBlockDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+            inst -> inst.group(
                 Codec.INT.fieldOf(        "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BlockState.CODEC.fieldOf( "state").forGetter(CarryBlockDataHolder::getState),
                 Codec.INT.fieldOf(        "carry_count").forGetter(CarryBlockDataHolder::getCarryCount),
@@ -287,7 +288,8 @@ public final class CarryData
     
     public static final class CarryEntityDataHolder extends CarryDataBaseHolder
     {
-        public static final MapCodec<CarryEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+        public static final MapCodec<CarryEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+            inst -> inst.group(
                 Codec.INT.fieldOf(                                   "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(CarryEntityDataHolder::getType),
                 CompoundTag.CODEC.fieldOf(                           "tag_data").forGetter(CarryEntityDataHolder::getTagData)
@@ -340,7 +342,8 @@ public final class CarryData
     
     public static final class CarryBlockEntityDataHolder extends CarryDataBaseHolder
     {
-        public static final MapCodec<CarryBlockEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+        public static final MapCodec<CarryBlockEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+            inst -> inst.group(
                 Codec.INT.fieldOf(                                         "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BlockState.CODEC.fieldOf(                                  "state").forGetter(CarryBlockEntityDataHolder::getState),
                 BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(CarryBlockEntityDataHolder::getType),

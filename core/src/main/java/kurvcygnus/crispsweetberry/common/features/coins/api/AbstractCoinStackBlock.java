@@ -31,7 +31,7 @@ import java.util.Objects;
  * in survivor mode.
  *
  * @author Kurv Cygnus
- * @apiNote Loot logic is fully unionData-driven via Coin LootTables(in datagen module).
+ * @apiNote Loot logic is fully data-driven via Coin LootTables(in datagen module).
  * Block only handles experience awarding.
  * @implNote The reason we keep <u>{@link AbstractCoinStackBlock}</u> and <u>{@link VanillaCoinStackBlock VanillaCoinStackBlock}</u>
  * separated is that we are considering using annotation processors to solve boilerplate problems in future developing.<br><br>

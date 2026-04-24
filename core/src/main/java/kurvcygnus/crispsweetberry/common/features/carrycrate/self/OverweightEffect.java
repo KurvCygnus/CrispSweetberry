@@ -47,9 +47,12 @@ public final class OverweightEffect extends MobEffect
 {
     public static final String OVERWEIGHT_KEY = "effect.overweight";
     public static final ResourceLocation OVERWEIGHT_ID = DefinitionUtils.getModNamespacedLocation(OVERWEIGHT_KEY);
-    public static final Lazy<MobEffectInstance> EFFECT_INST = Lazy.of(
-        () -> new MobEffectInstance(CarryCrateRegistries.OVERWEIGHT, MobEffectInstance.INFINITE_DURATION)
-    );
+    public static final Lazy<MobEffectInstance> EFFECT_INST = Lazy.of(() -> new MobEffectInstance(CarryCrateRegistries.OVERWEIGHT, MobEffectInstance.INFINITE_DURATION));
+    
+    private static final float MAX_LAYER = 1F;
+    private static final float STANDARD_ADD_FACTOR = 1.0F;
+    private static final float LITE_ADD_FACTOR = 0.5F;
+    private static final float SPEED_ATTRIBUTE_SLOWDOWN_FACTOR = -0.25F;
     
     private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "OVERWEIGHT");
     
@@ -67,7 +70,6 @@ public final class OverweightEffect extends MobEffect
             deferredRegister,
             "This static constructor is only used for registration, provide DeferredRegister<MobEffect>!"
         );
-        
         FunctionalUtils.throwIf(
             !Objects.equals(deferredRegister.getNamespace(), CrispSweetberry.NAMESPACE),
             "External usage is not allowed!",
@@ -77,15 +79,15 @@ public final class OverweightEffect extends MobEffect
         return new OverweightEffect().addAttributeModifier(
             Attributes.MOVEMENT_SPEED,
             OVERWEIGHT_ID,
-            -0.25F,
+            SPEED_ATTRIBUTE_SLOWDOWN_FACTOR,
             AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         );
     }
     
-    @SuppressWarnings("UnusedReturnValue") public static float updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state)
-        { return updateFactorAndEffect(player, data, state, DummyFunctionalConstants.RUN_NOTHING); }
+    public static void updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state)
+        { updateFactorAndEffect(player, data, state, DummyFunctionalConstants.RUN_NOTHING); }
     
-    public static float updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state, @NotNull Runnable unacceptableCallback)
+    public static void updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state, @NotNull Runnable unacceptableCallback)
     {
         Objects.requireNonNull(player, "Param \"player\" must not be null!");
         Objects.requireNonNull(state, "Param \"state\" must not be null!");
@@ -97,20 +99,27 @@ public final class OverweightEffect extends MobEffect
             IllegalArgumentException::new
         );
         
-        final float layerFactor = data == null ?
-            1F :
-            data.unionData() instanceof CarryData.CarryBlockDataHolder holder ?
-                (float) 1 / holder.getMaxCarryCount() :
-                1F;
+        final float layerFactor = switch(data)
+        {
+            case CarryData that when that.unionData() instanceof CarryData.CarryBlockDataHolder holder ->
+                1.00F / holder.getMaxCarryCount();//* 1.00F avoids the `(float)` casting, and also, it represents that this expression is a percentage calculation.
+            case null, default -> MAX_LAYER;      //* Thus, no necessary to constantize 1.00F.
+        };
         
+        final float originalFactor = player.getData(CarryCrateRegistries.CARRY_FACTOR.get());
         final float newFactor = state.isDefault() ?
-            0F :
+            originalFactor :
             Math.max(
                 0F,
-                player.getData(CarryCrateRegistries.CARRY_FACTOR.get()) +
+                originalFactor +
                 MathUtils.negativeIf(
                     state.isFalse(),
-                    data == null ? 0F : data.causesOverweight() ? 1F : 0.5F
+                    switch(data)
+                    {
+                        case null -> 0F;
+                        case CarryData that when !that.causesOverweight() -> LITE_ADD_FACTOR;
+                        default -> STANDARD_ADD_FACTOR;
+                    }
                 ) * layerFactor
             );
         
@@ -121,7 +130,7 @@ public final class OverweightEffect extends MobEffect
         if(!isInteractable)
         {
             LOGGER.debug("Player \"{}\" can't interact with carry crate, skipped side effects.", player.getName());
-            return newFactor;
+            return;
         }
         
         if(newFactor >= OVERWEIGHT_FACTOR)
@@ -132,7 +141,7 @@ public final class OverweightEffect extends MobEffect
         else
         {
             LOGGER.debug("Current factor's value is smaller than OVERWEIGHT_FACTOR, remove player's debuff.");
-            player.removeEffect(EFFECT_INST.get().getEffect());
+            player.removeEffect(CarryCrateRegistries.OVERWEIGHT);
         }
         
         if(newFactor > MAX_ACCEPTABLE_FACTOR)
@@ -142,6 +151,5 @@ public final class OverweightEffect extends MobEffect
         }
         
         player.setData(CarryCrateRegistries.CARRY_FACTOR.get(), newFactor);
-        return newFactor;
     }
 }

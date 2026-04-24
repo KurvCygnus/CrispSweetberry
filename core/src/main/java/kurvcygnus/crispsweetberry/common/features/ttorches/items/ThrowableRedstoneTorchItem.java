@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.items;
 
-import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.ITRedstoneTorchExtensions;
+import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TRedstoneTorchExtensions;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
 import kurvcygnus.crispsweetberry.utils.base.functions.ITriProjectileFunction;
@@ -28,10 +28,10 @@ import java.util.function.BiFunction;
  */
 public final class ThrowableRedstoneTorchItem extends AbstractThrowableTorchItem<ThrownRedstoneTorchEntity>
 {
-    private final ITRedstoneTorchExtensions.OxidizeState oxidizeState;
+    private final TRedstoneTorchExtensions.OxidizeState oxidizeState;
     private final boolean waxed;
     
-    public ThrowableRedstoneTorchItem(ITRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed) 
+    public ThrowableRedstoneTorchItem(TRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed)
     {
         super(new Properties());
         this.oxidizeState = oxidizeState;

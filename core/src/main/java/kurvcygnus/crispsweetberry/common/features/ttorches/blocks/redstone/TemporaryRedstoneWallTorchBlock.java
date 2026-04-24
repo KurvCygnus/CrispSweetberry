@@ -39,19 +39,19 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  * This is the redstone variant of ttorch series, features signal passing.
  * @author Kurv Cygnus
  * @see TemporaryRedstoneTorchBehavior Logic Implementation
- * @see ITRedstoneTorchExtensions Extension Interfaces
+ * @see TRedstoneTorchExtensions Extension Interfaces
  * @see TemporaryRedstoneTorchBlock Floor Torch
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity Entity
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem Item
  * @since 1.0 Release
  */
 public final class TemporaryRedstoneWallTorchBlock
-extends AbstractTemporaryWallTorchBlock<TemporaryRedstoneTorchBehavior> implements ITRedstoneTorchExtensions.Block, ITRedstoneTorchExtensions.Shared
+extends AbstractTemporaryWallTorchBlock<TemporaryRedstoneTorchBehavior> implements TRedstoneTorchExtensions.Block, TRedstoneTorchExtensions.Shared
 {
     private final Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch;
     
     public TemporaryRedstoneWallTorchBlock
-    (@NotNull ITRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed, @NotNull Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch)
+    (@NotNull TRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed, @NotNull Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch)
     {
         super(
             BASIC_TEMP_TORCH_PROPERTIES.lightLevel(REDSTONE_BRIGHTNESS_FORMULA),
@@ -70,7 +70,7 @@ extends AbstractTemporaryWallTorchBlock<TemporaryRedstoneTorchBehavior> implemen
     @Override protected @NotNull Supplier<? extends AbstractGenericTorchBlock<TemporaryRedstoneTorchBehavior>> getCodecConstruct()
     {
         return () -> new TemporaryRedstoneWallTorchBlock(
-            ITRedstoneTorchExtensions.OxidizeState.NORMAL,
+            TRedstoneTorchExtensions.OxidizeState.NORMAL,
             false,
             Lazy.of(TTorchRegistries.THROWABLE_REDSTONE_TORCH)
         );

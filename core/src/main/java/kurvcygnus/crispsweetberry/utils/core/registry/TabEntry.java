@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * A simple unionData holder for <u>{@link kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent tab registry}</u>.
+ * A simple data holder for <u>{@link kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent tab registry}</u>.
  * @since 1.0 Release
  * @author Kurv Cygnus
  */

@@ -56,8 +56,8 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         @Nullable LivingEntity targetEntity,
         @NotNull BlockEntity targetBlockEntity,
         @NotNull Function<BlockState, StatedBlockPlaceContext> contextGenerator,
-        @Nullable CarryID optionalUUID
-    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalUUID); }
+        @Nullable CarryID carryID
+    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, carryID); }
     
     @Override protected @NotNull HandleResult boxIn()
     {
@@ -66,20 +66,27 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         final BlockPos targetPos = getTargetPos();
         final BlockEntity blockEntity = getTargetBlockEntity();
         
-        @SuppressWarnings("DuplicatedCode")//! A little boilerplate code is OK.
-        final var optionalAdapter = createAdapter(blockEntity.getType(), targetPos, targetState);
+        final Optional<AbstractBlockEntityCarryAdapter<? extends BlockEntity>> optionalAdapter = CarryRegistryManager.INST.
+            getBlockEntityAdapter(blockEntity.getType()).map(
+                adapterFactory ->
+                    createAdapter(
+                        adapterFactory,
+                        blockEntity
+                    )
+            );
         
         if(optionalAdapter.isEmpty())
         {
-            LOGGER.error("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntity.toString());
+            LOGGER.error("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as FAILED.", blockEntity.toString());
             return HandleResult.FAILED;
         }
         
-        final AbstractBlockEntityCarryAdapter<?> adapter = optionalAdapter.get();
+        final var adapter = optionalAdapter.get();
         
         final CompoundTag tagData = new CompoundTag();
         adapter.onCarriedSequence(new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(this.level, targetPos, this.player, carryID.uuid()));
-        adapter.saveCarryTag(tagData, level.registryAccess());//* #onCarriedSequence() may have side effects on BE's unionData, we should save unionData after it.
+        //* [[IAtomicCarriable#onCarriedSequence()]] may have side effects on BE's data, we should save data after it.
+        adapter.saveCarryTag(tagData, level.registryAccess());
         
         final CarryData insertData = CarryData.createBlockEntity(
             targetState,
@@ -103,17 +110,14 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
         final @Nullable CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
         final BlockEntity blockEntity = getTargetBlockEntity();
-        Objects.requireNonNull(data, MISUSE_FAIL_MSG);
-        LOGGER.when(carryID == null).
-            warn(
-                "BlockEntity \"{}\"'s adapter has no uuid. This is a persistent issue. {}",
-                blockEntity.toString(),
-                MetainfoConstants.FEEDBACK_MESSAGE
-            );
+        
+        assert data != null : MISUSE_FAIL_MSG;
+        assert carryID != null : "BlockEntity \"%s\"'s adapter has no uuid. This is a persistent issue. %s".
+            formatted(blockEntity.toString(), MetainfoConstants.FEEDBACK_MESSAGE);
         
         final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.unionData();
         
-        final StatedBlockPlaceContext context = getContextGenerator().apply(blockEntityDataHolder.getState());
+        final StatedBlockPlaceContext context = generatePlaceContext(blockEntityDataHolder.getState());
         
         //! [[AbstractBlockEntityCarryAdapter]]'s init implicitly creates blockEntity.
         //! However, Minecraft only allows the creation of a new blockEntity when the targetBlock is corresponded.
@@ -126,7 +130,29 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
             return HandleResult.FAILED;
         }
         
-        final var optionalAdapter = createAdapter(blockEntityDataHolder.getType(), targetPos, targetState);
+        final var blockEntityType = blockEntityDataHolder.getType();
+        
+        final Optional<AbstractBlockEntityCarryAdapter<? extends BlockEntity>> optionalAdapter = CarryRegistryManager.INST.
+            getBlockEntityAdapter(blockEntityType).map(
+                adapterFactory ->
+                    createAdapter(
+                        adapterFactory,
+                        Objects.requireNonNull(
+                            blockEntityDataHolder.getType().create(targetPos, targetState),
+                            """
+                                Fatal:
+                                Failed to create blockEntity "%s"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
+                                method is called at improper time.
+                                
+                                %s
+                                """.
+                                formatted(
+                                    blockEntityType.toString(),
+                                    MetainfoConstants.FEEDBACK_MESSAGE
+                                )
+                        )
+                    )
+            );
         
         if(optionalAdapter.isEmpty())
         {
@@ -145,9 +171,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
                 this.level,
                 targetPos,
                 this.player,
-                carryID == null ?
-                    "" :
-                    carryID.uuid()
+                carryID.uuid()
             )
         );
         
@@ -166,7 +190,7 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
                 data.causesOverweight(),
                 level.getGameTime()
             ),
-            optionalCarryID,
+            this.carryID,
             blockEntityDataHolder.getType(),
             false
         );
@@ -179,37 +203,6 @@ public final class CarryBlockEntityInteractHandler extends AbstractCarryInteract
             "Assertion failed: Param \"blockEntity\"'s ResourceLocation is null. This only means the internal logic is flawed, or get misused. %s".
                 formatted(MetainfoConstants.FEEDBACK_MESSAGE)
         );
-    }
-    
-    private static @NotNull Optional<AbstractBlockEntityCarryAdapter<? extends BlockEntity>> createAdapter(
-        @NotNull BlockEntityType<? extends BlockEntity> blockEntityType,
-        @NotNull BlockPos pos,
-        @NotNull BlockState state
-    )
-    {
-        final var factory = CarryRegistryManager.INST.getBlockEntityAdapter(blockEntityType);
-        
-        return factory.map(
-            adapterFactory ->
-                createAdapter(
-                    adapterFactory,
-                    Objects.requireNonNull(
-                        blockEntityType.create(pos, state),
-                        """
-                               Fatal:
-                               Failed to create blockEntity "%s"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
-                               method is called at improper time.
-                               
-                               %s
-                               """.
-                            formatted(
-                                blockEntityType.toString(),
-                                MetainfoConstants.FEEDBACK_MESSAGE
-                            )
-                    )
-                )
-        );
-        
     }
     
     @SuppressWarnings("unchecked")//! Safe casting OwO

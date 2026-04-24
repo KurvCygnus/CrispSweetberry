@@ -37,7 +37,15 @@ enum ProcessableType
     ),
     CREATIVE_MODE_TAB(
         "net.minecraft.world.item.CreativeModeTab",
-        (context, func) -> I18nParser.simpleParse("@namespace.creativetab.@key", context)
+        (context, func) ->
+            I18nParser.simpleParse(
+                "%s.creativetab.%s".
+                    formatted(
+                        I18nParser.NAMESPACE_PLACE_HOLDER,
+                        I18nParser.KEY_PLACE_HOLDER
+                    ),
+                context
+            )
     ),
     ENCHANTMENT(
         "net.minecraft.world.item.enchantment.Enchantment",
@@ -96,7 +104,7 @@ enum ProcessableType
         this.parseFunction = parseFunction;
     }
     
-    @NotNull String parse(@NotNull ParseContext context, @NotNull Function<ParseContext, String> parseFunction) { return this.parseFunction.apply(context, parseFunction); }
+    @NotNull String parse(@NotNull ParseContext context, @NotNull Function<ParseContext, String> innerParser) { return this.parseFunction.apply(context, innerParser); }
     
     static @NotNull ProcessableType getType(int index)
     {

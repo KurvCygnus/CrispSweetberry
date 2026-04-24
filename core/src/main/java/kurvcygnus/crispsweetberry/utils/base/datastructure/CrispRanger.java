@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.utils.base.datastructure;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.base.trait.IBitmaskedEnum;
 import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
@@ -16,7 +15,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.*;
-import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -57,7 +55,6 @@ public final class CrispRanger implements Iterable<Integer>
     
     private final int min;
     private final int max;
-    private static final Logger LOGGER = LogUtils.getLogger();
     //endregion
     
     //region Constructors
@@ -65,21 +62,17 @@ public final class CrispRanger implements Iterable<Integer>
     {
         FunctionalUtils.throwIf(
             min == max && (!minClosed || !maxClosed),
-            "This is an empty, and illegal ranger!",
+            "This is an empty, and illegal range!",
+            IllegalArgumentException::new
+        );
+        FunctionalUtils.throwIf(
+            min >= max,
+            "Min(%d) is not smaller than max(%d), this is an illegal range!".formatted(min, max),
             IllegalArgumentException::new
         );
         
-        if(min < max)
-        {
-            this.min = minClosed ? min : ++min;
-            this.max = maxClosed ? max : --max;
-        }
-        else
-        {
-            this.min = maxClosed ? max : ++max;
-            this.max = minClosed ? min : --min;
-            LOGGER.warn("Swapped the value of min({})/max({}) to avoid abnormal behaviors.", max, min);
-        }
+        this.min = minClosed ? min : ++min;
+        this.max = maxClosed ? max : --max;
     }
     
     /**
@@ -309,10 +302,7 @@ public final class CrispRanger implements Iterable<Integer>
         requireNonNull(that, "Param \"that\" must not be null!");
         
         if(this.min > that.max + 1 || that.min > this.max + 1)
-        {
-            LOGGER.warn("Ranges are separated and not adjacent, cannot be merged. This: {}, Other: {}", this, that);
             return Optional.empty();
-        }
         
         final int newMin = Math.min(this.min, that.min);
         final int newMax = Math.max(this.max, that.max);
@@ -352,7 +342,7 @@ public final class CrispRanger implements Iterable<Integer>
     }
     
     /**
-     * Note: <span style="color: red">This is not a setter, it is a math range method.</span><br>
+     * Note: <span style="color: f84b4b">This is not a setter, it is a math range method.</span><br>
      * Chop this {@code CrispRanger}'s intersection between this and another Ranger,
      * returns this {@code CrispRanger}'s uncommon range only.
      */
@@ -382,7 +372,7 @@ public final class CrispRanger implements Iterable<Integer>
      * <hr>
      * <i>
      *     When range closure is not defined, <u>{@link CrispRanger#INCLUSIVE}</u> will be taken as default,
-     *     however, once slice direction is not defined, <span style="color: red">this method will return <u>{@link Optional#empty()}</u> as result.</span>
+     *     however, once slice direction is not defined, <span style="color: f84b4b">this method will return <u>{@link Optional#empty()}</u> as result.</span>
      * </i>
      */
     public @CheckReturnValue @NotNull Optional<CrispRanger> slice(
@@ -427,7 +417,7 @@ public final class CrispRanger implements Iterable<Integer>
      * <hr>
      * <i>
      * Note that range closure is fixed by implementation (Closed-Open for left, Open-Closed for right).<br>
-     * <span style="color: red">This method will return <u>{@link Optional#empty()}</u> if the specified direction
+     * <span style="color: f84b4b">This method will return <u>{@link Optional#empty()}</u> if the specified direction
      * is already at the integer boundary or if the direction flag is missing.</span>
      * </i>
      */

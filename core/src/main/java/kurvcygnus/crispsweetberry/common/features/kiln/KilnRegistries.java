@@ -122,7 +122,8 @@ public enum KilnRegistries implements IRegistrant
     
     @SubscribeEvent static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
     
-    @AutoI18n(value = {
+    @AutoI18n(
+        value = {
             "en_us = Kiln",
             "lol_us = big warn bokz",
             "zh_cn = 窑炉"
@@ -130,37 +131,46 @@ public enum KilnRegistries implements IRegistrant
         key = "kiln",
         group = "kiln"
     )
-    public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", resourceLocation -> new KilnBlock());
+    public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", KilnBlock::new);
     
     @RegisterToTab @AutoI18n(key = "kiln", overrides = "kiln") public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register(
-        "kiln", 
+        "kiln",
         resourceLocation -> new BlockItem(KILN_BLOCK.value(), new Item.Properties())
     );
     
     @SuppressWarnings("ConstantConditions")//! `build(Type<?>)`'s param is used for game save upgrade. Thus, this is unnecessary when your mod doesn't need to support it.
-    public static final Supplier<BlockEntityType<KilnBlockEntity>> KILN_BLOCK_ENTITY = KILN_BE_REGISTER.register("kiln_block_entity", () ->
-        BlockEntityType.Builder.of(KilnBlockEntity::new, KilnRegistries.KILN_BLOCK.value()).
-            build(null)//* https://docs.neoforged.net/docs/1.21.1/blockentities/ Reference
+    public static final Supplier<BlockEntityType<KilnBlockEntity>> KILN_BLOCK_ENTITY = KILN_BE_REGISTER.register("kiln_block_entity",
+        () ->
+            BlockEntityType.Builder.of(
+                KilnBlockEntity::new,
+                KilnRegistries.KILN_BLOCK.value()
+            ).build(null)//* https://docs.neoforged.net/docs/1.21.1/blockentities/ Reference
     );
     
-    public static final DeferredHolder<RecipeType<?>, KilnRecipeType> KILN_RECIPE_TYPE = KILN_RECIPE_REGISTER.register("kiln", () ->
-        KilnRecipeType.INST
+    public static final DeferredHolder<RecipeType<?>, KilnRecipeType> KILN_RECIPE_TYPE = KILN_RECIPE_REGISTER.register(
+        "kiln",
+        () -> KilnRecipeType.INST
     );
     
-    public static final DeferredHolder<RecipeSerializer<?>, KilnRecipeSerializer> KILN_SERIALIZER = KILN_SERIALIZER_REGISTER.register("kiln", KilnRecipeSerializer::new);
-    
-    public static final Supplier<MenuType<KilnMenu>> KILN_MENU_TYPE = KILN_MENU_REGISTER.register("kiln_menu", () ->
-        new MenuType<>(KilnMenu::new, FeatureFlags.DEFAULT_FLAGS)
+    public static final DeferredHolder<RecipeSerializer<?>, KilnRecipeSerializer> KILN_SERIALIZER = KILN_SERIALIZER_REGISTER.register(
+        "kiln", KilnRecipeSerializer::new
     );
     
-    @AutoI18n(value = {
+    public static final Supplier<MenuType<KilnMenu>> KILN_MENU_TYPE = KILN_MENU_REGISTER.register(
+        "kiln_menu",
+        () -> new MenuType<>(KilnMenu::new, FeatureFlags.DEFAULT_FLAGS)
+    );
+    
+    @AutoI18n(
+        value = {
             "en_us = Interactions with Kiln",
             "lol_us = HAW MANI TIMZ DID U GO 2 DA WARM BOKZ",
             "zh_cn = 与窑炉的交互次数"
         },
         key = "stat.crispsweetberry.interact_with_kiln"
     )
-    public static final Holder<ResourceLocation> INTERACT_WITH_KILN = KILN_STAT_REGISTER.register("interact_with_kiln", () -> 
-        DefinitionUtils.getModNamespacedLocation("interact_with_kiln")
+    public static final Holder<ResourceLocation> INTERACT_WITH_KILN = KILN_STAT_REGISTER.register(
+        "interact_with_kiln",
+        () -> DefinitionUtils.getModNamespacedLocation("interact_with_kiln")
     );
 }

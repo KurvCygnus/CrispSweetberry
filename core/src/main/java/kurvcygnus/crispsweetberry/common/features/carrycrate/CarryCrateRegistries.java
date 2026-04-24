@@ -139,13 +139,13 @@ public enum CarryCrateRegistries implements IRegistrant
     )
     public static final Holder<Block> CARRY_CRATE_BLOCK = CARRY_CRATE_BLOCK_REGISTER.register(
         "carry_crate",
-        resourceLocation -> new CarryCrateBlock()
+        CarryCrateBlock::new
     );
     
     @RegisterToTab @AutoI18n(overrides = "carry_crate", key = "carry_crate")
     public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register(
         "carry_crate",
-        resourceLocation -> new CarryCrateItem()
+        CarryCrateItem::new
     );
     
     @AutoI18n({
@@ -160,39 +160,24 @@ public enum CarryCrateRegistries implements IRegistrant
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryID>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
         "carry_crate.carry_id",
-        resourceLocation -> DataComponentType.<CarryID>builder().
-            persistent(CarryID.CODEC).
-            networkSynchronized(CarryID.STREAM_CODEC).
-            build()
+        DataComponentType.<CarryID>builder().persistent(CarryID.CODEC).networkSynchronized(CarryID.STREAM_CODEC)::build
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryData>> CARRY_CRATE_DATA = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
         "carry_crate.union_data",
-        resourceLocation -> DataComponentType.<CarryData>builder().
-            persistent(CarryData.CODEC).
-            networkSynchronized(CarryData.STREAM_CODEC).
-            build()
+        DataComponentType.<CarryData>builder().persistent(CarryData.CODEC).networkSynchronized(CarryData.STREAM_CODEC)::build
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CARRY_TICK_COUNTER = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
         "carry_crate.tick_counter",
-        resourceLocation -> DataComponentType.<Integer>builder().
-            persistent(Codec.INT).
-            networkSynchronized(ByteBufCodecs.INT).
-            build()
+        DataComponentType.<Integer>builder().persistent(Codec.INT).networkSynchronized(ByteBufCodecs.INT)::build
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STACKABLE_TOOL_DURABILITY =
-        CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-            "carry_crate.durability",
-            IStackableTool.getDataComponentTemplate()
-        );
+        CARRY_CRATE_DATA_COMPONENT_REGISTER.register("carry_crate.durability", IStackableTool.getDataComponentTemplate());
     
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(
         "carry_crate.carry_factor",
-        resourceLocation -> AttachmentType.builder(() -> 0F).
-            serialize(Codec.FLOAT).
-            sync(ByteBufCodecs.FLOAT).
-            build()
+        AttachmentType.builder(() -> 0F).serialize(Codec.FLOAT).sync(ByteBufCodecs.FLOAT)::build
     );
 }

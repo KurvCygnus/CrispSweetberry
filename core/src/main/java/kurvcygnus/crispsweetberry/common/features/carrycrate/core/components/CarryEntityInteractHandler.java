@@ -30,7 +30,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -53,8 +52,8 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         @NotNull LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
         @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
-        @Nullable CarryID optionalCarryID
-    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, optionalCarryID); }
+        @Nullable CarryID carryID
+    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, carryID); }
     
     @Override protected @NotNull HandleResult boxIn() 
     {
@@ -65,7 +64,7 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         
         if(!targetEntity.saveAsPassenger(tagData))
         {
-            LOGGER.error("Error: Can not get entity \"{}\"'s unionData, interaction failed.");
+            LOGGER.error("Error: Can not get entity \"{}\"'s data, interaction failed.", targetEntity);
             return HandleResult.FAILED;
         }
         
@@ -96,9 +95,10 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
             return handleException();
         
         final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        Objects.requireNonNull(data, MISUSE_FAIL_MSG);
         
-        return HandleResult.unbox(data, optionalCarryID);
+        assert data != null : MISUSE_FAIL_MSG;
+        
+        return HandleResult.unbox(data, carryID);
     }
     
     @Override protected @NotNull ResourceLocation getCarryResourceLocation() { return EntityType.getKey(getTargetEntity().getType()); }

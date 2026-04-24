@@ -38,10 +38,9 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext
 {
     private final BlockState placeState;
     
-    public StatedBlockPlaceContext(@NotNull UseOnContext context, @NotNull BlockState placeState)
+    public StatedBlockPlaceContext(@NotNull UseOnContext context, BlockState placeState)
     {
-        super(context);
-        Objects.requireNonNull(placeState, "Param \"placeState\" must not be null!");
+        super(Objects.requireNonNull(context, "Param \"context\" must not be null!"));
         this.placeState = placeState;
     }
     

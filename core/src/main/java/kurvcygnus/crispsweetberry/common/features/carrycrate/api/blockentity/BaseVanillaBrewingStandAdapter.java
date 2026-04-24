@@ -40,7 +40,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @param <E> Any blockEntity that inherits <u>{@link BrewingStandBlockEntity}</u>.
  * @author Kurv Cygnus
  * @since 1.0 Release
- * @implNote The access the vanilla unionData relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor mixin accessor}</u>.
+ * @implNote The access the vanilla data relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor mixin accessor}</u>.
  */
 public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity>
 extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>, ISimpleBlockEntityBreakLogic<E>, ISimpleBlockEntityPenaltyDropLogic<E>

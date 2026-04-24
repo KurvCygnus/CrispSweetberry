@@ -33,8 +33,8 @@ import java.util.function.BooleanSupplier;
  * </i>
  * )
  * enums as maximum.<br>
- * <span style="color: red">Exceeded count of enum instances will cause unexpected behavior.</span><br>
- * <i>Also, if this has involved persistent stuff, <span style="color: red">DO NOT CHANGE ENUM's ORDER, this breaks data validation.</span></i>
+ * <span style="color: f84b4b">Exceeded count of enum instances will cause unexpected behavior.</span><br>
+ * <i>Also, if this has involved persistent stuff, <span style="color: f84b4b">DO NOT CHANGE ENUM's ORDER, this breaks data validation.</span></i>
  * <br>
  * <i>(
  *     To be honestly, if you really want to do persistent stuff,

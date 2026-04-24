@@ -129,7 +129,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     /**
      * This method posts the <u>{@link CarryAdapterRegisterEvent Registration Event}</u>, and also processes
      * <u>{@link net.minecraft.world.entity.Entity Entity}</u>'s <u>{@link #autoEntityBind() auto registration}</u>.<br>
-     * After all of these are done, <span style="color: red">all registries will be frozen.</span>
+     * After all of these are done, <span style="color: f84b4b">all registries will be frozen.</span>
      */
     @SubscribeEvent static void register(@NotNull FMLLoadCompleteEvent event)
     {
@@ -463,9 +463,6 @@ public enum CarryRegistryManager implements ICarryRegistryView
      * If the translation key is found, <b>the text will be combined with the prefix for display.</b>
      */
     public @NotNull Optional<Component> getCombinedContentTranslation(@NotNull ResourceLocation resourceLocation)
-    {
-        requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");
-        return getContentTranslation(resourceLocation).map(CarryCrateConstants.UI__CARRY_CRATE__CONTENT_PREFIX.get()::append);
-    }
+        { return getContentTranslation(resourceLocation).map(CarryCrateConstants.UI__CARRY_CRATE__CONTENT_PREFIX.get()::append); }
     //endregion
 }

@@ -12,14 +12,12 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryPipelineTask;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.utils.base.lang.IResult;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
@@ -28,10 +26,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.util.TriState;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
 
 @ApiStatus.Internal
 enum CarryOperationExecutor
@@ -78,11 +74,11 @@ enum CarryOperationExecutor
                         This is a serious logic issue.
                         {}
                         """,
-                        ex.type,
+                        ex.type(),
                         ex.getMessage(),
                         ex.causeData.toString().replace("\n", "\n    "),
                         MetainfoConstants.FEEDBACK_MESSAGE,
-                        ex.wrappedException
+                        ex.wrappedException()
                     );
                     
                     return ex.causeData.result();
@@ -92,20 +88,19 @@ enum CarryOperationExecutor
     //endregion
     
     //region Sub pipelines
+    //*:=== Listener
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> listenerProcess(@NotNull CarryPipelineTask task)
     {
-        final @Nullable CarryID carryID = task.id();
-        final @Nullable CarryData carryData = task.data();
+        final @Nullable var carryID = task.id();
+        final @Nullable var carryData = task.data();
         final TriState listener = task.listener();
         
         if(carryID == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.listener(
-                    task.pass(),
-                    "Listener's mutation failed, because the CarryID's value is invalid.",
-                    IllegalArgumentException::new,
-                    listener
-                )
+            return BrokenCarryPipelineException.listener(
+                task.pass(),
+                "Listener's mutation failed, because the CarryID doesn't exist.",
+                IllegalArgumentException::new,
+                listener
             );
         
         switch(listener)
@@ -113,37 +108,33 @@ enum CarryOperationExecutor
             case TRUE ->
             {
                 if(carryData == null)
-                    return IResult.ofFailed(
-                        BrokenCarryPipelineException.listener(
-                            task.pass(),
-                            "Listener's mutation failed because the CarryData's value is invalid, which is required by insert.",
-                            IllegalArgumentException::new,
-                            TriState.TRUE
-                        )
+                    return BrokenCarryPipelineException.listener(
+                        task.pass(),
+                        "Listener's mutation failed, because the CarryData doesn't exist, which is required by insertion.",
+                        IllegalArgumentException::new,
+                        TriState.TRUE
                     );
                 
                 final Object creationData = carryData.unionData().getCreationData();
                 final var factory = CarryRegistryManager.INST.searchFactory(task.type(), creationData);
                 
                 if(factory.isEmpty())
-                    return IResult.ofFailed(
-                        BrokenCarryPipelineException.listener(
-                            task.pass(),
-                            "Cannot find %s's Carry Factory!".formatted(creationData),
-                            NoSuchElementException::new,
-                            TriState.TRUE
-                        )
+                    return BrokenCarryPipelineException.listener(
+                        task.pass(),
+                        "Cannot find %s's Carry Factory!".formatted(creationData),
+                        NoSuchElementException::new,
+                        TriState.TRUE
                     );
                 
-                task.listenerInsert().accept(carryID, factory.get());
+                task.insertListener(carryID, factory.get());
             }
-            case FALSE -> task.listenerRemove().accept(carryID);
+            case FALSE -> task.removeListener(carryID);
             default -> {}
         }
         
         if(!listener.isDefault())
         {
-            final CarryEngine.CarryListenerSaveData saveData = CarryEngine.CarryListenerSaveData.get(task.level().getServer());
+            final var saveData = CarryEngine.CarryListenerSaveData.get(task.level().getServer());
             LOGGER.when(!saveData.isDirty()).debug("Listener data changed. Mark saveData as dirtied.");
             saveData.setDirty();
         }
@@ -151,30 +142,28 @@ enum CarryOperationExecutor
         return IResult.of(task.success());
     }
     
+    //*:=== Component
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> componentProcess(@NotNull CarryPipelineTask task)
     {
-        final @Nullable CarryID carryID = task.id();
-        final @Nullable CarryData carryData = task.data();
+        final @Nullable var carryID = task.id();
+        final @Nullable var carryData = task.data();
         final TriState component = task.component();
         
         if(carryID == null || carryData == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.component(
-                    task.pass(),
-                    "Component mutation failed, because part, or all of the parameters' value are invalid. id: %s, data: %s".formatted(carryID, carryData),
-                    IllegalArgumentException::new,
-                    component
-                )
+            return BrokenCarryPipelineException.component(
+                task.pass(),
+                "Component mutation failed, because part, or all of the parameters' value are invalid. id: %s, data: %s".formatted(carryID, carryData),
+                IllegalArgumentException::new,
+                component
             );
         
         final ItemStack crate = task.crate();
-        final boolean producesCopy = component.isTrue() && crate.getCount() > 1;
-        LOGGER.debug("Current component process: Copy {}.", producesCopy ? "created" : "ignored");
         
         switch(component)
         {
             case TRUE ->
             {
+                final boolean producesCopy = component.isTrue() && crate.getCount() > 1;
                 final ItemStack crateToMutate = producesCopy ? copyCrate(crate) : crate;
                 
                 crateToMutate.set(CarryCrateRegistries.CARRY_ID.get(), carryID);
@@ -203,6 +192,7 @@ enum CarryOperationExecutor
         return IResult.of(task.success());
     }
     
+    //*:=== Target
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> targetProcess(@NotNull CarryPipelineTask task)
     {
         //* This can't be done in [[CarryOperationExecutor#componentProcess]],
@@ -236,16 +226,17 @@ enum CarryOperationExecutor
         final var level = task.level();
         final var pos = task.interactPos();
         
+        if(task.type().equals(CarryType.BLOCK_ENTITY))
+            level.removeBlockEntity(pos);
+        
         if(!level.setBlockAndUpdate(pos, Blocks.VOID_AIR.defaultBlockState()))
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.pass(),
-                    "Unable to change position <%d, %d, %d>'s blockstate! Original Blockstate: %s".
-                        formatted(pos.getX(), pos.getY(), pos.getZ(), level.getBlockState(pos).toString()),
-                    IllegalAccessError::new,
-                    task.type(),
-                    TriState.TRUE
-                )
+            return BrokenCarryPipelineException.target(
+                task.pass(),
+                "Unable to change position <%d, %d, %d>'s blockstate! Original Blockstate: %s".
+                    formatted(pos.getX(), pos.getY(), pos.getZ(), level.getBlockState(pos).toString()),
+                IllegalAccessError::new,
+                task.type(),
+                TriState.TRUE
             );
         
         level.playSound(null, pos, SoundEvents.SCAFFOLDING_STEP, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -255,36 +246,42 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> blocklikeTargetRelease(@NotNull CarryPipelineTask task)
     {
-        final CarryData carryData = task.data();
+        final var carryData = task.data();
         final @Nullable var contextFunction = task.placeContext();
         
         if(carryData == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.pass(),
-                    "Carry Crate's content release failed because the CarryData's value is invalid, which is required by insert.",
-                    IllegalArgumentException::new,
-                    task.type(),
-                    TriState.FALSE
-                )
+            return BrokenCarryPipelineException.target(
+                task.pass(),
+                "Carry Crate's content release failed because the CarryData does not exist, which is required by insertion.",
+                IllegalArgumentException::new,
+                task.type(),
+                TriState.FALSE
             );
         
         if(contextFunction == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.pass(),
-                    "The Function that creating contexts placing blocks is not present!",
-                    IllegalArgumentException::new,
-                    task.type(),
-                    TriState.FALSE
-                )
+            return BrokenCarryPipelineException.target(
+                task.pass(),
+                "The Function that creating contexts placing blocks is not present!",
+                IllegalArgumentException::new,
+                task.type(),
+                TriState.FALSE
             );
         
-        final BlockState stateToPlace = getBlocklikeState(carryData, task.type());
+        final var stateToPlace = switch(task.type())
+        {
+            case CarryType that when
+                that.equals(CarryType.BLOCK) && carryData.unionData() instanceof CarryData.CarryBlockDataHolder holder ->
+                holder.getState();
+            case CarryType that when
+                that.equals(CarryType.BLOCK_ENTITY) && carryData.unionData() instanceof CarryData.CarryBlockEntityDataHolder holder ->
+                holder.getState();
+            default -> throw new IllegalArgumentException("Assertion failed: CarryType and CarryData's type doesn't match!");
+        };
+        
         final InteractionResult placeResult = task.placeContext().apply(stateToPlace).performPlace(false);
         
         if(placeResult.equals(InteractionResult.FAIL))
-            return IResult.of(task.fail());
+            return this.listenerProcess(task.insert()).flatMap(CarryOperationExecutor.INST::componentProcess).map(CarryPipelineTask::fail);
         
         if(task.type().equals(CarryType.BLOCK_ENTITY))
             return blockEntityReleaseExtra(task);
@@ -294,40 +291,36 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> blockEntityReleaseExtra(@NotNull CarryPipelineTask task)
     {
-        final @Nullable BlockEntityType<?> blockEntityType = task.blockEntityType();
+        final @Nullable var blockEntityType = task.blockEntityType();
         
         if(blockEntityType == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.pass(),
-                    "The BlockEntityType of this blockEntity is not present!",
-                    IllegalArgumentException::new,
-                    CarryType.BLOCK_ENTITY,
-                    TriState.FALSE
-                )
+            return BrokenCarryPipelineException.target(
+                task.pass(),
+                "The BlockEntityType of this blockEntity is not present!",
+                IllegalArgumentException::new,
+                CarryType.BLOCK_ENTITY,
+                TriState.FALSE
             );
         
-        assert task.data() != null;
+        assert task.data() != null : "UwU";
         final CarryData.CarryBlockEntityDataHolder holder = task.data().unionData();
-        final BlockState stateToPlace = holder.getState();
-        final BlockPos pos = task.interactPos();
-        final ServerLevel level = task.level();
-        final @Nullable BlockEntity blockEntity = blockEntityType.create(pos, stateToPlace);
+        final var stateToPlace = holder.getState();
+        final var pos = task.interactPos();
+        final var level = task.level();
+        final @Nullable var blockEntity = blockEntityType.create(pos, stateToPlace);
         
         if(blockEntity == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.fail(),
-                    """
-                        Failed to create blockEntity "%s"'s adapter.
-                        This usually means the blockEntity's type registration itself has dataflow issues,
-                        or this method is called at improper time.
-                        """.
-                        formatted(blockEntityType.toString()),
-                    IllegalStateException::new,
-                    CarryType.BLOCK_ENTITY,
-                    TriState.FALSE
-                )
+            return BrokenCarryPipelineException.target(
+                task.fail(),
+                """
+                    Failed to create blockEntity "%s"'s adapter.
+                    This usually means the blockEntity's type registration itself has dataflow issues,
+                    or this method is called at improper time.
+                    """.
+                    formatted(blockEntityType.toString()),
+                IllegalStateException::new,
+                CarryType.BLOCK_ENTITY,
+                TriState.FALSE
             );
         
         blockEntity.loadCustomOnly(holder.getTagData(), level.registryAccess());
@@ -341,14 +334,12 @@ enum CarryOperationExecutor
         final @Nullable LivingEntity entity = task.entity();
         
         if(entity == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.pass(),
-                    "Illegal operation: The entity to capture does not exist!",
-                    IllegalArgumentException::new,
-                    CarryType.ENTITY,
-                    TriState.TRUE
-                )
+            return BrokenCarryPipelineException.target(
+                task.pass(),
+                "Illegal operation: The entity to capture does not exist!",
+                IllegalArgumentException::new,
+                CarryType.ENTITY,
+                TriState.TRUE
             );
         
         entity.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
@@ -358,35 +349,49 @@ enum CarryOperationExecutor
     private @NotNull IResult<CarryPipelineTask, BrokenCarryPipelineException> entityTargetRelease(@NotNull CarryPipelineTask task)
     {
         final @Nullable CarryData carryData = task.data();
+        final @Nullable var contextGetter = task.placeContext();
         
         if(carryData == null)
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.pass(),
-                    "Carry Crate's content release failed because the CarryData's value is invalid, which is required by insert.",
-                    IllegalArgumentException::new,
-                    CarryType.ENTITY,
-                    TriState.FALSE
-                )
+            return BrokenCarryPipelineException.target(
+                task.pass(),
+                "Carry Crate's content release failed because the CarryData's value is invalid, which is required by insert.",
+                IllegalArgumentException::new,
+                CarryType.ENTITY,
+                TriState.FALSE
             );
         
-        final ServerLevel level = task.level();
+        if(contextGetter == null)
+            return BrokenCarryPipelineException.target(
+                task.fail(),
+                "Carry Crate's content release failed because this interaction is triggered with an unexpected mean!",
+                IllegalStateException::new,
+                CarryType.ENTITY,
+                TriState.FALSE
+            );
+        
+        final var level = task.level();
         final CarryData.CarryEntityDataHolder holder = carryData.unionData();
-        final Optional<Entity> entityToSpawn = EntityType.create(holder.getTagData(), level);
+        final var entityToSpawn = EntityType.create(holder.getTagData(), level);
         
         if(entityToSpawn.isEmpty())
-            return IResult.ofFailed(
-                BrokenCarryPipelineException.target(
-                    task.fail(),
-                    "The entity that CarryData holds doesn't exist!",
-                    IllegalArgumentException::new,
-                    CarryType.ENTITY,
-                    TriState.FALSE
-                )
+            return BrokenCarryPipelineException.target(
+                task.fail(),
+                "The entity that CarryData holds doesn't exist!",
+                IllegalArgumentException::new,
+                CarryType.ENTITY,
+                TriState.FALSE
             );
         
-        final BlockPos spawnPos = task.interactPos();
-        final Entity entity = entityToSpawn.get();
+        //! Here, we use [[UseOnContext]] to get a usable position,
+        //! because [[CarryPipelineTask#interactPos]] doesn't contain [[Direction]], and that is nullable, which doesn't worth be an independent field.
+        //! Notes that this method can only be called by [[CarryCrateItem#useOn]], it does has [[UseOnContext]].
+        //! And since we doesn't need to place any blocks, we create its children class [[StatedBlockPlaceContext]] with `null`.
+        final @Nullable var spawnPos = getSafePosition(level, contextGetter.apply(null), entityToSpawn.get());
+        
+        if(spawnPos == null)
+            return this.listenerProcess(task.insert()).flatMap(CarryOperationExecutor.INST::componentProcess).map(CarryPipelineTask::fail);
+        
+        final var entity = entityToSpawn.get();
         entity.moveTo(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
         level.addFreshEntity(entity);
         
@@ -405,22 +410,15 @@ enum CarryOperationExecutor
         return newCrate;
     }
     
-    private static @NotNull BlockState getBlocklikeState(@NotNull CarryData data, @NotNull CarryType type)
+    private static @Nullable BlockPos getSafePosition(@NotNull Level level, @NotNull UseOnContext context, @NotNull Entity entity)
     {
-        return switch(type)
-        {
-            case BLOCK ->
-            {
-                final CarryData.CarryBlockDataHolder holder = data.unionData();
-                yield holder.getState();
-            }
-            case BLOCK_ENTITY ->
-            {
-                final CarryData.CarryBlockEntityDataHolder holder = data.unionData();
-                yield holder.getState();
-            }
-            case ENTITY -> throw new IllegalArgumentException("Assertion failed: Param \"type\" must not be ENTITY!");
-        };
+        final var targetPos = context.getClickedPos();
+        final var entityAABB = entity.getType().getSpawnAABB(targetPos.getX(), targetPos.getY(), targetPos.getZ());
+        
+        if(level.noCollision(entityAABB))
+            return targetPos;
+        
+        return null;
     }
     //endregion
 }

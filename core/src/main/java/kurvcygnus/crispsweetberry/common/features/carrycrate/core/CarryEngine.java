@@ -66,6 +66,9 @@ import java.util.function.BiConsumer;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData.CarryBlockEntityDataHolder;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.*;
 
+//? TODO: Take Middle Click Copy into account, that shit breaks the uniqueness of [[CarryID]].
+//? FIX: Somehow, when capturing entity with one carryCrate, component persistent won't work.
+//? According to debugging, this bug doesn't happen before the end of [[CarryCrateItem#interactLivingEntity]]. SHIT, Minecraft's code is awesome.
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryEngine
 {
@@ -108,7 +111,7 @@ public enum CarryEngine
         
         @Override public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
         {
-            try(var ignored = LOGGER.pushMarker("PERSISTENT"))
+            try(final var ignored = LOGGER.pushMarker("PERSISTENT"))
             {
                 final ListTag entryList = new ListTag();
                 
@@ -312,7 +315,6 @@ public enum CarryEngine
                 case CarryBlocklikeInteractContext blocklike ->
                 {
                     targetBlockState = level.getBlockState(interactPos);
-                    targetEntity = null;
                     
                     if(optionalPlayer.isEmpty() || targetBlockState.is(Blocks.VOID_AIR))
                     {
@@ -324,6 +326,7 @@ public enum CarryEngine
                                 orElse("This interaction isn't driven by player.")
                         );
                         
+                        targetEntity = null;
                         targetBlockEntity = null;
                         useOnContext = null;
                         yield null;
@@ -331,23 +334,36 @@ public enum CarryEngine
                     
                     useOnContext = blocklike.context();
                     
-                    if(carryData != null)
+                    yield switch(carryData)
                     {
-                        targetBlockEntity = carryData.unionData() instanceof CarryBlockEntityDataHolder holder ?
-                            holder.getType().create(interactPos, holder.getState()) :
-                            null;
-                        
-                        yield carryData.unionData().getBoundType();
-                    }
-                    else
-                    {
-                        targetBlockEntity = context.getLevel().getBlockEntity(interactPos);
-                        final CarryType result = targetBlockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
-                        
-                        //! As you can see, once the [[CarryType]] is BLOCK_ENTITY, "targetBlockEntity" won't be null.
-                        assert targetBlockEntity != null;
-                        yield validateBlocklikeAction(result, targetBlockEntity, targetBlockState);
-                    }
+                        case null ->
+                        {
+                            targetEntity = null;
+                            
+                            targetBlockEntity = context.getLevel().getBlockEntity(interactPos);
+                            final CarryType result = targetBlockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
+                            
+                            //! As you can see, once the [[CarryType]] is BLOCK_ENTITY, "targetBlockEntity" won't be null.
+                            assert targetBlockEntity != null : "UwU";
+                            yield validateBlocklikeAction(result, targetBlockEntity, targetBlockState);
+                        }
+                        case CarryData that when that.unionData() instanceof CarryData.CarryEntityDataHolder holder ->
+                        {
+                            targetEntity = (LivingEntity) holder.getType().create(level);
+                            targetBlockEntity = null;
+                            yield CarryType.ENTITY;
+                        }
+                        default ->
+                        {
+                            targetEntity = null;
+                            
+                            targetBlockEntity = carryData.unionData() instanceof CarryBlockEntityDataHolder holder ?
+                                holder.getType().create(interactPos, holder.getState()) :
+                                null;
+
+                            yield carryData.unionData().getBoundType();
+                        }
+                    };
                 }
                 case CarryEntityInteractContext entity ->
                 {
