@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BaseContainerAccessor",
+    "CarryBlockEntityValidationPasser",
     "CarryContainerQuickMoveInterceptInjection",
     "CarrySlotMoveInterceptInjection",
     "VanillaBrewingStandAccessor",

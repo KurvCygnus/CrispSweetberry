@@ -16,7 +16,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.Car
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.CarryBlockInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.CarryEntityInteractHandler;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
@@ -25,7 +24,6 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -35,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * A simple enum for type matching, factory querying, and serialization.
@@ -93,8 +90,7 @@ import java.util.function.Function;
         @Nullable BlockState targetState,
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
-        @Nullable UseOnContext context,
-        @Nullable CarryID optionalUUID
+        @Nullable CarryID carryID
     )
     {
         switch(this)
@@ -105,7 +101,6 @@ import java.util.function.Function;
             case BLOCK:
                 Objects.requireNonNull(targetPos, "Param \"targetPos\" must not be null!");
                 Objects.requireNonNull(targetState, "Param \"targetState\" must not be null!");
-                Objects.requireNonNull(context, "Param \"context\" must not be null!");
                 break;
             case ENTITY:
                 Objects.requireNonNull(targetEntity, "Param \"targetEntity\" must not be null!");
@@ -120,10 +115,7 @@ import java.util.function.Function;
             targetState,
             targetEntity,
             targetBlockEntity,
-            context != null ?
-                blockState -> new StatedBlockPlaceContext(context, blockState) :
-                null,
-            optionalUUID
+            carryID
         );
     }
     
@@ -147,8 +139,7 @@ import java.util.function.Function;
             @Nullable BlockState targetState,
             @Nullable LivingEntity targetEntity,
             @Nullable BlockEntity targetBlockEntity,
-            @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
-            @Nullable CarryID optionalUUID
+            @Nullable CarryID carryID
         );
     }
 }

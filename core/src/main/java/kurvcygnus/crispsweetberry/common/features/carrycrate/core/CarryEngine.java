@@ -90,6 +90,8 @@ public enum CarryEngine
             }
         );
     
+    private static final ThreadLocal<Boolean> IS_INTERACTING_WITH_BE = ThreadLocal.withInitial(() -> false);
+    
     private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     //endregion
     
@@ -314,6 +316,7 @@ public enum CarryEngine
             {
                 case CarryBlocklikeInteractContext blocklike ->
                 {
+                    //? TODO: Edit needed.
                     targetBlockState = level.getBlockState(interactPos);
                     
                     if(optionalPlayer.isEmpty() || targetBlockState.is(Blocks.VOID_AIR))
@@ -357,10 +360,14 @@ public enum CarryEngine
                         {
                             targetEntity = null;
                             
-                            targetBlockEntity = carryData.unionData() instanceof CarryBlockEntityDataHolder holder ?
-                                holder.getType().create(interactPos, holder.getState()) :
-                                null;
-
+                            if(carryData.unionData() instanceof CarryBlockEntityDataHolder holder)
+                            {
+                                IS_INTERACTING_WITH_BE.set(true);
+                                targetBlockEntity = holder.getType().create(interactPos, holder.getState());
+                            }
+                            else
+                                targetBlockEntity = null;
+                            
                             yield carryData.unionData().getBoundType();
                         }
                     };
@@ -377,8 +384,12 @@ public enum CarryEngine
                 }
             };
             
-            if(action == null)
-                return null;
+            switch(action)
+            {
+                case null -> { return null; }
+                case BLOCK_ENTITY -> IS_INTERACTING_WITH_BE.set(true);
+                default -> {}
+            }
             
             handle.changeMarker("ACTION_SELECT");
             LOGGER.when(!level.isClientSide).debug("Current action: {}.", action.name());
@@ -407,7 +418,6 @@ public enum CarryEngine
                 targetBlockState,
                 targetEntity,
                 targetBlockEntity,
-                useOnContext,
                 carryID
             );
             
@@ -415,7 +425,7 @@ public enum CarryEngine
             //endregion
             
             //region Post-Process
-            return CarryOperationExecutor.INST.execute(
+            final var interactResult = CarryOperationExecutor.INST.execute(
                 new CarryPipelineTask(
                     action,
                     result.getListenerState(),
@@ -435,12 +445,19 @@ public enum CarryEngine
                     InteractionResult.PASS
                 )
             );
+            
+            if(action.equals(CarryType.BLOCK_ENTITY))
+                IS_INTERACTING_WITH_BE.set(false);
+            
+            return interactResult;
             //endregion
         }
     }
     //endregion
     
-    //region Helpers
+    //region API & Helpers
+    public boolean isInteracting() { return IS_INTERACTING_WITH_BE.get(); }
+    
     private static @Nullable AbstractCarryAdapter<?> getCarryAdapter(
         @NotNull HashMap<CarryID, ? extends ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> map,
         @NotNull CarryID carryID

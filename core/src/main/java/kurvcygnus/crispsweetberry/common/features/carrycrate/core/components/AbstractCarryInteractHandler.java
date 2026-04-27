@@ -14,7 +14,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.utils.base.trait.IBitmaskedEnum;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
@@ -35,7 +34,6 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.OperationType.*;
@@ -69,7 +67,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
     private final @Nullable BlockState targetState;
     private final @Nullable LivingEntity targetEntity;
     private final @Nullable BlockEntity targetBlockEntity;
-    private final @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator;
     protected final @Nullable CarryID carryID;
     protected final boolean hasData;
     
@@ -81,7 +78,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         @Nullable BlockState targetState,
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
-        @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
         @Nullable CarryID carryID
     )
     {
@@ -96,7 +92,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
         this.targetState       = targetState;
         this.targetEntity      = targetEntity;
         this.targetBlockEntity = targetBlockEntity;
-        this.contextGenerator  = contextGenerator;
         this.carryID = carryID;
         this.hasData           = this.carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get());
     }
@@ -201,20 +196,6 @@ public abstract sealed class AbstractCarryInteractHandler permits CarryBlockEnti
             "Assertion failed: \"targetBlockEntity\" must not be null. This only means the code implementation has flawed, or get misused."
         );
         return targetBlockEntity;
-    }
-    
-    /**
-     * @apiNote <span style="color: f84b4b">Throws <u>{@link NullPointerException NPE}</u> the caller is <u>{@link CarryEntityInteractHandler}</u>.</span>
-     */
-    protected final @NotNull StatedBlockPlaceContext generatePlaceContext(@NotNull BlockState blockState)
-    {
-        requireNonNull(blockState, "Param \"blockState\" must not be null!");
-        requireNonNull(
-            contextGenerator,
-            "Assertion failed: \"placeAction\" must not be null. This only means the code implementation has flawed, or get misused."
-        );
-        
-        return contextGenerator.apply(blockState);
     }
     
     /**

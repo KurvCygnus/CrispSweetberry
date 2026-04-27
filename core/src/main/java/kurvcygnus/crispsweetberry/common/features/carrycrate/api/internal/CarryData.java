@@ -373,7 +373,7 @@ public final class CarryData
             super(penaltyRate);
             
             Objects.requireNonNull(state, "Param \"state\" must not be null!");
-            Objects.requireNonNull(type, "Param \"componentExecutionType\" must not be null!");
+            Objects.requireNonNull(type, "Param \"type\" must not be null!");
             Objects.requireNonNull(tagData, "Param \"tagData\" must not be null!");
             
             this.state   = state;

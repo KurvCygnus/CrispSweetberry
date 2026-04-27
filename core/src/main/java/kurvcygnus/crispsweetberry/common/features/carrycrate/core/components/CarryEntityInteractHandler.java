@@ -15,7 +15,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryD
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * The handler of <u>{@link LivingEntity Entity}</u>.
@@ -51,9 +49,8 @@ public final class CarryEntityInteractHandler extends AbstractCarryInteractHandl
         @Nullable BlockState targetState,
         @NotNull LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
-        @Nullable Function<BlockState, StatedBlockPlaceContext> contextGenerator,
         @Nullable CarryID carryID
-    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, contextGenerator, carryID); }
+    ) { super(level, player, carryCrate, targetPos, targetState, targetEntity, targetBlockEntity, carryID); }
     
     @Override protected @NotNull HandleResult boxIn() 
     {
