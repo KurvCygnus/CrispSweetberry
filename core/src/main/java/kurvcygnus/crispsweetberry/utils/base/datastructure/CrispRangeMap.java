@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.utils.base.datastructure;
 
-import kurvcygnus.crispsweetberry.utils.base.lang.NotImplementedYetException;
+import kurvcygnus.crispsweetberry.utils.base.exceptions.NotImplementedYetException;
 import kurvcygnus.crispsweetberry.utils.base.lang.Pair;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;

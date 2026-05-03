@@ -4,14 +4,14 @@
   "package": "kurvcygnus.crispsweetberry.common.features.ttorches.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "SoulFireBurnInjection",
-    "SoulFireExtinguishInjection"
+    "SoulFireBurnSynchronizer",
+    "SoulFireExtinguishManager"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "SoulFireScreenVisualInjection",
-    "SoulFireVisualEffectInjection"
+    "SoulFireScreenVisualRender",
+    "SoulFireVisualEffectRender"
   ]
 }

@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.mixins;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
+import kurvcygnus.crispsweetberry.utils.base.trait.IMixinCaster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -29,20 +30,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownSoulTorchEntity Another tag trigger
- * @see SoulFireExtinguishInjection Behave Logics
- * @see SoulFireScreenVisualInjection Screen Visual
- * @see SoulFireVisualEffectInjection Appearance Visual
+ * @see SoulFireExtinguishManager Behave Logics
+ * @see SoulFireScreenVisualRender Screen Visual
+ * @see SoulFireVisualEffectRender Appearance Visual
  * @see SoulFireTagPayloads.SoulFireTagPayloadHandler#attachTag Sync handle 
  */
 @Mixin(BaseFireBlock.class)
-public final class SoulFireBurnInjection
+public abstract class SoulFireBurnSynchronizer implements IMixinCaster<BaseFireBlock>
 {
     @Inject(method = "entityInside", at = @At("HEAD"))
     private void soulFire(BlockState state, @NotNull Level level, BlockPos pos, @NotNull Entity entity, @NotNull CallbackInfo callbackInfo)
     {
-        final BaseFireBlock block = (BaseFireBlock)(Object) this;
-        
-        if(level.isClientSide || !(block instanceof SoulFireBlock) || TTorchUtilCollection.isLitBySoulFire(entity))
+        if(level.isClientSide || !_$csb_lib_testSelf(SoulFireBlock.class::isInstance) || TTorchUtilCollection.isLitBySoulFire(entity))
             return;
         
         entity.getPersistentData().putByte(TTorchUtilCollection.SOUL_FIRE_PERSISTENT_TAG, (byte) 1);

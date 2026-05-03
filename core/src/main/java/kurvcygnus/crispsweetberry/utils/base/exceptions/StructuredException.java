@@ -6,13 +6,13 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.base.lang;
+package kurvcygnus.crispsweetberry.utils.base.exceptions;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class StructuredException extends RuntimeException
+public class StructuredException extends RuntimeException implements IStructuredThrowable
 {
     private final Throwable wrappedException;
     private final String type;
@@ -30,9 +30,9 @@ public class StructuredException extends RuntimeException
         this.type = checkType(type);
     }
     
-    public @NotNull Throwable wrappedException() { return wrappedException; }
+    @Override public @NotNull Throwable wrappedException() { return wrappedException; }
     
-    public @NotNull String type() { return type; }
+    @Override public @NotNull String type() { return type; }
     
     private static @NotNull Throwable checkEx(@NotNull Throwable wrappedException)
     {
@@ -53,4 +53,11 @@ public class StructuredException extends RuntimeException
         
         return type;
     }
+    
+    /**
+     * @implNote The original <u>{@link Throwable#getMessage() method}</u>'s result is <b>nullable</b>(<i>despite it has no annotation, and usually won't happen</i>),
+     * and this exception's message is clearly 100% NotNull, so we rewrite this method with <u>{@link NotNull annotation}</u>, with also a {@code final} attribute
+     * to prevent message edit.
+     */
+    @Override public final @NotNull String getMessage() { return super.getMessage(); }
 }

@@ -74,18 +74,16 @@ public interface ICarryRegistryView
     );
     
     @FunctionalInterface non-sealed interface ICarryBlockEntityAdapterFactory<E extends BlockEntity, A extends AbstractBlockEntityCarryAdapter<? extends E>>
-    extends IBaseCarryAdapterFactory<E, A> 
+    extends IBaseCarryAdapterFactory<E, A>
     {
         @Override @NotNull A create(E blockEntity);
-        
         @Override default @NotNull CarryType getType() { return CarryType.BLOCK_ENTITY; }
     }
     
     @FunctionalInterface non-sealed interface ICarryBlockAdapterFactory<B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
-    extends IBaseCarryAdapterFactory<B, A> 
+    extends IBaseCarryAdapterFactory<B, A>
     {
         @Override @NotNull A create(B block);
-        
         @Override default @NotNull CarryType getType() { return CarryType.BLOCK; }
     }
     
@@ -93,7 +91,6 @@ public interface ICarryRegistryView
     extends IBaseCarryAdapterFactory<E, A>
     {
         @Override @NotNull A create(E entity);
-        
         @Override default @NotNull CarryType getType() { return CarryType.ENTITY; }
     }
     

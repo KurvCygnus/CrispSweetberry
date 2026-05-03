@@ -34,7 +34,7 @@ import java.util.Objects;
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
  */
 @Mixin(PlayerRenderer.class)
-public final class SpyglassUsePoseInjection
+public abstract class SpyglassUsePoseInjection
 {
     @Inject(method = "getArmPose", at = @At("HEAD"), cancellable = true) private static void 
     armPoseInject(@NotNull AbstractClientPlayer player, @NotNull InteractionHand hand, @NotNull CallbackInfoReturnable<HumanoidModel.ArmPose> callback)

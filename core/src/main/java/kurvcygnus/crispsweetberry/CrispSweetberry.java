@@ -120,7 +120,7 @@ public final class CrispSweetberry
                         
                         FunctionalUtils.throwIf(
                             !LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()),
-                            String.format("Invalid priority: %s", registrant.getPriority().priority()),
+                            "Invalid priority: %s".formatted(registrant.getPriority().priority()),
                             IllegalArgumentException::new
                         );
                         

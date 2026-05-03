@@ -24,6 +24,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 /**
@@ -70,7 +71,7 @@ public final class CarriableBlockEntityExtensions
             @NotNull ServerLevel level,
             @NotNull BlockPos pos,
             @NotNull ServerPlayer player,
-            @NotNull String carryID
+            @Nullable String uuid
         ) {}
     }
     

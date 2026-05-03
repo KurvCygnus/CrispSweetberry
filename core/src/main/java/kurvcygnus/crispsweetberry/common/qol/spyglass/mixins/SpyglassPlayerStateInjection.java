@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
  */
 @Mixin(Player.class)
-public final class SpyglassPlayerStateInjection
+public abstract class SpyglassPlayerStateInjection
 {
     @Inject(method = "isScoping", at = @At("RETURN"), cancellable = true)
     private void scopeInject(@NotNull CallbackInfoReturnable<Boolean> callbackInfoReturnable)

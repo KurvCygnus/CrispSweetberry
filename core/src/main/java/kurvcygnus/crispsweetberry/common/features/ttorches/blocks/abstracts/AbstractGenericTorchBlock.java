@@ -74,7 +74,7 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     private final boolean isWallTorch;
     protected final T behavior;
     
-    @SuppressWarnings("DataFlowIssue")//! We don't use "flameParticle" for display, and its componentExecutionType is "SimpleParticleType", which is not universal, and SUCKS.
+    @SuppressWarnings("DataFlowIssue")//! We don't use "flameParticle" for display, and its componentExecutionType is [[SimpleParticleType]], which is not universal, and SUCKS.
     public AbstractGenericTorchBlock(@NotNull Properties properties, @NotNull T behavior, boolean isWallTorch)
     {
         super(null, requireNonNull(properties, "Param \"properties\" must not be null!"));

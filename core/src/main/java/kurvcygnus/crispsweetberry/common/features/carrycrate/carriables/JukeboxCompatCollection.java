@@ -48,6 +48,9 @@ public final class JukeboxCompatCollection
         
         @Override protected void onCarriedSequence(@NotNull CarriedContext context, @NotNull JukeboxBlockEntity blockEntity)
         {
+            if(context.uuid() == null)
+                return;
+            
             final ItemStack disc = blockEntity.getTheItem();
             final JukeboxSong song = blockEntity.getSongPlayer().getSong();
             
@@ -56,7 +59,7 @@ public final class JukeboxCompatCollection
             
             final int songID = context.level().registryAccess().registryOrThrow(Registries.JUKEBOX_SONG).getId(song);
             
-            CrispMusicGroover.INST.addMusic(disc, songID, blockEntity.getSongPlayer().getTicksSinceSongStarted(), song.lengthInTicks(), context.carryID());
+            CrispMusicGroover.INST.addMusic(disc, songID, blockEntity.getSongPlayer().getTicksSinceSongStarted(), song.lengthInTicks(), context.uuid());
         }
         
         @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull JukeboxBlockEntity blockEntity) { return NO_PENALTY; }

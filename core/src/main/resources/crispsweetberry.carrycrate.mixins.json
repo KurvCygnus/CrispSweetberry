@@ -6,8 +6,8 @@
   "mixins": [
     "BaseContainerAccessor",
     "CarryBlockEntityValidationPasser",
-    "CarryContainerQuickMoveInterceptInjection",
-    "CarrySlotMoveInterceptInjection",
+    "CarryContainerQuickMoveInterceptor",
+    "CarrySlotMoveInterceptor",
     "VanillaBrewingStandAccessor",
     "VanillaFurnaceAccessor"
   ],

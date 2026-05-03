@@ -61,7 +61,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
         }
         
         try { this.blockEntity = (E) blockEntity; }
-        catch(ClassCastException e) 
+        catch(ClassCastException e)
         {
             throw new IllegalArgumentException(
                 "Adapter Type Mismatch! Attempted to bind adapter to blockEntity: %s, but this adapter expects: %s".

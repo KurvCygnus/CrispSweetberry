@@ -16,7 +16,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryT
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.utils.base.extension.StackableToolBlockItem;
+import kurvcygnus.crispsweetberry.utils.base.extensions.StackableToolBlockItem;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

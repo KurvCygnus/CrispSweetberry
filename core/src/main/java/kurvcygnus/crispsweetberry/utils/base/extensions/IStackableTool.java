@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.base.extension;
+package kurvcygnus.crispsweetberry.utils.base.extensions;
 
 import com.mojang.serialization.Codec;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;

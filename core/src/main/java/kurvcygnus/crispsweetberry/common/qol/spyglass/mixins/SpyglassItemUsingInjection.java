@@ -38,7 +38,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * @see kurvcygnus.crispsweetberry.common.qol.spyglass.server.events.SpyglassItemBoundaryCheckEvents Boundary Cases Handle
  */
 @Mixin(Minecraft.class)
-public final class SpyglassItemUsingInjection
+public abstract class SpyglassItemUsingInjection
 {
     @Shadow public MultiPlayerGameMode gameMode;
     
@@ -52,7 +52,7 @@ public final class SpyglassItemUsingInjection
     }
     
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
-    private void interceptAttack(CallbackInfoReturnable<Boolean> callbackInfoReturnable)
+    private void interceptAttack(@NotNull CallbackInfoReturnable<Boolean> callbackInfoReturnable)
     {
         if(!SpyglassQuickZoomEvent.isZooming())
             return;
@@ -61,7 +61,7 @@ public final class SpyglassItemUsingInjection
     }
     
     @Inject(method = "continueAttack", at = @At("HEAD"), cancellable = true)
-    private void onContinueAttack(boolean leftClick, CallbackInfo callbackInfo)
+    private void onContinueAttack(boolean leftClick, @NotNull CallbackInfo callbackInfo)
     {
         if(!SpyglassQuickZoomEvent.isZooming())
             return;

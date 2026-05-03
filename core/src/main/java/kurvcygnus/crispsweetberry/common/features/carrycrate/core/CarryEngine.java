@@ -21,16 +21,13 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView.ICarryBlockEntityAdapterFactory;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView.ICarryEntityAdapterFactory;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.components.AbstractCarryInteractHandler.HandleResult;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryPipelineTask;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.base.extension.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.utils.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -38,6 +35,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -69,6 +67,29 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.Ca
 //? TODO: Take Middle Click Copy into account, that shit breaks the uniqueness of [[CarryID]].
 //? FIX: Somehow, when capturing entity with one carryCrate, component persistent won't work.
 //? According to debugging, this bug doesn't happen before the end of [[CarryCrateItem#interactLivingEntity]]. SHIT, Minecraft's code is awesome.
+//? FIX: BlockEntity's Placement is now working fine, but serialization needs to get fixed, currently it doesn't work.
+
+/**
+ * The core engine of the whole carry system. As you can could see, it is complex enough to be an independent class.<br>
+ * It is capable of doing these things:
+ * <ul>
+ *     <li>
+ *         Handling <u>{@link CarryCrateItem}</u>'s interaction(<i>
+ *             both <u>{@link CarryCrateItem#useOn(UseOnContext) blocklike interact}</u> and
+ *             <u>{@link CarryCrateItem#interactLivingEntity(ItemStack, Player, LivingEntity, InteractionHand) entity interact}</u>
+ *         </i>).
+ *     </li>
+ *     <li>Owning the <u>{@link #LISTENER_LOOKUP Table}</u> <b>that holds CarryCrates that has data</b>, whose are needed to be monitored.</li>
+ *     <li>Dispatching the carrying behaviors of CarryCrates that has data.(See <u>{@link #carryingTick(CarryCrateItem, ItemStack, Level, Entity, int)}</u>)</li>
+ *     <li>
+ *         Saving/Restoring the <u>{@link #LISTENER_LOOKUP listner table}</u> on game start/end(See <u>{@link CarryListenerSaveData}</u>, <u>{@link #startEngine(ServerStartedEvent)}</u>).
+ *     </li>
+ * </ul>
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see CarryRegistryManager
+ * @see CarryOperationExecutor
+ */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryEngine
 {
@@ -79,7 +100,7 @@ public enum CarryEngine
     private static final HashMap<CarryID, ICarryEntityAdapterFactory<?, ?>> ENTITY_CARRY_LISTENERS = new HashMap<>();
     private static final HashMap<CarryID, ICarryBlockAdapterFactory<?, ?>> BLOCK_CARRY_LISTENERS = new HashMap<>();
     
-    private static final Map<CarryType, HashMap<CarryID, ? extends IBaseCarryAdapterFactory<?, ?>>> LISTENER_LOOKUP =
+    private static final Map<CarryType, Map<CarryID, ? extends IBaseCarryAdapterFactory<?, ?>>> LISTENER_LOOKUP =
         DefinitionUtils.createImmutableEnumMapWithCheck(
             CarryType.class,
             map ->
@@ -101,13 +122,15 @@ public enum CarryEngine
      * <b>It exists to make sure that boxed Carry Crate's data won't get lost</b>.
      * @since 1.0 Release
      * @author Kurv Cygnus
+     * @implNote This class only contains the data field and <u>{@link #save(CompoundTag, HolderLookup.Provider) save logic}</u>,
+     * <b>The data shall be saved once the data is marked as dirty(At <u>{@link CarryOperationExecutor}</u>).</b>
      */
     static final class CarryListenerSaveData extends SavedData
     {
         static final String UUID = "uuid";
         static final String ID = "id";
         static final String ENTRIES = "entries";
-        static final String DATA = "crispsweetberry_carry_listeners";
+        static final String DATA = "%s_persistent_carry_listeners".formatted(CrispSweetberry.NAMESPACE);
         
         private ListTag entries = null;
         
@@ -160,6 +183,9 @@ public enum CarryEngine
         public @NotNull Optional<ListTag> getEntries() { return Optional.ofNullable(entries); }
     }
     
+    /**
+     * Deserialize the level's Save Data, restoring <u>{@link #LISTENER_LOOKUP}</u>.
+     */
     @SuppressWarnings("unchecked")//! Unsafe casting, however, with the restrict of enum [[CarryType]], it is actually safe.
     @SubscribeEvent static void startEngine(@NotNull ServerStartedEvent event)
     {
@@ -186,7 +212,7 @@ public enum CarryEngine
                             {
                                 final String id = entryTag.getString(CarryListenerSaveData.ID);
                                 final String uuid = entryTag.getString(CarryListenerSaveData.UUID);
-                                final CarryID fullID = new CarryID(id, uuid);
+                                final CarryID fullID = CarryID.restore(id, uuid, LISTENER_LOOKUP, event);
                                 LOGGER.debug("Got CarryID: [ResourceLocation: \"{}\", UUID: \"{}\"]", id, uuid);
                                 
                                 final ResourceLocation resourceLocation = ResourceLocation.parse(id);
@@ -227,10 +253,10 @@ public enum CarryEngine
             !carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get())
         ) return;
         
-        final CarryID carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
-        final CarryData data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        assert carryID != null;//! [[DataComponentHolder#has()]] has granted the safety.
-        assert data != null;//! `assert` doesn't work in non-debugging environment, it won't bring any extra performance penalty comparing to [[Objects#requireNonNull]].
+        final var carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
+        final var data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
+        assert carryID != null : "UwU";//! [[DataComponentHolder#has()]] has granted the safety.
+        assert data != null: "UwU";//! `assert` doesn't work in non-debugging environment, it won't bring any extra performance penalty comparing to [[Objects#requireNonNull]].
         
         final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid(), slotId);
         
@@ -252,11 +278,9 @@ public enum CarryEngine
         {
             if(carryCrateItem.hurtAndBreak(carryCrate, (ServerLevel) level, player))
             {
-                final BlockPos pos = player.getOnPos();
-                
                 adapter.onBreak(
                     level,
-                    pos,
+                    player.getOnPos(),
                     data.unionData(),
                     level.getGameTime() - data.startTime()
                 );
@@ -300,26 +324,23 @@ public enum CarryEngine
             final @Nullable LivingEntity targetEntity;
             final @Nullable UseOnContext useOnContext;
             
-            final Level level = context.getLevel();
-            final BlockPos interactPos = context.getInteractPos();
+            final var level = context.getLevel();
+            final var interactPos = context.getInteractPos();
             final Optional<Player> optionalPlayer = context.getPlayer();
             final ItemStack carryCrate = context.getCarryCrate();
-            final @Nullable CarryData carryData = context.getCarryData();
+            final @Nullable var carryData = context.getCarryData();
             
             LOGGER.when(!level.isClientSide).debug(
                 "State of this interaction: Player: {}, Data: {}",
                 optionalPlayer.map(player -> player.getDisplayName().getString()).orElse("N/A"),
-                carryData != null ? carryData.toString() : "N/A"
+                carryData
             );
             
             final @Nullable CarryType action = switch(context)
             {
                 case CarryBlocklikeInteractContext blocklike ->
                 {
-                    //? TODO: Edit needed.
-                    targetBlockState = level.getBlockState(interactPos);
-                    
-                    if(optionalPlayer.isEmpty() || targetBlockState.is(Blocks.VOID_AIR))
+                    if(optionalPlayer.isEmpty() || level.getBlockState(interactPos).is(Blocks.VOID_AIR))
                     {
                         handle.changeMarker("UNEXPECTED_INTERACT");
                         LOGGER.debug(
@@ -331,6 +352,7 @@ public enum CarryEngine
                         
                         targetEntity = null;
                         targetBlockEntity = null;
+                        targetBlockState = null;
                         useOnContext = null;
                         yield null;
                     }
@@ -342,6 +364,7 @@ public enum CarryEngine
                         case null ->
                         {
                             targetEntity = null;
+                            targetBlockState = level.getBlockState(interactPos);
                             
                             targetBlockEntity = context.getLevel().getBlockEntity(interactPos);
                             final CarryType result = targetBlockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
@@ -354,19 +377,28 @@ public enum CarryEngine
                         {
                             targetEntity = (LivingEntity) holder.getType().create(level);
                             targetBlockEntity = null;
+                            targetBlockState = null;
                             yield CarryType.ENTITY;
                         }
                         default ->
                         {
                             targetEntity = null;
                             
-                            if(carryData.unionData() instanceof CarryBlockEntityDataHolder holder)
+                            switch(carryData.unionData())
                             {
-                                IS_INTERACTING_WITH_BE.set(true);
-                                targetBlockEntity = holder.getType().create(interactPos, holder.getState());
+                                case CarryBlockEntityDataHolder blockEntityDataHolder ->
+                                {
+                                    IS_INTERACTING_WITH_BE.set(true);
+                                    targetBlockState = blockEntityDataHolder.getState();
+                                    targetBlockEntity = blockEntityDataHolder.getType().create(interactPos, targetBlockState);
+                                }
+                                case CarryData.CarryBlockDataHolder blockDataHolder ->
+                                {
+                                    targetBlockState = blockDataHolder.getState();
+                                    targetBlockEntity = null;
+                                }
+                                default -> throw new IllegalStateException("Impossible branch!\n%s".formatted(carryData.unionData()));
                             }
-                            else
-                                targetBlockEntity = null;
                             
                             yield carryData.unionData().getBoundType();
                         }
@@ -410,39 +442,20 @@ public enum CarryEngine
             final @Nullable CarryID carryID = context.getCarryID();
             LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
             
-            final AbstractCarryInteractHandler handler = action.createHandler(
-                serverLevel,
-                serverPlayer,
-                carryCrate,
-                interactPos,
-                targetBlockState,
-                targetEntity,
-                targetBlockEntity,
-                carryID
-            );
-            
-            final HandleResult result = handler.handle();
-            //endregion
-            
-            //region Post-Process
-            final var interactResult = CarryOperationExecutor.INST.execute(
-                new CarryPipelineTask(
+            final var interactResult = CarryOperationExecutor.INST.handle(
+                new CarryInteractContext(
                     action,
-                    result.getListenerState(),
-                    result.getComponentState(),
-                    result.getTargetState(),
-                    carryCrate,
                     serverLevel,
                     serverPlayer,
                     interactPos,
-                    result.data(),
-                    Objects.requireNonNullElse(carryID, result.carryID()),//! If the crate has already own a UUID, we should use it, if not, use the newly generated one.
-                    targetEntity,                                         //! Of course, if both are null, this will throw NPE, that's a bug.
-                    result.blockEntityType(),
-                    ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(action))::put,
+                    carryCrate,
+                    ((Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(action))::put,
                     LISTENER_LOOKUP.get(action)::remove,
                     useOnContext != null ? state -> new StatedBlockPlaceContext(useOnContext, state) : null,
-                    InteractionResult.PASS
+                    targetBlockState,
+                    targetEntity,
+                    targetBlockEntity,
+                    carryID
                 )
             );
             
@@ -459,7 +472,7 @@ public enum CarryEngine
     public boolean isInteracting() { return IS_INTERACTING_WITH_BE.get(); }
     
     private static @Nullable AbstractCarryAdapter<?> getCarryAdapter(
-        @NotNull HashMap<CarryID, ? extends ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> map,
+        @NotNull Map<CarryID, ? extends ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> map,
         @NotNull CarryID carryID
     )
     {

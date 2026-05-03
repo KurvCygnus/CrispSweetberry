@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.base.lang;
+package kurvcygnus.crispsweetberry.utils.base.exceptions;
 
 public final class NotImplementedYetException extends UnsupportedOperationException
 {

@@ -6,19 +6,20 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.base.lang;
+package kurvcygnus.crispsweetberry.utils.base.exceptions;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-public record Tuple<L, M, R>(@NotNull L left, @NotNull M middle, @NotNull R right) implements Serializable
+public interface IDetailedThrowable<E extends StructuredException & IDetailedThrowable<E, T>, T> extends IStructuredThrowable
 {
-    public Tuple
-    {
-        Objects.requireNonNull(left, "Param \"left\" must not be null!");
-        Objects.requireNonNull(middle, "Param \"middle\" must not be null!");
-        Objects.requireNonNull(right, "Param \"right\" must not be null!");
-    }
+    @NotNull T causeData();
+    
+    @SuppressWarnings("unchecked")//! CRTP makes sure that this will be safe.
+    default @NotNull E asException() { return (E) this; }
+    
+    default void throwSelf() throws E { throw asException(); }
+    
+    default @NotNull String getMessage() { return asException().getMessage(); }
+    
+    default @NotNull Throwable cause() { return asException().wrappedException(); }
 }

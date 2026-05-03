@@ -303,9 +303,9 @@ public enum CarryRegistryManager implements ICarryRegistryView
         @NotNull ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
     )
     {
-        requireNonNull(entityType, "Param \"entityType\" must not be null!");
-        requireNonNull(EntityType.getKey(entityType), "Param \"entityType\"'s ResourceLocation must not be null!");
-        requireNonNull(carryEntityAdapterFactory, "Param \"carryEntityAdapterFactory\" must not be null!");
+        assert entityType != null : "Param \"entityType\" must not be null!";
+        assert EntityType.getKey(entityType) != null : "Thee key of Param \"entityType\" must not be null!";
+        assert carryEntityAdapterFactory != null : "Param \"carryEntityAdapterFactory\" must not be null!";
         
         if(ENTITY_REGISTRY.containsKey(entityType))
         {
@@ -417,8 +417,8 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @SuppressWarnings("unchecked")//! Danger, but relatively safe as long as the param is matched, mismatch only happens when caller did it by design.
     <F extends IBaseCarryAdapterFactory<?, ?>, K> @NotNull Optional<F> searchFactory(@NotNull CarryType carryType, @NotNull K key)
     {
-        requireNonNull(carryType, "Param \"carryType\" must not be null!");
-        requireNonNull(key, "Param \"key\" must not be null!");
+        assert carryType != null : "Param \"carryType\" must not be null!";
+        assert key != null : "Param \"key\" must not be null!";
         
         final Class<?> keyType = carryType.boundClass();
         
@@ -431,8 +431,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @SuppressWarnings("unchecked")//! Safe casting.
     <F extends IBaseCarryAdapterFactory<?, ?>> @Nullable F searchFactory(@NotNull ResourceLocation resourceLocation)
     {
-        requireNonNull(resourceLocation, "Param \"resourceLocation\" must not be null!");
-        
+        assert resourceLocation != null : "Param \"resourceLocation\" must not be null!";
         for(final HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>> map: RECOVER_LOOKUP.values())
             if(map.containsKey(resourceLocation))
                 return (F) map.get(resourceLocation);

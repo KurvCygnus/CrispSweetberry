@@ -6,9 +6,12 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.base.functions;
+package kurvcygnus.crispsweetberry.utils.base.exceptions;
 
-import java.util.Optional;
-import java.util.function.BiFunction;
+import org.jetbrains.annotations.NotNull;
 
-@FunctionalInterface public interface OptionalBinaryOperator<T> extends BiFunction<T, T, Optional<T>> {}
+public interface IStructuredThrowable
+{
+    @NotNull Throwable wrappedException();
+    @NotNull String type();
+}

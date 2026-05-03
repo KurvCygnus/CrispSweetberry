@@ -8,9 +8,9 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.utils.base.extensions.INestedPrintable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -20,7 +20,9 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -46,12 +48,6 @@ public final class CarryInteractContextCollection
         
         default @Nullable CarryID getCarryID() { return getCarryCrate().get(CarryCrateRegistries.CARRY_ID.get()); }
         default @Nullable CarryData getCarryData() { return getCarryCrate().get(CarryCrateRegistries.CARRY_CRATE_DATA.get()); }
-        
-        default boolean isDamaged()
-        {
-            final @Nullable Integer durability = getCarryCrate().get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get());
-            return durability == null || durability < CarryCrateConstants.CARRY_CRATE_MAX_DURABILITY;
-        }
     }
     
     /**
@@ -85,7 +81,8 @@ public final class CarryInteractContextCollection
      *               this cannot be {@code null}, since such an interaction will be invalid in that case.
      * @param target The <u>{@link LivingEntity Entity}</u> that will be processed. <b>This is the unique and extra data that is required in entity interaction.</b>
      */
-    public record CarryEntityInteractContext(@NotNull ItemStack carryCrate, @NotNull Player player, @NotNull LivingEntity target) implements ICarryInteractContext
+    public record CarryEntityInteractContext(@NotNull ItemStack carryCrate, @NotNull Player player, @NotNull LivingEntity target)
+    implements ICarryInteractContext, INestedPrintable
     {
         public CarryEntityInteractContext
         {
@@ -101,5 +98,14 @@ public final class CarryInteractContextCollection
         @Override public @NotNull BlockPos getInteractPos() { return target.getOnPos(); }
         
         @Override public @NotNull Optional<Player> getPlayer() { return Optional.of(player); }
+        
+        @Override public @NotNull @Unmodifiable Map<@NotNull String, @Nullable Object> getFields()
+        {
+            return Map.of(
+                "carryCrate", carryCrate,
+                "player", player,
+                "target", target
+            );
+        }
     }
 }

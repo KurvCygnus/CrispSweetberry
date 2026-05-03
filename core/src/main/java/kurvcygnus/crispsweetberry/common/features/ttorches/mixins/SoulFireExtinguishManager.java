@@ -8,7 +8,9 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.mixins;
 
+import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
+import kurvcygnus.crispsweetberry.utils.base.trait.IMixinCaster;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.SoulFireBlock;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -28,22 +30,22 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  * it processes anti-water logics, and the sequence of fire extinguish.
  * @since 1.0 Release
  * @author Kurv Cygnus
- * @see SoulFireBurnInjection Start Logic
- * @see SoulFireScreenVisualInjection Screen Visual
- * @see SoulFireVisualEffectInjection Appearance Visual
+ * @see SoulFireBurnSynchronizer Start Logic
+ * @see SoulFireScreenVisualRender Screen Visual
+ * @see SoulFireVisualEffectRender Appearance Visual
  * @see SoulFireTagPayloads.SoulFireTagPayloadHandler#attachTag Sync Handle 
  */
 @Mixin(Entity.class)
-public final class SoulFireExtinguishInjection
+public abstract class SoulFireExtinguishManager implements IMixinCaster<Entity>
 {
     /**
      * Keeps entity's fire.<br>
      * Don't ask the name of this method. It's a secret to everybody.
      */
     @Inject(method = "clearFire", at = @At("HEAD"), cancellable = true)
-    private void pkFire(CallbackInfo callbackInfo)
+    private void pkFire(@NotNull CallbackInfo callbackInfo)
     {
-        final Entity entity = (Entity)(Object) this;
+        final Entity entity = _$csb_lib_getSelf();
 
         if(_$csb_willExtinguish(entity))
             callbackInfo.cancel();
@@ -62,27 +64,17 @@ public final class SoulFireExtinguishInjection
     }
     
     @Inject(method = "isFullyFrozen", at = @At("HEAD"), cancellable = true)
-    private void wontBeColdAnymore(CallbackInfoReturnable<Boolean> callbackInfoReturnable)
-    {
-        final Entity entity = (Entity)(Object) this;
-        
-        if(isLitBySoulFire(entity))
-            callbackInfoReturnable.setReturnValue(false);
-    }
+    private void wontBeColdAnymore(@NotNull CallbackInfoReturnable<Boolean> callbackInfoReturnable)
+        { _$csb_lib_doWhenSelf(TTorchUtilCollection::isLitBySoulFire, () -> callbackInfoReturnable.setReturnValue(false)); }
     
     @Inject(method = "getTicksRequiredToFreeze", at = @At("HEAD"), cancellable = true)
-    private void itsHot(CallbackInfoReturnable<Integer> callbackInfoReturnable)
-    {
-        final Entity entity = (Entity)(Object) this;
-        
-        if(isLitBySoulFire(entity))
-            callbackInfoReturnable.setReturnValue(Integer.MAX_VALUE);//* Yes, I'm lazy.
-    }
+    private void itsHot(@NotNull CallbackInfoReturnable<Integer> callbackInfoReturnable)//* Yes, I'middle lazy.
+        { _$csb_lib_doWhenSelf(SoulFireExtinguishManager::_$csb_willExtinguish, () -> callbackInfoReturnable.setReturnValue(Integer.MAX_VALUE)); }
     
     @Inject(method = "baseTick", at = @At("HEAD"))
-    private void clearUpTag(CallbackInfo callbackInfo)
+    private void clearUpTag(@NotNull CallbackInfo callbackInfo)
     {
-        final Entity entity = (Entity)(Object) this;
+        final Entity entity = _$csb_lib_getSelf();
         
         if(entity.level().isClientSide || entity.getRemainingFireTicks() > 0)
             return;
@@ -99,9 +91,9 @@ public final class SoulFireExtinguishInjection
     }
     
     @Inject(method = "setRemainingFireTicks", at = @At("HEAD"), cancellable = true)
-    private void refuseSetFireTicks(CallbackInfo callbackInfo)
+    private void refuseSetFireTicks(@NotNull CallbackInfo callbackInfo)
     {
-        final Entity entity = (Entity)(Object) this;
+        final Entity entity = _$csb_lib_getSelf();
         
         if(entity.level().isClientSide)
             return;
@@ -118,14 +110,7 @@ public final class SoulFireExtinguishInjection
     }
     
     @Inject(method = "playEntityOnFireExtinguishedSound", at = @At("HEAD"), cancellable = true)
-    private void interceptSoundPlay(@NotNull CallbackInfo callbackInfo)
-    {
-        final Entity entity = (Entity) (Object) this;
-        
-        if(_$csb_willExtinguish(entity))
-            callbackInfo.cancel();
-    }
+    private void interceptSoundPlay(@NotNull CallbackInfo callbackInfo) { _$csb_lib_doWhenSelf(SoulFireExtinguishManager::_$csb_willExtinguish, callbackInfo::cancel); }
     
-    @Unique
-    private boolean _$csb_willExtinguish(@NotNull Entity entity) { return entity.isInWaterRainOrBubble() && isLitBySoulFire(entity); }
+    @Unique private static boolean _$csb_willExtinguish(@NotNull Entity entity) { return entity.isInWaterRainOrBubble() && isLitBySoulFire(entity); }
 }

@@ -6,15 +6,19 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.base.extension;
+package kurvcygnus.crispsweetberry.utils.base.extensions;
 
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class StackableToolItem<T extends StackableToolItem<T>> extends Item implements IStackableTool<T>
+import java.util.Objects;
+
+public abstract class StackableToolBlockItem<T extends StackableToolBlockItem<T>> extends BlockItem implements IStackableTool<T>
 {
-    public StackableToolItem(Properties properties) { super(properties); }
+    public StackableToolBlockItem(@NotNull Block block, Properties properties)
+        { super(Objects.requireNonNull(block, "Param \"block\" must not be null!"), properties); }
     
     @Override public boolean isBarVisible(@NotNull ItemStack stack) { return IStackableTool.super.isBarVisible(stack); }
     @Override public int getBarWidth(@NotNull ItemStack stack) { return IStackableTool.super.getBarWidth(stack); }

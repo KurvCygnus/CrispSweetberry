@@ -15,7 +15,6 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -60,7 +59,6 @@ public final class CarryData
     private final boolean causesOverweight;
     private final @Range(from = 0, to = Long.MAX_VALUE) long startTime;
     
-    @SuppressWarnings("ConstantValue")//! Defensive check.
     private CarryData(
         @NotNull CarryType carryType,
         @NotNull CarryDataBaseHolder unionData,
@@ -70,7 +68,8 @@ public final class CarryData
     {
         Objects.requireNonNull(carryType, "Param \"carryType\" must not be null!");
         Objects.requireNonNull(unionData, "Param \"unionData\" must not be null!");
-        FunctionalUtils.throwIf(startTime < 0, "Param \"startTime\" must be greater than 0!", IllegalArgumentException::new);
+        if(startTime < 0)
+            throw new IllegalArgumentException("Param \"startTime\" must be greater than 0!");
         
         this.carryType = carryType;
         this.unionData = unionData;
@@ -185,7 +184,7 @@ public final class CarryData
             carryType,
             causesOverweight,
             startTime,
-            unionData.toString().replace("\n", "\n    ")
+            unionData.toString().indent(8)
         );
     }
     //endregion
@@ -195,7 +194,6 @@ public final class CarryData
     {
         private final int penaltyRate;
         
-        @SuppressWarnings("ConstantValue")//! Defensive check.
         protected CarryDataBaseHolder(@Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate)
         {
             if(penaltyRate < 0)
@@ -210,7 +208,7 @@ public final class CarryData
          * This getter method is used by internals for abstracted adapter getting logics.<br>
          * <span style="color: f84b4b">DO NOT USE.</span>
          */
-        @ApiStatus.Internal public abstract <T> @NotNull T getCreationData();
+        @ApiStatus.Internal public abstract @NotNull Object getCreationData();
         
         public abstract @NotNull CarryType getBoundType();
         
@@ -240,7 +238,6 @@ public final class CarryData
         private final int carryCount;
         private final int maxCarryCount;
         
-        @SuppressWarnings("ConstantValue")//! Defensive check.
         private CarryBlockDataHolder(
             @Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate,
             @NotNull BlockState state,
@@ -251,8 +248,10 @@ public final class CarryData
             super(penaltyRate);
             
             Objects.requireNonNull(state, "Param \"state\" must not be null!");
-            FunctionalUtils.throwIf(carryCount < 1, "Param \"carryCount\" must be a positive integer!", IllegalArgumentException::new);
-            FunctionalUtils.throwIf(maxCarryCount < 1, "Param \"maxCarryCount\" must be a positive integer!", IllegalArgumentException::new);
+            if(carryCount < 1)
+                throw new IllegalArgumentException("Param \"carryCount\" must be a positive integer!");
+            if(maxCarryCount < 1)
+                throw new IllegalArgumentException("Param \"maxCarryCount\" must be a positive integer!");
             
             this.state         = state;
             this.carryCount    = carryCount;
@@ -265,8 +264,7 @@ public final class CarryData
         
         public @Range(from = 1, to = Integer.MAX_VALUE) int getMaxCarryCount() { return maxCarryCount; }
         
-        @SuppressWarnings("unchecked")//! Unsafe casting, but is relatively safe as it is only used in internals.
-        @Override public @NotNull <T> T getCreationData() { return (T) this.state.getBlock(); }
+        @Override public @NotNull Object getCreationData() { return this.state.getBlock(); }
         
         @Override public @NotNull CarryType getBoundType() { return CarryType.BLOCK; }
         
@@ -282,7 +280,7 @@ public final class CarryData
                 state,
                 carryCount,
                 maxCarryCount
-            );
+            ).trim();
         }
     }
     
@@ -297,22 +295,22 @@ public final class CarryData
         );
         
         public static final StreamCodec<ByteBuf, CarryEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT,                                                CarryDataBaseHolder::getPenaltyRate,
+            ByteBufCodecs.VAR_INT, CarryDataBaseHolder::getPenaltyRate,
             ByteBufCodecs.fromCodec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()), CarryEntityDataHolder::getType,
-            ByteBufCodecs.COMPOUND_TAG,                                           CarryEntityDataHolder::getTagData,
+            ByteBufCodecs.COMPOUND_TAG, CarryEntityDataHolder::getTagData,
             CarryEntityDataHolder::new
         );
         
         private final EntityType<?> type;
         private final CompoundTag tagData;
         
-        private CarryEntityDataHolder(@Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate, @NotNull EntityType<?> type, @NotNull CompoundTag tagData) 
+        private CarryEntityDataHolder(@Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate, @NotNull EntityType<?> type, @NotNull CompoundTag tagData)
         {
             super(penaltyRate);
             Objects.requireNonNull(type, "Param \"type\" must not be null!");
             Objects.requireNonNull(tagData, "Param \"tagData\" must not be null!");
             
-            this.type    = type;
+            this.type = type;
             this.tagData = tagData;
         }
         
@@ -320,8 +318,7 @@ public final class CarryData
         
         public @NotNull CompoundTag getTagData() { return tagData; }
         
-        @SuppressWarnings("unchecked")//! Unsafe casting, but is relatively markAsSafe as it is only used in internals.
-        @Override public @NotNull <T> T getCreationData() { return (T) this.getType(); }
+        @Override public @NotNull Object getCreationData() { return this.getType(); }
         
         @Override public @NotNull CarryType getBoundType() { return CarryType.ENTITY; }
         
@@ -336,7 +333,7 @@ public final class CarryData
                 """.formatted(
                     type,
                     tagData
-                );
+                ).trim();
         }
     }
     
@@ -376,8 +373,8 @@ public final class CarryData
             Objects.requireNonNull(type, "Param \"type\" must not be null!");
             Objects.requireNonNull(tagData, "Param \"tagData\" must not be null!");
             
-            this.state   = state;
-            this.type    = type;
+            this.state = state;
+            this.type = type;
             this.tagData = tagData;
         }
         
@@ -387,8 +384,7 @@ public final class CarryData
         
         public @NotNull CompoundTag getTagData() { return tagData; }
         
-        @SuppressWarnings("unchecked")//! Unsafe casting, but is relatively markAsSafe as it is only used in internals.
-        @Override public @NotNull <T> T getCreationData() { return (T) this.getType(); }
+        @Override public @NotNull Object getCreationData() { return this.getType(); }
         
         @Override public @NotNull CarryType getBoundType() { return CarryType.BLOCK_ENTITY; }
         
@@ -405,7 +401,7 @@ public final class CarryData
                     state,
                     type,
                     tagData
-                );
+                ).trim();
         }
     }
     //endregion
@@ -421,7 +417,7 @@ public final class CarryData
             return ops.getMap(input).flatMap(
                 map ->
                 {
-                    final T typeElement = map.get("carry_type");
+                    final @Nullable T typeElement = map.get("carry_type");
                     if(typeElement == null)
                         return DataResult.error(() -> "Missing \"carry_type\" field");
                     
@@ -435,12 +431,12 @@ public final class CarryData
                             if(dataElement == null)
                                 return DataResult.error(() -> "Missing \"unionData\" field");
                             
-                            final MapCodec<? extends CarryDataBaseHolder> subCodec = type.codec();
+                            final MapCodec<? extends CarryDataBaseHolder> subCodec = type.codec;
                             final DataResult<? extends CarryDataBaseHolder> dataResult = subCodec.codec().parse(ops, dataElement);
                             
                             final T timeElement = map.get("start_time");
-                            final DataResult<Long> timeResult = timeElement == null ? 
-                                DataResult.success(0L) : 
+                            final DataResult<Long> timeResult = timeElement == null ?
+                                DataResult.success(0L) :
                                 Codec.LONG.decode(ops, timeElement).map(Pair::getFirst);
                             
                             return dataResult.flatMap(
@@ -457,7 +453,7 @@ public final class CarryData
         @SuppressWarnings("unchecked")//! Safe Casting.
         @Override public <T> @NotNull DataResult<T> encode(@NotNull CarryData input, @NotNull DynamicOps<T> ops, @NotNull T prefix)
         {
-            final MapCodec<CarryDataBaseHolder> dataCodec = (MapCodec<CarryDataBaseHolder>) input.carryType().codec();
+            final MapCodec<CarryDataBaseHolder> dataCodec = (MapCodec<CarryDataBaseHolder>) input.carryType().codec;
             
             return ops.mapBuilder().
                 add("carry_type", CarryType.CODEC.encodeStart(ops, input.carryType())).
@@ -477,7 +473,7 @@ public final class CarryData
         { 
             final CarryType type = ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).decode(buffer);
             
-            final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) type.streamCodec();
+            final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) type.streamCodec;
             final CarryDataBaseHolder data = dataCodec.decode(buffer);
              
             final long startTime = buffer.readLong();
@@ -489,7 +485,7 @@ public final class CarryData
         {
             ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).encode(buffer, value.carryType());
              
-            final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) value.carryType().streamCodec();
+            final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) value.carryType().streamCodec;
             dataCodec.encode(buffer, value.unionData());
             
             buffer.writeLong(value.startTime());

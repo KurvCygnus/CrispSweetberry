@@ -23,7 +23,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateBlock;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
-import kurvcygnus.crispsweetberry.utils.base.extension.IStackableTool;
+import kurvcygnus.crispsweetberry.utils.base.extensions.IStackableTool;
 import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
 import net.minecraft.core.Holder;

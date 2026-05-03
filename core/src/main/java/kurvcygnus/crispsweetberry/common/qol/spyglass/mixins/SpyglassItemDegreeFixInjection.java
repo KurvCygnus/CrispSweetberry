@@ -55,10 +55,10 @@ public abstract class SpyglassItemDegreeFixInjection
         @NotNull CallbackInfo callbackInfo
     )
     {
-        //! LivingEntity#getUsedItemHand is unreliable.
+        //! [[LivingEntity#getUsedItemHand]] is unreliable.
         final boolean isOffhand = arm == (livingEntity.getMainArm() == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT);
         
-        //! Didn't use isZooming() here since dong that will make visual effect clientside only.
+        //! Didn't use [[SpyglassQuickZoomEvent#isZooming()]] here since dong that will make visual effect clientside only.
         if(livingEntity instanceof Player player && player.isScoping() && isOffhand)
         {
             renderArmWithSpyglass(livingEntity, itemStack, arm, poseStack, buffer, packedLight);

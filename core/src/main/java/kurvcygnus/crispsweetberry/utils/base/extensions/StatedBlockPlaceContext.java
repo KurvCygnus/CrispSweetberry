@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.base.extension;
+package kurvcygnus.crispsweetberry.utils.base.extensions;
 
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
@@ -19,13 +19,15 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -34,7 +36,7 @@ import java.util.Objects;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public final class StatedBlockPlaceContext extends BlockPlaceContext
+public final class StatedBlockPlaceContext extends BlockPlaceContext implements INestedPrintable
 {
     private final BlockState placeState;
     
@@ -90,5 +92,27 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
     
-    public boolean cancelPlacement() { return this.getLevel().setBlockAndUpdate(this.getClickedPos(), Blocks.VOID_AIR.defaultBlockState()); }
+    @Override public boolean equals(Object object) { return this == object || object instanceof StatedBlockPlaceContext that && this.placeState.equals(that.placeState); }
+    
+    @Override public int hashCode() { return Objects.hashCode(placeState); }
+    
+    @Override public @NotNull String toString() { return toNestedString(); }
+    
+    @Override public @NotNull @Unmodifiable Map<@NotNull String, @Nullable Object> getFields()
+    {
+        return INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("player", getPlayer());
+                map.put("hand", getHand());
+                map.put("hitResult", getHitResult());
+                map.put("level", getLevel());
+                map.put("interactItem", getItemInHand());
+                map.put("clickedPos", getClickedPos());
+                map.put("placeState", placeState);
+            }
+        );
+    }
+    
+    @Override public boolean takeNullFieldAsOptional() { return true; }
 }

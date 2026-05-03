@@ -9,27 +9,26 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.mixins;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
+import kurvcygnus.crispsweetberry.utils.base.trait.IMixinCaster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Slot.class)
-public final class CarrySlotMoveInterceptInjection
+@Mixin(AbstractContainerMenu.class)
+public abstract class CarryContainerQuickMoveInterceptor implements IMixinCaster<AbstractContainerMenu>
 {
-    @Inject(method = "mayPlace", at = @At("HEAD"), cancellable = true)
-    private void preventCarryCratePlacement(@NotNull ItemStack stack, @NotNull CallbackInfoReturnable<Boolean> cir)
+    @Inject(method = "doClick", at = @At("HEAD"), cancellable = true)
+    private void noQuickMove(int slotId, int button, @NotNull ClickType clickType, @NotNull Player player, @NotNull CallbackInfo callbackInfo)
     {
-        if(!stack.is(CarryCrateRegistries.CARRY_CRATE_ITEM.value()))
+        if(_$csb_lib_testSelf(InventoryMenu.class::isInstance) || clickType != ClickType.QUICK_MOVE || slotId < 0)
             return;
         
-        final Slot thisSlot = (Slot) (Object) this;
-        
-        if(!(thisSlot.container instanceof Inventory))
-            cir.setReturnValue(false);
+        _$csb_lib_doWhenSelf(menu -> menu.getSlot(slotId).getItem().is(CarryCrateRegistries.CARRY_CRATE_ITEM.value()), callbackInfo::cancel);
     }
 }
