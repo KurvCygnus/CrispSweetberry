@@ -16,9 +16,9 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnScreen;
 import kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeSerializer;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType;
+import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -60,9 +60,7 @@ public enum KilnRegistries implements IRegistrant
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
-    
-    @Override public @NotNull String getJob() { return "Kiln"; }
+    @Override public void register(@NotNull IEventBus bus) { IRegistrant.listedRegister(REGISTRIES, bus); }
     
     @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 1); }
     

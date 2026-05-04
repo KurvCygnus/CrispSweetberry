@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.utils.base.extensions.INestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * This is the collection of data classes that <b>unifies the universal data getters for common usage data, and also the unique data for specific cases.</b>
@@ -99,12 +100,12 @@ public final class CarryInteractContextCollection
         
         @Override public @NotNull Optional<Player> getPlayer() { return Optional.of(player); }
         
-        @Override public @NotNull @Unmodifiable Map<@NotNull String, @Nullable Object> getFields()
+        @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
         {
             return Map.of(
-                "carryCrate", carryCrate,
-                "player", player,
-                "target", target
+                "carryCrate", this::carryCrate,
+                "player", this::player,
+                "target", this::target
             );
         }
     }

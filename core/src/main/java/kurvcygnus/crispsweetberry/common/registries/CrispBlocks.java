@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -28,7 +28,7 @@ public enum CrispBlocks implements IRegistrant
     
     @Override public @NotNull String getJob() { return "Misc Blocks"; }
     
-    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 1); }
+    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.BASE, 1); }
     
     public static final DeferredRegister<Block> CRISP_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
 }

@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.registries;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -27,14 +27,17 @@ public enum CrispItems implements IRegistrant
     
     @Override public @NotNull String getJob() { return "Misc Items"; }
     
-    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.MISC, 2); }
+    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.BASE, 2); }
     
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     
-    public static final Holder<Item> HONEY_BERRY = CRISP_ITEM_REGISTER.register("crisp_sweetberry", resourceLocation ->
+    public static final Holder<Item> HONEY_BERRY = CRISP_ITEM_REGISTER.register(
+        "crisp_sweetberry",
+        () ->
         new Item(
             new Item.Properties().
-                food(new FoodProperties.Builder().
+                food(
+                    new FoodProperties.Builder().
                     nutrition(1).
                     saturationModifier(8.0F).
                     build()

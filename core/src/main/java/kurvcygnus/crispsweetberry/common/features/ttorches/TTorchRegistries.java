@@ -28,9 +28,9 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedsto
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableSoulTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
+import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
@@ -63,9 +63,7 @@ public enum TTorchRegistries implements IRegistrant
     //  region Registry Basics
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
-    
-    @Override public @NotNull String getJob() { return "T Torches"; }
+    @Override public void register(@NotNull IEventBus bus) { IRegistrant.listedRegister(REGISTRIES, bus); }
     
     @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 2); }
     

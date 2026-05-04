@@ -19,10 +19,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAda
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -133,11 +132,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
      */
     @SubscribeEvent static void register(@NotNull FMLLoadCompleteEvent event)
     {
-        requireNonNull(
-            CrispSweetberry.CRISP_BUS,
-            "Fatal: ModBus seems to be null! %s".formatted(MetainfoConstants.FEEDBACK_MESSAGE)
-        ).
-            post(new CarryAdapterRegisterEvent(CarryRegistryManager.INST));
+        CrispSweetberry.CRISP_BUS.post(new CarryAdapterRegisterEvent(CarryRegistryManager.INST));
         
         event.enqueueWork(
             () ->

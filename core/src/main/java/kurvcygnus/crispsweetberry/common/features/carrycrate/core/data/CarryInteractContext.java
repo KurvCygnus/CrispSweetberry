@@ -11,10 +11,10 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
-import kurvcygnus.crispsweetberry.utils.base.extensions.INestedPrintable;
-import kurvcygnus.crispsweetberry.utils.base.extensions.StatedBlockPlaceContext;
-import kurvcygnus.crispsweetberry.utils.base.lang.LockableBox;
-import kurvcygnus.crispsweetberry.utils.base.lang.Maybe;
+import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.lib.base.lang.LockableBox;
+import kurvcygnus.crispsweetberry.lib.base.lang.Maybe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * This is a mutable data class which is used in the
@@ -82,7 +83,7 @@ public final class CarryInteractContext implements INestedPrintable
     private final LockableBox<CarryData> data = LockableBox.create();
     private final LockableBox<BlockEntityType<?>> blockEntityType = LockableBox.create();
     
-    public CarryInteractContext(
+    private CarryInteractContext(
         @NotNull CarryType actionType,
         @NotNull ServerLevel level,
         @NotNull ServerPlayer player,
@@ -114,6 +115,37 @@ public final class CarryInteractContext implements INestedPrintable
         this.placeContentGetter = placeContentGetter;
         this.targets = new Maybe<>(targetState, targetEntity, targetBlockEntity);
         this.carryID = LockableBox.ofNullable(carryID);
+    }
+    
+    public static @NotNull CarryInteractContext init(
+        @NotNull CarryType actionType,
+        @NotNull ServerLevel level,
+        @NotNull ServerPlayer player,
+        @NotNull BlockPos interactPos,
+        @NotNull ItemStack carryCrate,
+        @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert,
+        @NotNull Consumer<CarryID> listenerRemove,
+        @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter,
+        @Nullable BlockState targetState,
+        @Nullable LivingEntity targetEntity,
+        @Nullable BlockEntity targetBlockEntity,
+        @Nullable CarryID carryID
+    )
+    {
+        return new CarryInteractContext(
+            actionType,
+            level,
+            player,
+            interactPos,
+            carryCrate,
+            listenerInsert,
+            listenerRemove,
+            placeContentGetter,
+            targetState,
+            targetEntity,
+            targetBlockEntity,
+            carryID
+        );
     }
     
     private @NotNull CarryInteractContext assignResultAndReturn(@Nullable InteractionResult result)
@@ -223,24 +255,24 @@ public final class CarryInteractContext implements INestedPrintable
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<@NotNull String, @Nullable Object> getFields()
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->
             {
-                map.put("actionType", actionType);
-                map.put("level", level);
-                map.put("player", player);
-                map.put("interactPos", interactPos);
-                map.put("carryCrate", carryCrate);
-                map.put("targets", targets);
-                map.put("carryID", carryID);
-                map.put("result", result);
-                map.put("listener", listener);
-                map.put("component", component);
-                map.put("target", target);
-                map.put("data", data);
-                map.put("blockEntityType", blockEntityType);
+                map.put("actionType", this::actionType);
+                map.put("level", this::level);
+                map.put("player", this::player);
+                map.put("interactPos", this::interactPos);
+                map.put("carryCrate", this::carryCrate);
+                map.put("targets", this::targets);
+                map.put("carryID", this::carryID);
+                map.put("result", this::result);
+                map.put("listener", this::listener);
+                map.put("component", this::component);
+                map.put("target", this::target);
+                map.put("data", this::data);
+                map.put("blockEntityType", this::blockEntityType);
             }
         );
     }

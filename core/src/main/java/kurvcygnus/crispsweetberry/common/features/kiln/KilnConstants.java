@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
 import net.minecraft.network.chat.Component;
 
 /**

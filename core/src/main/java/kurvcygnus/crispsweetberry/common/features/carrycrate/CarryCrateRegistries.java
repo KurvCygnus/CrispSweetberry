@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
-import com.mojang.serialization.Codec;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.SimpleBlockCarryAdapter;
@@ -23,13 +22,13 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateBlock;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
-import kurvcygnus.crispsweetberry.utils.base.extensions.IStackableTool;
-import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
+import kurvcygnus.crispsweetberry.lib.base.extensions.IStackableTool;
+import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -52,9 +51,7 @@ public enum CarryCrateRegistries implements IRegistrant
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { REGISTRIES.forEach(registry -> registry.register(bus)); }
-    
-    @Override public @NotNull String getJob() { return "Carry Crate"; }
+    @Override public void register(@NotNull IEventBus bus) { IRegistrant.listedRegister(REGISTRIES, bus); }
     
     @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 4); }
     
@@ -159,25 +156,21 @@ public enum CarryCrateRegistries implements IRegistrant
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryID>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-        "carry_crate.carry_id",
-        DataComponentType.<CarryID>builder().persistent(CarryID.CODEC).networkSynchronized(CarryID.STREAM_CODEC)::build
+        "carry_crate.carry_id", CarryID.SERIALIZATION_DEF
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryData>> CARRY_CRATE_DATA = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-        "carry_crate.union_data",
-        DataComponentType.<CarryData>builder().persistent(CarryData.CODEC).networkSynchronized(CarryData.STREAM_CODEC)::build
+        "carry_crate.union_data", CarryData.SERIALIZATION_DEF
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CARRY_TICK_COUNTER = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-        "carry_crate.tick_counter",
-        DataComponentType.<Integer>builder().persistent(Codec.INT).networkSynchronized(ByteBufCodecs.INT)::build
+        "carry_crate.tick_counter", SerializationTemplates.INT_TEMPLATE
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STACKABLE_TOOL_DURABILITY =
         CARRY_CRATE_DATA_COMPONENT_REGISTER.register("carry_crate.durability", IStackableTool.getDataComponentTemplate());
     
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(
-        "carry_crate.carry_factor",
-        AttachmentType.builder(() -> 0F).serialize(Codec.FLOAT).sync(ByteBufCodecs.FLOAT)::build
+        "carry_crate.carry_factor", SerializationTemplates.FLOAT_DATA_SYNCER.apply(() -> 0F)
     );
 }

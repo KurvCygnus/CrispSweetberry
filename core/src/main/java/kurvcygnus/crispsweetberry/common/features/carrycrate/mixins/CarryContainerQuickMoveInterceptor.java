@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.mixins;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
-import kurvcygnus.crispsweetberry.utils.base.trait.IMixinCaster;
+import kurvcygnus.crispsweetberry.lib.base.trait.IMixinCaster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;

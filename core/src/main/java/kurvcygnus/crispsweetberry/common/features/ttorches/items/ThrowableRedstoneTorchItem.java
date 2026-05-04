@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.items;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TRedstoneTorchExtensions;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
-import kurvcygnus.crispsweetberry.utils.base.functions.ITriProjectileFunction;
+import kurvcygnus.crispsweetberry.lib.base.functions.ITriProjectileFunction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;

@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.phys.AABB;

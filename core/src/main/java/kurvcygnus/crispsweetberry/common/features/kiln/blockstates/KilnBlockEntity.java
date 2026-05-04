@@ -21,7 +21,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -68,11 +68,19 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCa
  * @see KilnRecipe Recipe Definition
  * @since 1.0 Release
  */
-public sealed class KilnBlockEntity extends BaseContainerBlockEntity 
-implements MenuProvider, WorldlyContainer, IBlockEntityBridge permits KilnDummyBlockEntity
+public final class KilnBlockEntity extends BaseContainerBlockEntity implements MenuProvider, WorldlyContainer, IBlockEntityBridge
 {
     //region Constants & Fields
     //*:=== Constants
+    /**
+     * This dummy block entity is specially used for
+     * <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu#KilnMenu(int, Inventory) Menu's Client Constructor Method}</u>,
+     * as the constructor of <u>{@link KilnBlockEntity Normal One}</u> can't be used due to its args, and the fact that the actual block entity that impacts
+     * behavior is defined in the
+     * <u>{@link kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu#KilnMenu(int, Inventory, KilnBlockEntity) Server Constructor}</u>.
+     */
+    public static final KilnBlockEntity CLIENT_DUMMY_INSTANCE = new KilnBlockEntity(BlockPos.ZERO, KilnRegistries.KILN_BLOCK.value().defaultBlockState());
+    
     private static final int[] INPUT_SLOTS = {
         KILN_INPUT_SLOTS_RANGE.min(),
         KILN_INPUT_SLOTS_RANGE.min() + 1,

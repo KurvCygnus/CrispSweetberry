@@ -15,6 +15,7 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A flexible, simple <u><a href="https://en.wikipedia.org/wiki/Tagged_union">Tagged Union Data Object</a></u> for boxed Carry Crate's data persistent, and
@@ -46,13 +48,16 @@ public final class CarryData
      * @implNote Have to write <u>{@link CarryDataCodec implementation}</u> manually, because 
      * <u>{@link RecordCodecBuilder}</u>'s generic deduction is <b>STUPID and doesn't work at ALL</b>.
      */
-    public static final Codec<CarryData> CODEC = CarryDataCodec.INST;
+    private static final Codec<CarryData> CODEC = CarryDataCodec.INST;
     
     /**
      * @implNote Have to write <u>{@link CarryDataStreamCodec implementation}</u> manually, because
      * <u>{@link StreamCodec#composite(StreamCodec, Function, Function)}</u>'s generic deduction is <b>STUPID and doesn't work at ALL</b>.
      */
-    public static final StreamCodec<ByteBuf, CarryData> STREAM_CODEC = CarryDataStreamCodec.INST;
+    private static final StreamCodec<ByteBuf, CarryData> STREAM_CODEC = CarryDataStreamCodec.INST;
+    
+    public static final Supplier<DataComponentType<CarryData>> SERIALIZATION_DEF =
+        DataComponentType.<CarryData>builder().persistent(CODEC).networkSynchronized(STREAM_CODEC)::build;
     
     private final @NotNull CarryType carryType;
     private final @NotNull CarryDataBaseHolder unionData;
@@ -429,7 +434,7 @@ public final class CarryData
                             final T dataElement = map.get("data");
                             
                             if(dataElement == null)
-                                return DataResult.error(() -> "Missing \"unionData\" field");
+                                return DataResult.error(() -> "Missing \"data\" field");
                             
                             final MapCodec<? extends CarryDataBaseHolder> subCodec = type.codec;
                             final DataResult<? extends CarryDataBaseHolder> dataResult = subCodec.codec().parse(ops, dataElement);

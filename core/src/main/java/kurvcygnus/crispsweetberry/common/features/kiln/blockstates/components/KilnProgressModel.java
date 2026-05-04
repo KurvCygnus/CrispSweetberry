@@ -10,8 +10,8 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.utils.constants;
 
-import kurvcygnus.crispsweetberry.utils.base.functions.ITriConsumer;
+import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;

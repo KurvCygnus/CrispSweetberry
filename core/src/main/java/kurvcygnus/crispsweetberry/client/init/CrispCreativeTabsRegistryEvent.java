@@ -10,17 +10,15 @@ package kurvcygnus.crispsweetberry.client.init;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
-import kurvcygnus.crispsweetberry.utils.core.registry.TabEntry;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
+import kurvcygnus.crispsweetberry.lib.core.registry.TabEntry;
 import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * The executor of annotation <b><u>{@link RegisterToTab @RegisterToTab}</u></b>.<br>
@@ -35,7 +33,7 @@ public final class CrispCreativeTabsRegistryEvent
     
     @SubscribeEvent public static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
     {
-        final List<TabEntry> entries = CrispSweetberry.TAB_LOOKUP.get(event.getTabKey());
+        final var entries = CrispSweetberry.TAB_LOOKUP.get(event.getTabKey());
         
         if(entries == null)
         {

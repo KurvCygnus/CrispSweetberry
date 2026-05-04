@@ -19,15 +19,15 @@ import java.util.function.Supplier;
  * @apiNote Reference implementation for vanilla coin types.
  * @since 1.0 Release
  */
-public final class VanillaCoinStackItem extends AbstractCoinStackItem<VanillaCoinTypes>
+public final class VanillaCoinStackItem extends AbstractCoinStackItem<VanillaCoinType>
 {
-    private final @NotNull Supplier<VanillaCoinTypes> coinTypeSupplier;
+    private final @NotNull Supplier<VanillaCoinType> coinTypeSupplier;
     
-    public VanillaCoinStackItem(@NotNull Supplier<VanillaCoinTypes> coinTypeSupplier)
+    public VanillaCoinStackItem(@NotNull Supplier<VanillaCoinType> coinTypeSupplier)
     {
         this.coinTypeSupplier = coinTypeSupplier;
         Objects.requireNonNull(this.coinTypeSupplier, "Field \"coinTypeSupplier\" must not be null!");
     }
     
-    @Override protected @NotNull VanillaCoinTypes initCoinType() { return coinTypeSupplier.get(); }
+    @Override protected @NotNull VanillaCoinType initCoinType() { return coinTypeSupplier.get(); }
 }

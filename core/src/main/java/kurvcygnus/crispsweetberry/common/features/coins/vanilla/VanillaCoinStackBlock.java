@@ -19,8 +19,8 @@ import java.util.Objects;
  * @apiNote Reference implementation for vanilla coin types.
  * @since 1.0 Release
  */
-public final class VanillaCoinStackBlock extends AbstractCoinStackBlock<VanillaCoinTypes>
+public final class VanillaCoinStackBlock extends AbstractCoinStackBlock<VanillaCoinType>
 {
-    public VanillaCoinStackBlock(@NotNull Lazy<VanillaCoinTypes> lazyCoinTypeSupplier)
+    public VanillaCoinStackBlock(@NotNull Lazy<VanillaCoinType> lazyCoinTypeSupplier)
         { super(Objects.requireNonNull(lazyCoinTypeSupplier.get(), "Field \"coinTypeSupplier\" must not be null!")); }
 }

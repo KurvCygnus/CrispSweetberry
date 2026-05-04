@@ -19,15 +19,15 @@ import java.util.function.Supplier;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public final class VanillaCoinItem extends AbstractCoinItem<VanillaCoinTypes>
+public final class VanillaCoinItem extends AbstractCoinItem<VanillaCoinType>
 {
-    private final @NotNull Supplier<VanillaCoinTypes> coinTypeSupplier;
+    private final @NotNull Supplier<VanillaCoinType> coinTypeSupplier;
     
-    public VanillaCoinItem(@NotNull Supplier<VanillaCoinTypes> coinTypeSupplier)
+    public VanillaCoinItem(@NotNull Supplier<VanillaCoinType> coinTypeSupplier)
     {
         this.coinTypeSupplier = coinTypeSupplier;
         Objects.requireNonNull(coinTypeSupplier, "Field \"coinTypeSupplier\" must not be null!");
     }
     
-    @Override protected @NotNull VanillaCoinTypes initCoinType() { return coinTypeSupplier.get(); }
+    @Override protected @NotNull VanillaCoinType initCoinType() { return coinTypeSupplier.get(); }
 }

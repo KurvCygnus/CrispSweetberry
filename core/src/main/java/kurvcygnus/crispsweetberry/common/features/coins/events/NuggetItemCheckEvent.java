@@ -11,8 +11,8 @@ package kurvcygnus.crispsweetberry.common.features.coins.events;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
-import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -33,8 +33,8 @@ import java.util.function.Supplier;
 //? TODO: Compatibility for muti nuggets
 
 /**
- * This event checks the validation of all <u>{@link VanillaCoinTypes}</u>' nugget item, 
- * and also check whether <u>{@link VanillaCoinTypes#COPPER Copper}</u> and <u>{@link VanillaCoinTypes#DIAMOND diamond}</u> coins 
+ * This event checks the validation of all <u>{@link VanillaCoinType}</u>' nugget item,
+ * and also check whether <u>{@link VanillaCoinType#COPPER Copper}</u> and <u>{@link VanillaCoinType#DIAMOND diamond}</u> coins
  * should exist.
  * @since Release 1.0
  * @author Kurv Cygnus
@@ -85,7 +85,7 @@ public final class NuggetItemCheckEvent
         
         try
         {
-            for(final var type: VanillaCoinTypes.VALUES)
+            for(final var type: VanillaCoinType.VALUES)
             {
                 final ItemStack nuggetStack = type.nuggetItem().getDefaultInstance();
                 

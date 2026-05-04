@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.coins.events;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;

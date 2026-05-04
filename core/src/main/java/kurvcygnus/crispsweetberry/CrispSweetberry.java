@@ -10,12 +10,12 @@ package kurvcygnus.crispsweetberry;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.core.registry.RegisterToTab;
-import kurvcygnus.crispsweetberry.utils.core.registry.TabEntry;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.registry.CrispRegistrationManager;
+import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
+import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
+import kurvcygnus.crispsweetberry.lib.core.registry.TabEntry;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -27,7 +27,6 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -43,15 +42,14 @@ import java.util.function.Supplier;
 public final class CrispSweetberry
 {
     public static final String NAMESPACE = "crispsweetberry";
-    public static final @Nullable IEventBus CRISP_BUS = ModLoadingContext.get().getActiveContainer().getEventBus();
-    
-    private static final List<String> ANNOTATIONS = List.of(
-        RegisterToTab.class.getName()
+    public static final @NotNull IEventBus CRISP_BUS = Objects.requireNonNull(
+        ModLoadingContext.get().getActiveContainer().getEventBus(),
+        "Fatal: ModBus seems to be null! \n%s".formatted(MetainfoConstants.FEEDBACK_MESSAGE)
     );
     
-    private static final CrispRanger LEGAL_PRIORITY_RANGE = CrispRanger.closed(1, 999);
+    private static final List<String> ANNOTATIONS = List.of(RegisterToTab.class.getName());
     
-    public static final Map<ResourceKey<CreativeModeTab>, List<TabEntry>> TAB_LOOKUP = new HashMap<>();
+    public static final Map<ResourceKey<CreativeModeTab>, Set<TabEntry>> TAB_LOOKUP = new HashMap<>();
     
     private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "MOD_INIT");
     
@@ -78,14 +76,14 @@ public final class CrispSweetberry
                 
                 final @Nullable RegisterToTab registerToTab = field.getAnnotation(RegisterToTab.class);
                 
-                if(registerToTab == null) 
+                if(registerToTab == null)
                     continue;
                 
                 final Object value = field.get(null);
                 final Supplier<? extends Item> supplier = wrapToSupplier(value);
                 
                 if(supplier != null)
-                    TAB_LOOKUP.computeIfAbsent(registerToTab.tabGroup().toCreativeTab(), ignored -> new ArrayList<>()).
+                    TAB_LOOKUP.computeIfAbsent(registerToTab.tabGroup().toCreativeTab(), ignored -> new HashSet<>()).
                         add(new TabEntry(supplier, registerToTab.tabGroup().toCreativeTab(), registerToTab.registerCondition()));
             }
             catch(Exception e) { LOGGER.error("Failed to pre-cache tab entry. Details: ", e); }
@@ -97,63 +95,9 @@ public final class CrispSweetberry
         
         LOGGER.info("Initializing Configurations...");
         
-        LOGGER.info("Searching registries...");
-        
-        final List<String> registries = scanData.getClasses().stream().
-            filter(data -> data.interfaces().contains(Type.getType(IRegistrant.class))).
-            map(data -> data.clazz().getClassName()).
-            toList();
-        
-        LOGGER.info("Registries collection completed!");
-        
-        LOGGER.info("Start Registrations' sorting...");
-        
-        final List<? extends IRegistrant> sortedHelpers = registries.stream().map(
-            name ->
-            {
-                try
-                {
-                    final Class<?> clazz = Class.forName(name);
-                    if(clazz.isEnum() && clazz.getEnumConstants().length == 1)
-                    {
-                        final IRegistrant registrant = (IRegistrant) clazz.getEnumConstants()[0];
-                        
-                        FunctionalUtils.throwIf(
-                            !LEGAL_PRIORITY_RANGE.inRange(registrant.getPriority().priority()),
-                            "Invalid priority: %s".formatted(registrant.getPriority().priority()),
-                            IllegalArgumentException::new
-                        );
-                        
-                        return registrant;
-                    }
-                    
-                    LOGGER.warn(
-                        "Skipped class \"{}\" because {}", 
-                        clazz.getName(), 
-                        clazz.isEnum() ? "it's not a singleton enum." : "it's not an enum. Did you forget it?"
-                    );
-                    
-                    return null;
-                }
-                catch(Exception e)
-                {
-                    LOGGER.error("Failed to instantiate registry: {}", name, e);
-                    return null;
-                }
-            }
-        ).filter(Objects::nonNull).
-            sorted(Comparator.comparingInt(IRegistrant::getFullPriority)).
-            toList();
-        
-        LOGGER.info("Registries sort completed!");
-        
-        LOGGER.info("Start Registration...");
-        for(final IRegistrant registrant: sortedHelpers)
-        {
-            registrant.register(eventBus);
-            LOGGER.info("Registering {}{}...", registrant.isFeature() ? "Feature: " : "", registrant.getJob());
-        }
-        LOGGER.info("CrispSweetberry has been initialized!");
+        LOGGER.info("Initializing registries...");
+        CrispRegistrationManager.getInstance().register(modContainer, eventBus);
+        LOGGER.info("CrispSweetberry initialized!");
     }
     
     @SuppressWarnings("unchecked")//! As you can see, this casting is actually reliable.

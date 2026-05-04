@@ -8,17 +8,20 @@
 
 package kurvcygnus.crispsweetberry.common.features.coins.api;
 
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
+import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
 import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
 
@@ -26,13 +29,13 @@ import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
  * This is a basic implementation of coin series' essential <u>{@link ICoinType contract}</u>,
  * it can be directly used as a template for custom stuff.
  * @apiNote If you want to implement optional coins, or just want to see some example to use, see 
- * {@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes VanillaCoinTypes}.
+ * {@link VanillaCoinType VanillaCoinTypes}.
  * @param <C> Self-restricted generic, <b>fill your implemented class as {@code C} and you you're good to go</b>.<br>
  * If you want to figure out what on earth is this, see comments in <u>{@link ICoinType}</u>.
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<C>
+public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<C>, INestedPrintable
 {
     private final @NotNull String namespace;
     protected final @NotNull String id;
@@ -105,22 +108,16 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
     
     @Override public boolean shouldAppear() { return this.enableCondition.test(this.nuggetSupplier); }
     
-    @Override public boolean equals(@Nullable Object object)
+    @Override public @NotNull String toString() { return toNestedString(); }
+    
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
     {
-        if(this == object)
-            return true;
-        if(object == null || getClass() != object.getClass())
-            return false;
-        
-        final BaseCoinType<?> that = (BaseCoinType<?>) object;
-        
-        return experience == that.experience &&
-            Float.compare(that.penaltyRate, penaltyRate) == 0 &&
-            Objects.equals(id, that.id);
+        return Map.of(
+            "id", this::id,
+            "experience", this::getExperience,
+            "strength", this::getStrength,
+            "penalty_rate", this::getPenaltyRate,
+            "resource_id", this::getId
+        );
     }
-    
-    @Override
-    public int hashCode() { return hash(namespace, id); }
-    
-    @Override public @NotNull String toString() { return "CoinTypes[id=%s, experience=%d, strength=%f]".formatted(id, experience, strength); }
 }

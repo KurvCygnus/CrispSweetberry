@@ -13,7 +13,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
-import kurvcygnus.crispsweetberry.utils.base.extensions.INestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * A data object that represents the identity of boxed Carry Crate.
@@ -36,18 +38,21 @@ import java.util.UUID;
 @ApiStatus.Internal
 public final class CarryID implements INestedPrintable
 {
-    public static final Codec<CarryID> CODEC = RecordCodecBuilder.create(inst ->
-        inst.group(
+    private static final Codec<CarryID> CODEC = RecordCodecBuilder.create(
+        inst -> inst.group(
             Codec.STRING.fieldOf("id").forGetter(CarryID::id),
             Codec.STRING.fieldOf("uuid").forGetter(CarryID::uuid)
         ).apply(inst, CarryID::new)
     );
-    
-    public static final StreamCodec<ByteBuf, CarryID> STREAM_CODEC = StreamCodec.composite(
+    private static final StreamCodec<ByteBuf, CarryID> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.STRING_UTF8, CarryID::id,
         ByteBufCodecs.STRING_UTF8, CarryID::uuid,
         CarryID::new
     );
+    
+    public static final Supplier<DataComponentType<CarryID>> SERIALIZATION_DEF =
+        DataComponentType.<CarryID>builder().persistent(CODEC).networkSynchronized(STREAM_CODEC)::build;
+    
     private final @NotNull String id;
     private final @NotNull String uuid;
     
@@ -95,11 +100,5 @@ public final class CarryID implements INestedPrintable
     
     @Override public int hashCode() { return Objects.hash(id, uuid); }
     
-    @Override public @NotNull @Unmodifiable Map<@NotNull String, @Nullable Object> getFields()
-    {
-        return Map.of(
-            "Recovery ID", id,
-            "UUID", uuid
-        );
-    }
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields() { return Map.of("Recovery ID", this::id, "UUID", this::uuid); }
 }

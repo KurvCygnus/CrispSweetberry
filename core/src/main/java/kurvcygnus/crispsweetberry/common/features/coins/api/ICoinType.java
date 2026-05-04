@@ -8,10 +8,12 @@
 
 package kurvcygnus.crispsweetberry.common.features.coins.api;
 
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * This is the contract of making a new coin variant.
@@ -19,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * Without it, CoinItem / CoinStackItem / CoinStackBlock may reference different CoinType instances, causing silent logic corruption
  * that cannot be detected at compile time.
  * @param <C> <u>{@link ICoinType}</u> itself, here used <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">{@code F-bounded quantification}</a>
- * technique to make sure that a series of coin's detailed componentExecutionType must be same.
+ * technique to make sure that a series of coin's detailed type must be same.
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
@@ -33,13 +35,13 @@ public interface ICoinType<C extends ICoinType<C>>
     @NotNull AbstractCoinItem<C> coinItem();
     @NotNull Item nuggetItem();
     
-    int getExperience();
-    float getPenaltyRate();
-    float getStrength();
+    @Range(from = 1, to = Integer.MAX_VALUE) int getExperience();
+    @Range(from = 0, to = 1) float getPenaltyRate();
+    @Range(from = 0, to = (int) Float.MAX_VALUE) float getStrength();
     
     /**
-     * @apiNote Mainly used for <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#COPPER copper}</u> and 
-     * <u>{@link kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes#DIAMOND diamond}</u> coins' in-game accessibility.
+     * @apiNote Mainly used for <u>{@link VanillaCoinType#COPPER copper}</u> and
+     * <u>{@link VanillaCoinType#DIAMOND diamond}</u> coins' in-game accessibility.
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! We should follow intuitive naming style.
     default boolean shouldAppear() { return true; }

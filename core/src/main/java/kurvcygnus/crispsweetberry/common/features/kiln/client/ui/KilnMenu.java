@@ -13,9 +13,8 @@ import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnDummyBlockEntity;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
 import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -71,9 +70,9 @@ public final class KilnMenu extends AbstractContainerMenu
     //region Constructors & Menu Basics
     /**
      * The constructor method for <b>client-side UI</b>, it makes sure that the <b>UI can be open normally</b>.<br>
-     * <i>You can see the reason of using </i>{@code KilnDummyBlockEntity}<i> <u>{@link KilnDummyBlockEntity here}</u></i>.
+     * <i>You can see the reason of using </i>{@code KilnBlockEntity#CLIENT_DUMMY_INSTANCE}<i> <u>{@link KilnBlockEntity#CLIENT_DUMMY_INSTANCE here}</u></i>.
      */
-    public KilnMenu(int containerId, @NotNull Inventory inventory) { this(containerId, inventory, new KilnDummyBlockEntity()); }
+    public KilnMenu(int containerId, @NotNull Inventory inventory) { this(containerId, inventory, KilnBlockEntity.CLIENT_DUMMY_INSTANCE); }
     
     /**
      * The constructor method for <b>server-side</b>, it <b>settles the basic ghost block problem</b>.

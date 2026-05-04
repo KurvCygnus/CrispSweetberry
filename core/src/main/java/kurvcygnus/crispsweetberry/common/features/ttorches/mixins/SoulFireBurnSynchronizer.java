@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.mixins;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
-import kurvcygnus.crispsweetberry.utils.base.trait.IMixinCaster;
+import kurvcygnus.crispsweetberry.lib.base.trait.IMixinCaster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;

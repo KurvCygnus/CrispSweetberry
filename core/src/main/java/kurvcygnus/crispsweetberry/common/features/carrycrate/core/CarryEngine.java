@@ -25,9 +25,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
+import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.base.extensions.StatedBlockPlaceContext;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -442,8 +442,8 @@ public enum CarryEngine
             final @Nullable CarryID carryID = context.getCarryID();
             LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
             
-            final var interactResult = CarryOperationExecutor.INST.handle(
-                new CarryInteractContext(
+            final @Nullable var interactResult = CarryOperationExecutor.INST.handle(
+                CarryInteractContext.init(
                     action,
                     serverLevel,
                     serverPlayer,

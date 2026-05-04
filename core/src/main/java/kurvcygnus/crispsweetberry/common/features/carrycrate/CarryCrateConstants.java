@@ -10,9 +10,9 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRangeMap;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRangeMap;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 

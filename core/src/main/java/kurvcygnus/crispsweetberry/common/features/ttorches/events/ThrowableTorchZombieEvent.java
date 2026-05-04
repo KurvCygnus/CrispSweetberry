@@ -10,8 +10,8 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.events;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRangeMap;
-import kurvcygnus.crispsweetberry.utils.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRangeMap;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;

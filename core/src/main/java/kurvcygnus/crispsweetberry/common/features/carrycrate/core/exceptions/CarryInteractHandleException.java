@@ -10,9 +10,9 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.exceptions;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
-import kurvcygnus.crispsweetberry.utils.base.exceptions.ITransitionalThrowable;
-import kurvcygnus.crispsweetberry.utils.base.exceptions.StructuredException;
-import kurvcygnus.crispsweetberry.utils.base.lang.IResult;
+import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransitionalThrowable;
+import kurvcygnus.crispsweetberry.lib.base.exceptions.StructuredException;
+import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import net.minecraft.world.InteractionResult;
 import net.neoforged.neoforge.common.util.TriState;
 import org.jetbrains.annotations.NotNull;

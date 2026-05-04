@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.coins.api;
 
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
-import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinTypes;
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -27,7 +27,7 @@ import java.util.Objects;
 
 /**
  * This is the basic of stacked coin blocks, which behaves like <u>{@link SnowLayerBlock}</u>, and can be broke to markedLogger 
- * <u>{@link AbstractCoinItem coins}</u>, or <u>{@link VanillaCoinTypes#nuggetItem() nuggets}</u> with <u>{@link ExperienceOrb experiences}</u> on crunching case 
+ * <u>{@link AbstractCoinItem coins}</u>, or <u>{@link VanillaCoinType#nuggetItem() nuggets}</u> with <u>{@link ExperienceOrb experiences}</u> on crunching case
  * in survivor mode.
  *
  * @author Kurv Cygnus
@@ -50,9 +50,10 @@ public abstract class AbstractCoinStackBlock<C extends ICoinType<C>> extends Sno
     @SuppressWarnings({"unused", "DataFlowIssue"})//! Only for vanilla CODEC.
     private AbstractCoinStackBlock(@Nullable Properties properties, @Nullable C coinType) { this(coinType); }
     
-    public AbstractCoinStackBlock(@NotNull C coinType)//! This is markAsSafe since the base class uses lazy to pass value.
+    public AbstractCoinStackBlock(@NotNull C coinType)//! This is safe since the base class uses lazy to pass value.
     {
-        super(Properties.of().
+        super(
+            Properties.of().
             strength(coinType.getStrength()).//! Oh my god, Minecraft API is terrible.
             sound(SoundType.CHAIN).
             isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8).

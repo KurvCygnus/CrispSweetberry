@@ -21,11 +21,11 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.exceptions.CarryInteractHandleException;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
+import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
+import kurvcygnus.crispsweetberry.lib.base.lang.Maybe;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.base.lang.IResult;
-import kurvcygnus.crispsweetberry.utils.base.lang.Maybe;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
-import kurvcygnus.crispsweetberry.utils.core.log.MarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -133,7 +133,7 @@ enum CarryOperationExecutor
                             """,
                         ex.type(),
                         ex.getMessage(),
-                        ex.causeData().toString().replace("\n", "\n    "),
+                        ex.causeData().toString(),
                         MetainfoConstants.FEEDBACK_MESSAGE,
                         ex.cause()
                     );
