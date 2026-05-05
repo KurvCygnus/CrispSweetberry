@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import kurvcygnus.crispsweetberry.lib.base.trait.INullableContainer;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import org.intellij.lang.annotations.MagicConstant;
@@ -43,6 +44,12 @@ public final class LockableBox<T> implements INullableContainer<T>
         return new LockableBox<>(value, BOUND);
     }
     
+    public static <T> @NotNull LockableBox<T> assignable(@NotNull T value)
+    {
+        assert value != null : "Param \"value\" must not be null!";
+        return new LockableBox<>(value, ASSIGNABLE);
+    }
+    
     public static <T> @NotNull LockableBox<T> create() { return new LockableBox<>(null, UNBOUND); }
     
     public static <T> @NotNull LockableBox<T> ofNullable(@Nullable T value) { return value != null ? of(value) : create(); }
@@ -54,7 +61,7 @@ public final class LockableBox<T> implements INullableContainer<T>
         return INullableContainer.super.isPresent();
     }
     
-    public boolean assign(@NotNull T value)
+    @CanIgnoreReturnValue public boolean assign(@NotNull T value)
     {
         assert value != null : "Param \"value\" must not be null!";
         
@@ -92,6 +99,13 @@ public final class LockableBox<T> implements INullableContainer<T>
         }
         
         return false;
+    }
+    
+    @CanIgnoreReturnValue public boolean lock(@NotNull T value)
+    {
+        if(!bound(value))
+            return false;
+        return lock();
     }
     
     public boolean isUnbound() { return state == UNBOUND; }

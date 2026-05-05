@@ -49,6 +49,7 @@ import snownee.jade.api.IWailaClientRegistration;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TRedstoneTorchExtensions.*;
 
@@ -63,15 +64,15 @@ public enum TTorchRegistries implements IRegistrant
     //  region Registry Basics
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { IRegistrant.listedRegister(REGISTRIES, bus); }
+    @Override public void register(@NotNull IEventBus bus) { registerBySet(REGISTRIES, bus); }
     
-    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 2); }
+    @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 2); }
     
     private static final DeferredRegister<Item> THROWABLE_TORCH_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<Block> TEMPORARY_TORCH_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<EntityType<?>> THROWN_TORCH_REGISTER = DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.NAMESPACE);
     
-    public static final List<DeferredRegister<?>> REGISTRIES = List.of(
+    public static final Set<DeferredRegister<?>> REGISTRIES = IRegistrant.composeRegistries(
         TEMPORARY_TORCH_REGISTER,
         THROWABLE_TORCH_REGISTER,
         THROWN_TORCH_REGISTER

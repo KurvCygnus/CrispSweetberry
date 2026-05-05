@@ -8,10 +8,11 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Range;
+import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
+import org.jetbrains.annotations.*;
+
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * A simple value object for <u>{@link KilnProgressCalculator}</u>.
@@ -24,7 +25,7 @@ public record CalculationResult(
     @Range(from = 0, to = 1) double currentVisualProgress, 
     @NotNull KilnEnumCollections.LogicalResult logicalResult,
     @NotNull KilnEnumCollections.VisualTrend trend
-)
+) implements INestedPrintable
 {
     @Contract("_, _ -> new")
     public static @NotNull CalculationResult unexpectedResult(@Range(from = 0, to = 1) double currentRealProgress, @Range(from = 0, to = 1) double currentVisualProgress)
@@ -34,6 +35,16 @@ public record CalculationResult(
             currentVisualProgress,
             KilnEnumCollections.LogicalResult.INVALID,
             KilnEnumCollections.VisualTrend.NORMAL
+        );
+    }
+    
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+    {
+        return Map.of(
+            "realProgress", this::currentRealProgress,
+            "visualProgress", this::currentVisualProgress,
+            "logicalResult",  this.logicalResult::name,
+            "trend", this.trend::name
         );
     }
 }

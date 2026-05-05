@@ -96,7 +96,9 @@ public final class CrispSweetberry
         LOGGER.info("Initializing Configurations...");
         
         LOGGER.info("Initializing registries...");
+        
         CrispRegistrationManager.getInstance().register(modContainer, eventBus);
+        
         LOGGER.info("CrispSweetberry initialized!");
     }
     

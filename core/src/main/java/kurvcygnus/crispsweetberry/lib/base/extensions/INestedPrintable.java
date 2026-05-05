@@ -38,21 +38,9 @@ public interface INestedPrintable extends Serializable
      * @apiNote It's recommend to this when your class has too many fields.
      */
     static @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> buildFieldMap(@NotNull Consumer<Map<String, Supplier<@Nullable Object>>> consumer)
-        { return buildFieldMap(consumer, LinkedHashMap::new); }
-    
-    /**
-     * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
-     *
-     * @apiNote It's recommend to this when your class has too many fields.
-     */
-    static @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> buildFieldMap(
-        @NotNull Consumer<Map<String, Supplier<@Nullable Object>>> consumer,
-        @NotNull Supplier<? extends Map<String, Supplier<@Nullable Object>>> mapSupplier
-    )
     {
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
-        Objects.requireNonNull(mapSupplier, "Param \"mapSupplier\" must not be null!");
-        final var map = mapSupplier.get();
+        final var map = new LinkedHashMap<String, Supplier<@Nullable Object>>();
         consumer.accept(map);
         return Collections.unmodifiableMap(map);
     }
@@ -120,13 +108,13 @@ public interface INestedPrintable extends Serializable
         {
             final String name = entry.getKey();
             final Object object = entry.getValue().get();
-            parse(stringBuilder, nextIndent, fieldIndent, visited, name, object);
+            analyseAndAppend(stringBuilder, nextIndent, fieldIndent, visited, name, object);
         }
         
         stringBuilder.append(indentStr).append('}');
     }
     
-    private void parse(
+    private void analyseAndAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -171,7 +159,7 @@ public interface INestedPrintable extends Serializable
                 final String nextIndentStr = " ".repeat(nextIndent);
                 
                 for(final Object item: iterable)
-                    parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+                    analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
                 stringBuilder.append(indent).append("]\n");
             }
             case Map<?, ?> map ->
@@ -188,23 +176,23 @@ public interface INestedPrintable extends Serializable
                 for(final Map.Entry<?, ?> entry: map.entrySet())
                 {
                     stringBuilder.append(indent).append("{");
-                    parse(stringBuilder, nextIndent, nextIndentStr, visited, "", entry.getKey());
-                    parse(stringBuilder, nextIndent, nextIndentStr, visited, "", entry.getValue());
+                    analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", entry.getKey());
+                    analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", entry.getValue());
                     stringBuilder.append(indent).append("}\n");
                 }
                 stringBuilder.append(indent).append("]\n");
             }
             //* That's why we ALWAYS like C#.
-            case Object[] array -> arrayParse(stringBuilder, currentIndent, indent, visited, name, array, prefix);
-            case int[] intArray -> arrayParse(stringBuilder, currentIndent, indent, visited, name, intArray, prefix);
-            case long[] longArray -> arrayParse(stringBuilder, currentIndent, indent, visited, name, longArray, prefix);
-            case byte[] byteArray -> arrayParse(stringBuilder, currentIndent, indent, visited, name, byteArray, prefix);
+            case Object[] array -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, array, prefix);
+            case int[] intArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, intArray, prefix);
+            case long[] longArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, longArray, prefix);
+            case byte[] byteArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, byteArray, prefix);
             case float[] floatArray ->
-                arrayParse(stringBuilder, currentIndent, indent, visited, name, floatArray, prefix);
-            case double[] doubleArray -> arrayParse(stringBuilder, currentIndent, indent, visited, name, doubleArray, prefix);
-            case char[] charArray -> arrayParse(stringBuilder, currentIndent, indent, visited, name, charArray, prefix);
+                arrayAppend(stringBuilder, currentIndent, indent, visited, name, floatArray, prefix);
+            case double[] doubleArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, doubleArray, prefix);
+            case char[] charArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, charArray, prefix);
             case boolean[] boolArray ->
-                arrayParse(stringBuilder, currentIndent, indent, visited, name, boolArray, prefix);
+                arrayAppend(stringBuilder, currentIndent, indent, visited, name, boolArray, prefix);
             default -> stringBuilder.append(prefix).append(obj).append('\n');
         }
     }
@@ -215,7 +203,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -235,7 +223,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final Object item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -245,7 +233,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -265,7 +253,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final int item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -275,7 +263,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -295,7 +283,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final long item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -305,7 +293,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -325,7 +313,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final byte item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -335,7 +323,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -355,7 +343,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final float item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -365,7 +353,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -385,7 +373,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final double item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -395,7 +383,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -415,7 +403,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final boolean item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -425,7 +413,7 @@ public interface INestedPrintable extends Serializable
      * OMG, I DO HATE primitive types.
      */
     @SuppressWarnings("DuplicatedCode")
-    private void arrayParse(
+    private void arrayAppend(
         @NotNull StringBuilder stringBuilder,
         int currentIndent,
         @NotNull String indent,
@@ -445,7 +433,7 @@ public interface INestedPrintable extends Serializable
         final String nextIndentStr = " ".repeat(nextIndent);
         
         for(final char item: array)
-            parse(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
+            analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
     
@@ -454,8 +442,7 @@ public interface INestedPrintable extends Serializable
         @NotNull String indent,
         @NotNull String name,
         @NotNull String value
-    )
-    { stringBuilder.append(indent).append(name).append(": ").append(value).append("\n"); }
+    ) { stringBuilder.append(indent).append(name).append(": ").append(value).append("\n"); }
 }
 
 /**

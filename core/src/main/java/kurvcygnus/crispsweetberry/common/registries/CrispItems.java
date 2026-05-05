@@ -27,7 +27,7 @@ public enum CrispItems implements IRegistrant
     
     @Override public @NotNull String getJob() { return "Misc Items"; }
     
-    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.BASE, 2); }
+    @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.BASE, 2); }
     
     public static final DeferredRegister<Item> CRISP_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     

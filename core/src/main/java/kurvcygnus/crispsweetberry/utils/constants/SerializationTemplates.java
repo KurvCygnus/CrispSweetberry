@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
+ * This is a simple collection of universal <u>{@link DataComponentType}</u> serialization and <u>{@link AttachmentType}</u> sync's simple templates.
  * @since 1.0 Release
  */
 public final class SerializationTemplates

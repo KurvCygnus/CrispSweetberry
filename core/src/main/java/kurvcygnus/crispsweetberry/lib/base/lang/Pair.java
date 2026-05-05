@@ -14,13 +14,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, Serializable, INestedPrintable
+public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, INestedPrintable
 {
     public Pair
     {
@@ -55,11 +54,5 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
-    {
-        return Map.of(
-            "left", () -> left,
-            "right", () -> right
-        );
-    }
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields() { return Map.of("left", () -> left, "right", () -> right); }
 }

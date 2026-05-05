@@ -19,6 +19,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAda
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
+import kurvcygnus.crispsweetberry.lib.base.lang.LockableBox;
 import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
@@ -68,7 +69,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
      * The flag that freezes the mutation access to registry maps.<br>
      * It will grantee the safety of all registry maps after the <u>{@link CarryRegistryManager#register(FMLLoadCompleteEvent) registration}</u> completed.
      */
-    private boolean frozen = false;
+    private static final LockableBox<Boolean> FROZEN = LockableBox.assignable(false);
     
     private static final HashMap<BlockEntityType<?>, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_REGISTRY = new HashMap<>();
     
@@ -139,7 +140,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
             {
                 LOGGER.debug("Registration ended, starting Entity Compat Binding...");
                 autoEntityBind();
-                CarryRegistryManager.INST.frozen = true;
+                FROZEN.lock(true);
                 LOGGER.info("Carry adapters' registration completed!");
             }
         );
@@ -180,7 +181,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
                     //! [[EntityType]] has a method [[EntityType#getBaseClass()]], which actually turns out to be hard-coded, returning "Entity.class" only.
                     //! So, Animal.class#isAssignableFrom(Class<?>) will not work.
                     //! Then, how about [[EntityTypeTest#forClass(Class<F>)]]?
-                    //! That is reliable, but all of its return values are not EntityType, we can't use it.
+                    //! That is reliable, but all of its return values are not [[EntityType]], we can't use it.
                     //! What about [[EntityType#create(Level)]]?
                     //! [[Level]] is unaccessible during game initialization, doing that is even more hacky than this.
                     //! Besides, dummy level is a hard stuff, this doesn't worth it.
@@ -189,7 +190,9 @@ public enum CarryRegistryManager implements ICarryRegistryView
                         final EntityType<? extends Animal> animal = (EntityType<? extends Animal>) animalType;
                         
                         //! Somehow, wandering trader is counted as an animal, despite it is not a animal.
-                        if(animal.getDescriptionId().equals("minecraft:wandering_trader"))
+                        //! We use [[EntityType#getDescriptionId()]] to compare, becuase [[EntityType]] DOESN'T EVEN
+                        //! SUPPORT [[Object#equals]], F.U.C.K!
+                        if(animal.getDescriptionId().equals(EntityType.WANDERING_TRADER.getDescriptionId()))
                             return;
                         
                         CarryRegistryManager.INST.unsafeRegisterEntity(animal, AdaptiveAnimalCarryAdapter::new);
@@ -206,7 +209,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
-        throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
         
         requireNonNull(blockEntityType, "Param \"blockEntityType\" must not be null!");
         requireNonNull(BlockEntityType.getKey(blockEntityType), "Param \"blockEntityType\"'s ResourceLocation must not be null!");
@@ -220,7 +223,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
-        throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
         
         requireNonNull(blockEntityTypes, "Param \"blockEntityTypes\" must not be null!");
         requireNonNull(carryAdapterBlockEntityFactory, "Param \"carryAdapterFactory\" must not be null!");
@@ -237,7 +240,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <B extends Block, A extends AbstractBlockCarryAdapter<B>>
     void register(@NotNull B block, @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory)
     {
-        throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
         
         requireNonNull(block, "Param \"block\" must not be null!");
         requireNonNull(BuiltInRegistries.BLOCK.getKey(block), "Param \"block\"'s ResourceLocation must not be null!");
@@ -249,7 +252,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
     void registerUniversal(@NotNull Set<? extends B> blocks, @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory)
     {
-        throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
         
         requireNonNull(blocks, "Param \"blocks\" must not be null!");
         requireNonNull(carryAdapterBlockAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");
@@ -266,7 +269,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<E>>
     void register(@NotNull EntityType<E> entityType, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
     {
-        throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
         
         requireNonNull(entityType, "Param \"entityType\" must not be null!");
         requireNonNull(EntityType.getKey(entityType), "Param \"entityType\"'s ResourceLocation must not be null!");
@@ -278,7 +281,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
     void registerUniversal(@NotNull Set<? extends EntityType<? extends E>> entityTypes, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
     {
-        throwIf(this.frozen, ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
         
         requireNonNull(entityTypes, "Param \"entityTypes\" must not be null!");
         requireNonNull(carryEntityAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");

@@ -29,7 +29,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Set;
 
 import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType.*;
 
@@ -41,9 +41,9 @@ public enum CoinRegistries implements IRegistrant
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { IRegistrant.listedRegister(REGISTRIES, bus); }
+    @Override public void register(@NotNull IEventBus bus) { registerBySet(REGISTRIES, bus); }
     
-    @Override public @NotNull PriorityPair getPriority() { return new PriorityPair(PriorityRange.FEATURE, 3); }
+    @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 3); }
     
     private static final DeferredRegister<Item> COIN_ITEM_REGISTER = DeferredRegister.createItems(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<Block> COIN_BLOCK_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
@@ -54,7 +54,7 @@ public enum CoinRegistries implements IRegistrant
         Registries.LOOT_FUNCTION_TYPE, CrispSweetberry.NAMESPACE
     );
     
-    public static final List<DeferredRegister<?>> REGISTRIES = List.of(
+    public static final Set<DeferredRegister<?>> REGISTRIES = IRegistrant.composeRegistries(
         COIN_ITEM_REGISTER,
         COIN_BLOCK_REGISTER,
         COIN_LOOT_TABLE_CONDITION_REGISTER,

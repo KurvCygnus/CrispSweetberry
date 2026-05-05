@@ -10,9 +10,8 @@ package kurvcygnus.crispsweetberry.lib.core.registry;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.lang.LockableBox;
 import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -27,7 +26,7 @@ import java.util.*;
 
 /**
  * This is the class that processes all <u>{@link IRegistrant}</u> implementers.
- * @implNote <b>This class won't take any memories after all mods' initialization are completed.
+ * @implNote <b>This class won't take any physical memories after all mods' initialization are completed.
  * Once <u>{@link FMLLoadCompleteEvent}</u> is fired, this class will destroy its only one instance with its fields immediately.</b>
  * @since 1.0 Release
  * @author Kurv Cygnus
@@ -36,19 +35,21 @@ import java.util.*;
  */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE) public final class CrispRegistrationManager
 {
+    private static final LockableBox<Boolean> ACCESS = LockableBox.assignable(true);
+    
     private static @Nullable CrispRegistrationManager INSTANCE = new CrispRegistrationManager();
     
     private final MarkLogger logger = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "REGISTRY_MANAGER");
-    private final CrispRanger legalPriorityRange = CrispRanger.closed(1, 999);
     private final Set<ModContainer> visited = Collections.newSetFromMap(new IdentityHashMap<>());
     
-    private CrispRegistrationManager() {}
+    private CrispRegistrationManager() { if(!ACCESS.orThrow()) throw new AssertionError("No, you can't create a new instance of this!"); }
     
     @SubscribeEvent static void destroyInstance(@NotNull FMLLoadCompleteEvent event)
     {
         assert INSTANCE != null;
         INSTANCE.logger.info("Registration phase finished, RegistrationManager destroyed.");
         INSTANCE = null;
+        ACCESS.lock(false);
     }
     
     /**
@@ -78,16 +79,7 @@ import java.util.*;
                     {
                         final Class<?> clazz = Class.forName(data.clazz().getClassName());
                         if(clazz.isEnum() && clazz.getEnumConstants().length == 1)
-                        {
-                            final IRegistrant registrant = (IRegistrant) clazz.getEnumConstants()[0];
-                            
-                            FunctionalUtils.throwIf(
-                                !legalPriorityRange.inRange(registrant.getPriority().priority()),
-                                "Invalid priority: %s".formatted(registrant.getPriority().priority()),
-                                IllegalArgumentException::new
-                            );
-                            return registrant;
-                        }
+                            return (IRegistrant) clazz.getEnumConstants()[0];
                         logger.warn("Skipped class \"{}\": Not a singleton enum.", clazz.getName());
                     }
                     catch(Exception e) { logger.error("Failed to instantiate registry: {}", data.clazz().getClassName(), e); }
@@ -95,7 +87,7 @@ import java.util.*;
                 }
             ).
             filter(Objects::nonNull).
-            sorted(Comparator.comparingInt(IRegistrant::getFullPriority)).
+            sorted(Comparator.comparingInt(r -> r.getPriority().fullPriority())).
             forEach(
                 registrant ->
                 {
