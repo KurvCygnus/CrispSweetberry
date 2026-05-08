@@ -19,7 +19,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAda
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
-import kurvcygnus.crispsweetberry.lib.base.lang.LockableBox;
+import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
@@ -69,7 +69,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
      * The flag that freezes the mutation access to registry maps.<br>
      * It will grantee the safety of all registry maps after the <u>{@link CarryRegistryManager#register(FMLLoadCompleteEvent) registration}</u> completed.
      */
-    private static final LockableBox<Boolean> FROZEN = LockableBox.assignable(false);
+    private static final ISealableBox<Boolean> FROZEN = ISealableBox.assignable(false);
     
     private static final HashMap<BlockEntityType<?>, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_REGISTRY = new HashMap<>();
     
@@ -133,14 +133,14 @@ public enum CarryRegistryManager implements ICarryRegistryView
      */
     @SubscribeEvent static void register(@NotNull FMLLoadCompleteEvent event)
     {
-        CrispSweetberry.CRISP_BUS.post(new CarryAdapterRegisterEvent(CarryRegistryManager.INST));
+        CrispSweetberry.CRISP_BUS.orThrow().post(new CarryAdapterRegisterEvent(CarryRegistryManager.INST));
         
         event.enqueueWork(
             () ->
             {
                 LOGGER.debug("Registration ended, starting Entity Compat Binding...");
                 autoEntityBind();
-                FROZEN.lock(true);
+                FROZEN.seal();
                 LOGGER.info("Carry adapters' registration completed!");
             }
         );

@@ -1,0 +1,215 @@
+//==============================================================================
+// Copyright (C) 2026 Kurv Cygnus                                              =
+// This file is part of Crisp Sweetberry.                                      =
+// Crisp Sweetberry is free software: you can redistribute it and/or modify    =
+// it under the terms of the GNU Lesser General Public License as published by =
+// the Free Software Foundation, either version 3 of the License.              =
+//==============================================================================
+
+package kurvcygnus.crispsweetberry.lib.base.lang;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+/**
+ * A data holder which is capable of restricting unexpected, or illegal accesses.
+ * @apiNote Vault can be either <b>immutable</b> or <b>mutable</b> with different static factories,
+ * notes that <b>both immutable and mutable are thread-safe.</b>
+ * @param <Value> The type of this container's value.
+ * @param <Token> The access token's type.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
+public sealed interface IVault<Value, Token> extends Function<Token, Value>
+{
+    /**
+     * Creates a <u>{@link IVault vault}</u> instance, whose value is <b>immutable</b>, and the token's match condition is
+     * <u>{@link Object#equals(Object)}</u>.
+     * @see #ofMutable(Object, Object) Mutable Version
+     */
+    static <Value, Token> @NotNull IVault<Value, Token> of(@NotNull Value value, @NotNull Token token)
+    {
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        Objects.requireNonNull(token, "Param \"token\" must not be null!");
+        return new ImmutableVault<>(value, token, t -> t.equals(token));
+    }
+    
+    /**
+     * Creates a <u>{@link IVault vault}</u> instance, whose value is <b>immutable</b>, and the token's match condition is
+     * the token itself is <b>not null</b>.
+     * @see #ofMutableTypeMatchOnly(Object) Mutable Version
+     */
+    static <Value, Token> @NotNull IVault<Value, Token> ofTypeMatchOnly(@NotNull Value value)
+    {
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        return new ImmutableVault<>(value, null, null);
+    }
+    
+    /**
+     * Creates a <u>{@link IVault vault}</u> instance, whose value is <b>immutable</b>, and the token's match condition is
+     * customizable.
+     * @apiNote The former param of <u>{@link BiPredicate}</u> is container's token, the latter one is the external one.
+     * @see #ofMutableCustomMatch(Object, Object, BiPredicate) Mutable Version
+     */
+    static <Value, Token> @NotNull IVault<Value, Token> ofCustomMatch(
+        @NotNull Value value,
+        @NotNull Token token,
+        @NotNull BiPredicate<? super Token, ? super Token> predicate
+    )
+    {
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        Objects.requireNonNull(token, "Param \"token\" must not be null!");
+        Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
+        
+        return new ImmutableVault<>(value, token, t -> predicate.test(token, t));
+    }
+    
+    /**
+     * Creates a <u>{@link IVault vault}</u> instance, whose value is <b>mutable</b>, and the token's match condition is
+     * <u>{@link Object#equals(Object)}</u>.
+     * @see #of(Object, Object) Immutable Version
+     */
+    static <Value, Token> @NotNull IVault<Value, Token> ofMutable(@NotNull Value value, @NotNull Token token)
+    {
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        Objects.requireNonNull(token, "Param \"token\" must not be null!");
+        return new MutableVault<>(value, token, t -> t.equals(token));
+    }
+    
+    /**
+     * Creates a <u>{@link IVault vault}</u> instance, whose value is <b>mutable</b>, and the token's match condition is
+     * the token itself is <b>not null</b>.
+     * @see #ofTypeMatchOnly(Object) Immutable Version
+     */
+    static <Value, Token> @NotNull IVault<Value, Token> ofMutableTypeMatchOnly(@NotNull Value value)
+    {
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        return new MutableVault<>(value, null, null);
+    }
+    
+    /**
+     * Creates a <u>{@link IVault vault}</u> instance, whose value is <b>mutable</b>, and the token's match condition is
+     * customizable.
+     * @apiNote The former param of <u>{@link BiPredicate}</u> is container's token, the latter one is the external one.
+     * @see #ofCustomMatch(Object, Object, BiPredicate) Immutable Version
+     */
+    static <Value, Token> @NotNull IVault<Value, Token> ofMutableCustomMatch(
+        @NotNull Value value,
+        @NotNull Token token,
+        @NotNull BiPredicate<? super Token, ? super Token> predicate
+    )
+    {
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        Objects.requireNonNull(token, "Param \"token\" must not be null!");
+        Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
+        return new MutableVault<>(value, token, t -> predicate.test(token, t));
+    }
+    
+    /**
+     * Gets the value of this vault holds, as long as the token matches the requirement.
+     * @throws IllegalArgumentException When token doesn't matches the requirement.
+     */
+    @NotNull Value tryGet(@NotNull Token token) throws IllegalArgumentException;
+    
+    /**
+     * Gets the value of this vault holds, as long as the token matches the requirement.
+     */
+    @NotNull Optional<Value> trySafeGet(@NotNull Token token);
+    
+    /**
+     * Tweaks the value of this vault, as long as the vault itself is mutable, with token matches the requirement.
+     * @return The old value in this vault. If the vault is immutable, the return value will always be {@code null}.
+     */
+    @Nullable Value trySet(@NotNull Value value, @NotNull Token token);
+    
+    boolean isMutable();
+    
+    default @Override @NotNull Value apply(@NotNull Token token) { return tryGet(token); }
+}
+
+abstract sealed class BaseVault<Value, Token> implements IVault<Value, Token>
+{
+    protected final @Nullable Token token;
+    protected final @NotNull Predicate<Token> matcher;
+    
+    BaseVault(@Nullable Token token, @Nullable Predicate<Token> matcher)
+    {
+        this.token = token;
+        this.matcher = Objects.requireNonNullElse(matcher, Objects::nonNull);
+    }
+    
+    @Override public final @NotNull Value tryGet(@NotNull Token token) throws IllegalArgumentException
+    {
+        if(matcher.test(token))
+            return value();
+        
+        throw new IllegalArgumentException("Invalid token: " + token);
+    }
+    
+    @Override public @NotNull Optional<Value> trySafeGet(@NotNull Token token)
+    {
+        if(matcher.test(token))
+            return Optional.of(value());
+        return Optional.empty();
+    }
+    
+    @Override public final @Nullable Value trySet(@NotNull Value value, @NotNull Token token)
+    {
+        if(!matcher.test(token))
+            return null;
+        
+        return trySetSequence(value);
+    }
+    
+    protected abstract @NotNull Value value();
+    
+    protected abstract @Nullable Value trySetSequence(@NotNull Value value);
+}
+
+final class MutableVault<Value, Token> extends BaseVault<Value, Token>
+{
+    private final AtomicReference<Value> value;
+    
+    MutableVault(@NotNull Value value, @Nullable Token token, @Nullable Predicate<Token> matcher)
+    {
+        super(token, matcher);
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        this.value = new AtomicReference<>(value);
+    }
+    
+    @Override protected @NotNull Value value() { return value.get(); }
+    
+    @Override protected @Nullable Value trySetSequence(@NotNull Value value)
+    {
+        final var previous = this.value.get();
+        this.value.set(value);
+        return previous;
+    }
+    
+    @Override public boolean isMutable() { return true; }
+}
+
+final class ImmutableVault<Value, Token> extends BaseVault<Value, Token>
+{
+    private final Value value;
+    
+    ImmutableVault(@NotNull Value value, @Nullable Token token, @Nullable Predicate<Token> matcher)
+    {
+        super(token, matcher);
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        this.value = value;
+    }
+    
+    @Override protected @NotNull Value value() { return value; }
+    
+    @Override protected @Nullable Value trySetSequence(@NotNull Value value) { return null; }
+    
+    @Override public boolean isMutable() { return false; }
+}

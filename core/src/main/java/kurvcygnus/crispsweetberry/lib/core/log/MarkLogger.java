@@ -10,7 +10,6 @@ package kurvcygnus.crispsweetberry.lib.core.log;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -236,11 +235,8 @@ public final class MarkLogger implements Logger
         requireNonNull(logger, "Param \"logger\" must not be null!");
         requireNonNull(condition, "Param \"condition\" must not be null!");
         
-        FunctionalUtils.throwIf(
-            marker == null && adaptive,
-            "Creating a MarkLogger instance with null marker and adaptive markers is not allowed!",
-            IllegalArgumentException::new
-        );
+        if(marker == null && adaptive)
+            throw new IllegalArgumentException("Creating a MarkLogger instance with null marker and adaptive markers is not allowed!");
         
         if(adaptive)
         {

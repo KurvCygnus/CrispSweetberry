@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ScalableParticleOptionsBase;
@@ -123,7 +123,7 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     public boolean isWallTorch() { return isWallTorch; }
     
     @Override public final @NotNull MapCodec<? extends AbstractGenericTorchBlock<T>> codec()
-        { return simpleCodec(FunctionalUtils.noArgCodec(getCodecConstruct())); }
+        { return simpleCodec(SerializationTemplates.noArgCodec(getCodecConstruct())); }
     
     protected abstract @NotNull Supplier<? extends AbstractGenericTorchBlock<T>> getCodecConstruct();
 }

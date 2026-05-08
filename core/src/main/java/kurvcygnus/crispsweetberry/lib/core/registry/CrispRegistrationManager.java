@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.lib.core.registry;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.lib.base.lang.LockableBox;
+import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -22,7 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * This is the class that processes all <u>{@link IRegistrant}</u> implementers.
@@ -35,7 +38,7 @@ import java.util.*;
  */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE) public final class CrispRegistrationManager
 {
-    private static final LockableBox<Boolean> ACCESS = LockableBox.assignable(true);
+    private static final ISealableBox<Boolean> ACCESS = ISealableBox.assignable(true);
     
     private static @Nullable CrispRegistrationManager INSTANCE = new CrispRegistrationManager();
     
@@ -49,20 +52,16 @@ import java.util.*;
         assert INSTANCE != null;
         INSTANCE.logger.info("Registration phase finished, RegistrationManager destroyed.");
         INSTANCE = null;
-        ACCESS.lock(false);
+        ACCESS.seal();
     }
     
-    /**
-     * This method starts the automatic registration of a mod.<br>
-     * You should call this method in your mod's entry class's {@code <init>} method(<i>a.k.a Constructor</i>),
-     * with <u>{@link CrispRegistrationManager#getInstance() CrispRegistrationManager.getInstance()}</u>{@code .register(ModContainer, IEventBus)}.
-     * <hr>
-     * <b>This class has a strict lifecycle, any improper, or invalid call will get exception.</b>
-     */
-    public void register(@NotNull ModContainer modContainer, @NotNull IEventBus eventBus)
+    private <A extends Annotation> void register(
+        @NotNull ModContainer modContainer,
+        @NotNull IEventBus eventBus,
+        @Nullable Class<A> service,
+        @Nullable BiConsumer<A, Object> foundSequence
+    )
     {
-        Objects.requireNonNull(modContainer, "Param \"modContainer\" must not be null!");
-        Objects.requireNonNull(eventBus, "Param \"eventBus\" must not be null!");
         if(!visited.add(modContainer))
             return;
         
@@ -79,8 +78,11 @@ import java.util.*;
                     {
                         final Class<?> clazz = Class.forName(data.clazz().getClassName());
                         if(clazz.isEnum() && clazz.getEnumConstants().length == 1)
+                        {
+                            logger.debug("Captured the singleton of registry \"{}\".", clazz.getSimpleName());
                             return (IRegistrant) clazz.getEnumConstants()[0];
-                        logger.warn("Skipped class \"{}\": Not a singleton enum.", clazz.getName());
+                        }
+                        logger.warn("Skipped class \"{}\" because it is not a singleton enum.", clazz.getName());
                     }
                     catch(Exception e) { logger.error("Failed to instantiate registry: {}", data.clazz().getClassName(), e); }
                     return null;
@@ -100,12 +102,78 @@ import java.util.*;
                     );
                 }
             );
+        
+        if(service == null || foundSequence == null)
+            return;
+        
+        logger.info("[{}] Registry initialized. Start process Annotation \"{}\"'s delegation.", modContainer.getModId(), service.getSimpleName());
+        
+        scanData.getAnnotations().stream().
+            filter(data -> data.annotationType().getClassName().equals(service.getName())).
+            forEach(
+                data ->
+                {
+                    try
+                    {
+                        final Class<?> host = Class.forName(data.clazz().getClassName());
+                        final Field owner = host.getDeclaredField(data.memberName());
+                        owner.setAccessible(true);
+                        
+                        final @Nullable A instance = owner.getAnnotation(service);
+                        final @Nullable Object target = owner.get(null);
+                        
+                        if(target == null || instance == null)
+                        {
+                            logger.debug("Invalid entry: Member: {}, Annotation: {}, skipped.", target, instance);
+                            return;
+                        }
+                        
+                        foundSequence.accept(instance, target);
+                    }
+                    catch(Exception e) { logger.error("Failed to access class \"{}\", details: ", data.clazz().getClassName(), e); }
+                }
+            );
     }
     
-    public static @NotNull CrispRegistrationManager getInstance()
+    private static <A extends Annotation> void delegate(
+        @NotNull ModContainer modContainer,
+        @NotNull IEventBus eventBus,
+        @Nullable Class<A> service,
+        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence
+    )
     {
+        Objects.requireNonNull(modContainer, "Param \"modContainer\" must not be null!");
+        Objects.requireNonNull(eventBus, "Param \"eventBus\" must not be null!");
+        
         if(INSTANCE == null)
             throw new IllegalStateException("Registration phase is already over!");
-        return INSTANCE;
+        
+        INSTANCE.register(modContainer, eventBus, service, foundSequence);
+    }
+    
+    /**
+     * This method starts the automatic registration of a mod.<br>
+     * You should call this method in your mod's entry class's {@code <init>} method(<i>a.k.a Constructor</i>).
+     * <hr>
+     * <b>This class has a strict lifecycle, any improper, or invalid call will get exception.</b>
+     * @see #registerWithAnnotationDelegate(ModContainer, IEventBus, Class, BiConsumer) Advanced Usage
+     */
+    public static void register(@NotNull ModContainer modContainer, @NotNull IEventBus eventBus) { delegate(modContainer, eventBus, null, null); }
+    
+    /**
+     * Start the registration of all <u>{@link IRegistrant}</u>'s implementers, and after the registration is completed,
+     * the <u>{@link Annotation}</u> your passed will be processed, once both annotated target and <u>{@link Annotation}</u> itself are presented,
+     * the callback will be triggered.
+     */
+    public static <A extends Annotation> void registerWithAnnotationDelegate(
+        @NotNull ModContainer modContainer,
+        @NotNull IEventBus eventBus,
+        @NotNull Class<A> service,
+        @NotNull BiConsumer<@NotNull A, @NotNull Object> foundSequence
+    )
+    {
+        Objects.requireNonNull(service, "Param \"service\" must not be null!");
+        Objects.requireNonNull(foundSequence, "Param \"foundSequence\" must not be null!");
+        delegate(modContainer, eventBus, service, foundSequence);
     }
 }

@@ -45,37 +45,46 @@ public final class CrispConfigScreen extends Screen
         this.lastScreen = lastScreen;
     }
     
-    @Override
-    protected void init()
+    @Override protected void init()
     {
         final int buttonWidth = 200;
         final int x = this.width / 2 - buttonWidth / 2;
         final int y = 40;
         
-        this.addRenderableWidget(CycleButton.onOffBuilder(CrispConfig.KILN_BE_DEBUG.get())
-            .create(x, y, buttonWidth, 20, KILN_BE_DEBUG_TEXT,
-                (button, value) -> CrispConfig.KILN_BE_DEBUG.set(value)
-            )
+        this.addRenderableWidget(
+            CycleButton.onOffBuilder(CrispConfig.KILN_BE_DEBUG.get()).
+                create(
+                    x,
+                    y,
+                    buttonWidth,
+                    20,
+                    KILN_BE_DEBUG_TEXT,
+                    (button, value) -> CrispConfig.KILN_BE_DEBUG.set(value)
+                )
         );
         
-        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) ->
-            {
-                CrispConfig.SPEC.save();
-                FunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
-            }
-        ).bounds(x, this.height - 28, buttonWidth, 20).build());
+        this.addRenderableWidget(
+            Button.builder(
+                CommonComponents.GUI_DONE,
+                button ->
+                {
+                    CrispConfig.SPEC.save();
+                    FunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
+                }
+            ).
+                bounds(x, this.height - 28, buttonWidth, 20).
+                build()
+        );
     }
     
-    @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
+    @Override public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
     
-    @Override
-    public void onClose()
+    @Override public void onClose()
     {
         CrispConfig.SPEC.save();
         FunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));

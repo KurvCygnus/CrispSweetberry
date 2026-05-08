@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -44,20 +43,8 @@ import java.util.function.Supplier;
 public final class CarryData
 {
     //  region Fields & Constructors
-    /**
-     * @implNote Have to write <u>{@link CarryDataCodec implementation}</u> manually, because 
-     * <u>{@link RecordCodecBuilder}</u>'s generic deduction is <b>STUPID and doesn't work at ALL</b>.
-     */
-    private static final Codec<CarryData> CODEC = CarryDataCodec.INST;
-    
-    /**
-     * @implNote Have to write <u>{@link CarryDataStreamCodec implementation}</u> manually, because
-     * <u>{@link StreamCodec#composite(StreamCodec, Function, Function)}</u>'s generic deduction is <b>STUPID and doesn't work at ALL</b>.
-     */
-    private static final StreamCodec<ByteBuf, CarryData> STREAM_CODEC = CarryDataStreamCodec.INST;
-    
     public static final Supplier<DataComponentType<CarryData>> SERIALIZATION_DEF =
-        DataComponentType.<CarryData>builder().persistent(CODEC).networkSynchronized(STREAM_CODEC)::build;
+        DataComponentType.<CarryData>builder().persistent(CarryDataCodec.INST).networkSynchronized(CarryDataStreamCodec.INST)::build;
     
     private final @NotNull CarryType carryType;
     private final @NotNull CarryDataBaseHolder unionData;
@@ -222,7 +209,7 @@ public final class CarryData
     
     public static final class CarryBlockDataHolder extends CarryDataBaseHolder
     {
-        public static final MapCodec<CarryBlockDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+        static final MapCodec<CarryBlockDataHolder> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
                 Codec.INT.fieldOf(        "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BlockState.CODEC.fieldOf( "state").forGetter(CarryBlockDataHolder::getState),
@@ -231,7 +218,7 @@ public final class CarryData
             ).apply(inst, CarryBlockDataHolder::new)
         );
         
-        public static final StreamCodec<ByteBuf, CarryBlockDataHolder> STREAM_CODEC = StreamCodec.composite(
+        static final StreamCodec<ByteBuf, CarryBlockDataHolder> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,                     CarryDataBaseHolder::getPenaltyRate,
             ByteBufCodecs.fromCodec(BlockState.CODEC), CarryBlockDataHolder::getState,
             ByteBufCodecs.VAR_INT,                     CarryBlockDataHolder::getCarryCount,
@@ -291,7 +278,7 @@ public final class CarryData
     
     public static final class CarryEntityDataHolder extends CarryDataBaseHolder
     {
-        public static final MapCodec<CarryEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+        static final MapCodec<CarryEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
                 Codec.INT.fieldOf(                                   "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(CarryEntityDataHolder::getType),
@@ -299,7 +286,7 @@ public final class CarryData
             ).apply(inst, CarryEntityDataHolder::new)
         );
         
-        public static final StreamCodec<ByteBuf, CarryEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
+        static final StreamCodec<ByteBuf, CarryEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, CarryDataBaseHolder::getPenaltyRate,
             ByteBufCodecs.fromCodec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()), CarryEntityDataHolder::getType,
             ByteBufCodecs.COMPOUND_TAG, CarryEntityDataHolder::getTagData,
@@ -344,7 +331,7 @@ public final class CarryData
     
     public static final class CarryBlockEntityDataHolder extends CarryDataBaseHolder
     {
-        public static final MapCodec<CarryBlockEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+        static final MapCodec<CarryBlockEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
                 Codec.INT.fieldOf(                                         "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BlockState.CODEC.fieldOf(                                  "state").forGetter(CarryBlockEntityDataHolder::getState),
@@ -353,7 +340,7 @@ public final class CarryData
             ).apply(inst, CarryBlockEntityDataHolder::new)
         );
         
-        public static final StreamCodec<ByteBuf, CarryBlockEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
+        static final StreamCodec<ByteBuf, CarryBlockEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,                                                      CarryDataBaseHolder::getPenaltyRate,
             ByteBufCodecs.fromCodec(BlockState.CODEC),                                  CarryBlockEntityDataHolder::getState,
             ByteBufCodecs.fromCodec(BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec()), CarryBlockEntityDataHolder::getType,
@@ -475,12 +462,12 @@ public final class CarryData
         INST;
         
         @Override public @NotNull CarryData decode(@NotNull ByteBuf buffer)
-        { 
+        {
             final CarryType type = ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).decode(buffer);
             
             final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) type.streamCodec;
             final CarryDataBaseHolder data = dataCodec.decode(buffer);
-             
+            
             final long startTime = buffer.readLong();
             
             return new CarryData(type, data, true, startTime);
@@ -489,7 +476,7 @@ public final class CarryData
         @Override public void encode(@NotNull ByteBuf buffer, @NotNull CarryData value)
         {
             ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).encode(buffer, value.carryType());
-             
+            
             final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) value.carryType().streamCodec;
             dataCodec.encode(buffer, value.unionData());
             

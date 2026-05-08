@@ -8,10 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.*;
 
 import java.io.Serializable;
 import java.util.*;
@@ -25,9 +22,7 @@ import java.util.function.Supplier;
  *
  * @author Kurv Cygnus
  * @apiNote Due to Java's {@code interface} limitation, you have to overwrite <u>{@link Object#toString()}</u> with calling <u>{@link #toNestedString()}</u> by your own.
- * @see #takeNullFieldAsOptional() Null value handle Config
- * @see #getIndent() Indent Config
- * @see #startsAtNewLine() Output Config
+ * @see IAutoNestedPrintable
  * @since 1.0 Release
  */
 public interface INestedPrintable extends Serializable
@@ -48,7 +43,8 @@ public interface INestedPrintable extends Serializable
     /**
      * Decides whether the {@code null} value should be printed.<hr>
      * If the value is {@code false}, {@code null} value will be replace with {@code "N/A"}.<br>
-     * Or else, this entry won't be printed.
+     * Or else, this entry won't be printed.<br><br>
+     * <i>Also, notes that this method only tweaks nullable field, <b><u>{@link Optional}</u> is not included.</b></i>
      */
     default boolean takeNullFieldAsOptional() { return false; }
     
@@ -73,7 +69,6 @@ public interface INestedPrintable extends Serializable
     
     /**
      * Gets this class's field map.
-     *
      * @apiNote The return result should <b>NOT</b> be dynamic. Only the first get result will count, the laters will be ignored.
      * @see Cacher The reason
      */
@@ -81,25 +76,30 @@ public interface INestedPrintable extends Serializable
     
     private @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields(@NotNull Class<?> clazz)
     {
-        final @Nullable var fields = Objects.requireNonNullElse(Cacher.CACHE.get(clazz), getFields());
+        final @Nullable var fields = Objects.requireNonNullElseGet(Cacher.CACHE.get(clazz), this::getFields);
         if(!Cacher.CACHE.containsKey(clazz))
             Cacher.CACHE.put(clazz, fields);
         return fields;
     }
     
-    default @NotNull String toNestedString()
+    @ApiStatus.NonExtendable default @NotNull String toNestedString() { return toNestedString(0); }
+    
+    @ApiStatus.NonExtendable default @NotNull String toNestedString(@Range(from = 0, to = Integer.MAX_VALUE) int indent)
     {
+        if(indent < 0)
+            throw new IllegalArgumentException("Indent must be non-negative!");
+        
         final StringBuilder stringBuilder = new StringBuilder(getFields(this.getClass()).size() * getDefaultCapacityForEachField());
         final Set<Object> visited = Collections.newSetFromMap(new IdentityHashMap<>());
-        buildNestedString(stringBuilder, 0, visited);
+        buildNestedString(stringBuilder.append(startsAtNewLine() ? "\n" : ""), indent, visited);
         return stringBuilder.toString();
     }
     
     private void buildNestedString(@NotNull StringBuilder stringBuilder, int currentIndent, @NotNull Set<Object> visited)
     {
-        final String indentStr = " ".repeat(currentIndent);
+        final String indentString = " ".repeat(currentIndent);
         
-        stringBuilder.append(startsAtNewLine() ? "\n" : "").append(this.getClass().getSimpleName()).append(indentStr);
+        stringBuilder.append(this.getClass().getSimpleName()).append(indentString);
         
         final int nextIndent = currentIndent + getIndent();
         final String fieldIndent = " ".repeat(nextIndent);
@@ -111,7 +111,7 @@ public interface INestedPrintable extends Serializable
             analyseAndAppend(stringBuilder, nextIndent, fieldIndent, visited, name, object);
         }
         
-        stringBuilder.append(indentStr).append('}');
+        stringBuilder.append(indentString).append('}');
     }
     
     private void analyseAndAppend(
@@ -182,6 +182,7 @@ public interface INestedPrintable extends Serializable
                 }
                 stringBuilder.append(indent).append("]\n");
             }
+            case Optional<?> box -> stringBuilder.append(prefix).append(box.map(Object::toString).orElse("null")).append('\n');
             //* That's why we ALWAYS like C#.
             case Object[] array -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, array, prefix);
             case int[] intArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, intArray, prefix);
@@ -197,6 +198,7 @@ public interface INestedPrintable extends Serializable
         }
     }
     
+    //region Primitive Arrays' Boilerplate Codes
     /**
      * @implNote Yes, that's sad. Despite both array and <u>{@link Iterable}</u> can use enhanced for-each,
      * they have completely no common, we can not do any more abstract stuff on this.<br>
@@ -436,6 +438,7 @@ public interface INestedPrintable extends Serializable
             analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
         stringBuilder.append(indent).append("]\n");
     }
+    //endregion
     
     private static void appendEntryTemplate(
         @NotNull StringBuilder stringBuilder,
@@ -447,6 +450,7 @@ public interface INestedPrintable extends Serializable
 
 /**
  * A holder that holds the cache of <u>{@link INestedPrintable}</u>'s all implementers' field map.
+ *
  * @implNote Constructing <u>{@link Map}</u> at every call of <u>{@link INestedPrintable#toNestedString()}</u> is <b>expensive</b>.<br>
  * So we need such a cache map to enhance performance. However, cache map is obviously a mutable map, and sadly, {@code interface} can only have
  * {@code public} constants, so we use {@code package-private} <u>{@link Enum}</u> to store cache instead,

@@ -134,14 +134,12 @@ public enum CarryCrateRegistries implements IRegistrant
         key = "carry_crate"
     )
     public static final Holder<Block> CARRY_CRATE_BLOCK = CARRY_CRATE_BLOCK_REGISTER.register(
-        "carry_crate",
-        CarryCrateBlock::new
+        "carry_crate", CarryCrateBlock::new
     );
     
     @RegisterToTab @AutoI18n(overrides = "carry_crate", key = "carry_crate")
     public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register(
-        "carry_crate",
-        CarryCrateItem::new
+        "carry_crate", CarryCrateItem::new
     );
     
     @AutoI18n({
@@ -150,8 +148,7 @@ public enum CarryCrateRegistries implements IRegistrant
         "zh_cn = 超重"
     })
     public static final Holder<MobEffect> OVERWEIGHT = OVERWEIGHT_EFFECT_REGISTER.register(
-        "overweight",
-        () -> OverweightEffect.register(OVERWEIGHT_EFFECT_REGISTER)
+        "overweight", () -> OverweightEffect.register(OVERWEIGHT_EFFECT_REGISTER)
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryID>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(

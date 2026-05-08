@@ -9,7 +9,6 @@
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.*;
@@ -21,8 +20,9 @@ import java.util.regex.Pattern;
 
 /**
  * This the core of automatic registration.
- * @apiNote Make sure the registry class is an enum, and has only one enumeration named {@code INSTANCE}, it makes automatic registration 
- * works correctly, and help others understand automatic registration quickly.
+ * @apiNote Make sure the registry class is an enum, and has only one enumeration named {@code INSTANCE}(<i>or {@code INST}, this is actually unlimited,
+ * but we recommend to follow this, it makes your classes consistent</i>),
+ * it makes automatic registration works correctly, and help others understand automatic registration quickly.
  * @implSpec
  * A simple example of usage:
  * <pre>{@code
@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
  * Don't forget to register your <u>{@link net.neoforged.fml.ModContainer ModContainer}</u> on <u>{@link CrispRegistrationManager}</u>:
  * <pre>{@code
  *  // At YourModEntryClass.<init>:
- *  CrispRegistrationManager.getInstance().register(modContainer, eventBus);
+ *  CrispRegistrationManager.register(modContainer, eventBus);
  * }</pre>
  * @implNote <h2>Some Q&A which will probably happen:</h2>
  * <ul>
@@ -209,11 +209,11 @@ sealed interface ISortable
 {
     /**
      * Produces a priority for auto registration's sorting.
-     *
      * @see IRegistrant.PriorityPair
      * @see IRegistrant.PriorityRange
+     * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.ofPriority(...)}.
      */
-    @ApiStatus.NonExtendable default @NotNull IRegistrant.PriorityPair ofPriority(@NotNull IRegistrant.PriorityRange mainRange, @Range(from = 1, to = 999) int subRange)
+    @ApiStatus.NonExtendable default @NotNull PriorityPair ofPriority(@NotNull PriorityRange mainRange, @Range(from = 1, to = 999) int subRange)
         { return new PriorityPair(mainRange, subRange); }
     
     /**
@@ -229,15 +229,13 @@ sealed interface ISortable
         private final @NotNull PriorityRange mainRange;
         private final @Range(from = 1, to = 999) int subRange;
         
-        @SuppressWarnings("ConstantValue")//! Defensive check.
         private PriorityPair(@NotNull PriorityRange mainRange, @Range(from = 1, to = 999) int subRange)
         {
             Objects.requireNonNull(mainRange, "Param \"mainRange\" must not be null!");
-            FunctionalUtils.throwIf(
-                subRange < 1 || subRange > 999,
-                "Param \"subRange\" should be between 1 and 999!",
-                IllegalArgumentException::new
-            );
+            
+            if(subRange < 1 || subRange > 999)
+                throw new IllegalArgumentException("Param \"subRange\" should be between 1 and 999!");
+            
             this.mainRange = mainRange;
             this.subRange = subRange;
         }

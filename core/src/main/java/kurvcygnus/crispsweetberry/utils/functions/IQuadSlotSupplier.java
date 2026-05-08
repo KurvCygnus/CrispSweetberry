@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.lib.base.functions;
+package kurvcygnus.crispsweetberry.utils.functions;
 
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import net.minecraft.world.Container;

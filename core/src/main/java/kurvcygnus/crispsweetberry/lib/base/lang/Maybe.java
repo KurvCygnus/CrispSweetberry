@@ -162,11 +162,11 @@ public record Maybe<L, M, R>(@Nullable L left, @Nullable M middle, @Nullable R r
         return box;
     }
     
-    public <U> @NotNull List<U> compress(
+    public <U> @NotNull SequencedSet<U> compress(
         @NotNull Function<? super L, ? extends U> leftMapper,
         @NotNull Function<? super M, ? extends U> middleMapper,
         @NotNull Function<? super R, ? extends U> rightMapper
-    ) { return compress(leftMapper, middleMapper, rightMapper, ArrayList::new); }
+    ) { return compress(leftMapper, middleMapper, rightMapper, LinkedHashSet::new); }
     
     @Override public @NotNull String toString() { return toNestedString(); }
     

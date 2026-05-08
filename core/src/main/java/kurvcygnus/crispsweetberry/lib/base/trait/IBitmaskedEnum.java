@@ -8,16 +8,15 @@
 
 package kurvcygnus.crispsweetberry.lib.base.trait;
 
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.constants.DummyFunctionalConstants;
 import net.neoforged.neoforge.common.util.TriState;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.util.HashSet;
 import java.util.Objects;
-import java.util.function.BooleanSupplier;
+import java.util.Set;
 
 /**
  * This is a simple <u><a href="https://doc.rust-lang.org/rust-by-example/trait.html">trait-styled</a></u> interface for
@@ -50,16 +49,6 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
     int TRUE    = 0x1;
     int FALSE   = 0x2;
     int EXTRA   = 0x3;
-    
-    /**
-     * A constant array for result querying, and to prevent CPU's branch prediction penalty.
-     */
-    TriState[] TRISTATE_LOOKUP = { TriState.DEFAULT, TriState.TRUE, TriState.FALSE, TriState.DEFAULT };
-    
-    /**
-     * A constant array for result querying, and to prevent CPU's branch prediction penalty.
-     */
-    @Nullable Boolean[] BOOLEAN_LOOKUP = { null, Boolean.TRUE, Boolean.FALSE, null };
     //endregion
     
     //region Bitmask computations
@@ -74,23 +63,18 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
     {
         final E enumeration = (E) this;
         
-        if(withOverflowCheck().getAsBoolean())
+        if(withOverflowCheck() && InterfaceHelper.MEMO.add(getClass()))
         {
             final int length = enumeration.getDeclaringClass().getEnumConstants().length;
-            FunctionalUtils.throwIf(
-                length == 0 || length > 16,
-                "The count of enum instances has exceeded 16, this will lead to unexpected behavior!",
-                IllegalArgumentException::new
-            );
-            setCheckFlag(false);
+            
+            if(length == 0 || length > 16)
+                throw new IllegalArgumentException("The count of enum instances has exceeded 16, this will lead to unexpected behavior!");
         }
         
         return enumeration.ordinal();
     }
     
-    default BooleanSupplier withOverflowCheck() { return DummyFunctionalConstants.ALWAYS_FALSE; }
-    
-    @ApiStatus.OverrideOnly default void setCheckFlag(boolean flag) {}
+    default boolean withOverflowCheck() { return false; }
     //endregion
     
     //region Public APIs
@@ -106,7 +90,7 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
         return state;
     }
     
-    @ApiStatus.NonExtendable default @Nullable Boolean computeBoolean(int flags) { return BOOLEAN_LOOKUP[computeRaw(flags)]; }
+    @ApiStatus.NonExtendable default @Nullable Boolean computeBoolean(int flags) { return InterfaceHelper.BOOLEAN_LOOKUP[computeRaw(flags)]; }
     
     @ApiStatus.NonExtendable default boolean computeBooleanOrThrow(int flags)
     {
@@ -124,11 +108,31 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
         return Objects.requireNonNullElse(value, defaultFallback);
     }
     
-    @ApiStatus.NonExtendable default @NotNull TriState compute(int flags) { return TRISTATE_LOOKUP[computeRaw(flags)]; }
+    @ApiStatus.NonExtendable default @NotNull TriState compute(int flags) { return InterfaceHelper.TRISTATE_LOOKUP[computeRaw(flags)]; }
     
     @ApiStatus.NonExtendable default boolean isTrue(int flags) { return computeRaw(flags) == TRUE; }
     @ApiStatus.NonExtendable default boolean isFalse(int flags) { return computeRaw(flags) == FALSE; }
     @ApiStatus.NonExtendable default boolean isDefault(int flags) { return computeRaw(flags) == DEFAULT; }
     @ApiStatus.NonExtendable default boolean isExtra(int flags) { return computeRaw(flags) == EXTRA; }
     //endregion
+}
+
+/**
+ * Exists for avoiding invalid accesses to these constants.
+ */
+enum InterfaceHelper
+{
+    INST;
+    
+    static final Set<Class<?>> MEMO = new HashSet<>();
+    
+    /**
+     * A constant array for result querying, and to prevent CPU's branch prediction penalty.
+     */
+    static final TriState[] TRISTATE_LOOKUP = { TriState.DEFAULT, TriState.TRUE, TriState.FALSE, TriState.DEFAULT };
+    
+    /**
+     * A constant array for result querying, and to prevent CPU's branch prediction penalty.
+     */
+    static final @Nullable Boolean[] BOOLEAN_LOOKUP = { null, Boolean.TRUE, Boolean.FALSE, null };
 }

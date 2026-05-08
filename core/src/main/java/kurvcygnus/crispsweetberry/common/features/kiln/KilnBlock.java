@@ -12,8 +12,8 @@ import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.VisualUtils;
+import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -114,7 +114,7 @@ public final class KilnBlock extends BaseEntityBlock
      */
     @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.MODEL; }
     
-    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(FunctionalUtils.noArgCodec(KilnBlock::new)); }
+    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(SerializationTemplates.noArgCodec(KilnBlock::new)); }
     //endregion
     
     //region World Logic & Life Cycles

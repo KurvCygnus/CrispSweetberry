@@ -13,11 +13,15 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * This is a simple collection of universal <u>{@link DataComponentType}</u> serialization and <u>{@link AttachmentType}</u> sync's simple templates.
@@ -26,6 +30,12 @@ import java.util.function.Supplier;
 public final class SerializationTemplates
 {
     private SerializationTemplates() { throw new IllegalAccessError("Class \"SerializationTemplates\" is not meant to be instantized!"); }
+    
+    public static <B extends Block> @NotNull Function<BlockBehaviour.Properties, B> noArgCodec(@NotNull Supplier<B> construct)
+    {
+        requireNonNull(construct, "Param \"construct\" must not be null!");
+        return $ -> construct.get();
+    }
     
     public static final Supplier<DataComponentType<Integer>> INT_TEMPLATE = buildSerializeTemplate(Codec.INT, ByteBufCodecs.INT);
     

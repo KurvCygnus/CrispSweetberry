@@ -13,7 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryT
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
-import kurvcygnus.crispsweetberry.lib.base.lang.LockableBox;
+import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.Maybe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -73,15 +73,15 @@ public final class CarryInteractContext implements INestedPrintable
     private final @NotNull Consumer<CarryID> listenerRemove;
     private final @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter;
     private final @NotNull Maybe<BlockState, LivingEntity, BlockEntity> targets;
-    private final @NotNull LockableBox<CarryID> carryID;
+    private final @NotNull ISealableBox<CarryID> carryID;
     private @Nullable InteractionResult result = null;
     
     //*:=== Execute Extra Fields
-    private final LockableBox<TriState> listener = LockableBox.create();
-    private final LockableBox<TriState> component = LockableBox.create();
-    private final LockableBox<TriState> target = LockableBox.create();
-    private final LockableBox<CarryData> data = LockableBox.create();
-    private final LockableBox<BlockEntityType<?>> blockEntityType = LockableBox.create();
+    private final ISealableBox<TriState> listener = ISealableBox.create();
+    private final ISealableBox<TriState> component = ISealableBox.create();
+    private final ISealableBox<TriState> target = ISealableBox.create();
+    private final ISealableBox<CarryData> data = ISealableBox.create();
+    private final ISealableBox<BlockEntityType<?>> blockEntityType = ISealableBox.create();
     
     private CarryInteractContext(
         @NotNull CarryType actionType,
@@ -114,7 +114,7 @@ public final class CarryInteractContext implements INestedPrintable
         this.listenerRemove = listenerRemove;
         this.placeContentGetter = placeContentGetter;
         this.targets = new Maybe<>(targetState, targetEntity, targetBlockEntity);
-        this.carryID = LockableBox.ofNullable(carryID);
+        this.carryID = ISealableBox.ofNullable(carryID);
     }
     
     public static @NotNull CarryInteractContext init(
@@ -222,13 +222,13 @@ public final class CarryInteractContext implements INestedPrintable
     public void removeListener(@NotNull CarryID carryID) { this.listenerRemove.accept(carryID); }
     public @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter() { return placeContentGetter; }
     public @NotNull Maybe<BlockState, LivingEntity, BlockEntity> targets() { return targets; }
-    public @NotNull LockableBox<CarryID> carryID() { return carryID; }
+    public @NotNull ISealableBox<CarryID> carryID() { return carryID; }
     public @Nullable InteractionResult result() { return result; }
-    public @NotNull LockableBox<TriState> listener() { return listener; }
-    public @NotNull LockableBox<TriState> component() { return component; }
-    public @NotNull LockableBox<TriState> target() { return target; }
-    public @NotNull LockableBox<CarryData> data() { return data; }
-    public @NotNull LockableBox<BlockEntityType<?>> blockEntityType() { return blockEntityType; }
+    public @NotNull ISealableBox<TriState> listener() { return listener; }
+    public @NotNull ISealableBox<TriState> component() { return component; }
+    public @NotNull ISealableBox<TriState> target() { return target; }
+    public @NotNull ISealableBox<CarryData> data() { return data; }
+    public @NotNull ISealableBox<BlockEntityType<?>> blockEntityType() { return blockEntityType; }
     
     @Override public boolean equals(Object obj)
     {

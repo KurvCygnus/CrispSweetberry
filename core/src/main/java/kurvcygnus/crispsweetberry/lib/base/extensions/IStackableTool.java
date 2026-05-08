@@ -9,8 +9,6 @@
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
 import com.mojang.serialization.Codec;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.constants.DummyFunctionalConstants;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
@@ -54,18 +52,16 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     
     @Range(from = 1, to = Integer.MAX_VALUE) int getPenaltyStandard();
     
-    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
     default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,
         @NotNull ServerLevel level
-    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, null, (Consumer<I>) DummyFunctionalConstants.DO_NOTHING); }
+    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, null, i -> {}); }
     
-    @SuppressWarnings("unchecked")//! As constants named, it does nothing, thus we can cast it.
     default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,
         @NotNull ServerLevel level,
         @Nullable LivingEntity livingEntity
-    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, livingEntity, (Consumer<I>) DummyFunctionalConstants.DO_NOTHING); }
+    ) { return hurtAndBreak(getPenaltyStandard(), itemStack, level, livingEntity, i -> {}); }
     
     @ApiStatus.NonExtendable default boolean hurtAndBreak(
         @NotNull ItemStack itemStack,
@@ -91,7 +87,7 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     {
         final Logger logger = getLogger();
         final DataComponentType<Integer> dataComponent = getDataComponent();
-        final BiConsumer<String, @Nullable Integer> debug = (msg, args) -> FunctionalUtils.doIfNonNull(logger, log -> log.debug(msg, args));
+        final BiConsumer<String, @Nullable Integer> debug = (msg, args) -> { if(logger != null) logger.debug(msg, args); };
         
         if(!(itemStack.getItem() instanceof IStackableTool<?>))
         {

@@ -10,8 +10,8 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts;
 
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
-import kurvcygnus.crispsweetberry.lib.base.functions.ITriProjectileFunction;
 import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.functions.ITriProjectileFunction;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.sounds.SoundEvent;

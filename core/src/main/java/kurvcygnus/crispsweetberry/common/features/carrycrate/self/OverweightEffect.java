@@ -16,7 +16,6 @@ import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.MathUtils;
-import kurvcygnus.crispsweetberry.utils.constants.DummyFunctionalConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.effect.MobEffect;
@@ -85,7 +84,7 @@ public final class OverweightEffect extends MobEffect
     }
     
     public static void updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state)
-        { updateFactorAndEffect(player, data, state, DummyFunctionalConstants.RUN_NOTHING); }
+        { updateFactorAndEffect(player, data, state, () -> {}); }
     
     public static void updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state, @NotNull Runnable unacceptableCallback)
     {

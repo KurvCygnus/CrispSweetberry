@@ -93,10 +93,10 @@ public final class CarriableSimpleLogicCollection
         
         @Override default int getPenaltyRate(@NotNull E blockEntity)
         {
-            final float itemTotalFactor = getItems(blockEntity).stream().
-                map(i -> ((float) i.getCount() / i.getMaxStackSize())).
-                reduce(Float::sum).
-                orElse(0F);
+            final double itemTotalFactor = getItems(blockEntity).stream().
+                mapToDouble(i -> ((double) i.getCount() / i.getMaxStackSize())).
+                reduce(Double::sum).
+                orElse(0D);
             
             return (int) (DEFAULT_PENALTY_RATE / (1 + itemTotalFactor + getMiscFactor(blockEntity)));
         }

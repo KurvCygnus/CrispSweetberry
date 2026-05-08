@@ -9,8 +9,6 @@
 package kurvcygnus.crispsweetberry.lib.base.datastructure;
 
 import kurvcygnus.crispsweetberry.lib.base.trait.IBitmaskedEnum;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
-import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import org.intellij.lang.annotations.MagicConstant;
@@ -42,8 +40,13 @@ import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.ER
 public final class CrispRanger implements Iterable<Integer>
 {
     //region Constants & Fields
-    public static final CrispRanger BACKPACK_SLOTS_RANGE = closed(ExampleSlotConstants.BACKPACK_SLOT_START_INDEX, ExampleSlotConstants.BACKPACK_SLOT_END_INDEX);
-    public static final CrispRanger HOTBAR_SLOTS_RANGE = closed(ExampleSlotConstants.HOTBAR_SLOT_START_INDEX, ExampleSlotConstants.HOTBAR_SLOT_END_INDEX);
+    public static final int BACKPACK_SLOT_START_INDEX = 3;
+    public static final int BACKPACK_SLOT_END_INDEX = 29;
+    public static final int HOTBAR_SLOT_START_INDEX = 30;
+    public static final int HOTBAR_SLOT_END_INDEX = 38;
+    
+    public static final CrispRanger BACKPACK_SLOTS_RANGE = closed(BACKPACK_SLOT_START_INDEX, BACKPACK_SLOT_END_INDEX);
+    public static final CrispRanger HOTBAR_SLOTS_RANGE = closed(HOTBAR_SLOT_START_INDEX, HOTBAR_SLOT_END_INDEX);
     public static final CrispRanger INVENTORY_SLOTS_RANGE = closed(BACKPACK_SLOTS_RANGE.min(), HOTBAR_SLOTS_RANGE.max());
     
     public static final int START_AT_LEFT = DIRECTION.shiftTrue();
@@ -60,16 +63,11 @@ public final class CrispRanger implements Iterable<Integer>
     //region Constructors
     private CrispRanger(int min, int max, boolean minClosed, boolean maxClosed)
     {
-        FunctionalUtils.throwIf(
-            min == max && (!minClosed || !maxClosed),
-            "This is an empty, and illegal range!",
-            IllegalArgumentException::new
-        );
-        FunctionalUtils.throwIf(
-            min >= max,
-            "Min(%d) is not smaller than max(%d), this is an illegal range!".formatted(min, max),
-            IllegalArgumentException::new
-        );
+        if(min == max && (!minClosed || !maxClosed))
+            throw new IllegalArgumentException("This is an empty, and illegal range!");
+        
+        if(min >= max)
+            throw new IllegalArgumentException("Min(%d) is not smaller than max(%d), this is an illegal range!".formatted(min, max));
         
         this.min = minClosed ? min : ++min;
         this.max = maxClosed ? max : --max;

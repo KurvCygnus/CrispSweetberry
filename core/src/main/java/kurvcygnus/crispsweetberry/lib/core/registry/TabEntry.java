@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public record TabEntry(@NotNull Supplier<? extends Item> itemSupplier, @NotNull ResourceKey<CreativeModeTab> tab, boolean condition)
+public record TabEntry(@NotNull Supplier<? extends Item> itemSupplier, @NotNull ResourceKey<CreativeModeTab> tab)
 {
     public TabEntry
     {

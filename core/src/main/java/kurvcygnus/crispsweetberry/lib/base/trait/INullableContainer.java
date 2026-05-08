@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 /**
  * This is a trait-styled interface for container classes which can hold null value.<br>
- * Once implemented <u>{@link #value()}</u> and <u>{@link #createInstance()}</u>, all fluent API, extra value getting methods
+ * Once implemented <u>{@link #value()}</u>, all fluent API, extra value getting methods
  * and other container classes' conversion methods will be all available.
  * @since 1.0 Release
  * @author Kurv Cygnus
@@ -34,13 +34,6 @@ public interface INullableContainer<T> extends Supplier<T>
      * <b>It's recommended to use <u>{@link #orThrow()}</u> instead of this.</b>
      */
     @Nullable T value();
-    
-    /**
-     * @apiNote This can either return a global constant, or an instance, <b>the former one is dangerous if the container class is mutable.</b>
-     * @implNote This is required, because <u>{@link #flatMap(Function)}</u>'s return value is based on <u>{@link #isPresent()}</u>, and that <b>could be overwritten,</b>
-     * which is easy to cause <u>{@link ClassCastException}</u>.
-     */
-    @NotNull Function<@Nullable T, @NotNull INullableContainer<T>> createInstance();
     
     default @NotNull Optional<T> asOptional() { return Optional.ofNullable(value()); }
     
@@ -120,21 +113,8 @@ public interface INullableContainer<T> extends Supplier<T>
         if(withCheck())
             Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
         
-        if(isPresent())
-            return null;
-        assert value() != null;
-        return mapper.apply(value());
-    }
-    
-    @SuppressWarnings("unchecked")
-    default <U> @NotNull INullableContainer<U> flatMap(@NotNull Function<? super T, ? extends INullableContainer<U>> mapper)
-    {
-        if(withCheck())
-            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        
         if(!isPresent())
-            return (INullableContainer<U>) createInstance().apply(null);
-        
+            return null;
         assert value() != null;
         return mapper.apply(value());
     }

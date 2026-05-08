@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,10 +25,7 @@ import java.lang.annotation.Target;
  * Annotation for automatically creative mode tab's registry.<br>
  * <b><i>It only works on items</i></b>.
  * @implSpec Usage Example:<br><pre>{@code
- *  @RegisterToTab(
- *  tabGroup = TabType.SpecifiedTabType,
- *  condition = bar // default: true
- *  )
+ *  @RegisterToTab(TabType.SpecifiedTabType)
  *  public static final Holder<Item> Foo = ...
  * }</pre>
  * <i><b>We strongly recommend using {@code public static final} to avoid potential problems</b></i>.
@@ -40,8 +38,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RegisterToTab
 {
-    TabType tabGroup() default TabType.CRISPY;
-    boolean registerCondition() default true;
+    @NotNull TabType value() default TabType.EXTERNAL;
     
     /**
      * The enum to <b>uniform CreativeModeTabTypes</b>.<br>
@@ -59,12 +56,12 @@ public @interface RegisterToTab
         FOOD_AND_DRINKS(CreativeModeTabs.FOOD_AND_DRINKS),
         SPAWN_EGGS(CreativeModeTabs.SPAWN_EGGS),
         OP_BLOCKS(CreativeModeTabs.OP_BLOCKS),
-        CRISPY(CrispCreativeTabs.CRISP_CREATIVE_TAB);
+        EXTERNAL(CrispCreativeTabs.CRISP_CREATIVE_TAB);
         
         private final ResourceKey<CreativeModeTab> tabResourceKey;
         
-        TabType(ResourceKey<CreativeModeTab> tabResourceKey) { this.tabResourceKey = tabResourceKey; }
+        TabType(@NotNull ResourceKey<CreativeModeTab> tabResourceKey) { this.tabResourceKey = tabResourceKey; }
         
-        public ResourceKey<CreativeModeTab> toCreativeTab() { return tabResourceKey; }
+        public @NotNull ResourceKey<CreativeModeTab> toCreativeTab() { return tabResourceKey; }
     }
 }
