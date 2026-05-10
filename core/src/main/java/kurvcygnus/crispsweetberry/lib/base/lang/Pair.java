@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -43,6 +44,19 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
         return mapper.apply(this.right);
     }
     
+    public <LU, RU> @NotNull Pair<LU, RU> dualMap(@NotNull Function<? super L, ? extends LU> leftMapper, @NotNull Function<? super R, ? extends RU> rightMapper)
+    {
+        Objects.requireNonNull(leftMapper, "Param \"leftMapper\" must not be null!");
+        Objects.requireNonNull(rightMapper, "Param \"rightMapper\" must not be null!");
+        return new Pair<>(leftMapper.apply(left), rightMapper.apply(right));
+    }
+    
+    public <LU, RU> @NotNull Pair<LU, RU> flatMap(@NotNull BiFunction<? super L, ? super R, ? extends Pair<LU, RU>> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        return mapper.apply(this.left, this.right);
+    }
+    
     public @NotNull Pair<R, L> swap() { return new Pair<>(right, left); }
     
     public @NotNull Map.Entry<L, R> asEntry() { return Map.Entry.copyOf(this); }
@@ -54,5 +68,6 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields() { return Map.of("left", () -> left, "right", () -> right); }
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+        { return INestedPrintable.buildFieldMap(map -> { map.put("left", () -> left);map.put("right", () -> right); }); }
 }

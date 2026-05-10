@@ -97,7 +97,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     
     <X extends Throwable> @NotNull IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper);
     
-    <U, X extends Throwable> @NotNull IResult<U, X> duelMap(
+    <U, X extends Throwable> @NotNull IResult<U, X> dualMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper
     );
@@ -165,7 +165,7 @@ final class FailureResult<T, E extends Throwable> implements IResult<T, E>
     @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper)
         { return new FailureResult<>(mapper.apply(exception)); }
     
-    @Override public @NotNull <U, X extends Throwable> IResult<U, X> duelMap(
+    @Override public @NotNull <U, X extends Throwable> IResult<U, X> dualMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper
     ) { return new FailureResult<>(exceptionMapper.apply(exception)); }
@@ -218,7 +218,7 @@ final class SuccessResult<T, E extends Throwable> implements IResult<T, E>
     @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper)
         { return new SuccessResult<>(value); }
     
-    @Override public @NotNull <U, X extends Throwable> IResult<U, X> duelMap(
+    @Override public @NotNull <U, X extends Throwable> IResult<U, X> dualMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper
     ) { return new SuccessResult<>(mapper.apply(value)); }

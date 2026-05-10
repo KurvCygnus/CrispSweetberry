@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * @see kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent) Content addition implementation
  * @since 1.0 Release
  */
-public enum CrispCreativeTabs implements IRegistrant
+public enum CrispCreativeTabs implements IRegistrant<CrispCreativeTabs>
 {
     INST;
     

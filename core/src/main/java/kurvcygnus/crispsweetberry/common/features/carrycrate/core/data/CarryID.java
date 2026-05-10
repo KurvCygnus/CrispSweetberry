@@ -11,9 +11,10 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
+import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -26,7 +27,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -53,6 +56,27 @@ public final class CarryID implements INestedPrintable
     public static final Supplier<DataComponentType<CarryID>> SERIALIZATION_DEF =
         DataComponentType.<CarryID>builder().persistent(CODEC).networkSynchronized(STREAM_CODEC)::build;
     
+    @ApiStatus.Internal public static final
+    IVault<
+        BiFunction<
+            String,
+            String,
+            CarryID
+        >,
+        Pair<
+            CarryEngine,
+            Optional<ServerStartedEvent>
+        >
+    > __$1NT3RNAL_R3ST0R3$__ =
+        IVault.ofCustomMatch(
+            CarryID::new,
+            new Pair<>(
+                CarryEngine.INST,
+                Optional.empty()
+            ),
+            ($, __) -> $.left().equals(__.left()) && __.right().isPresent()
+        );
+    
     private final @NotNull String id;
     private final @NotNull String uuid;
     
@@ -70,21 +94,6 @@ public final class CarryID implements INestedPrintable
         );
     }
     
-    @ApiStatus.Internal
-    public static @NotNull CarryID restore(
-        @NotNull String id,
-        @NotNull String uuid,
-        @NotNull Map<CarryType, Map<CarryID, ? extends ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>>> access,
-        @NotNull ServerStartedEvent access2
-    )
-    {
-        Objects.requireNonNull(access, "External Usage is not allowed!");
-        Objects.requireNonNull(access2, "External Usage is not allowed!");
-        assert id != null : "Param \"id\" must not be null!";
-        assert uuid != null : "Param \"uuid\" must not be null!";
-        return new CarryID(id, uuid);
-    }
-    
     @Override public @NotNull String toString() { return toNestedString(); }
     
     public @NotNull String id() { return id; }
@@ -100,5 +109,6 @@ public final class CarryID implements INestedPrintable
     
     @Override public int hashCode() { return Objects.hash(id, uuid); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields() { return Map.of("Recovery ID", this::id, "UUID", this::uuid); }
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+        { return INestedPrintable.buildFieldMap(new Pair<>("Recovery ID", this::id), new Pair<>("UUID", this::uuid)); }
 }

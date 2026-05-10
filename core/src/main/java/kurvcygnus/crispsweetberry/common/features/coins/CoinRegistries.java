@@ -15,6 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.SetCoinCount
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackBlock;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
+import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import net.minecraft.core.Holder;
@@ -29,7 +30,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+import java.util.List;
+import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType.*;
 
@@ -37,11 +39,11 @@ import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCo
  * Everything that is related to coin is registered at here.
  * @since Release 1.0
  */
-public enum CoinRegistries implements IRegistrant
+public enum CoinRegistries implements IRegistrant<CoinRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { registerBySet(REGISTRIES, bus); }
+    @Override public void register(@NotNull IEventBus bus) { registerByList(REGISTRIES, bus); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 3); }
     
@@ -54,15 +56,15 @@ public enum CoinRegistries implements IRegistrant
         Registries.LOOT_FUNCTION_TYPE, CrispSweetberry.NAMESPACE
     );
     
-    public static final Set<DeferredRegister<?>> REGISTRIES = IRegistrant.composeRegistries(
+    public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         COIN_ITEM_REGISTER,
         COIN_BLOCK_REGISTER,
         COIN_LOOT_TABLE_CONDITION_REGISTER,
         COIN_LOOT_TABLE_FUNCTION_REGISTER
     );
     
-    public static final Holder<LootItemConditionType> IS_CRUNCHING_CONDITION = COIN_LOOT_TABLE_CONDITION_REGISTER.register("is_crunching", () ->
-        new LootItemConditionType(IsCrunchingCondition.CODEC)
+    public static final Holder<LootItemConditionType> IS_CRUNCHING_CONDITION = COIN_LOOT_TABLE_CONDITION_REGISTER.register(
+        "is_crunching", () -> new LootItemConditionType(IsCrunchingCondition.CODEC)
     );
     
     public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<SetCoinCountFunction>> SET_COIN_COUNT_FUNCTION =
@@ -82,7 +84,7 @@ public enum CoinRegistries implements IRegistrant
         "zh_cn = 铜币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> COPPER_COIN = COIN_ITEM_REGISTER.register(
-        "copper_coin", () -> new VanillaCoinItem(() -> COPPER)
+        "copper_coin", typeOfI(() -> COPPER)
     );
     
     @RegisterToTab
@@ -92,7 +94,7 @@ public enum CoinRegistries implements IRegistrant
         "zh_cn = 铁币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> IRON_COIN = COIN_ITEM_REGISTER.register(
-        "iron_coin", () -> new VanillaCoinItem(() -> IRON)
+        "iron_coin", typeOfI(() -> IRON)
     );
     
     @RegisterToTab
@@ -102,7 +104,7 @@ public enum CoinRegistries implements IRegistrant
         "zh_cn = 金币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> GOLD_COIN = COIN_ITEM_REGISTER.register(
-        "gold_coin", () -> new VanillaCoinItem(() -> GOLD)
+        "gold_coin", typeOfI(() -> GOLD)
     );
     
     @RegisterToTab
@@ -112,7 +114,7 @@ public enum CoinRegistries implements IRegistrant
         "zh_cn = 钻石币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> DIAMOND_COIN = COIN_ITEM_REGISTER.register(
-        "diamond_coin", () -> new VanillaCoinItem(() -> DIAMOND)
+        "diamond_coin", typeOfI(() -> DIAMOND)
     );
     
     @RegisterToTab
@@ -125,7 +127,7 @@ public enum CoinRegistries implements IRegistrant
         group = "copper_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> COPPER_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "copper_coin_stack", () -> new VanillaCoinStackItem(() -> COPPER)
+        "copper_coin_stack", typeOfSI(() -> COPPER)
     );
     
     @RegisterToTab
@@ -138,7 +140,7 @@ public enum CoinRegistries implements IRegistrant
         group = "iron_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> IRON_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "iron_coin_stack", () -> new VanillaCoinStackItem(() -> IRON)
+        "iron_coin_stack", typeOfSI(() -> IRON)
     );
     
     @RegisterToTab
@@ -151,7 +153,7 @@ public enum CoinRegistries implements IRegistrant
         group = "gold_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> GOLD_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "gold_coin_stack", () -> new VanillaCoinStackItem(() -> GOLD)
+        "gold_coin_stack", typeOfSI(() -> GOLD)
     );
     
     @RegisterToTab
@@ -164,26 +166,30 @@ public enum CoinRegistries implements IRegistrant
         group = "diamond_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> DIAMOND_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "diamond_coin_stack", () -> new VanillaCoinStackItem(() -> DIAMOND)
+        "diamond_coin_stack", typeOfSI(() -> DIAMOND)
     );
     
     @AutoI18n(overrides = "copper_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> COPPER_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "copper_coin_stack", () -> new VanillaCoinStackBlock(Lazy.of(() -> COPPER))
+        "copper_coin_stack", typeOfB(() -> COPPER)
     );
     
     @AutoI18n(overrides = "iron_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> IRON_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "iron_coin_stack", () -> new VanillaCoinStackBlock(Lazy.of(() -> IRON))
+        "iron_coin_stack", typeOfB(() -> IRON)
     );
     
     @AutoI18n(overrides = "gold_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> GOLD_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "gold_coin_stack", () -> new VanillaCoinStackBlock(Lazy.of(() -> GOLD))
+        "gold_coin_stack", typeOfB(() -> GOLD)
     );
     
     @AutoI18n(overrides = "diamond_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> DIAMOND_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "diamond_coin_stack", () -> new VanillaCoinStackBlock(Lazy.of(() -> DIAMOND))
+        "diamond_coin_stack", typeOfB(() -> DIAMOND)
     );
+    
+    private static @NotNull Supplier<VanillaCoinItem> typeOfI(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinItem(type); }
+    private static @NotNull Supplier<VanillaCoinStackItem> typeOfSI(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinStackItem(type); }
+    private static @NotNull Supplier<VanillaCoinStackBlock> typeOfB(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinStackBlock(Lazy.of(type)); }
 }

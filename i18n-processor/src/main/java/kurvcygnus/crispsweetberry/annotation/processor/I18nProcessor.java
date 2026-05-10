@@ -32,8 +32,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static kurvcygnus.crispsweetberry.annotations.AutoI18n.*;
+import static kurvcygnus.crispsweetberry.annotations.AutoI18n.Lang;
 
 /*
  TODO:
@@ -44,7 +45,7 @@ import static kurvcygnus.crispsweetberry.annotations.AutoI18n.*;
  [ ] [[I18nProcessor#parseTranslations]] may need refactor in the future...
 */
 
-//? TODO: Moving to Minecraft 26.1, with java 25!!!!!!! No need to compat YarnMap!
+//? TODO: Moving to Minecraft 26.2, with java 25!!!!!!! No need to compat YarnMap!
 
 /**
  * This is the processor of annotation <u>{@link AutoI18n}</u>, it iterates, checks, collects, and finally generates 
@@ -71,6 +72,10 @@ public final class I18nProcessor extends AbstractProcessor
             "thz iz": "TA2TY FRUT uwu, vrshen: %s, nah taoch tiz or kat wil biat ya!",
         """.formatted(VERSION);
     private static final BinaryOperator<String> ENTRY_TEMPLATE = (key, value) -> "    \"%s\": \"%s\"".formatted(key, escape(value));
+    
+    private static final String SUPER = "~@^";
+    private static final String WHITESPACE = "~@s";
+    private static final Pattern TRANSLATION_PATTERN = Pattern.compile("^\\s*([a-zA-Z._]+)\\s*=\\s*(.+?)\\s*$", Pattern.DOTALL);
     
     /**
      * <u>{@link Messager}</u> is the logger of Compile-Time.<br><br>

@@ -170,7 +170,17 @@ public record Maybe<L, M, R>(@Nullable L left, @Nullable M middle, @Nullable R r
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields() { return Map.of("left", () -> left, "middle", () -> middle, "right", () -> right); }
+    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+    {
+        return INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("left", () -> left);
+                map.put("middle", () -> middle);
+                map.put("right", () -> right);
+            }
+        );
+    }
     
     @Override public boolean takeNullFieldAsOptional() { return true; }
 }

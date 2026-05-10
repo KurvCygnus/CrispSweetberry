@@ -112,12 +112,15 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
     
     @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
     {
-        return Map.of(
-            "id", this::id,
-            "experience", this::getExperience,
-            "strength", this::getStrength,
-            "penalty_rate", this::getPenaltyRate,
-            "resource_id", this::getId
+        return INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("id", this::id);
+                map.put("experience", this::getExperience);
+                map.put("strength", this::getStrength);
+                map.put("penalty_rate", this::getPenaltyRate);
+                map.put("resource_id", this::getId);
+            }
         );
     }
 }

@@ -190,9 +190,13 @@ public enum CarryRegistryManager implements ICarryRegistryView
                         final EntityType<? extends Animal> animal = (EntityType<? extends Animal>) animalType;
                         
                         //! Somehow, wandering trader is counted as an animal, despite it is not a animal.
-                        //! We use [[EntityType#getDescriptionId()]] to compare, becuase [[EntityType]] DOESN'T EVEN
-                        //! SUPPORT [[Object#equals]], F.U.C.K!
-                        if(animal.getDescriptionId().equals(EntityType.WANDERING_TRADER.getDescriptionId()))
+                        //! Due to [[EntityType]]'s constant attribute, using [[Object#equals]] to check is
+                        //! legal(despite [[EntityType]] itself didn't implement that).
+                        //! In such a case, [[Object#equals]] has same effect as `==`, and `==` is slightly faster.
+                        //! But Java is a nerd, we can't use `==` simply because variable `animal`'s generic arg doesn't
+                        //! equals [[EntityType#WANDERING_TRADER]]'s.
+                        //noinspection EqualsBetweenInconvertibleTypes
+                        if(animal.equals(EntityType.WANDERING_TRADER))
                             return;
                         
                         CarryRegistryManager.INST.unsafeRegisterEntity(animal, AdaptiveAnimalCarryAdapter::new);

@@ -102,10 +102,13 @@ public final class CarryInteractContextCollection
         
         @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
         {
-            return Map.of(
-                "carryCrate", this::carryCrate,
-                "player", this::player,
-                "target", this::target
+            return INestedPrintable.buildFieldMap(
+                map ->
+                {
+                    map.put("carryCrate", this::carryCrate);
+                    map.put("player", this::player);
+                    map.put("target", this::target);
+                }
             );
         }
     }

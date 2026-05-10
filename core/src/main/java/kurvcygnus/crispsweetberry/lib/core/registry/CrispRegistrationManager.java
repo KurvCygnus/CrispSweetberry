@@ -60,7 +60,7 @@ import java.util.function.BiConsumer;
         @NotNull IEventBus eventBus,
         @Nullable Class<A> service,
         @Nullable BiConsumer<A, Object> foundSequence
-    )
+    ) throws IllegalArgumentException
     {
         if(!visited.add(modContainer))
             return;
@@ -76,16 +76,19 @@ import java.util.function.BiConsumer;
                 {
                     try
                     {
-                        final Class<?> clazz = Class.forName(data.clazz().getClassName());
-                        if(clazz.isEnum() && clazz.getEnumConstants().length == 1)
+                        final Class<?> registry = Class.forName(data.clazz().getClassName());
+                        if(registry.isEnum() && registry.getEnumConstants().length == 1)
                         {
-                            logger.debug("Captured the singleton of registry \"{}\".", clazz.getSimpleName());
-                            return (IRegistrant) clazz.getEnumConstants()[0];
+                            logger.debug("Captured the singleton of registry \"{}\".", registry.getSimpleName());
+                            return (IRegistrant<?>) registry.getEnumConstants()[0];
                         }
-                        logger.warn("Skipped class \"{}\" because it is not a singleton enum.", clazz.getName());
                     }
-                    catch(Exception e) { logger.error("Failed to instantiate registry: {}", data.clazz().getClassName(), e); }
-                    return null;
+                    catch(Exception e)
+                    {
+                        logger.error("Failed to instantiate registry: {}", data.clazz().getClassName(), e);
+                        return null;
+                    }
+                    throw new IllegalStateException("Class \"%s\" has violated the contract: It is not a singleton enum.".formatted(data.clazz().getClassName()));
                 }
             ).
             filter(Objects::nonNull).

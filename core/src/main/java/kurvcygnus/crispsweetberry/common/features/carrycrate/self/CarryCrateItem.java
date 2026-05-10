@@ -115,7 +115,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         if(carryID != null)
             CarryRegistryManager.INST.getCombinedContentTranslation(ResourceLocation.parse(carryID.id())).ifPresent(tooltipComponents::add);
         
-        final Optional<CarryData> optionalData = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()));
+        final var optionalData = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()));
         
         optionalData.ifPresent(
             data ->

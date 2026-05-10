@@ -43,14 +43,15 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Set;
 
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
-public enum CarryCrateRegistries implements IRegistrant
+public enum CarryCrateRegistries implements IRegistrant<CarryCrateRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { registerBySet(REGISTRIES, bus); }
+    @Override public void register(@NotNull IEventBus bus) { registerByList(REGISTRIES, bus); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 4); }
     
@@ -70,7 +71,7 @@ public enum CarryCrateRegistries implements IRegistrant
         CrispSweetberry.NAMESPACE
     );
     
-    public static final Set<DeferredRegister<?>> REGISTRIES = IRegistrant.composeRegistries(
+    public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         CARRY_CRATE_BLOCK_REGISTER,
         CARRY_CRATE_ITEM_REGISTER,
         CARRY_CRATE_BE_REGISTER,

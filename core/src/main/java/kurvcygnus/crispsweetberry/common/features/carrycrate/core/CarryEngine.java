@@ -26,6 +26,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInte
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.core.HolderLookup;
@@ -157,7 +158,7 @@ public enum CarryEngine
             return tag;
         }
         
-        public static @NotNull CarryListenerSaveData get(@NotNull MinecraftServer server)
+        static @NotNull CarryListenerSaveData get(@NotNull MinecraftServer server)
         {
             //! Explanation: Minecraft saves most world data by dimension.
             //! [[CarryEngine#LISTENER_LOOKUP]] is expected to be cross-dimensional,
@@ -180,7 +181,7 @@ public enum CarryEngine
             return data;
         }
         
-        public @NotNull Optional<ListTag> getEntries() { return Optional.ofNullable(entries); }
+        @NotNull Optional<ListTag> getEntries() { return Optional.ofNullable(entries); }
     }
     
     /**
@@ -189,7 +190,7 @@ public enum CarryEngine
     @SuppressWarnings("unchecked")//! Unsafe casting, however, with the restrict of enum [[CarryType]], it is actually safe.
     @SubscribeEvent static void startEngine(@NotNull ServerStartedEvent event)
     {
-        try(var handle = LOGGER.pushMarker("CARRY_INIT"))
+        try(final var handle = LOGGER.pushMarker("CARRY_INIT"))
         {
             LOGGER.debug("Cleaning listeners' cache...");
             BLOCK_ENTITY_CARRY_LISTENERS.clear();
@@ -200,6 +201,7 @@ public enum CarryEngine
             final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer());
             handle.changeMarker("CARRY_DATA_RECOVER");
             
+            final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.apply(new Pair<>(INST, Optional.of(event))).orElseThrow();
             data.getEntries().ifPresent(
                 listTag ->
                 {
@@ -212,8 +214,8 @@ public enum CarryEngine
                             {
                                 final String id = entryTag.getString(CarryListenerSaveData.ID);
                                 final String uuid = entryTag.getString(CarryListenerSaveData.UUID);
-                                final CarryID fullID = CarryID.restore(id, uuid, LISTENER_LOOKUP, event);
-                                LOGGER.debug("Got CarryID: [ResourceLocation: \"{}\", UUID: \"{}\"]", id, uuid);
+                                final CarryID fullID = internalRestore.apply(id, uuid);
+                                LOGGER.debug("Got CarryID: {}", fullID);
                                 
                                 final ResourceLocation resourceLocation = ResourceLocation.parse(id);
                                 final @Nullable var adapter = CarryRegistryManager.INST.searchFactory(resourceLocation);

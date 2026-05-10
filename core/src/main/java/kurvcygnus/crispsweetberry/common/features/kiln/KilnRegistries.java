@@ -45,7 +45,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.CrispSweetberry.NAMESPACE;
@@ -56,11 +56,11 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock.LIT_PROP
  * @since 1.0 Release
  */
 @EventBusSubscriber(modid = NAMESPACE, value = Dist.CLIENT)
-public enum KilnRegistries implements IRegistrant
+public enum KilnRegistries implements IRegistrant<KilnRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { registerBySet(REGISTRIES, bus); }
+    @Override public void register(@NotNull IEventBus bus) { registerByList(REGISTRIES, bus); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 1); }
     
@@ -72,7 +72,7 @@ public enum KilnRegistries implements IRegistrant
     private static final DeferredRegister<MenuType<?>> KILN_MENU_REGISTER = DeferredRegister.create(Registries.MENU, NAMESPACE);
     private static final DeferredRegister<ResourceLocation> KILN_STAT_REGISTER = DeferredRegister.create(Registries.CUSTOM_STAT, NAMESPACE);
     
-    public static final Set<DeferredRegister<?>> REGISTRIES = IRegistrant.composeRegistries(
+    public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         KILN_ITEM_REGISTER,
         KILN_BLOCK_REGISTER,
         KILN_BE_REGISTER,

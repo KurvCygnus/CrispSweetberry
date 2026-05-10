@@ -47,7 +47,7 @@ public final class CrispCreativeTabsRegistryEvent
             final Item item = entry.itemSupplier().get();
             
             //* Yes, using `==` to compare is legal.
-            //* Firstly, [[ResourceKey]] didn't implement [[Object#equals]](which is stupid, this also happens on [[EntityType]]).
+            //* Firstly, [[ResourceKey]] didn't implement [[Object#equals]](which is terrible, this also happens on [[EntityType]]).
             //* Secondly, don't forget that most value holders in Minecraft are CONSTANTS,
             //* whose does have a fixed hashcode, thus can be compared with `==`, because `==` is a CPU command, it is slightly faster.
             if(entry.tab() == event.getTabKey())

@@ -8,25 +8,31 @@
 
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
+import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.*;
 
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
- * This the core of automatic registration.
- * @apiNote Make sure the registry class is an enum, and has only one enumeration named {@code INSTANCE}(<i>or {@code INST}, this is actually unlimited,
+ * A facade interface, which makes the implementer capable of registering entries automatically.
+ * @apiNote Make sure the <b>registry class is an enum, and has only one enumeration</b> named {@code INSTANCE}(<i>or {@code INST}, this is actually unlimited,
  * but we recommend to follow this, it makes your classes consistent</i>),
  * it makes automatic registration works correctly, and help others understand automatic registration quickly.
  * @implSpec
  * A simple example of usage:
  * <pre>{@code
- *  public enum FooRegistry implements IRegistrant
+ *  public enum FooRegistry implements IRegistrant<FooRegistry>
  *  {
  *      INST;
  *
@@ -59,9 +65,7 @@ import java.util.regex.Pattern;
  *         Q: Will automatic registration lead to lifecycle issues?<br>
  *         A: Yes, <b>but if it happened, mostly is not automatic registration's fault</b>. In fact, non-automatic registration will also encounter such issues
  *         if you didn't notice the order of registries' initialization. Anyway, lifecycle issue can be solved by adjusting <u>{@link #getPriority()}</u>,
- *         it is usually not a big deal, for our <u>{@link kurvcygnus.crispsweetberry.common.features features package}</u> and 
- *         <u>{@link kurvcygnus.crispsweetberry.common.qol QoL package}</u>, whose are DDD driven, we use <u>{@link net.neoforged.neoforge.common.util.Lazy Lazy}</u>
- *         when necessary.
+ *         it is usually not a big deal, for DDD driven designs, it's recommended to use <u>{@link net.neoforged.neoforge.common.util.Lazy Lazy}</u> when necessary.
  *     </li>
  *     <li>
  *         Q: Isn't manually adjusting initialization priorities troublesome?<br>
@@ -69,6 +73,7 @@ import java.util.regex.Pattern;
  *         our solution's issue is implicit property view, I don't deny that, <b>this is a trade-off.</b>
  *     </li>
  * </ul>
+ * @param <T> The type of the registry itself.
  * @since Release 1.0
  * @author Kurv Cygnus
  * @see net.neoforged.neoforge.registries.DeferredRegister DeferredRegister
@@ -77,70 +82,59 @@ import java.util.regex.Pattern;
  * @see ISortable Priority Definitions
  * @see IDefinitions Methods Definitions
  */
-public non-sealed interface IRegistrant extends IDefinitions, ISortable
+public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> extends IDefinitions<T>, ISortable
 {
-    //* Note: [[IRegistrant]] itself only includes the util methods.
-    //* For getting started, or detailed documentation, see [[IDefinitions]] and [[ISortable]].
+    //* |=========================================================================================|
+    //* | Note: [[IRegistrant]] itself only includes registering util methods.                    |
+    //* | For getting started, or detailed documentation, see [[IDefinitions]] and [[ISortable]]. |
+    //* |=========================================================================================|
     
     /**
-     * @apiNote It's recommend to use readonly view of <u>{@link java.util.LinkedHashSet LinkedHashSet}</u>
-     * (more precisely, the implementers of <u>{@link SequencedSet}</u>),
-     * the rest <u>{@link Set}</u> implementers are mostly <span style="color: f84b4b">UNORDERED</span>
-     * (e.g. <u>{@link java.util.HashSet HashSet}</u>, <u>{@link Set#of()}</u>),
-     * <span style="color: f84b4b">use them on your own risk.</span>
-     * @see #composeRegistries(Consumer, Supplier)
-     * @see #composeRegistries(Consumer)
-     * @see #composeRegistries(DeferredRegister[])
+     * A simple util for registering listed <u>{@link DeferredRegister}</u>.
+     * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.registerByList(...)}.
+     * @apiNote This method will filter out the duplicated elements, with a warn printed.
      */
-    default void registerBySet(@NotNull @Unmodifiable Set<@NotNull DeferredRegister<?>> registries, @NotNull IEventBus bus)
+    @ApiStatus.NonExtendable default void registerByList(@NotNull List<@NotNull DeferredRegister<?>> registries, @NotNull IEventBus bus)
     {
         Objects.requireNonNull(registries, "Param \"registries\" must not be null!");
         Objects.requireNonNull(bus, "Param \"bus\" must not be null!");
         
-        registries.forEach(deferredRegister -> deferredRegister.register(bus));
+        registerLoop(bus, registries::get, registries.size());
     }
     
-    default void registerByVarargs(@NotNull IEventBus bus, @NotNull DeferredRegister<?> @NotNull ... registries)
+    /**
+     * A simple util for registering a group of <u>{@link DeferredRegister}</u>.
+     * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.registerByVarargs(...)}.
+     * @apiNote This method will filter out the duplicated elements, with a warn printed.
+     */
+    @ApiStatus.NonExtendable default void registerByVarargs(@NotNull IEventBus bus, @NotNull DeferredRegister<?> @NotNull ... registries)
     {
         Objects.requireNonNull(bus, "Param \"bus\" must not be null!");
         Objects.requireNonNull(registries, "Param \"registries\" must not be null!");
         
-        final int length = registries.length;
-        
-        if(length == 0)
+        registerLoop(bus, i -> registries[i], registries.length);
+    }
+    
+    private void registerLoop(@NotNull IEventBus bus, @NotNull IntFunction<DeferredRegister<?>> getter, int size)
+    {
+        if(size == 0)
             throw new IllegalArgumentException("Param \"registries\" must have at least one element!");
         
-        for(int index = 0; index < length; index++)
+        final var mem = new HashSet<DeferredRegister<?>>(size);
+        
+        for(int index = 0; index < size; index++)
         {
-            final var deferredRegister = registries[index];
-            Objects.requireNonNull(deferredRegister, "The element in array's index %d is null!".formatted(index));
+            final var deferredRegister = getter.apply(index);
+            Objects.requireNonNull(deferredRegister, "The element in array's index %d is null! Content: %s".formatted(index, deferredRegister));
+            
+            if(!mem.add(deferredRegister))
+            {
+                CrispRegistrant.LOGGER.warn("The element in array's index {} is already registered! Content: {}", index, deferredRegister);
+                continue;
+            }
+            
             deferredRegister.register(bus);
         }
-    }
-    
-    static <C extends SequencedSet<DeferredRegister<?>>> @NotNull @Unmodifiable Set<DeferredRegister<?>> composeRegistries(
-        @NotNull Consumer<SequencedSet<DeferredRegister<?>>> consumer,
-        @NotNull Supplier<C> constructor
-    )
-    {
-        Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
-        Objects.requireNonNull(constructor, "Param \"constructor\" must not be null!");
-        final C set = constructor.get();
-        consumer.accept(set);
-        return Collections.unmodifiableSet(set);
-    }
-    
-    static @NotNull @Unmodifiable Set<DeferredRegister<?>> composeRegistries(
-        @NotNull Consumer<SequencedSet<DeferredRegister<?>>> consumer
-    ) { return composeRegistries(consumer, LinkedHashSet::new); }
-    
-    static @NotNull @Unmodifiable Set<DeferredRegister<?>> composeRegistries(@NotNull DeferredRegister<?> @NotNull ... registries)
-    {
-        final int length = registries.length;
-        
-        if(length == 0)
-            throw new IllegalArgumentException("Param \"registries\" must have at least one element!");
-        return composeRegistries(set -> set.addAll(Arrays.asList(registries)));
     }
 }
 
@@ -151,13 +145,12 @@ public non-sealed interface IRegistrant extends IDefinitions, ISortable
  * @see ISortable
  * @see IRegistrant
  */
-sealed interface IDefinitions
+sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
 {
     /**
      * The method which will be called in auto registration phase.<br>
      * You should write your <u>{@link DeferredRegister}</u>'s register logic at here.
-     *
-     * @see IRegistrant#registerBySet(Set, IEventBus)
+     * @see IRegistrant#registerByList(List, IEventBus)
      * @see IRegistrant#registerByVarargs(IEventBus, DeferredRegister[])
      */
     void register(@NotNull IEventBus bus);
@@ -178,20 +171,36 @@ sealed interface IDefinitions
     {
         final String name = this.getClass().getSimpleName();
         //* Convert Result Example: FooBarBoxRegistry -> Foo Bar Box
-        return replaceAll(
-            Constants.SPLIT_REGEX,
-            replaceAll(Constants.REGISTRY_REGEX, name, ""),
+        return regexReplace(
+            CrispRegistrant.SPLIT_REGEX,
+            regexReplace(CrispRegistrant.REGISTRY_REGEX, name, ""),
             " "
         ).trim();
     }
     
-    private @NotNull String replaceAll(@NotNull Pattern regex, @NotNull String text, @NotNull String replacement) { return regex.matcher(text).replaceAll(replacement); }
+    /**
+     * @implNote <u>{@link String#replaceAll(String, String)}</u>'s implementation does literally complies regex every single time,
+     * and this method is designed to solve this, it will be slightly faster than <u>{@link String#replaceAll(String, String)}</u>.
+     */
+    private static @NotNull String regexReplace(@NotNull Pattern regex, @NotNull String text, @NotNull String replacement)
+        { return regex.matcher(text).replaceAll(replacement); }
+    
+    /**
+     * @implNote This is useless, literally. It is existed to suppress "unused" warnings,
+     * since generic arg {@code T} is <b>only</b> used to restrict implementer's type.
+     */
+    @SuppressWarnings("unused") private @Nullable T dummy() { return null; }
 }
 
-final class Constants
+/**
+ * A package-private class which holds private constants. It is named {@code CrispRegistrant} to make <u>{@link #LOGGER}</u>'s metainfo prettier.
+ * @since 1.0 Release
+ */
+final class CrispRegistrant
 {
-    private Constants() { throw new AssertionError(); }
+    private CrispRegistrant() { throw new AssertionError(); }
     
+    static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
     static final Pattern REGISTRY_REGEX = Pattern.compile("Registr(y|ies)");
     static final Pattern SPLIT_REGEX = Pattern.compile("(?<=[a-z])(?=[A-Z])");
 }
@@ -221,12 +230,13 @@ sealed interface ISortable
      *
      * @apiNote Smaller number has higher property.
      * @see PriorityRange
+     * @see #ofPriority(PriorityRange, int) 
      */
     @NotNull PriorityPair getPriority();
     
     final class PriorityPair implements INestedPrintable
     {
-        private final @NotNull PriorityRange mainRange;
+        private final PriorityRange mainRange;
         private final @Range(from = 1, to = 999) int subRange;
         
         private PriorityPair(@NotNull PriorityRange mainRange, @Range(from = 1, to = 999) int subRange)
@@ -254,7 +264,7 @@ sealed interface ISortable
         @Override public @NotNull String toString() { return toNestedString(); }
         
         @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
-            { return Map.of("mainRange", mainRange::name, "subRange", () -> subRange); }
+            { return INestedPrintable.buildFieldMap(new Pair<>("mainRange", mainRange::name), new Pair<>("subRange", () -> subRange)); }
     }
     
     /**
@@ -267,8 +277,7 @@ sealed interface ISortable
     enum PriorityRange
     {
         /**
-         * Represents the first range which will be processed.<br>
-         *
+         * Represents the first range which will be processed.
          * @apiNote {@code BASE} refers to the registries whose are lite, with no extra dependencies,
          * like {@code BlockRegistry}, {@code ItemRegistry}, etc.<br>
          * Due to their attribute, they should be initialized at first.
@@ -277,7 +286,6 @@ sealed interface ISortable
         
         /**
          * Represents the second range which will be processed.
-         *
          * @apiNote {@code FEATURE} refers to the registries whose are cohesive, holding order-sensitive entries,
          * which is also called, <u><a href="https://en.wikipedia.org/wiki/Domain-driven_design">DDD Design</a></u>.<br>
          * Due to their attribute, they should be processed after the lite are handled.
@@ -286,7 +294,6 @@ sealed interface ISortable
         
         /**
          * Represents the last range will be processed.
-         *
          * @apiNote {@code REFERENCE_HOLDER} refers to registries that mainly holds references to other entries, like {@code CreativeModTabRegistry}.<br>
          * Obviously, this should be processed at last.
          */

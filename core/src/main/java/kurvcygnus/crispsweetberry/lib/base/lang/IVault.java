@@ -21,23 +21,31 @@ import java.util.function.Predicate;
 /**
  * A data holder which is capable of restricting unexpected, or illegal accesses.
  * @apiNote Vault can be either <b>immutable</b> or <b>mutable</b> with different static factories,
- * notes that <b>both immutable and mutable are thread-safe.</b>
- * @param <Value> The type of this container's value.
- * @param <Token> The access token's type.
+ * notes that <b>both immutable and mutable are thread-safe.</b><br>
+ * Also, notes that <b>this is not designed to restrict reflection accesses
+ * (<i>In NeoForge environment, reflection will be restricted by NeoForge, which grantees the safety</i>).</b>
+ * In that case, you should try <u><a href="https://en.wikipedia.org/wiki/Java_Platform_Module_System">JPMS</a></u>.
+ * Defending against reflection will take a lot of efforts and performance, this is not worthy at most cases.
+ * @param <TValue> The type of this container's value.
+ * @param <TToken> The access token's type.
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public sealed interface IVault<Value, Token> extends Function<Token, Value>
+public sealed interface IVault<TValue, TToken> extends Function<TToken, Optional<TValue>>
 {
     /**
      * Creates a <u>{@link IVault vault}</u> instance, whose value is <b>immutable</b>, and the token's match condition is
      * <u>{@link Object#equals(Object)}</u>.
      * @see #ofMutable(Object, Object) Mutable Version
      */
-    static <Value, Token> @NotNull IVault<Value, Token> of(@NotNull Value value, @NotNull Token token)
+    static <TValue, TToken> @NotNull IVault<TValue, TToken> of(@NotNull TValue value, @NotNull TToken token)
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         Objects.requireNonNull(token, "Param \"token\" must not be null!");
+        
+        if(value instanceof IVault<?, ?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new ImmutableVault<>(value, token, t -> t.equals(token));
     }
     
@@ -46,9 +54,13 @@ public sealed interface IVault<Value, Token> extends Function<Token, Value>
      * the token itself is <b>not null</b>.
      * @see #ofMutableTypeMatchOnly(Object) Mutable Version
      */
-    static <Value, Token> @NotNull IVault<Value, Token> ofTypeMatchOnly(@NotNull Value value)
+    static <TValue, TToken> @NotNull IVault<TValue, TToken> ofTypeMatchOnly(@NotNull TValue value)
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        
+        if(value instanceof IVault<?, ?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new ImmutableVault<>(value, null, null);
     }
     
@@ -58,15 +70,18 @@ public sealed interface IVault<Value, Token> extends Function<Token, Value>
      * @apiNote The former param of <u>{@link BiPredicate}</u> is container's token, the latter one is the external one.
      * @see #ofMutableCustomMatch(Object, Object, BiPredicate) Mutable Version
      */
-    static <Value, Token> @NotNull IVault<Value, Token> ofCustomMatch(
-        @NotNull Value value,
-        @NotNull Token token,
-        @NotNull BiPredicate<? super Token, ? super Token> predicate
+    static <TValue, TToken> @NotNull IVault<TValue, TToken> ofCustomMatch(
+        @NotNull TValue value,
+        @NotNull TToken token,
+        @NotNull BiPredicate<? super TToken, ? super TToken> predicate
     )
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         Objects.requireNonNull(token, "Param \"token\" must not be null!");
         Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
+        
+        if(value instanceof IVault<?, ?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
         
         return new ImmutableVault<>(value, token, t -> predicate.test(token, t));
     }
@@ -76,10 +91,14 @@ public sealed interface IVault<Value, Token> extends Function<Token, Value>
      * <u>{@link Object#equals(Object)}</u>.
      * @see #of(Object, Object) Immutable Version
      */
-    static <Value, Token> @NotNull IVault<Value, Token> ofMutable(@NotNull Value value, @NotNull Token token)
+    static <TValue, TToken> @NotNull IVault<TValue, TToken> ofMutable(@NotNull TValue value, @NotNull TToken token)
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         Objects.requireNonNull(token, "Param \"token\" must not be null!");
+        
+        if(value instanceof IVault<?, ?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new MutableVault<>(value, token, t -> t.equals(token));
     }
     
@@ -88,9 +107,13 @@ public sealed interface IVault<Value, Token> extends Function<Token, Value>
      * the token itself is <b>not null</b>.
      * @see #ofTypeMatchOnly(Object) Immutable Version
      */
-    static <Value, Token> @NotNull IVault<Value, Token> ofMutableTypeMatchOnly(@NotNull Value value)
+    static <TValue, TToken> @NotNull IVault<TValue, TToken> ofMutableTypeMatchOnly(@NotNull TValue value)
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        
+        if(value instanceof IVault<?, ?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new MutableVault<>(value, null, null);
     }
     
@@ -100,15 +123,19 @@ public sealed interface IVault<Value, Token> extends Function<Token, Value>
      * @apiNote The former param of <u>{@link BiPredicate}</u> is container's token, the latter one is the external one.
      * @see #ofCustomMatch(Object, Object, BiPredicate) Immutable Version
      */
-    static <Value, Token> @NotNull IVault<Value, Token> ofMutableCustomMatch(
-        @NotNull Value value,
-        @NotNull Token token,
-        @NotNull BiPredicate<? super Token, ? super Token> predicate
+    static <TValue, TToken> @NotNull IVault<TValue, TToken> ofMutableCustomMatch(
+        @NotNull TValue value,
+        @NotNull TToken token,
+        @NotNull BiPredicate<? super TToken, ? super TToken> predicate
     )
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         Objects.requireNonNull(token, "Param \"token\" must not be null!");
         Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
+        
+        if(value instanceof IVault<?, ?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new MutableVault<>(value, token, t -> predicate.test(token, t));
     }
     
@@ -116,36 +143,36 @@ public sealed interface IVault<Value, Token> extends Function<Token, Value>
      * Gets the value of this vault holds, as long as the token matches the requirement.
      * @throws IllegalArgumentException When token doesn't matches the requirement.
      */
-    @NotNull Value tryGet(@NotNull Token token) throws IllegalArgumentException;
+    @NotNull TValue tryGet(@NotNull TToken token) throws IllegalArgumentException;
     
     /**
      * Gets the value of this vault holds, as long as the token matches the requirement.
      */
-    @NotNull Optional<Value> trySafeGet(@NotNull Token token);
+    @NotNull Optional<TValue> trySafeGet(@NotNull TToken token);
     
     /**
      * Tweaks the value of this vault, as long as the vault itself is mutable, with token matches the requirement.
      * @return The old value in this vault. If the vault is immutable, the return value will always be {@code null}.
      */
-    @Nullable Value trySet(@NotNull Value value, @NotNull Token token);
+    @Nullable TValue trySet(@NotNull TValue value, @NotNull TToken token);
     
     boolean isMutable();
     
-    default @Override @NotNull Value apply(@NotNull Token token) { return tryGet(token); }
+    default @Override @NotNull Optional<TValue> apply(@NotNull TToken token) { return trySafeGet(token); }
 }
 
-abstract sealed class BaseVault<Value, Token> implements IVault<Value, Token>
+abstract sealed class BaseVault<TValue, TToken> implements IVault<TValue, TToken>
 {
-    protected final @Nullable Token token;
-    protected final @NotNull Predicate<Token> matcher;
+    protected final @Nullable TToken token;
+    protected final @NotNull Predicate<TToken> matcher;
     
-    BaseVault(@Nullable Token token, @Nullable Predicate<Token> matcher)
+    BaseVault(@Nullable TToken token, @Nullable Predicate<TToken> matcher)
     {
         this.token = token;
         this.matcher = Objects.requireNonNullElse(matcher, Objects::nonNull);
     }
     
-    @Override public final @NotNull Value tryGet(@NotNull Token token) throws IllegalArgumentException
+    @Override public final @NotNull TValue tryGet(@NotNull TToken token) throws IllegalArgumentException
     {
         if(matcher.test(token))
             return value();
@@ -153,14 +180,14 @@ abstract sealed class BaseVault<Value, Token> implements IVault<Value, Token>
         throw new IllegalArgumentException("Invalid token: " + token);
     }
     
-    @Override public @NotNull Optional<Value> trySafeGet(@NotNull Token token)
+    @Override public @NotNull Optional<TValue> trySafeGet(@NotNull TToken token)
     {
         if(matcher.test(token))
             return Optional.of(value());
         return Optional.empty();
     }
     
-    @Override public final @Nullable Value trySet(@NotNull Value value, @NotNull Token token)
+    @Override public final @Nullable TValue trySet(@NotNull TValue value, @NotNull TToken token)
     {
         if(!matcher.test(token))
             return null;
@@ -168,25 +195,25 @@ abstract sealed class BaseVault<Value, Token> implements IVault<Value, Token>
         return trySetSequence(value);
     }
     
-    protected abstract @NotNull Value value();
+    protected abstract @NotNull TValue value();
     
-    protected abstract @Nullable Value trySetSequence(@NotNull Value value);
+    protected abstract @Nullable TValue trySetSequence(@NotNull TValue value);
 }
 
-final class MutableVault<Value, Token> extends BaseVault<Value, Token>
+final class MutableVault<TValue, TToken> extends BaseVault<TValue, TToken>
 {
-    private final AtomicReference<Value> value;
+    private final AtomicReference<TValue> value;
     
-    MutableVault(@NotNull Value value, @Nullable Token token, @Nullable Predicate<Token> matcher)
+    MutableVault(@NotNull TValue value, @Nullable TToken token, @Nullable Predicate<TToken> matcher)
     {
         super(token, matcher);
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         this.value = new AtomicReference<>(value);
     }
     
-    @Override protected @NotNull Value value() { return value.get(); }
+    @Override protected @NotNull TValue value() { return value.get(); }
     
-    @Override protected @Nullable Value trySetSequence(@NotNull Value value)
+    @Override protected @Nullable TValue trySetSequence(@NotNull TValue value)
     {
         final var previous = this.value.get();
         this.value.set(value);
@@ -196,20 +223,20 @@ final class MutableVault<Value, Token> extends BaseVault<Value, Token>
     @Override public boolean isMutable() { return true; }
 }
 
-final class ImmutableVault<Value, Token> extends BaseVault<Value, Token>
+final class ImmutableVault<TValue, TToken> extends BaseVault<TValue, TToken>
 {
-    private final Value value;
+    private final TValue value;
     
-    ImmutableVault(@NotNull Value value, @Nullable Token token, @Nullable Predicate<Token> matcher)
+    ImmutableVault(@NotNull TValue value, @Nullable TToken token, @Nullable Predicate<TToken> matcher)
     {
         super(token, matcher);
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         this.value = value;
     }
     
-    @Override protected @NotNull Value value() { return value; }
+    @Override protected @NotNull TValue value() { return value; }
     
-    @Override protected @Nullable Value trySetSequence(@NotNull Value value) { return null; }
+    @Override protected @Nullable TValue trySetSequence(@NotNull TValue value) { return null; }
     
     @Override public boolean isMutable() { return false; }
 }

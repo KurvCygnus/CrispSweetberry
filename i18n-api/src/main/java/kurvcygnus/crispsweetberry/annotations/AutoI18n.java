@@ -15,7 +15,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.regex.Pattern;
 
 /**
  * This is a simple annotation used for data generation, <b>specially on internationalization(i18n)</b>.
@@ -166,10 +165,6 @@ public @interface AutoI18n
      * <b>If you want to use append extra text on the original one, please use {@code ~@^} to represent the base text.</b>
      */
     @NotNull String overrides() default "";
-    
-    String SUPER = "~@^";
-    String WHITESPACE = "~@s";
-    Pattern TRANSLATION_PATTERN = Pattern.compile("^\\s*([a-zA-Z._]+)\\s*=\\s*(.+?)\\s*$", Pattern.DOTALL);
     
     enum Lang
     {

@@ -40,11 +40,14 @@ public record CalculationResult(
     
     @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
     {
-        return Map.of(
-            "realProgress", this::currentRealProgress,
-            "visualProgress", this::currentVisualProgress,
-            "logicalResult",  this.logicalResult::name,
-            "trend", this.trend::name
+        return INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("realProgress", this::currentRealProgress);
+                map.put("visualProgress", this::currentVisualProgress);
+                map.put("logicalResult", this.logicalResult::name);
+                map.put("trend", this.trend::name);
+            }
         );
     }
 }

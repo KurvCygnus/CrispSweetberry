@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
+import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import org.jetbrains.annotations.*;
 
 import java.io.Serializable;
@@ -19,18 +20,17 @@ import java.util.function.Supplier;
 /**
  * This is an extension interface for all classes that has complex data, prints nested JSON-structured info instead of
  * <u>{@link Record#toString() record's ugly #toString()}</u>, with <u>{@link #getFields()}</u> implemented.
- *
  * @author Kurv Cygnus
  * @apiNote Due to Java's {@code interface} limitation, you have to overwrite <u>{@link Object#toString()}</u> with calling <u>{@link #toNestedString()}</u> by your own.
  * @see IAutoNestedPrintable
+ * @see #buildFieldMap <span style="color: f84b4b">MUST SEE:<br> </span> <u>{@link #buildFieldMap(Pair[])}</u>, <u>{@link #buildFieldMap(Consumer)}</u>
  * @since 1.0 Release
  */
 public interface INestedPrintable extends Serializable
 {
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
-     *
-     * @apiNote It's recommend to this when your class has too many fields.
+     * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.
      */
     static @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> buildFieldMap(@NotNull Consumer<Map<String, Supplier<@Nullable Object>>> consumer)
     {
@@ -41,17 +41,35 @@ public interface INestedPrintable extends Serializable
     }
     
     /**
+     * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
+     *
+     * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.
+     */
+    @SafeVarargs static @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> buildFieldMap(@NotNull Pair<String, Supplier<@Nullable Object>> @NotNull ... pairs)
+    {
+        Objects.requireNonNull(pairs, "Param \"pairs\" must not be null!");
+        final var map = new LinkedHashMap<String, Supplier<@Nullable Object>>();
+        
+        for(final var pair: pairs)
+        {
+            Objects.requireNonNull(pair, "Element \"%s\"'s getter must not be null!".formatted(pair.left()));
+            map.put(pair.getKey(), pair.getValue());
+        }
+        
+        return Collections.unmodifiableMap(map);
+    }
+    
+    /**
      * Decides whether the {@code null} value should be printed.<hr>
      * If the value is {@code false}, {@code null} value will be replace with {@code "N/A"}.<br>
      * Or else, this entry won't be printed.<br><br>
-     * <i>Also, notes that this method only tweaks nullable field, <b><u>{@link Optional}</u> is not included.</b></i>
+     * <i>Also, notes that this method only tweaks nullable field, <b><u>{@link Optional}</u> won't be affected.</b></i>
      */
     default boolean takeNullFieldAsOptional() { return false; }
     
     /**
      * Gets the indent standard of this class.
-     *
-     * @implNote Each <u>{@link INestedPrintable}</u>'s implementer's Indent() is independent, they won't have any override logics, so
+     * @implNote Each <u>{@link INestedPrintable}</u>'s implementer's indent is independent, they won't have any override logics, so
      * iterable's recommended to keep all data classes whose are in your project with the same indent.
      */
     default @Range(from = 1, to = Integer.MAX_VALUE) int getIndent() { return 2; }

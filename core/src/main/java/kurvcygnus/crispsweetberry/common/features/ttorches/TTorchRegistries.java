@@ -49,7 +49,6 @@ import snownee.jade.api.IWailaClientRegistration;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TRedstoneTorchExtensions.*;
 
@@ -59,12 +58,12 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redston
  * @since 1.0 Release
  */
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
-public enum TTorchRegistries implements IRegistrant
+public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
 {
     //  region Registry Basics
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { registerBySet(REGISTRIES, bus); }
+    @Override public void register(@NotNull IEventBus bus) { registerByList(REGISTRIES, bus); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 2); }
     
@@ -72,7 +71,7 @@ public enum TTorchRegistries implements IRegistrant
     private static final DeferredRegister<Block> TEMPORARY_TORCH_REGISTER = DeferredRegister.createBlocks(CrispSweetberry.NAMESPACE);
     private static final DeferredRegister<EntityType<?>> THROWN_TORCH_REGISTER = DeferredRegister.create(Registries.ENTITY_TYPE, CrispSweetberry.NAMESPACE);
     
-    public static final Set<DeferredRegister<?>> REGISTRIES = IRegistrant.composeRegistries(
+    public static final List<DeferredRegister<?>> REGISTRIES = List.of(
         TEMPORARY_TORCH_REGISTER,
         THROWABLE_TORCH_REGISTER,
         THROWN_TORCH_REGISTER
@@ -532,7 +531,9 @@ public enum TTorchRegistries implements IRegistrant
     
     //*:=== Redstone TTorch Dispatchers
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> UNWAXED_REDSTONE_TTORCH_LOOKUP =
-        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(
+            OxidizeState.class,
+            map ->
             {
                 map.put(OxidizeState.NORMAL, TEMPORARY_REDSTONE_TORCH);
                 map.put(OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_TORCH);
@@ -542,7 +543,9 @@ public enum TTorchRegistries implements IRegistrant
         );
     
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> UNWAXED_WALL_REDSTONE_TTORCH_LOOKUP =
-        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(
+            OxidizeState.class,
+            map ->
             {
                 map.put(OxidizeState.NORMAL, TEMPORARY_REDSTONE_WALL_TORCH);
                 map.put(OxidizeState.EXPOSED, EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH);
@@ -552,7 +555,9 @@ public enum TTorchRegistries implements IRegistrant
         );
     
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneTorchBlock>> WAXED_REDSTONE_TTORCH_LOOKUP = 
-        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(
+            OxidizeState.class,
+            map ->
             {
                 map.put(OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_TORCH);
                 map.put(OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_TORCH);
@@ -562,7 +567,9 @@ public enum TTorchRegistries implements IRegistrant
         );
     
     private static final Map<OxidizeState, DeferredHolder<Block, TemporaryRedstoneWallTorchBlock>> WAXED_WALL_REDSTONE_TTORCH_LOOKUP = 
-        DefinitionUtils.createImmutableEnumMapWithCheck(OxidizeState.class, map ->
+        DefinitionUtils.createImmutableEnumMapWithCheck(
+            OxidizeState.class,
+            map ->
             {
                 map.put(OxidizeState.NORMAL, WAXED_TEMPORARY_REDSTONE_WALL_TORCH);
                 map.put(OxidizeState.EXPOSED, WAXED_EXPOSED_TEMPORARY_REDSTONE_WALL_TORCH);
@@ -585,7 +592,9 @@ public enum TTorchRegistries implements IRegistrant
     private static <T extends AbstractThrownTorchEntity> @NotNull DeferredHolder<EntityType<?>, EntityType<T>>
     getTypeHolder(@NotNull String id, @NotNull EntityType.EntityFactory<T> factory)
     {
-        return THROWN_TORCH_REGISTER.register(id, () -> EntityType.Builder.of(factory, MobCategory.MISC).
+        return THROWN_TORCH_REGISTER.register(
+            id,
+            () -> EntityType.Builder.of(factory, MobCategory.MISC).
                 sized(0.25F, 0.25F).
                 updateInterval(10).
                 noSummon().

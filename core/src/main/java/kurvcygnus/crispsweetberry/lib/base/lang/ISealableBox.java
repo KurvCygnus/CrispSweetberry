@@ -60,6 +60,10 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     static <T> @NotNull ISealableBox<T> of(@NotNull T value)
     {
         assert value != null : "Param \"value\" must not be null!";
+        
+        if(value instanceof ISealableBox<?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new SealableBox<>(value, Privates.BOUND);
     }
     
@@ -69,6 +73,10 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     static <T> @NotNull ISealableBox<T> ofAtomic(@NotNull T value)
     {
         assert value != null : "Param \"value\" must not be null!";
+        
+        if(value instanceof ISealableBox<?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new AtomicSealableBox<>(value, Privates.BOUND);
     }
     
@@ -79,6 +87,10 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     static <T> @NotNull ISealableBox<T> assignable(@NotNull T value)
     {
         assert value != null : "Param \"value\" must not be null!";
+        
+        if(value instanceof ISealableBox<?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new SealableBox<>(value, Privates.ASSIGNABLE);
     }
     
@@ -88,6 +100,10 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     static <T> @NotNull ISealableBox<T> assignableAtomic(@NotNull T value)
     {
         assert value != null : "Param \"value\" must not be null!";
+        
+        if(value instanceof ISealableBox<?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         return new AtomicSealableBox<>(value, Privates.ASSIGNABLE);
     }
     

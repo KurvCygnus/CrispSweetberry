@@ -17,7 +17,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-public enum CrispItems implements IRegistrant
+public enum CrispItems implements IRegistrant<CrispItems>
 {
     INST;
     
