@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -45,7 +45,7 @@ import java.util.function.Supplier;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class NuggetItemCheckEvent
 {
-    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "NUGGET_CHECK");
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "NUGGET_CHECK");
     
     public static Supplier<Item> copperNuggetSupplier = () -> Items.AIR;
     public static Supplier<Item> diamondNuggetSupplier = () -> Items.AIR;
@@ -89,10 +89,11 @@ public final class NuggetItemCheckEvent
             {
                 final ItemStack nuggetStack = type.nuggetItem().getDefaultInstance();
                 
-                LOGGER.when(!nuggetStack.is(Tags.Items.NUGGETS)).warn( 
-                    "Invalid definition for {}: Item {} is not in the Nuggets tag!",
-                    type.id().toUpperCase(), nuggetStack.getItemHolder().getRegisteredName()
-                );
+                if(!nuggetStack.is(Tags.Items.NUGGETS))
+                    LOGGER.warn(
+                        "Invalid definition for {}: Item {} is not in the Nuggets tag!",
+                        type.id().toUpperCase(), nuggetStack.getItemHolder().getRegisteredName()
+                    );
             }
         }
         catch(IllegalArgumentException e) { LOGGER.error("CoinType Validation Failed: {}", e.getMessage()); }

@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.NonNullList;
 import org.intellij.lang.annotations.MagicConstant;
@@ -65,9 +65,9 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     private boolean hasWarnedNullRecipe = false;
     private boolean hasWarnedAbnormalFactor = false;
     
-    private static final MarkLogger LOGGER = MarkLogger.configuredLogger(
+    private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
         LogUtils.getLogger(),
-        MarkLogger.allowWhen(Level.DEBUG, MarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_CAL_DEBUG)
+        IMarkLogger.allowWhen(Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_CAL_DEBUG)
     );
     
     public KilnProgressCalculator(@NotNull KilnBlockEntity blockEntity) { Objects.requireNonNull(blockEntity, "Param \"blockEntity\" must not be null!"); }
@@ -82,7 +82,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
         byte nonEmptyCount = 0;
         final double currentProcessFactor;
         
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("FACTOR_CAL"))
+        try(final var handle = LOGGER.pushMarker("FACTOR_CAL"))
         {
             for(final KilnRecipe recipe: recipes)
             {
@@ -138,7 +138,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     @Contract("_, _, _ -> new") @CheckReturnValue
     public @NotNull CalculationResult calculateRates(double currentRealProgress, double currentVisualProgress, @NotNull ProcessionState processState)
     {
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("CALCULATION"))
+        try(final var handle = LOGGER.pushMarker("CALCULATION"))
         {
             //region I: Boundary Check & Initialization
             if(processState != ProcessionState.WORKING)
@@ -191,7 +191,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             if(Double.isNaN(currentProcessFactor))
             {
                 handle.changeMarker("FACTOR_ERR");
-                LOGGER.error("Recipe collection happens to be all empty! Content: {}", recipes.toString());
+                LOGGER.error("Recipe collection happens to be all empty! Content: {}. Stop calculation.", recipes.toString());
                 return CalculationResult.unexpectedResult(currentRealProgress, currentVisualProgress);
             }
             
@@ -297,7 +297,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             if(Math.abs(newRealProgress - newVisualProgress) > 0.02D)
             {
                 handle.changeMarker("CAL_NORMAL_ERROR");
-                LOGGER.when(CrispConfig.KILN_BE_CAL_DEBUG.get()).error(
+                LOGGER.error(
                     "ProgressPair doesn't fold. R: {}, V: {}",
                     newRealProgress,
                     newVisualProgress
@@ -383,7 +383,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     
     public void setRecipesAndResultType(@NotNull NonNullList<KilnRecipe> recipes, @NotNull LogicalResult logicalResult)
     {
-        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("ABNORMAL_RECIPES"))
+        try(final var ignored = LOGGER.pushMarker("ABNORMAL_RECIPES"))
         {
             if(this.recipes.size() != recipes.size())
             {

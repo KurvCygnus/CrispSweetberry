@@ -20,7 +20,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.Abstra
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import net.minecraft.Util;
@@ -62,7 +62,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     INST;
     
     //region Fields & Constants
-    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_REGISTRY");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_REGISTRY");
     private static final String ILLEGAL_REGISTER_INFO = "Attempting registration after registry frozen is not allowed!";
     
     /**

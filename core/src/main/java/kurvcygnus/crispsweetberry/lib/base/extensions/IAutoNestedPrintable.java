@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * This is a extended interface of <u>{@link INestedPrintable}</u>, which provides auto field map generation with reflect.
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
  * @see INestedPrintable
  * @apiNote Reflect is dangerous when the implementer is managed by {@code module-info.java}, and it is slow, so use this on condition.
  */
-public interface IAutoNestedPrintable extends INestedPrintable
+public interface IAutoNestedPrintable<T extends IAutoNestedPrintable<T>> extends INestedPrintable<T>
 {
     /**
      * Gets a <u>{@link Set}</u> that contains the name of fields which won't be added into field map.
@@ -39,9 +39,9 @@ public interface IAutoNestedPrintable extends INestedPrintable
      */
     default boolean gonnaBeCruel() { return false; }
     
-    @Override default @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+    @Override default @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields()
     {
-        final var fieldMap = new LinkedHashMap<String, Supplier<@Nullable Object>>();
+        final var fieldMap = new LinkedHashMap<String, Function<T, @Nullable Object>>();
         final var clazz = this.getClass();
         final var blacklist = getBlacklistedFields();
         
@@ -54,9 +54,9 @@ public interface IAutoNestedPrintable extends INestedPrintable
             
             fieldMap.put(
                 field.getName(),
-                () ->
+                inst ->
                 {
-                    try { return field.get(this); }
+                    try { return field.get(inst); }
                     catch(IllegalAccessException e)
                     {
                         if(gonnaBeCruel())

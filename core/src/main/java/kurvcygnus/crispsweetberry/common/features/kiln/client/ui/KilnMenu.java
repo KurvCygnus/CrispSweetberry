@@ -200,7 +200,7 @@ public final class KilnMenu extends AbstractContainerMenu
         //? since it has to use Functional Interfaces, like [[BiFunction]]<[[ItemStack]], [[IQuadMoveStackPredicate]], Boolean>, which is a nightmare for readers.
         switch(rangeIndex)
         {
-            case ABNORMAL_RANGE -> throw new IllegalStateException("Unexpected range index: " + rangeIndex);
+            case CrispRanger.ERROR -> throw new IllegalStateException("Unexpected range index: " + rangeIndex);
             case INPUT_RANGE, OUTPUT_RANGE ->
             {
                 final boolean isInputRange = (rangeIndex == INPUT_RANGE);

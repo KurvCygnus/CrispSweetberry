@@ -27,7 +27,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -114,7 +114,7 @@ public enum CarryEngine
     
     private static final ThreadLocal<Boolean> IS_INTERACTING_WITH_BE = ThreadLocal.withInitial(() -> false);
     
-    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger(LogUtils.getLogger());
     //endregion
     
     //region Initialization Data & Engine Persistent Lifecycle
@@ -332,15 +332,16 @@ public enum CarryEngine
             final ItemStack carryCrate = context.getCarryCrate();
             final @Nullable var carryData = context.getCarryData();
             
-            LOGGER.when(!level.isClientSide).debug(
-                "State of this interaction: Player: {}, Data: {}",
-                optionalPlayer.map(player -> player.getDisplayName().getString()).orElse("N/A"),
-                carryData
-            );
+            if(!level.isClientSide)
+                LOGGER.debug(
+                    "State of this interaction: Player: {}, Data: {}",
+                    optionalPlayer.map(player -> player.getDisplayName().getString()).orElse("N/A"),
+                    carryData
+                );
             
             final @Nullable CarryType action = switch(context)
             {
-                case CarryBlocklikeInteractContext blocklike ->
+                case CarryBlocklikeInteractContext(UseOnContext ctx) ->
                 {
                     if(optionalPlayer.isEmpty() || level.getBlockState(interactPos).is(Blocks.VOID_AIR))
                     {
@@ -359,7 +360,7 @@ public enum CarryEngine
                         yield null;
                     }
                     
-                    useOnContext = blocklike.context();
+                    useOnContext = ctx;
                     
                     yield switch(carryData)
                     {
@@ -426,7 +427,9 @@ public enum CarryEngine
             }
             
             handle.changeMarker("ACTION_SELECT");
-            LOGGER.when(!level.isClientSide).debug("Current action: {}.", action.name());
+            
+            if(!level.isClientSide)
+                LOGGER.debug("Current action: {}.", action.name());
             //endregion
             
             //region Process Logics

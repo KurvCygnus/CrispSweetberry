@@ -15,7 +15,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * This is an extension interface for all classes that has complex data, prints nested JSON-structured info instead of
@@ -23,36 +23,64 @@ import java.util.function.Supplier;
  * @author Kurv Cygnus
  * @apiNote Due to Java's {@code interface} limitation, you have to overwrite <u>{@link Object#toString()}</u> with calling <u>{@link #toNestedString()}</u> by your own.
  * @see IAutoNestedPrintable
- * @see #buildFieldMap <span style="color: f84b4b">MUST SEE:<br> </span> <u>{@link #buildFieldMap(Pair[])}</u>, <u>{@link #buildFieldMap(Consumer)}</u>
+ * @see #buildFieldMap
+ * <span style="color: f84b4b">MUST SEE:<br> </span><u>{@link #buildFieldMap(Consumer)}</u>, <u>{@link #buildFieldMap(Consumer, int)}</u>, <u>{@link #buildFieldMap(Pair[])}</u>
  * @since 1.0 Release
  */
-public interface INestedPrintable extends Serializable
+public interface INestedPrintable<T extends INestedPrintable<T>> extends Serializable
 {
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
      * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.
      */
-    static @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> buildFieldMap(@NotNull Consumer<Map<String, Supplier<@Nullable Object>>> consumer)
+    static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
+        @NotNull Consumer<Map<String, Function<T, @Nullable Object>>> consumer
+    )
     {
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
-        final var map = new LinkedHashMap<String, Supplier<@Nullable Object>>();
+        final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>();
         consumer.accept(map);
         return Collections.unmodifiableMap(map);
     }
     
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
-     *
      * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.
      */
-    @SafeVarargs static @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> buildFieldMap(@NotNull Pair<String, Supplier<@Nullable Object>> @NotNull ... pairs)
+    static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
+        @NotNull Consumer<Map<String, Function<T, @Nullable Object>>> consumer,
+        @Range(from = 1, to = Integer.MAX_VALUE) int allocSize
+    )
+    {
+        Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
+        final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>(allocSize, 1F);
+        consumer.accept(map);
+        return Collections.unmodifiableMap(map);
+    }
+    
+    /**
+     * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
+     * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.<br>
+     * Also, this method uses <u>{@link Pair}</u>, it makes writing boilerplate faster,
+     * but reminds that <b>Java's generic deduction often fails at such a usage. You have to specify the type of pair at some situations,
+     * however, method reference will always work fine in this method, which lambda CAN'T.</b>
+     */
+    @SafeVarargs static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
+        @NotNull Pair<String, Function<T, @Nullable Object>> @NotNull ... pairs
+    )
     {
         Objects.requireNonNull(pairs, "Param \"pairs\" must not be null!");
-        final var map = new LinkedHashMap<String, Supplier<@Nullable Object>>();
+        
+        final int length = pairs.length;
+        
+        if(length == 0)
+            throw new IllegalArgumentException("Param \"pairs\" must not be empty!");
+        
+        final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>(length + length % 2, 1F);
         
         for(final var pair: pairs)
         {
-            Objects.requireNonNull(pair, "Element \"%s\"'s getter must not be null!".formatted(pair.left()));
+            Objects.requireNonNull(pair, "Param \"pair\" must not be null!");
             map.put(pair.getKey(), pair.getValue());
         }
         
@@ -90,14 +118,15 @@ public interface INestedPrintable extends Serializable
      * @apiNote The return result should <b>NOT</b> be dynamic. Only the first get result will count, the laters will be ignored.
      * @see Cacher The reason
      */
-    @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields();
+    @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields();
     
-    private @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields(@NotNull Class<?> clazz)
+    @SuppressWarnings("unchecked")//! Safe casting. It relies on [[Class]].
+    private @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields(@NotNull Class<?> clazz)
     {
-        final @Nullable var fields = Objects.requireNonNullElseGet(Cacher.CACHE.get(clazz), this::getFields);
+        final var fields = Objects.requireNonNullElseGet(Cacher.CACHE.get(clazz), this::getFields);
         if(!Cacher.CACHE.containsKey(clazz))
-            Cacher.CACHE.put(clazz, fields);
-        return fields;
+            Cacher.CACHE.put(clazz, (Map<String, Function<Object, Object>>) fields);
+        return (Map<String, Function<T, Object>>) fields;
     }
     
     @ApiStatus.NonExtendable default @NotNull String toNestedString() { return toNestedString(0); }
@@ -108,11 +137,11 @@ public interface INestedPrintable extends Serializable
             throw new IllegalArgumentException("Indent must be non-negative!");
         
         final StringBuilder stringBuilder = new StringBuilder(getFields(this.getClass()).size() * getDefaultCapacityForEachField());
-        final Set<Object> visited = Collections.newSetFromMap(new IdentityHashMap<>());
-        buildNestedString(stringBuilder.append(startsAtNewLine() ? "\n" : ""), indent, visited);
+        buildNestedString(stringBuilder.append(startsAtNewLine() ? "\n" : ""), indent, Collections.newSetFromMap(new IdentityHashMap<>()));
         return stringBuilder.toString();
     }
     
+    @SuppressWarnings("unchecked")//! CRTP grantees the safety.
     private void buildNestedString(@NotNull StringBuilder stringBuilder, int currentIndent, @NotNull Set<Object> visited)
     {
         final String indentString = " ".repeat(currentIndent);
@@ -125,7 +154,11 @@ public interface INestedPrintable extends Serializable
         for(final var entry: getFields(this.getClass()).entrySet())
         {
             final String name = entry.getKey();
-            final Object object = entry.getValue().get();
+            final Object object = entry.getValue().apply((T) this);
+            
+            if(name.isBlank())
+                throw new IllegalArgumentException("The field of Class \"%s\" has a unpresentable name! Value: %s".formatted(this.getClass().getSimpleName(), object));
+            
             analyseAndAppend(stringBuilder, nextIndent, fieldIndent, visited, name, object);
         }
         
@@ -152,7 +185,7 @@ public interface INestedPrintable extends Serializable
         
         switch(obj)
         {
-            case INestedPrintable nested ->
+            case INestedPrintable<?> nested ->
             {
                 if(!visited.add(nested))
                 {
@@ -474,4 +507,4 @@ public interface INestedPrintable extends Serializable
  * {@code public} constants, so we use {@code package-private} <u>{@link Enum}</u> to store cache instead,
  * which can deny unexpected access(both directly, and on reflect aspect).
  */
-enum Cacher { INST; static final Map<Class<?>, Map<String, Supplier<@Nullable Object>>> CACHE = new ConcurrentHashMap<>(); }
+enum Cacher { INST; static final Map<Class<?>, Map<String, Function<Object, @Nullable Object>>> CACHE = new ConcurrentHashMap<>(); }

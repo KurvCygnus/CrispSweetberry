@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -35,7 +36,7 @@ import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<C>, INestedPrintable
+public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<C>, INestedPrintable<BaseCoinType<C>>
 {
     private final @NotNull String namespace;
     protected final @NotNull String id;
@@ -67,8 +68,7 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
         requireNonNull(coinSupplier, "Param \"coinSupplier\" must not be null!");
         requireNonNull(nuggetSupplier, "Param \"nuggetSupplier\" must not be null!");
         throwIf(experience <= 0, "Param \"experience\" must be a positive integer!", IllegalArgumentException::new);
-        throwIf(penaltyRate <= 0F || penaltyRate > 1F, "Param \"penaltyRate\" must be in range of (0F, 1F]!", IllegalArgumentException::new
-        );
+        throwIf(penaltyRate <= 0F || penaltyRate > 1F, "Param \"penaltyRate\" must be in range of (0F, 1F]!", IllegalArgumentException::new);
         throwIf(strength <= 0F, "Param \"strength\" must be a positive float!", IllegalArgumentException::new);
         requireNonNull(initEnableCondition(), "Param \"enableCondition\" must not be null!");
         
@@ -110,17 +110,18 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable Map<String, Function<BaseCoinType<C>, @Nullable Object>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->
             {
-                map.put("id", this::id);
-                map.put("experience", this::getExperience);
-                map.put("strength", this::getStrength);
-                map.put("penalty_rate", this::getPenaltyRate);
-                map.put("resource_id", this::getId);
-            }
+                map.put("id", BaseCoinType::id);
+                map.put("experience", BaseCoinType::getExperience);
+                map.put("strength", BaseCoinType::getStrength);
+                map.put("penalty_rate", BaseCoinType::getPenaltyRate);
+                map.put("resource_id", BaseCoinType::getId);
+            },
+            5
         );
     }
 }

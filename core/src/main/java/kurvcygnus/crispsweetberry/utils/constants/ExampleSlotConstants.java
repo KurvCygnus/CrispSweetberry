@@ -67,7 +67,6 @@ public final class ExampleSlotConstants
     public static final int HOTBAR_SLOT_START_INDEX = 30;
     public static final int HOTBAR_SLOT_END_INDEX = 38;
     
-    public static final int ABNORMAL_RANGE = -1;
     public static final int INPUT_RANGE = 0;
     public static final int OUTPUT_RANGE = 1;
     public static final int BACKPACK_RANGE = 2;

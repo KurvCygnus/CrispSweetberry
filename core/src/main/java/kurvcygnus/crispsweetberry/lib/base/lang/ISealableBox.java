@@ -59,7 +59,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
      */
     static <T> @NotNull ISealableBox<T> of(@NotNull T value)
     {
-        assert value != null : "Param \"value\" must not be null!";
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
         
         if(value instanceof ISealableBox<?>)
             throw new IllegalArgumentException("Self wrapping is not allowed!");
@@ -72,7 +72,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
      */
     static <T> @NotNull ISealableBox<T> ofAtomic(@NotNull T value)
     {
-        assert value != null : "Param \"value\" must not be null!";
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
         
         if(value instanceof ISealableBox<?>)
             throw new IllegalArgumentException("Self wrapping is not allowed!");
@@ -86,7 +86,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
      */
     static <T> @NotNull ISealableBox<T> assignable(@NotNull T value)
     {
-        assert value != null : "Param \"value\" must not be null!";
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
         
         if(value instanceof ISealableBox<?>)
             throw new IllegalArgumentException("Self wrapping is not allowed!");
@@ -99,7 +99,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
      */
     static <T> @NotNull ISealableBox<T> assignableAtomic(@NotNull T value)
     {
-        assert value != null : "Param \"value\" must not be null!";
+        Objects.requireNonNull(value, "Param \"value\" must not be null!");
         
         if(value instanceof ISealableBox<?>)
             throw new IllegalArgumentException("Self wrapping is not allowed!");
@@ -175,7 +175,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @Override @NotNull T orThrow();
     
-    @Override default boolean isPresent() { return !isSealed(); }
+    @Override default boolean isPresent() { return !isUnbound() && !isSealed(); }
     
     @Override default boolean withCheck() { return false; }
 }
@@ -270,7 +270,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
             state == that.state;
     }
     
-    @Override public int hashCode() { return Objects.hash(value, state); }
+    @Override public int hashCode() { return Objects.hashCode(value); }
     
     @Override public @NotNull String toString() { return Privates.toStringTemplate(value, state); }
 }
@@ -370,7 +370,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
             this.pair.get().equals(that.pair.get());
     }
     
-    @Override public int hashCode() { return Objects.hashCode(pair.get()); }
+    @Override public int hashCode() { return Objects.hashCode(pair.get().value); }
     
     @Override public @NotNull String toString()
     {
@@ -378,7 +378,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
         return Privates.toStringTemplate(current.value, current.state);
     }
     
-    private record AtomicPair<T>(@Nullable T value, byte state) { }
+    private record AtomicPair<T>(@Nullable T value, byte state) {}
 }
 
 final class Privates
@@ -392,7 +392,7 @@ final class Privates
     {
         return "ISealableBox: value: %s, state: %s".
             formatted(
-                value,
+                state != SEALED ? value : "INACCESSIBLE",
                 switch(state)
                 {
                     case Privates.UNBOUND -> "UNBOUND";

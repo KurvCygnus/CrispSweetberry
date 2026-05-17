@@ -96,8 +96,12 @@ public final class UIUtils
      * @see ExampleSlotConstants Furnace Layout Index Reference
      * @see CrispRanger Ranger
      */
-    public static boolean 
-    moveStackByRanger(@NotNull ItemStack interactStack, @NotNull CrispRanger ranger, boolean reverseDirection, @NotNull IQuadMoveStackPredicate predicate)
+    public static boolean moveStackByRanger(
+        @NotNull ItemStack interactStack,
+        @NotNull CrispRanger ranger,
+        boolean reverseDirection,
+        @NotNull IQuadMoveStackPredicate predicate
+    )
     {
         requireNonNull(interactStack, "Param \"interactStack\" cannot be null!");
         requireNonNull(ranger, "Param \"ranger\" cannot be null!");

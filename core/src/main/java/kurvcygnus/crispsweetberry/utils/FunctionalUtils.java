@@ -60,4 +60,10 @@ public final class FunctionalUtils
         
         throw supplier.get();
     }
+    
+    public static <T, R> @NotNull Function<T, R> supplierToFunction(@NotNull Supplier<R> supplier)
+    {
+        requireNonNull(supplier, "Param \"supplier\" must not be null!");
+        return t -> supplier.get();
+    }
 }

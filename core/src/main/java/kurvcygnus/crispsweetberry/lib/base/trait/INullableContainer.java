@@ -8,24 +8,40 @@
 
 package kurvcygnus.crispsweetberry.lib.base.trait;
 
+import kurvcygnus.crispsweetberry.lib.base.functions.ToByteFunction;
+import kurvcygnus.crispsweetberry.lib.base.functions.ToCharFunction;
+import kurvcygnus.crispsweetberry.lib.base.functions.ToFloatFunction;
+import kurvcygnus.crispsweetberry.lib.base.functions.ToShortFunction;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 /**
  * This is a trait-styled interface for container classes which can hold null value.<br>
  * Once implemented <u>{@link #value()}</u>, all fluent API, extra value getting methods
- * and other container classes' conversion methods will be all available.
+ * and other container classes' conversion methods will be all available.<br><br>
+ * <i>This is not monad.</i>
+ * @apiNote This is <span style="color: f84b4b">NOT</span> thread-safe, when the implementer is mutable and also not thread-safe.
+ * Due to the limitation of {@code interface}, it's value access during fluent usage is actually not immutable.
  * @since 1.0 Release
  * @author Kurv Cygnus
+ * @implNote This interface won't provide {@code #map()} and {@code #flatmap()}, because when container's value is invalid, the behavior of the container itself will be danger:
+ * <ol>
+ *     <li>
+ *         The invalidity of this container shall be passed. And thus, we need constructor.
+ *         <b>This requires an extra instance method to carry that, which is completely valueless for container classes' users.</b>
+ *     </li>
+ *     <li>
+ *         <u>{@link #isPresent()}</u>'s existence means the ability of customization.
+ *         <b>This also blurs the definition that, "what is the invalid state of this container?"</b>
+ *     </li>
+ * </ol>
  */
 public interface INullableContainer<T> extends Supplier<T>
 {
@@ -41,14 +57,17 @@ public interface INullableContainer<T> extends Supplier<T>
      * @apiNote Most extra methods' result relies on this method.<br>
      * So, <span style="color: f84b4b">It is recommended to add conditions, but not to completely rewrite this.</span>
      */
-    default boolean isPresent() { return value() != null; }
+    @ApiStatus.NonExtendable default boolean isPresent() { return value() != null; }
+    
+    private @Nullable T present() { return isPresent() ? value() : null; }
     
     default @NotNull T orThrow()
     {
-        if(!isPresent())
+        final @Nullable T value = present();
+        
+        if(value == null)
             throw new NoSuchElementException("No value present!");
-        //noinspection DataFlowIssue
-        return value();//! Safe.
+        return value;
     }
     
     default @NotNull T orElse(@NotNull T defaultValue)
@@ -56,10 +75,11 @@ public interface INullableContainer<T> extends Supplier<T>
         if(withCheck())
             Objects.requireNonNull(defaultValue, "Param \"defaultValue\" must not be null!");
         
-        if(!isPresent())
+        final @Nullable T value = present();
+        
+        if(value == null)
             return defaultValue;
-        //noinspection DataFlowIssue
-        return value();//! Safe.
+        return value;
     }
     
     default @NotNull T orElseGet(@NotNull Supplier<? extends T> supplier)
@@ -67,8 +87,7 @@ public interface INullableContainer<T> extends Supplier<T>
         if(withCheck())
             Objects.requireNonNull(supplier, "Param \"supplier\" must not be null!");
         
-        //noinspection DataFlowIssue
-        return isPresent() ? value() : supplier.get();//! Safe.
+        return Objects.requireNonNullElseGet(present(), supplier);
     }
     
     default void ifPresent(@NotNull Consumer<? super T> action)
@@ -76,11 +95,10 @@ public interface INullableContainer<T> extends Supplier<T>
         if(withCheck())
             Objects.requireNonNull(action, "Param \"action\" must not be null!");
         
-        if(isPresent())
-        {
-            assert value() != null;
-            action.accept(value());
-        }
+        final @Nullable T value = present();
+        
+        if(value != null)
+            action.accept(value);
     }
     
     default @Nullable T conditionalGet(@NotNull Predicate<? super T> condition)
@@ -88,10 +106,9 @@ public interface INullableContainer<T> extends Supplier<T>
         if(withCheck())
             Objects.requireNonNull(condition, "Param \"condition\" must not be null!");
         
-        final @Nullable T value = value();
-        if(!isPresent() || !condition.test(value))
+        final @Nullable T value = present();
+        if(value == null || !condition.test(value))
             return null;
-        assert value != null;
         return value;
     }
     
@@ -106,17 +123,124 @@ public interface INullableContainer<T> extends Supplier<T>
         return value;
     }
     
-    default @NotNull Stream<T> stream() { return isPresent() ? Stream.of(value()) : Stream.empty(); }
+    default @NotNull Stream<T> stream()
+    {
+        final @Nullable T value = present();
+        return value != null ? Stream.of(value) : Stream.empty();
+    }
     
-    default <U> @Nullable U map(@NotNull Function<? super T, ? extends U> mapper)
+    default <U> @Nullable U destruct(@NotNull Function<? super T, ? extends U> mapper)
     {
         if(withCheck())
             Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
         
-        if(!isPresent())
+        final @Nullable T value = present();
+        
+        if(value == null)
             return null;
-        assert value() != null;
-        return mapper.apply(value());
+        return mapper.apply(value);
+    }
+    
+    default byte destructToByte(@NotNull ToByteFunction<? super T> mapper, byte defaultValue)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return defaultValue;
+        return mapper.applyAsByte(value);
+    }
+    
+    default short destructToShort(@NotNull ToShortFunction<? super T> mapper, short defaultValue)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return defaultValue;
+        return mapper.applyAsShort(value);
+    }
+    
+    default int destructToInt(@NotNull ToIntFunction<? super T> mapper, int defaultValue)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return defaultValue;
+        return mapper.applyAsInt(value);
+    }
+    
+    default long destructToLong(@NotNull ToLongFunction<? super T> mapper, long defaultValue)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return defaultValue;
+        return mapper.applyAsLong(value);
+    }
+    
+    default float destructToFloat(@NotNull ToFloatFunction<? super T> mapper, float defaultValue)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return defaultValue;
+        return mapper.applyAsFloat(value);
+    }
+    
+    default float destructToFloat(@NotNull ToFloatFunction<? super T> mapper) { return destructToFloat(mapper, Float.NaN); }
+    
+    default double destructToDouble(@NotNull ToDoubleFunction<? super T> mapper, double defaultValue)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return defaultValue;
+        return mapper.applyAsDouble(value);
+    }
+    
+    default double destructToDouble(@NotNull ToDoubleFunction<? super T> mapper) { return destructToDouble(mapper, Double.NaN); }
+    
+    default boolean destructToBoolean(@NotNull Predicate<? super T> mapper)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return false;
+        return mapper.test(value);
+    }
+    
+    //* ...
+    //* To be honest, if you really have such a rare demand like this, I can just say nothing about it.
+    default char destructToChar(@NotNull ToCharFunction<? super T> mapper, char defaultValue)
+    {
+        if(withCheck())
+            Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        final @Nullable T value = present();
+        
+        if(value == null)
+            return defaultValue;
+        return mapper.applyAsChar(value);
     }
     
     @Override default @Nullable T get() { return value(); }

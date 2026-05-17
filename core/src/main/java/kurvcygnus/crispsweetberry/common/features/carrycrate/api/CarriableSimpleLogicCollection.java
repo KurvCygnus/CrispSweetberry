@@ -12,7 +12,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -32,6 +31,7 @@ import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -244,12 +244,12 @@ public final class CarriableSimpleLogicCollection
             else
                 getLogger().error(
                     "Cannot instantiate entity with its data \"{}\". This is a serious serialization issue. {}",
-                    dataTag.toString(),
+                    dataTag,
                     MetainfoConstants.FEEDBACK_MESSAGE
                 );
         }
         
-        @NotNull MarkLogger getLogger();
+        @NotNull Logger getLogger();
     }
     //endregion
 }

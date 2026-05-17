@@ -71,8 +71,10 @@ public final class DefinitionUtils
      * Creates an immutable, <u>{@link Enum}</u> specified map collection.
      * @see EnumMap
      */
-    public static <E extends Enum<E>, V>
-    @Unmodifiable @NotNull Map<E, V> createImmutableEnumMapWithCheck(@NotNull Class<E> enumClass, @NotNull Consumer<EnumMap<E, V>> dataInsertAction)
+    public static <E extends Enum<E>, V> @Unmodifiable @NotNull Map<E, V> createImmutableEnumMapWithCheck(
+        @NotNull Class<E> enumClass,
+        @NotNull Consumer<EnumMap<E, V>> dataInsertAction
+    )
     {
         requireNonNull(enumClass, "Param \"enumClass\" must not be null!");
         requireNonNull(dataInsertAction, "Param \"dataInsertAction\" must not be null!");
@@ -115,7 +117,7 @@ public final class DefinitionUtils
      * <b>This is fundamentally flawed because:</b>
      * <ul>
      * <li><b>Memory Leak Risk:</b> Every usage creates a hidden anonymous subclass that holds
-     * an implicit reference to the outer class (e.g., your BlockEntity or Screen).</li>
+     * an implicit reference to the outer class (e.g. your BlockEntity or Screen).</li>
      * <li><b>Classloader Bloat:</b> It generates a unique {@code .class} file for every single call site,
      * increasing the JVM's Metaspace pressure.</li>
      * <li><b>Serialization Issues:</b> Some reflection-based systems may fail to identify the

@@ -22,7 +22,6 @@ import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
 import static kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger.ProcessOptions.*;
-import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.ERROR;
 
 /**
  * A simple range class for making range checks more readable.<br>
@@ -53,6 +52,7 @@ public final class CrispRanger implements Iterable<Integer>
     public static final int START_AT_RIGHT = DIRECTION.shiftFalse();
     public static final int EXCLUSIVE = OPENNESS.shiftTrue();
     public static final int INCLUSIVE = OPENNESS.shiftFalse();
+    public static final int ERROR = -1;
     
     public enum ProcessOptions implements IBitmaskedEnum<ProcessOptions> { DIRECTION, OPENNESS }
     

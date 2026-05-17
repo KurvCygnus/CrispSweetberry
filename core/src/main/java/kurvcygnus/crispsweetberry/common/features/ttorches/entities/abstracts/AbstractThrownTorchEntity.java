@@ -18,7 +18,7 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.Abst
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -105,7 +105,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     //! EntityDataAccessor doesn't support Enum, so we use byte instead.
     public static final EntityDataAccessor<Byte> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.BYTE);
     
-    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "THROWN_TORCH");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "THROWN_TORCH");
     
     protected final Map<Byte, ParticleOptions> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
     
@@ -181,13 +181,13 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         super.tick();
         
         final Level level = this.level();
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("TICK"))
+        try(final var handle = LOGGER.pushMarker("TICK"))
         {
             if(!level.isClientSide)
             {
                 if(shouldCheckLiquids())
                 {
-                    try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("LIQUID_CHECK"))
+                    try(final var ignored = LOGGER.pushMarker("LIQUID_CHECK"))
                     {
                         if(this.isInLava())
                         {
@@ -278,7 +278,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         if(this.level().isClientSide)
             return;
         
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("HIT_BLOCK"))
+        try(final var handle = LOGGER.pushMarker("HIT_BLOCK"))
         {
             if(getTier() == TIER_WILD || this.isInLiquid())
             {
@@ -299,7 +299,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
             final @Nullable BlockPos placementPos;
             final @Nullable BlockState stateToPlace;
             
-            try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("DIRECTION_PICK"))
+            try(final var ignored = LOGGER.pushMarker("DIRECTION_PICK"))
             {
                 switch(hitSide)
                 {
@@ -320,11 +320,10 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     }
                 }
                 
-                LOGGER.when(placementPos != null).
-                    debug(() -> "Legal Direction & Block Confirmed. Direction: {}, Block: {}", () -> new Object[] { placementPos, stateToPlace });
-                
-                LOGGER.when(placementPos == null).
-                    debug(() -> "Illegal Direction. Both Direction and Block are set to null.");
+                if(placementPos != null)
+                    LOGGER.debug("Legal Direction & Block Confirmed. Direction: {}, Block: {}", placementPos, stateToPlace);
+                else
+                    LOGGER.debug("Illegal Direction. Both Direction and Block are set to null.");
             }
             
             if(stateToPlace != null && getTier() == TIER_GONE)
@@ -350,7 +349,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected boolean tryPlaceTorch(@NotNull BlockState state, @NotNull BlockPos pos)
     {
-        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("PLACE_TORCH"))
+        try(final var ignored = LOGGER.pushMarker("PLACE_TORCH"))
         {
             if(!(state.canSurvive(this.level(), pos) && canBeActuallyPlaced(pos)))
             {

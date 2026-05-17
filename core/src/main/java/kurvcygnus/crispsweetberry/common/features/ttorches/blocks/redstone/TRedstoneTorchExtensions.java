@@ -88,7 +88,7 @@ public final class TRedstoneTorchExtensions
     {
         return register.register(
             "%s%stemporary_redstone_torch".formatted(waxed ? "waxed_" : "", state.equals(OxidizeState.NORMAL) ? "" : "%s_".formatted(state.name().toLowerCase())),
-            resourceLocation -> new TemporaryRedstoneTorchBlock(state, waxed, Lazy.of(throwableTorch))
+            () -> new TemporaryRedstoneTorchBlock(state, waxed, Lazy.of(throwableTorch))
         );
     }
     
@@ -101,7 +101,7 @@ public final class TRedstoneTorchExtensions
     {
         return register.register(
             "%s%stemporary_redstone_wall_torch".formatted(waxed ? "waxed_" : "", state.equals(OxidizeState.NORMAL) ? "" : "%s_".formatted(state.name().toLowerCase())),
-            resourceLocation -> new TemporaryRedstoneWallTorchBlock(state, waxed, Lazy.of(throwableTorch))
+            () -> new TemporaryRedstoneWallTorchBlock(state, waxed, Lazy.of(throwableTorch))
         );
     }
     

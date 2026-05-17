@@ -119,6 +119,7 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
 
 /**
  * Exists for avoiding invalid accesses to these constants.
+ * @since 1.0 Release
  */
 enum InterfaceHelper
 {

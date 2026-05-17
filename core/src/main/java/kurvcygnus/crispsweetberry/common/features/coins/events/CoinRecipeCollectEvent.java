@@ -12,7 +12,7 @@ import com.google.common.collect.HashBiMap;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +32,7 @@ import java.util.List;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class CoinRecipeCollectEvent
 {
-    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "COIN_RECIPE");
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "COIN_RECIPE");
     
     private static final HashBiMap<Item, Item> NUGGET_TO_COIN_RECIPES = HashBiMap.create();
     private static final HashBiMap<Item, Item> COIN_TO_NUGGET_RECIPES = HashBiMap.create();

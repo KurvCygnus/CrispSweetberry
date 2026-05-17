@@ -34,7 +34,6 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * This is a mutable data class which is used in the
@@ -61,7 +60,7 @@ import java.util.function.Supplier;
  * </ul>
  * @since 1.0 Release
  */
-public final class CarryInteractContext implements INestedPrintable
+public final class CarryInteractContext implements INestedPrintable<CarryInteractContext>
 {
     //*:=== Init fields
     private final @NotNull CarryType actionType;
@@ -113,7 +112,7 @@ public final class CarryInteractContext implements INestedPrintable
         this.listenerInsert = listenerInsert;
         this.listenerRemove = listenerRemove;
         this.placeContentGetter = placeContentGetter;
-        this.targets = new Maybe<>(targetState, targetEntity, targetBlockEntity);
+        this.targets = Maybe.ofNullable(targetState, targetEntity, targetBlockEntity);
         this.carryID = ISealableBox.ofNullable(carryID);
     }
     
@@ -255,25 +254,26 @@ public final class CarryInteractContext implements INestedPrintable
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable Map<String, Function<CarryInteractContext, @Nullable Object>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->
             {
-                map.put("actionType", this::actionType);
-                map.put("level", this::level);
-                map.put("player", this::player);
-                map.put("interactPos", this::interactPos);
-                map.put("carryCrate", this::carryCrate);
-                map.put("targets", this::targets);
-                map.put("carryID", this::carryID);
-                map.put("result", this::result);
-                map.put("listener", this::listener);
-                map.put("component", this::component);
-                map.put("target", this::target);
-                map.put("data", this::data);
-                map.put("blockEntityType", this::blockEntityType);
-            }
+                map.put("actionType", CarryInteractContext::actionType);
+                map.put("level", CarryInteractContext::level);
+                map.put("player", CarryInteractContext::player);
+                map.put("interactPos", CarryInteractContext::interactPos);
+                map.put("carryCrate", CarryInteractContext::carryCrate);
+                map.put("targets", CarryInteractContext::targets);
+                map.put("carryID", CarryInteractContext::carryID);
+                map.put("result", CarryInteractContext::result);
+                map.put("listener", CarryInteractContext::listener);
+                map.put("component", CarryInteractContext::component);
+                map.put("target", CarryInteractContext::target);
+                map.put("data", CarryInteractContext::data);
+                map.put("blockEntityType", CarryInteractContext::blockEntityType);
+            },
+            13
         );
     }
     

@@ -23,7 +23,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.exceptions.Car
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import kurvcygnus.crispsweetberry.lib.base.lang.Maybe;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
@@ -95,7 +95,7 @@ enum CarryOperationExecutor
     private static final Map<Boolean, Map<CarryType, Function<CarryInteractContext, IResult<CarryInteractContext, CarryInteractHandleException>>>> HANDLE_METHODS =
         Map.of(true, BOX_IN_METHODS, false, UNBOX_METHODS);
     
-    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_LOGIC");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_LOGIC");
     //endregion
     
     //region Main Pipeline
@@ -457,8 +457,12 @@ enum CarryOperationExecutor
         if(!listener.isDefault())
         {
             final var saveData = CarryEngine.CarryListenerSaveData.get(context.level().getServer());
-            LOGGER.when(!saveData.isDirty()).debug("Listener data changed. Mark saveData as dirtied.");
-            saveData.setDirty();
+            
+            if(!saveData.isDirty())
+            {
+                LOGGER.debug("Listener data changed. Mark saveData as dirtied.");
+                saveData.setDirty();
+            }
         }
         
         return IResult.of(context.success());

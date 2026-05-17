@@ -21,7 +21,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnOutputSlot;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -126,9 +126,9 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     private InputState inputState = InputState.ALL_EMPTY;
     private float experience = 0F;
     
-    private static final MarkLogger LOGGER = MarkLogger.configuredLogger(
+    private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
         LogUtils.getLogger(),
-        MarkLogger.allowWhen(org.slf4j.event.Level.DEBUG, MarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_DEBUG)
+        IMarkLogger.allowWhen(org.slf4j.event.Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_DEBUG)
     );
     
     private record EmulateResult(boolean canProcess, float exp)
@@ -186,7 +186,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     {
         final ItemStack oldItemStack = containerItems.get(index);
         
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("INPUT_CHECK"))
+        try(final var handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
             LOGGER.debug("Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
                 index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
@@ -223,7 +223,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         
         final LogicalResult nonWorkingLogicalResult;
         
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("INPUT_CHECK"))
+        try(final var handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
             for(int slotIndex = KILN_INPUT_SLOTS_RANGE.min(); KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
             {
@@ -352,7 +352,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
             case CONTINUE, BALANCING -> {}
             case INVALID ->
             {
-                try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("UNEXPECTED_RESULT"))
+                try(final var ignored = LOGGER.pushMarker("UNEXPECTED_RESULT"))
                     { LOGGER.error("Received unexpected result \"{}\"", result.logicalResult().name()); }
             }
             case SKIP -> { return false; }

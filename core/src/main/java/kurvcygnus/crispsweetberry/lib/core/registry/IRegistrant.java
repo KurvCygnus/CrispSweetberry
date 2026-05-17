@@ -10,8 +10,7 @@ package kurvcygnus.crispsweetberry.lib.core.registry;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
-import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.*;
@@ -20,8 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -120,7 +119,7 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
         if(size == 0)
             throw new IllegalArgumentException("Param \"registries\" must have at least one element!");
         
-        final var mem = new HashSet<DeferredRegister<?>>(size);
+        final var mem = new HashSet<DeferredRegister<?>>(size, 1F);
         
         for(int index = 0; index < size; index++)
         {
@@ -200,7 +199,7 @@ final class CrispRegistrant
 {
     private CrispRegistrant() { throw new AssertionError(); }
     
-    static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
+    static final IMarkLogger LOGGER = IMarkLogger.marklessLogger(LogUtils.getLogger());
     static final Pattern REGISTRY_REGEX = Pattern.compile("Registr(y|ies)");
     static final Pattern SPLIT_REGEX = Pattern.compile("(?<=[a-z])(?=[A-Z])");
 }
@@ -234,7 +233,7 @@ sealed interface ISortable
      */
     @NotNull PriorityPair getPriority();
     
-    final class PriorityPair implements INestedPrintable
+    final class PriorityPair implements INestedPrintable<PriorityPair>
     {
         private final PriorityRange mainRange;
         private final @Range(from = 1, to = 999) int subRange;
@@ -263,8 +262,17 @@ sealed interface ISortable
         
         @Override public @NotNull String toString() { return toNestedString(); }
         
-        @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
-            { return INestedPrintable.buildFieldMap(new Pair<>("mainRange", mainRange::name), new Pair<>("subRange", () -> subRange)); }
+        @Override public @NotNull @Unmodifiable Map<String, Function<PriorityPair, @Nullable Object>> getFields()
+        {
+            return INestedPrintable.buildFieldMap(
+                map ->
+                {
+                    map.put("mainRange", p -> p.mainRange.name());
+                    map.put("subRange", p -> p.subRange);
+                },
+                2
+            );
+        }
     }
     
     /**

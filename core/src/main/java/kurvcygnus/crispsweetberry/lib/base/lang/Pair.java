@@ -18,9 +18,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, INestedPrintable
+public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, INestedPrintable<Pair<L, R>>
 {
     public Pair
     {
@@ -68,6 +67,6 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
-        { return INestedPrintable.buildFieldMap(map -> { map.put("left", () -> left);map.put("right", () -> right); }); }
+    @Override public @NotNull @Unmodifiable Map<String, Function<Pair<L, R>, @Nullable Object>> getFields()
+        { return INestedPrintable.buildFieldMap(new Pair<>("left", Pair::left), new Pair<>("right", Pair::right)); }
 }

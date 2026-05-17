@@ -9,9 +9,8 @@
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
 import com.mojang.logging.LogUtils;
-import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -36,13 +35,13 @@ import java.util.function.BiConsumer;
  * @see IRegistrant
  * @see #register(ModContainer, IEventBus) Usage
  */
-@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE) public final class CrispRegistrationManager
+@EventBusSubscriber(modid = "crispsweetberry") public final class CrispRegistrationManager
 {
-    private static final ISealableBox<Boolean> ACCESS = ISealableBox.assignable(true);
+    private static final ISealableBox<Boolean> ACCESS = ISealableBox.assignable(Boolean.TRUE);
     
     private static @Nullable CrispRegistrationManager INSTANCE = new CrispRegistrationManager();
     
-    private final MarkLogger logger = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "REGISTRY_MANAGER");
+    private final IMarkLogger logger = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "REGISTRY_MANAGER");
     private final Set<ModContainer> visited = Collections.newSetFromMap(new IdentityHashMap<>());
     
     private CrispRegistrationManager() { if(!ACCESS.orThrow()) throw new AssertionError("No, you can't create a new instance of this!"); }
@@ -59,7 +58,7 @@ import java.util.function.BiConsumer;
         @NotNull ModContainer modContainer,
         @NotNull IEventBus eventBus,
         @Nullable Class<A> service,
-        @Nullable BiConsumer<A, Object> foundSequence
+        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence
     ) throws IllegalArgumentException
     {
         if(!visited.add(modContainer))

@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.client.init;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.lib.core.registry.TabEntry;
 import net.minecraft.world.item.Item;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
 public final class CrispCreativeTabsRegistryEvent
 {
-    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "TAB_REGISTRY");
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "TAB_REGISTRY");
     
     @SubscribeEvent public static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
     {

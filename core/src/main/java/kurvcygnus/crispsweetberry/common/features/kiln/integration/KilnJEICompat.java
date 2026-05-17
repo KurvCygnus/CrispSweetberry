@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.neoforged.fml.ModList;
@@ -38,7 +38,7 @@ public enum KilnJEICompat
         KilnRecipe.class
     );
     
-    private static final MarkLogger LOGGER = MarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger(LogUtils.getLogger());
     
     private @Nullable IJeiRuntime runtime = null;
     

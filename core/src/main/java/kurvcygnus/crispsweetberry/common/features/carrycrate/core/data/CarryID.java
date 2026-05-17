@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -39,7 +40,7 @@ import java.util.function.Supplier;
  * @since 1.0 Release
  */
 @ApiStatus.Internal
-public final class CarryID implements INestedPrintable
+public final class CarryID implements INestedPrintable<CarryID>
 {
     private static final Codec<CarryID> CODEC = RecordCodecBuilder.create(
         inst -> inst.group(
@@ -109,6 +110,15 @@ public final class CarryID implements INestedPrintable
     
     @Override public int hashCode() { return Objects.hash(id, uuid); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
-        { return INestedPrintable.buildFieldMap(new Pair<>("Recovery ID", this::id), new Pair<>("UUID", this::uuid)); }
+    @Override public @NotNull @Unmodifiable Map<String, Function<CarryID, @Nullable Object>> getFields()
+    {
+        return INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("Recovery ID", CarryID::id);
+                map.put("UUID", CarryID::uuid);
+            },
+            2
+        );
+    }
 }

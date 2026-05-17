@@ -10,13 +10,14 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.slf4j.Logger;
 
 /**
  * As its name implied, this is an adapter for animal entities, which features auto compat.
@@ -38,7 +39,7 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
      */
     public static final double MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME = Math.pow(0.9D, 2) * 1.4D;
    
-    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "ANIMAL_CARRY");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "ANIMAL_CARRY");
     
     private final int penaltyRate;
     
@@ -69,5 +70,5 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
     
     @Override public @NotNull Class<?> getSupportedType() { return Animal.class; }
     
-    @Override public @NotNull MarkLogger getLogger() { return LOGGER; }
+    @Override public @NotNull Logger getLogger() { return LOGGER; }
 }

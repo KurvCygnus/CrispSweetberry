@@ -12,11 +12,12 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.lib.core.registry.CrispRegistrationManager;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.lib.core.registry.TabEntry;
+import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
@@ -64,7 +65,7 @@ public final class CrispSweetberry
      */
     public static final IVault<Map<ResourceKey<CreativeModeTab>, Set<TabEntry>>, BuildCreativeModeTabContentsEvent> TAB_LOOKUP = IVault.ofTypeMatchOnly(TAB_ENTRIES);
     
-    private static final MarkLogger LOGGER = MarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "MOD_INIT");
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "MOD_INIT");
     
     @SuppressWarnings("unchecked")//! As you can see, this casting is actually reliable.
     public CrispSweetberry(@NotNull IEventBus eventBus, @NotNull ModContainer modContainer)
@@ -91,7 +92,7 @@ public final class CrispSweetberry
                 if(supplier == null)
                     return;
                 
-                TAB_ENTRIES.computeIfAbsent(annotation.value().toCreativeTab(), ignored -> new LinkedHashSet<>()).
+                TAB_ENTRIES.computeIfAbsent(annotation.value().toCreativeTab(), FunctionalUtils.supplierToFunction(LinkedHashSet::new)).
                     add(new TabEntry(supplier, annotation.value().toCreativeTab()));
             }
         );

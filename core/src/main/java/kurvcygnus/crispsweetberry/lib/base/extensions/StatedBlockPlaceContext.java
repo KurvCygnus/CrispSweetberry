@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * A extended <u>{@link BlockPlaceContext}</u>, which extends the ability of block placement with
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public final class StatedBlockPlaceContext extends BlockPlaceContext implements INestedPrintable
+public final class StatedBlockPlaceContext extends BlockPlaceContext implements INestedPrintable<StatedBlockPlaceContext>
 {
     private final BlockState placeState;
     
@@ -99,19 +99,20 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext implements 
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->
             {
-                map.put("player", this::getPlayer);
-                map.put("hand", this::getHand);
-                map.put("hitResult", this::getHitResult);
-                map.put("level", this::getLevel);
-                map.put("interactItem", this::getItemInHand);
-                map.put("clickedPos", this::getClickedPos);
-                map.put("placeState", () -> placeState);
-            }
+                map.put("player", StatedBlockPlaceContext::getPlayer);
+                map.put("hand", StatedBlockPlaceContext::getHand);
+                map.put("hitResult", StatedBlockPlaceContext::getHitResult);
+                map.put("level", StatedBlockPlaceContext::getLevel);
+                map.put("interactItem", StatedBlockPlaceContext::getItemInHand);
+                map.put("clickedPos", StatedBlockPlaceContext::getClickedPos);
+                map.put("placeState", statedBlockPlaceContext -> statedBlockPlaceContext.placeState);
+            },
+            7
         );
     }
     

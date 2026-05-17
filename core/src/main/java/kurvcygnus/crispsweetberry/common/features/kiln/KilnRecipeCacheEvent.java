@@ -14,7 +14,7 @@ import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.util.Unit;
@@ -47,9 +47,9 @@ import java.util.Objects;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class KilnRecipeCacheEvent
 {
-    private static final MarkLogger LOGGER = MarkLogger.configuredLogger(
+    private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
         LogUtils.getLogger(),
-        MarkLogger.allowWhen(Level.DEBUG, MarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_EVENT_DEBUG)
+        IMarkLogger.allowWhen(Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_EVENT_DEBUG)
     );
     
     /**
@@ -94,7 +94,7 @@ public final class KilnRecipeCacheEvent
         final StopWatch time = new StopWatch();
         time.start();
         
-        try(MarkLogger.MarkerHandle handle = LOGGER.pushMarker("CACHE_START"))
+        try(final var handle = LOGGER.pushMarker("CACHE_START"))
         {
             LOGGER.info("Getting Kiln Recipes...");
             
@@ -157,7 +157,7 @@ public final class KilnRecipeCacheEvent
     private static <R extends AbstractCookingRecipe> void streamRecipes
     (@NotNull HashMap<Item, NonNullList<R>> targetMap, @NotNull RecipeManager manager, @NotNull RecipeType<R> recipeType)
     {
-        try(MarkLogger.MarkerHandle ignored = LOGGER.pushMarker("RECIPE_STREAM"))
+        try(final var ignored = LOGGER.pushMarker("RECIPE_STREAM"))
         {
             manager.getAllRecipesFor(recipeType).stream().map(RecipeHolder::value).forEach(
                 recipe ->

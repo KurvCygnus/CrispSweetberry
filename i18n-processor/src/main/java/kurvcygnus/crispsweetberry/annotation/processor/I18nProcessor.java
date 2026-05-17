@@ -357,15 +357,15 @@ public final class I18nProcessor extends AbstractProcessor
         final HashMap<Lang, HashMap<String, String>> translationTable = new HashMap<>();
         for(final var set: translationLookup.entrySet())
         {
-            final String key = set.getKey();
-            final HashMap<Lang, String> contents = set.getValue();
+            final var key = set.getKey();
+            final var contents = set.getValue();
             
             for(final var contentEntry: contents.entrySet())
             {
-                final Lang lang = contentEntry.getKey();
-                final String content = contentEntry.getValue();
+                final var lang = contentEntry.getKey();
+                final var content = contentEntry.getValue();
                 
-                final HashMap<String, String> map = translationTable.computeIfAbsent(lang, $ -> new HashMap<>());
+                final var map = translationTable.computeIfAbsent(lang, $ -> new HashMap<>());
                 
                 if(map.containsKey(key))
                     printError("Duplicated translation key -> key: %s".formatted(key));

@@ -84,7 +84,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         "zh_cn = 铜币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> COPPER_COIN = COIN_ITEM_REGISTER.register(
-        "copper_coin", typeOfI(() -> COPPER)
+        "copper_coin", typeOfItem(() -> COPPER)
     );
     
     @RegisterToTab
@@ -94,7 +94,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         "zh_cn = 铁币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> IRON_COIN = COIN_ITEM_REGISTER.register(
-        "iron_coin", typeOfI(() -> IRON)
+        "iron_coin", typeOfItem(() -> IRON)
     );
     
     @RegisterToTab
@@ -104,7 +104,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         "zh_cn = 金币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> GOLD_COIN = COIN_ITEM_REGISTER.register(
-        "gold_coin", typeOfI(() -> GOLD)
+        "gold_coin", typeOfItem(() -> GOLD)
     );
     
     @RegisterToTab
@@ -114,7 +114,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         "zh_cn = 钻石币"
     })
     public static final DeferredHolder<Item, VanillaCoinItem> DIAMOND_COIN = COIN_ITEM_REGISTER.register(
-        "diamond_coin", typeOfI(() -> DIAMOND)
+        "diamond_coin", typeOfItem(() -> DIAMOND)
     );
     
     @RegisterToTab
@@ -127,7 +127,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         group = "copper_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> COPPER_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "copper_coin_stack", typeOfSI(() -> COPPER)
+        "copper_coin_stack", typeOfStackItem(() -> COPPER)
     );
     
     @RegisterToTab
@@ -140,7 +140,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         group = "iron_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> IRON_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "iron_coin_stack", typeOfSI(() -> IRON)
+        "iron_coin_stack", typeOfStackItem(() -> IRON)
     );
     
     @RegisterToTab
@@ -153,7 +153,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         group = "gold_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> GOLD_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "gold_coin_stack", typeOfSI(() -> GOLD)
+        "gold_coin_stack", typeOfStackItem(() -> GOLD)
     );
     
     @RegisterToTab
@@ -166,30 +166,30 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
         group = "diamond_coin"
     )
     public static final DeferredHolder<Item, VanillaCoinStackItem> DIAMOND_COIN_STACK = COIN_ITEM_REGISTER.register(
-        "diamond_coin_stack", typeOfSI(() -> DIAMOND)
+        "diamond_coin_stack", typeOfStackItem(() -> DIAMOND)
     );
     
     @AutoI18n(overrides = "copper_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> COPPER_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "copper_coin_stack", typeOfB(() -> COPPER)
+        "copper_coin_stack", typeOfBlock(() -> COPPER)
     );
     
     @AutoI18n(overrides = "iron_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> IRON_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "iron_coin_stack", typeOfB(() -> IRON)
+        "iron_coin_stack", typeOfBlock(() -> IRON)
     );
     
     @AutoI18n(overrides = "gold_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> GOLD_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "gold_coin_stack", typeOfB(() -> GOLD)
+        "gold_coin_stack", typeOfBlock(() -> GOLD)
     );
     
     @AutoI18n(overrides = "diamond_coin")
     public static final DeferredHolder<Block, VanillaCoinStackBlock> DIAMOND_COIN_STACK_BLOCK = COIN_BLOCK_REGISTER.register(
-        "diamond_coin_stack", typeOfB(() -> DIAMOND)
+        "diamond_coin_stack", typeOfBlock(() -> DIAMOND)
     );
     
-    private static @NotNull Supplier<VanillaCoinItem> typeOfI(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinItem(type); }
-    private static @NotNull Supplier<VanillaCoinStackItem> typeOfSI(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinStackItem(type); }
-    private static @NotNull Supplier<VanillaCoinStackBlock> typeOfB(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinStackBlock(Lazy.of(type)); }
+    private static @NotNull Supplier<VanillaCoinItem> typeOfItem(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinItem(type); }
+    private static @NotNull Supplier<VanillaCoinStackItem> typeOfStackItem(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinStackItem(type); }
+    private static @NotNull Supplier<VanillaCoinStackBlock> typeOfBlock(@NotNull Supplier<VanillaCoinType> type) { return () -> new VanillaCoinStackBlock(Lazy.of(type)); }
 }

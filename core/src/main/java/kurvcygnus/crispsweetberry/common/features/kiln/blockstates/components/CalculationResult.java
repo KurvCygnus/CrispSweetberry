@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import org.jetbrains.annotations.*;
 
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * A simple value object for <u>{@link KilnProgressCalculator}</u>.
@@ -25,7 +25,7 @@ public record CalculationResult(
     @Range(from = 0, to = 1) double currentVisualProgress, 
     @NotNull KilnEnumCollections.LogicalResult logicalResult,
     @NotNull KilnEnumCollections.VisualTrend trend
-) implements INestedPrintable
+) implements INestedPrintable<CalculationResult>
 {
     @Contract("_, _ -> new")
     public static @NotNull CalculationResult unexpectedResult(@Range(from = 0, to = 1) double currentRealProgress, @Range(from = 0, to = 1) double currentVisualProgress)
@@ -38,16 +38,17 @@ public record CalculationResult(
         );
     }
     
-    @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable Map<String, Function<CalculationResult, @Nullable Object>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->
             {
-                map.put("realProgress", this::currentRealProgress);
-                map.put("visualProgress", this::currentVisualProgress);
-                map.put("logicalResult", this.logicalResult::name);
-                map.put("trend", this.trend::name);
-            }
+                map.put("realProgress", CalculationResult::currentRealProgress);
+                map.put("visualProgress", CalculationResult::currentVisualProgress);
+                map.put("logicalResult", c -> c.logicalResult.name());
+                map.put("trend", c -> c.trend.name());
+            },
+            4
         );
     }
 }

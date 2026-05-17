@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.lib.core.log.MarkLogger;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.MathUtils;
@@ -53,7 +53,7 @@ public final class OverweightEffect extends MobEffect
     private static final float LITE_ADD_FACTOR = 0.5F;
     private static final float SPEED_ATTRIBUTE_SLOWDOWN_FACTOR = -0.25F;
     
-    private static final MarkLogger LOGGER = MarkLogger.markedLogger(LogUtils.getLogger(), "OVERWEIGHT");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "OVERWEIGHT");
     
     private OverweightEffect()
     {

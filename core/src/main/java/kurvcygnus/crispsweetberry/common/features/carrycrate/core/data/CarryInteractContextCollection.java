@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * This is the collection of data classes that <b>unifies the universal data getters for common usage data, and also the unique data for specific cases.</b>
@@ -83,7 +83,7 @@ public final class CarryInteractContextCollection
      * @param target The <u>{@link LivingEntity Entity}</u> that will be processed. <b>This is the unique and extra data that is required in entity interaction.</b>
      */
     public record CarryEntityInteractContext(@NotNull ItemStack carryCrate, @NotNull Player player, @NotNull LivingEntity target)
-    implements ICarryInteractContext, INestedPrintable
+    implements ICarryInteractContext, INestedPrintable<CarryEntityInteractContext>
     {
         public CarryEntityInteractContext
         {
@@ -100,15 +100,16 @@ public final class CarryInteractContextCollection
         
         @Override public @NotNull Optional<Player> getPlayer() { return Optional.of(player); }
         
-        @Override public @NotNull @Unmodifiable Map<String, Supplier<@Nullable Object>> getFields()
+        @Override public @NotNull @Unmodifiable Map<String, Function<CarryEntityInteractContext, @Nullable Object>> getFields()
         {
             return INestedPrintable.buildFieldMap(
                 map ->
                 {
-                    map.put("carryCrate", this::carryCrate);
-                    map.put("player", this::player);
-                    map.put("target", this::target);
-                }
+                    map.put("carryCrate", CarryEntityInteractContext::carryCrate);
+                    map.put("player", CarryEntityInteractContext::player);
+                    map.put("target", CarryEntityInteractContext::target);
+                },
+                3
             );
         }
     }
