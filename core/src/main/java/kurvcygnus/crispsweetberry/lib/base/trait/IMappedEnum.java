@@ -78,7 +78,7 @@ public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends M
     {
         if(getKey() == null)
             return null;//! Pair doesn't accept null values, so once the key is null, we have to return [[Pair]] as null.
-        return new Pair<>(getKey(), getValue());
+        return Pair.of(getKey(), getValue());
     }
     
     @SuppressWarnings("unchecked")//! CRTP grantees the safety.

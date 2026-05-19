@@ -8,8 +8,8 @@
 
 package kurvcygnus.crispsweetberry.client;
 
-import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -37,5 +37,5 @@ public final class CrispClientLiterals
         "zh_cn = 按住Shift以获取详细信息..."
     })
     public static final Supplier<MutableComponent> UI__SHIFT_FOR_MORE_INFO = () ->
-        UIUtils.dimmedItalicText("%s.ui.shift_for_more_info".formatted(CrispSweetberry.NAMESPACE));
+        UIUtils.dimmedItalicText(DefinitionUtils.namespacedDotId("ui.shift_for_more_info"));
 }

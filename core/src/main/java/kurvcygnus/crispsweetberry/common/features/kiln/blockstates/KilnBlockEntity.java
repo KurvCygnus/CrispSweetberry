@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
@@ -127,7 +126,6 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     private float experience = 0F;
     
     private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
-        LogUtils.getLogger(),
         IMarkLogger.allowWhen(org.slf4j.event.Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_DEBUG)
     );
     

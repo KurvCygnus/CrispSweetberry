@@ -9,7 +9,6 @@
 package kurvcygnus.crispsweetberry.common.features.coins.events;
 
 import com.google.common.collect.HashBiMap;
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
@@ -32,7 +31,7 @@ import java.util.List;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class CoinRecipeCollectEvent
 {
-    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "COIN_RECIPE");
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("COIN_RECIPE");
     
     private static final HashBiMap<Item, Item> NUGGET_TO_COIN_RECIPES = HashBiMap.create();
     private static final HashBiMap<Item, Item> COIN_TO_NUGGET_RECIPES = HashBiMap.create();

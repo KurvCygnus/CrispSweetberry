@@ -28,6 +28,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -164,20 +165,18 @@ public final class CarryData
     
     @Override public @NotNull String toString()
     {
-        return """
-        CarryData
-        {
-            type: %s,
-            causesOverweight: %s,
-            startTime: %d,
-            payload: %s
-        }
-        """.formatted(
-            carryType,
-            causesOverweight,
-            startTime,
-            unionData.toString().indent(8)
-        );
+        return MessageFormatter.arrayFormat(
+            """
+            CarryData
+            {
+                type: {},
+                causesOverweight: {},
+                startTime: {},
+                payload: {}
+            }
+            """,
+            new Object[] { carryType, causesOverweight, startTime, unionData.toString().indent(8) }
+        ).getMessage();
     }
     //endregion
     
@@ -262,17 +261,16 @@ public final class CarryData
         
         @Override public @NotNull String toString()
         {
-            return """
+            return MessageFormatter.arrayFormat(
+                """
                 CarryBlockData
                 {
-                    state: %s,
-                    count: %d / %d
+                    state: {},
+                    count: {} / {}
                 }
-                """.formatted(
-                state,
-                carryCount,
-                maxCarryCount
-            ).trim();
+                """,
+                new Object[] { state, carryCount, maxCarryCount }
+            ).getMessage().trim();
         }
     }
     
@@ -316,16 +314,17 @@ public final class CarryData
         
         @Override public @NotNull String toString()
         {
-            return """
+            return MessageFormatter.format(
+                """
                 CarryEntityData
                 {
-                    entityType: %s,
-                    tagData: %s
+                    entityType: {},
+                    tagData: {}
                 }
-                """.formatted(
-                    type,
-                    tagData
-                ).trim();
+                """,
+                type,
+                tagData
+            ).getMessage().trim();
         }
     }
     
@@ -382,18 +381,17 @@ public final class CarryData
         
         @Override public @NotNull String toString()
         {
-            return """
+            return MessageFormatter.arrayFormat(
+                """
                 CarryBlockEntityData
                 {
-                    state: %s,
-                    type: %s,
-                    tagData: %s
+                    state: {},
+                    type: {},
+                    tagData: {}
                 }
-                """.formatted(
-                    state,
-                    type,
-                    tagData
-                ).trim();
+                """,
+                new Object[] { state, type, tagData }
+            ).getMessage().trim();
         }
     }
     //endregion

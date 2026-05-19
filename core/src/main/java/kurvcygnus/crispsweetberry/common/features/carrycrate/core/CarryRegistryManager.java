@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
@@ -62,7 +61,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     INST;
     
     //region Fields & Constants
-    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_REGISTRY");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("CARRY_REGISTRY");
     private static final String ILLEGAL_REGISTER_INFO = "Attempting registration after registry frozen is not allowed!";
     
     /**
@@ -336,7 +335,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         
         throwIf(
             BLOCK_ENTITY_REGISTRY.containsKey(blockEntityType),
-            "BlockEntity \"%s\" has already been bounded with an adapter!".formatted(blockEntityType.toString()),
+            DefinitionUtils.quickFormat("BlockEntity \"{}\" has already been bounded with an adapter!", blockEntityType.toString()),
             IllegalStateException::new
         );
         
@@ -358,7 +357,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         
         throwIf(
             BLOCK_REGISTRY.containsKey(block),
-            "Block \"%s\" has already been bounded with an adapter!".formatted(translationID),
+            DefinitionUtils.quickFormat("Block \"{}\" has already been bounded with an adapter!", translationID),
             IllegalStateException::new
         );
         
@@ -379,7 +378,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         
         throwIf(
             ENTITY_REGISTRY.containsKey(entityType),
-            "Entity \"%s\" has already been bounded with an adapter!".formatted(translationID),
+            DefinitionUtils.quickFormat("Entity \"{}\" has already been bounded with an adapter!", translationID),
             IllegalStateException::new
         );
         

@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.FakeLightBlock;
@@ -19,6 +18,7 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.Temporar
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -105,7 +105,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     //! EntityDataAccessor doesn't support Enum, so we use byte instead.
     public static final EntityDataAccessor<Byte> FIRE_TIER_ID = SynchedEntityData.defineId(AbstractThrownTorchEntity.class, EntityDataSerializers.BYTE);
     
-    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "THROWN_TORCH");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("THROWN_TORCH");
     
     protected final Map<Byte, ParticleOptions> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
     
@@ -451,7 +451,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     private @NotNull Map<Byte, ParticleOptions> processLongerParticleStateList(ParticleOptions @NotNull ... states)
     {
         if(states.length != 1 && states.length != 3)
-            throw new IllegalArgumentException("Invalid length of states: %d, it should be 1, or 3.".formatted(states.length));
+            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Invalid length of states: {}, it should be 1, or 3.", states.length));
         
         final boolean duplicate = !shouldCheckLiquids();
         

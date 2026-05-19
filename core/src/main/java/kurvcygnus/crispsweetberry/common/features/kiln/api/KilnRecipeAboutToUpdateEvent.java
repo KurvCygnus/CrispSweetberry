@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.api;
 
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -67,7 +68,7 @@ public final class KilnRecipeAboutToUpdateEvent extends Event
                 for(int index = 0, tagsLength = tags.length; index < tagsLength; index++)
                 {
                     final TagKey<Item> tag = tags[index];
-                    Objects.requireNonNull(tag, "Param \"tag\" must not be null! Null element starts at index %d.".formatted(index));
+                    Objects.requireNonNull(tag, DefinitionUtils.quickFormat("Param \"tag\" must not be null! Null element starts at index {}.", index));
                     if(!i.getDefaultInstance().is(tag))
                         return;
                 }

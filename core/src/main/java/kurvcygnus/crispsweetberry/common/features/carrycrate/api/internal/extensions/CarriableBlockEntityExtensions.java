@@ -15,6 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarriableLifecycle;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -90,12 +91,15 @@ public final class CarriableBlockEntityExtensions
      */
     public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends ICarriableLifecycle<CarryData.CarryBlockEntityDataHolder>
     {
-        String INVALID_CALL_FAIL_MESSAGE = """
+        String INVALID_CALL_FAIL_MESSAGE = DefinitionUtils.quickFormat(
+            """
             Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
             method is called at improper time, with improper param.
             
-            %s
-            """.formatted(MetainfoConstants.FEEDBACK_MESSAGE);
+            {}
+            """,
+            MetainfoConstants.FEEDBACK_MESSAGE
+        );
         
         /**
          * A fallback penalty Rate getter for registration validation, and edge case fallback.

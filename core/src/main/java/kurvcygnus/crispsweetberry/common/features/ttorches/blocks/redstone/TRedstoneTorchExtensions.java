@@ -19,6 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -79,36 +80,48 @@ public final class TRedstoneTorchExtensions
         }
     }
     
-    public static @NotNull DeferredHolder<net.minecraft.world.level.block.Block, TemporaryRedstoneTorchBlock> getRedstoneTorchBlock(
-        @NotNull DeferredRegister<net.minecraft.world.level.block.Block> register,
+    public static @NotNull DeferredHolder<Block, TemporaryRedstoneTorchBlock> getRedstoneTorchBlock(
+        @NotNull DeferredRegister<Block> register,
         TRedstoneTorchExtensions.@NotNull OxidizeState state,
         boolean waxed,
         @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> throwableTorch
-    )
-    {
-        return register.register(
-            "%s%stemporary_redstone_torch".formatted(waxed ? "waxed_" : "", state.equals(OxidizeState.NORMAL) ? "" : "%s_".formatted(state.name().toLowerCase())),
-            () -> new TemporaryRedstoneTorchBlock(state, waxed, Lazy.of(throwableTorch))
-        );
-    }
+    ) { return register.register(buildName("temporary", state, waxed, false), () -> new TemporaryRedstoneTorchBlock(state, waxed, Lazy.of(throwableTorch))); }
     
-    public static @NotNull DeferredHolder<net.minecraft.world.level.block.Block, TemporaryRedstoneWallTorchBlock> getRedstoneWallTorchBlock(
-        @NotNull DeferredRegister<net.minecraft.world.level.block.Block> register,
+    public static @NotNull DeferredHolder<Block, TemporaryRedstoneWallTorchBlock> getRedstoneWallTorchBlock(
+        @NotNull DeferredRegister<Block> register,
         TRedstoneTorchExtensions.@NotNull OxidizeState state,
         boolean waxed,
         @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> throwableTorch
-    )
+    ) { return register.register(buildName("temporary", state, waxed, true), () -> new TemporaryRedstoneWallTorchBlock(state, waxed, Lazy.of(throwableTorch))); }
+    
+    public static @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> getThrowableRedstoneTorch(
+        @NotNull DeferredRegister<Item> register,
+        @NotNull OxidizeState state,
+        boolean waxed
+    ) { return register.register(buildName("throwable", state, waxed, false), () -> new ThrowableRedstoneTorchItem(state, waxed)); }
+    
+    private static @NotNull String buildName(@NotNull String prefix, @NotNull OxidizeState state, boolean waxed, boolean isWallTorch)
     {
-        return register.register(
-            "%s%stemporary_redstone_wall_torch".formatted(waxed ? "waxed_" : "", state.equals(OxidizeState.NORMAL) ? "" : "%s_".formatted(state.name().toLowerCase())),
-            () -> new TemporaryRedstoneWallTorchBlock(state, waxed, Lazy.of(throwableTorch))
-        );
+        final var stringBuilder = new StringBuilder(waxed ? "waxed_" : "");
+        
+        if(!state.equals(OxidizeState.NORMAL))
+            stringBuilder.append(state.name().toLowerCase()).append('_');
+        
+        stringBuilder.append(prefix);
+        
+        stringBuilder.append("_redstone_");
+        
+        if(isWallTorch)
+            stringBuilder.append("wall_");
+        
+        stringBuilder.append("torch");
+        return stringBuilder.toString();
     }
     
     /**
      * Carries the basic constants and methods that both block and behavior needs.
      */
-    interface Shared
+    interface IShared
     {
         BooleanProperty REDSTONE_LIT = BooleanProperty.create("lit");
         BooleanProperty WAXED = BooleanProperty.create("wax");
@@ -130,20 +143,20 @@ public final class TRedstoneTorchExtensions
     /**
      * Carries the data that is only used for Block.
      */
-    interface Block
+    interface IBlock
     {
         int REDSTONE_MAX_BRIGHTNESS = 7;
         int REDSTONE_MIN_BRIGHTNESS = 0;
         int REDSTONE_TORCH_SIGNAL_SEND_DELAY = 2;
         
         ToIntFunction<BlockState> REDSTONE_BRIGHTNESS_FORMULA = bs -> 
-            bs.getValue(Shared.REDSTONE_LIT) ? Math.max(0, REDSTONE_MAX_BRIGHTNESS - bs.getValue(Shared.OXIDIZE_STATE).ordinal()) : REDSTONE_MIN_BRIGHTNESS;
+            bs.getValue(IShared.REDSTONE_LIT) ? Math.max(0, REDSTONE_MAX_BRIGHTNESS - bs.getValue(IShared.OXIDIZE_STATE).ordinal()) : REDSTONE_MIN_BRIGHTNESS;
     }
     
     /**
      * Carries the data that is only used for Behavior.
      */
-    interface Behavior
+    interface IBehavior
     {
         int getSignal(@NotNull BlockState blockState, @NotNull Direction side);
         

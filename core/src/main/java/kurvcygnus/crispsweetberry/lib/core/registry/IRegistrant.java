@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
@@ -199,7 +198,7 @@ final class CrispRegistrant
 {
     private CrispRegistrant() { throw new AssertionError(); }
     
-    static final IMarkLogger LOGGER = IMarkLogger.marklessLogger(LogUtils.getLogger());
+    static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
     static final Pattern REGISTRY_REGEX = Pattern.compile("Registr(y|ies)");
     static final Pattern SPLIT_REGEX = Pattern.compile("(?<=[a-z])(?=[A-Z])");
 }

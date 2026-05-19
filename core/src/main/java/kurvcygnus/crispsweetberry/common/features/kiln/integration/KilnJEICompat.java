@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.integration;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
@@ -38,7 +37,7 @@ public enum KilnJEICompat
         KilnRecipe.class
     );
     
-    private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
     
     private @Nullable IJeiRuntime runtime = null;
     

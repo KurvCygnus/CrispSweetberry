@@ -12,6 +12,7 @@ import kurvcygnus.crispsweetberry.lib.base.functions.ToByteFunction;
 import kurvcygnus.crispsweetberry.lib.base.functions.ToCharFunction;
 import kurvcygnus.crispsweetberry.lib.base.functions.ToFloatFunction;
 import kurvcygnus.crispsweetberry.lib.base.functions.ToShortFunction;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,7 +120,7 @@ public interface INullableContainer<T> extends Supplier<T>
         
         final T value = orThrow();
         if(!condition.test(value))
-            throw new IllegalArgumentException("Condition not met! Value: %s".formatted(value));
+            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Condition not met! Value: {}", value));
         return value;
     }
     

@@ -46,7 +46,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem Item
  */
 public final class TemporaryRedstoneTorchBlock
-extends AbstractTemporaryTorchBlock<TemporaryRedstoneTorchBehavior> implements TRedstoneTorchExtensions.Block, TRedstoneTorchExtensions.Shared
+extends AbstractTemporaryTorchBlock<TemporaryRedstoneTorchBehavior> implements TRedstoneTorchExtensions.IBlock, TRedstoneTorchExtensions.IShared
 {
     private final Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch;
     

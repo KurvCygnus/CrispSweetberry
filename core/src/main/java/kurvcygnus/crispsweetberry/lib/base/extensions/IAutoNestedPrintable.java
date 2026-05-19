@@ -8,9 +8,11 @@
 
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -60,9 +62,16 @@ public interface IAutoNestedPrintable<T extends IAutoNestedPrintable<T>> extends
                     catch(IllegalAccessException e)
                     {
                         if(gonnaBeCruel())
-                            throw new IllegalStateException("Error Occurred while accessing field \"%s#%s\":\n".formatted(clazz.getName(), field.getName()), e);
+                            throw new IllegalStateException(
+                                DefinitionUtils.quickFormat(
+                                    "Error Occurred while accessing field \"{}#{}\":\n",
+                                    clazz.getName(),
+                                    field.getName()
+                                ),
+                                e
+                            );
                         
-                        return "Error Occurred while accessing field: %s".formatted(e.getMessage());
+                        return MessageFormatter.format("Error Occurred while accessing field: ", e);
                     }
                 }
             );

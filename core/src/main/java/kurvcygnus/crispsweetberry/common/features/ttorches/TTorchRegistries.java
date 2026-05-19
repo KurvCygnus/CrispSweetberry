@@ -137,7 +137,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         group = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> THROWABLE_REDSTONE_TORCH = 
-        getThrowableRedstoneTorch(OxidizeState.NORMAL, false);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.NORMAL, false);
     
     @RegisterToTab
     @AutoI18n(
@@ -149,7 +149,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         overrides = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_THROWABLE_REDSTONE_TORCH =
-        getThrowableRedstoneTorch(OxidizeState.NORMAL, true);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.NORMAL, true);
     
     @RegisterToTab
     @AutoI18n(
@@ -161,7 +161,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         overrides = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> EXPOSED_THROWABLE_REDSTONE_TORCH = 
-        getThrowableRedstoneTorch(OxidizeState.EXPOSED, false);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.EXPOSED, false);
     
     @RegisterToTab
     @AutoI18n(
@@ -173,7 +173,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         overrides = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_EXPOSED_THROWABLE_REDSTONE_TORCH =
-        getThrowableRedstoneTorch(OxidizeState.EXPOSED, true);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.EXPOSED, true);
     
     @RegisterToTab
     @AutoI18n(
@@ -185,7 +185,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         overrides = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WEATHERED_THROWABLE_REDSTONE_TORCH = 
-        getThrowableRedstoneTorch(OxidizeState.WEATHERED, false);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.WEATHERED, false);
     
     @RegisterToTab
     @AutoI18n(
@@ -197,7 +197,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         overrides = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_WEATHERED_THROWABLE_REDSTONE_TORCH =
-        getThrowableRedstoneTorch(OxidizeState.WEATHERED, true);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.WEATHERED, true);
     
     @RegisterToTab
     @AutoI18n(
@@ -209,7 +209,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         overrides = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> OXIDIZED_THROWABLE_REDSTONE_TORCH = 
-        getThrowableRedstoneTorch(OxidizeState.OXIDIZED, false);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.OXIDIZED, false);
     
     @RegisterToTab
     @AutoI18n(
@@ -221,7 +221,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
         overrides = THROWABLE_REDSTONE_TORCH_ID
     )
     public static final DeferredHolder<Item, ThrowableRedstoneTorchItem> WAXED_OXIDIZED_THROWABLE_REDSTONE_TORCH =
-        getThrowableRedstoneTorch(OxidizeState.OXIDIZED, true);
+        getThrowableRedstoneTorch(THROWABLE_TORCH_REGISTER, OxidizeState.OXIDIZED, true);
     
     @RegisterToTab
     @AutoI18n(
@@ -599,22 +599,6 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
                 updateInterval(10).
                 noSummon().
                 build(id)
-        );
-    }
-    
-    private static @NotNull DeferredHolder<Item, ThrowableRedstoneTorchItem> getThrowableRedstoneTorch(@NotNull OxidizeState state, boolean waxed)
-    {
-        return THROWABLE_TORCH_REGISTER.register(
-            "%s%sthrowable_redstone_torch".formatted(
-                waxed ?
-                "waxed_" :
-                    "",
-                state.equals(OxidizeState.NORMAL) ?
-                    "" :
-                    "%s_".
-                    formatted(state.name().toLowerCase())
-            ),
-            () -> new ThrowableRedstoneTorchItem(state, waxed)
         );
     }
     //endregion

@@ -51,7 +51,7 @@ public final class KilnContainerData implements ContainerData
             case VISUAL_PROGRESS_INDEX -> model.getVisualProgress() * 10000;
             case PROGRESS_TREND_INDEX -> model.getProgressTrendIndex();
             case IGNITION_STATE_INDEX -> model.getIgnitionState();
-            default -> throw new IllegalArgumentException("Illegal value for index: %d".formatted(index));
+            default -> throw new IllegalArgumentException("Illegal value for index: " + index);
         };
     }
     
@@ -71,7 +71,7 @@ public final class KilnContainerData implements ContainerData
             case VISUAL_PROGRESS_INDEX -> model.setVisualProgress((double) value / 10000);
             case PROGRESS_TREND_INDEX -> model.setProgressTrend(KilnEnumCollections.VisualTrend.values()[value]);
             case IGNITION_STATE_INDEX -> model.setIgnitionState(value);
-            default -> throw new IllegalArgumentException("Illegal value for index: %d".formatted(index));
+            default -> throw new IllegalArgumentException("Illegal value for index: " + index);
         }
     }
     

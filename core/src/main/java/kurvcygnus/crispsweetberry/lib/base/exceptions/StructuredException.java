@@ -19,12 +19,7 @@ public class StructuredException extends RuntimeException implements IStructured
     
     public StructuredException(@NotNull Throwable wrappedException, @NotNull String type)
     {
-        super(
-            "<%s> %s".formatted(
-                checkEx(wrappedException).getClass().getSimpleName(),
-                wrappedException.getMessage()
-            )
-        );
+        super(buildMessage(wrappedException));
         
         this.wrappedException = wrappedException;
         this.type = checkType(type);
@@ -33,6 +28,13 @@ public class StructuredException extends RuntimeException implements IStructured
     @Override public @NotNull Throwable wrappedException() { return wrappedException; }
     
     @Override public @NotNull String type() { return type; }
+    
+    private static @NotNull String buildMessage(@NotNull Throwable wrappedException)
+    {
+        final var stringBuilder = new StringBuilder("<").append(checkEx(wrappedException).getClass().getSimpleName()).append("> ");
+        stringBuilder.append(wrappedException.getMessage());
+        return stringBuilder.toString();
+    }
     
     private static @NotNull Throwable checkEx(@NotNull Throwable wrappedException)
     {

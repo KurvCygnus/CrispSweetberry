@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
@@ -22,7 +21,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInte
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.exceptions.CarryInteractHandleException;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
-import kurvcygnus.crispsweetberry.lib.base.lang.Maybe;
+import kurvcygnus.crispsweetberry.lib.base.lang.TriVariant;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
@@ -95,7 +94,7 @@ enum CarryOperationExecutor
     private static final Map<Boolean, Map<CarryType, Function<CarryInteractContext, IResult<CarryInteractContext, CarryInteractHandleException>>>> HANDLE_METHODS =
         Map.of(true, BOX_IN_METHODS, false, UNBOX_METHODS);
     
-    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "CARRY_LOGIC");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("CARRY_LOGIC");
     //endregion
     
     //region Main Pipeline
@@ -190,7 +189,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
                 context.pass(),
-                "Cannot find blockEntity \"%s\"'s adapter!".formatted(blockEntity),
+                DefinitionUtils.quickFormat("Cannot find blockEntity \"{}\"'s adapter!", blockEntity),
                 NoSuchElementException::new,
                 CarryType.BLOCK_ENTITY
             );
@@ -231,7 +230,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
                 context.fallback(),
-                "Cannot find block \"%s\"'s adapter!".formatted(targetBlock.getDescriptionId()),
+                DefinitionUtils.quickFormat("Cannot find block \"{}\"'s adapter!", targetBlock.getDescriptionId()),
                 NoSuchElementException::new,
                 CarryType.BLOCK
             );
@@ -259,7 +258,7 @@ enum CarryOperationExecutor
         if(!targetEntity.saveAsPassenger(tagData))
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
-                "Can not get, or use entity \"%s\"'s data, interaction miscFailed.".formatted(targetEntity),
+                DefinitionUtils.quickFormat("Can not get, or use entity \"{}\"'s data, interaction failed.", targetEntity),
                 IOException::new,
                 CarryType.ENTITY
             );
@@ -270,7 +269,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
-                "Cannot find entity \"%s\"'s adapter!".formatted(targetEntity.toString()),
+                DefinitionUtils.quickFormat("Cannot find entity \"{}\"'s adapter!", targetEntity.toString()),
                 NoSuchElementException::new,
                 CarryType.ENTITY
             );
@@ -327,7 +326,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.unboxFailed(
                 context.fail(),
-                "Cannot find blockEntity \"%s\"'s adapter! Mark this interaction as miscFailed.".formatted(blockEntityType),
+                DefinitionUtils.quickFormat("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntityType),
                 NoSuchElementException::new,
                 CarryType.BLOCK_ENTITY
             );
@@ -443,7 +442,7 @@ enum CarryOperationExecutor
                 if(factory.isEmpty())
                     return CarryInteractHandleException.listener(
                         context.pass(),
-                        "Cannot find %s's Carry Factory!".formatted(creationData),
+                        DefinitionUtils.quickFormat("Cannot find {}'s Carry Factory!", creationData),
                         NoSuchElementException::new,
                         TriState.TRUE
                     );
@@ -478,7 +477,7 @@ enum CarryOperationExecutor
         if(carryID == null || carryData == null)
             return CarryInteractHandleException.component(
                 context.pass(),
-                "Component mutation miscFailed, because part, or all of the parameters' value are invalid. id: %s, data: %s".formatted(carryID, carryData),
+                DefinitionUtils.quickFormat("Component mutation failed, because part, or all of the parameters' value are invalid. id: {}, data: {}", carryID, carryData),
                 IllegalArgumentException::new,
                 component
             );
@@ -724,7 +723,7 @@ enum CarryOperationExecutor
     //endregion
     
     //region Private Helpers
-    private static @Nullable CarryID generateCarryID(@NotNull CarryType type, @NotNull Maybe<BlockState, LivingEntity, BlockEntity> targets)
+    private static @Nullable CarryID generateCarryID(@NotNull CarryType type, @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets)
     {
         assert type != null : "Param \"type\" must not be null!";
         assert targets != null : "Param \"targets\" must not be null!";

@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
@@ -17,6 +16,7 @@ import kurvcygnus.crispsweetberry.lib.core.registry.CrispRegistrationManager;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.lib.core.registry.TabEntry;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.resources.ResourceKey;
@@ -40,7 +40,6 @@ import java.util.function.Supplier;
 
 /**
  * This is the entrance class of the whole project.
- *
  * @see RegisterToTab Our Creative Tabs Item Registration Implementation
  * @see IRegistrant Our Content Registration Implementation
  * @since Always here!
@@ -52,7 +51,7 @@ public final class CrispSweetberry
     public static final ISealableBox<IEventBus> CRISP_BUS = ISealableBox.of(
         Objects.requireNonNull(
             ModLoadingContext.get().getActiveContainer().getEventBus(),
-            () -> "Fatal: ModBus seems to be null! \n%s".formatted(MetainfoConstants.FEEDBACK_MESSAGE)
+            () -> DefinitionUtils.quickFormat("Fatal: ModBus seems to be null! \n{}", MetainfoConstants.FEEDBACK_MESSAGE)
         )
     );
     
@@ -65,7 +64,7 @@ public final class CrispSweetberry
      */
     public static final IVault<Map<ResourceKey<CreativeModeTab>, Set<TabEntry>>, BuildCreativeModeTabContentsEvent> TAB_LOOKUP = IVault.ofTypeMatchOnly(TAB_ENTRIES);
     
-    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "MOD_INIT");
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("MOD_INIT");
     
     @SuppressWarnings("unchecked")//! As you can see, this casting is actually reliable.
     public CrispSweetberry(@NotNull IEventBus eventBus, @NotNull ModContainer modContainer)

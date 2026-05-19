@@ -13,6 +13,7 @@ import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -44,7 +45,7 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     {
         for(CrispRanger existing: map.keySet())
             if(CONFLICTED.test(range, existing))
-                throw new IllegalStateException("Range conflict detected: %s overlaps with %s".formatted(range, existing));
+                throw new IllegalStateException(MessageFormatter.format("Range conflict detected: {} overlaps with {}", range, existing).getMessage());
         
         return ConflictHandleResult.singleRanger(range, value);
     };
@@ -170,7 +171,7 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
         @Nullable final V result = getValue(value);
         
         if(result == null)
-            throw new NoSuchElementException("No value present. Key: %d".formatted(value));
+            throw new NoSuchElementException("No value present. Key: " + value);
         
         return result;
     }
@@ -227,7 +228,7 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
             Objects.requireNonNull(ranger, "Param \"ranger\" must not be null!");
             Objects.requireNonNull(value, "Param \"value\" must not be null!");
             
-            return new ConflictHandleResult<>(new Pair<>(ranger, value), null);
+            return new ConflictHandleResult<>(Pair.of(ranger, value), null);
         }
         
         @SuppressWarnings("unchecked")//! Since [[ConflictHandleResult#NO_REPLACE]] has no value inside, of course we can cast it!
@@ -245,7 +246,7 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
             Objects.requireNonNull(newRanger, "Param \"newRanger\" must not be null!");
             Objects.requireNonNull(newValue, "Param \"newValue\" must not be null!");
             
-            return new ConflictHandleResult<>(new Pair<>(ranger, value), new Pair<>(newRanger, newValue));
+            return new ConflictHandleResult<>(Pair.of(ranger, value), Pair.of(newRanger, newValue));
         }
         
         public @NotNull Optional<@NotNull Entry<CrispRanger, V>> rangerToReturn() { return Optional.ofNullable(rangerToReturn); }

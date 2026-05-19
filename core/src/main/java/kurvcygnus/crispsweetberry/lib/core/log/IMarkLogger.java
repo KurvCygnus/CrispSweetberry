@@ -8,17 +8,16 @@
 
 package kurvcygnus.crispsweetberry.lib.core.log;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
-import org.slf4j.spi.LoggingEventBuilder;
 
 import java.util.ArrayDeque;
 import java.util.Map;
@@ -26,12 +25,13 @@ import java.util.Objects;
 import java.util.function.*;
 
 import static java.util.Objects.requireNonNull;
+import static org.slf4j.event.Level.*;
 
 /**
  * This is a simple wrapper for SLF4J's <u>{@link Logger}</u>. It reduces the verbosity of passing <u>{@link Marker}</u> to log functions.
  * @author Kurv Cygnus
  * @apiNote We recommend using {@code SCREAMING_SNAKE_CASE} for <u>{@link Marker}</u>, because it is more attractive, and easy to search.<br>
- * <b>This logger uses <u>{@link ThreadLocal}</u>. Do not leak <u>{@link IMarkerHandle MarkerHandle}</u> across async boundaries</b>.
+ * <b>This logger uses <u>{@link ThreadLocal}</u>. Do not leak <u>{@link IMarkerHandle IMarkerHandle}</u> across async boundaries</b>.
  * @since 1.0 Release
  */
 public sealed interface IMarkLogger extends Logger
@@ -39,44 +39,31 @@ public sealed interface IMarkLogger extends Logger
     /**
      * Produces a standard logger with no default marker.
      * @throws NullPointerException When {@code logger} is {@code null}
-     * @apiNote Using <u>{@link LogUtils#getLogger()}</u> is recommended rather than
-     * <u>{@link org.slf4j.LoggerFactory#getLogger(String) LoggerFactory#markedLogger()}</u>,
-     * since Mojang did some configuration on former one, it is more compatible.
      * @implSpec <pre>{@code
-     *  private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger(...);
+     *  private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
      * }</pre>
      */
-    static @NotNull IMarkLogger marklessLogger(@NotNull Logger logger) { return MarkLogger.marklessLogger(logger); }
+    static @NotNull IMarkLogger marklessLogger() { return MarkLogger.marklessLogger(MarkLogger.STACK_WALKER.getCallerClass()); }
     
     /**
      * Produces a standard logger, which automatically deals marker.
      * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
-     * @apiNote Using <u>{@link LogUtils#getLogger()}</u> is recommended rather than
-     * <u>{@link org.slf4j.LoggerFactory#getLogger(String) LoggerFactory#markedLogger()}</u>,
-     * since Mojang did some configuration on former one, it is more compatible.
      * @implSpec <pre>{@code
      *  private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(
-     *      LogUtils.getLogger(),
      *      MarkerFactory.getMarker("Foo")
      *  );
      * }</pre>
      */
-    static @NotNull IMarkLogger markedLogger(@NotNull Logger logger, @NotNull Marker marker) { return MarkLogger.markedLogger(logger, marker); }
+    static @NotNull IMarkLogger markedLogger(@NotNull Marker marker) { return MarkLogger.markedLogger(MarkLogger.STACK_WALKER.getCallerClass(), marker); }
     
     /**
      * Produces a standard logger, which automatically deals marker.
      * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
-     * @apiNote Using <u>{@link LogUtils#getLogger()}</u> is recommended rather than
-     * <u>{@link org.slf4j.LoggerFactory#getLogger(String) LoggerFactory#markedLogger()}</u>,
-     * since Mojang did some configuration on former one, it is more compatible.
      * @implSpec <pre>{@code
-     *  private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(
-     *      LogUtils.getLogger(),
-     *      "Foo"
-     *  );
+     *  private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("Foo");
      * }</pre>
      */
-    static @NotNull IMarkLogger markedLogger(@NotNull Logger logger, @NotNull String mark) { return MarkLogger.markedLogger(logger, mark); }
+    static @NotNull IMarkLogger markedLogger(@NotNull String mark) { return MarkLogger.markedLogger(MarkLogger.STACK_WALKER.getCallerClass(), mark); }
     
     /**
      * Produces a special logger, whose have two extra unique markers with {@code _ERR} and {@code _WARN} suffixes to override
@@ -85,7 +72,6 @@ public sealed interface IMarkLogger extends Logger
      * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
      * @implSpec <pre>{@code
      *  private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(
-     *      LogUtils.getLogger(),
      *      MarkerFactory.getMarker("Bar")
      *  );
      * }</pre>
@@ -97,7 +83,7 @@ public sealed interface IMarkLogger extends Logger
      * }</pre>
      * <i>Current suffix conversion is quite simple, since we don't think it needs to support all text cases.</i>
      */
-    static @NotNull IMarkLogger withMarkerSuffixes(@NotNull Logger logger, @NotNull Marker marker) { return MarkLogger.withMarkerSuffixes(logger, marker); }
+    static @NotNull IMarkLogger withMarkerSuffixes(@NotNull Marker marker) { return MarkLogger.withMarkerSuffixes(MarkLogger.STACK_WALKER.getCallerClass(), marker); }
     
     /**
      * Produces a special logger, whose have two extra unique markers with {@code _ERR} and {@code _WARN} suffixes to override
@@ -105,10 +91,7 @@ public sealed interface IMarkLogger extends Logger
      *
      * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
      * @implSpec <pre>{@code
-     *  private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(
-     *      LogUtils.getLogger(),
-     *      "Bar"
-     *  );
+     *  private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("Bar");
      * }</pre><hr>
      * Produces these markers:
      * <pre>{@code
@@ -117,19 +100,19 @@ public sealed interface IMarkLogger extends Logger
      * }</pre>
      * <i>Current suffix conversion is quite simple, since we don't think it needs to support all text cases.</i>
      */
-    static @NotNull IMarkLogger withMarkerSuffixes(@NotNull Logger logger, @NotNull String mark) { return MarkLogger.withMarkerSuffixes(logger, mark); }
+    static @NotNull IMarkLogger withMarkerSuffixes(@NotNull String mark) { return MarkLogger.withMarkerSuffixes(MarkLogger.STACK_WALKER.getCallerClass(), mark); }
     
     /**
      * Produces a highly configurable logger, which supports adaptive markers suffix<i>(with {@code adaptive} arg's value equaling {@code true})</i>,
      * and the ability to log message, depending on arg {@code condition}.
      */
-    static @NotNull IMarkLogger configuredLogger(@NotNull Logger logger, @NotNull String mark, @NotNull Predicate<Level> condition, boolean adaptive)
-        { return MarkLogger.configuredLogger(logger, mark, condition, adaptive); }
+    static @NotNull IMarkLogger configuredLogger(@NotNull String mark, @NotNull Predicate<Level> condition, boolean adaptive)
+        { return MarkLogger.configuredLogger(MarkLogger.STACK_WALKER.getCallerClass(), mark, condition, adaptive); }
     
     /**
      * Produces a highly configurable logger, which supports the ability to log message, depending on arg {@code condition}.
      */
-    static @NotNull IMarkLogger configuredLogger(@NotNull Logger logger, @NotNull Predicate<Level> condition) { return MarkLogger.configuredLogger(logger, condition); }
+    static @NotNull IMarkLogger configuredLogger(@NotNull Predicate<Level> condition) { return MarkLogger.configuredLogger(MarkLogger.STACK_WALKER.getCallerClass(), condition); }
     
     /**
      * Creates a condition that allows logging only when the <u>{@link Level log level}</u> satisfies
@@ -146,19 +129,6 @@ public sealed interface IMarkLogger extends Logger
         { return MarkLogger.allowWhen(level, situation, extra); }
     
     /**
-     * Creates a condition that allows logging only when the log level satisfies
-     * the specified comparison against the provided reference level.
-     *
-     * @param level     The reference log level to compare against.
-     * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
-     *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
-     * @param extra     An additional boolean flag to force-enable the log (OR logic).
-     * @return A predicate that returns {@code true} if the log should be performed.
-     * @apiNote <span style="color: f84b4b">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
-     */
-    static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra) { return MarkLogger.allowWhen(level, situation, extra); }
-    
-    /**
      * Creates a condition that rejects logging when the log level satisfies
      * the specified comparison against the provided reference level.
      *
@@ -170,19 +140,6 @@ public sealed interface IMarkLogger extends Logger
      * @apiNote <span style="color: 95cc6d">The value of {@code extra} is <b>dynamic</b></span>, it will changed with the formula of the <u>{@link Predicate}</u>.
      */
     static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, BooleanSupplier extra) { return MarkLogger.denyWhen(level, situation, extra); }
-    
-    /**
-     * Creates a condition that rejects logging when the log level satisfies
-     * the specified comparison against the provided reference level.
-     *
-     * @param level     The reference log level to compare against.
-     * @param situation The comparison logic (e.g. <u>{@link ConditionSituation#EQUAL EQUAL}</u>, <u>{@link ConditionSituation#HIGHER HIGHER}</u>,
-     *                  <u>{@link ConditionSituation#LOWER LOWER}</u>).
-     * @param extra     An additional boolean flag to force-enable the log (OR logic).
-     * @return A predicate that returns {@code true} if the log should be performed.
-     * @apiNote <span style="color: f84b4b">The value of {@code extra} is <b>static</b></span>, it will be immutable, and won't be reassigned anymore.
-     */
-    static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra) { return MarkLogger.denyWhen(level, situation, extra); }
     
     /**
      * Push a temporary marker to <u>{@link MarkLogger}</u>,
@@ -288,6 +245,23 @@ public sealed interface IMarkLogger extends Logger
     
     /**
      * {@inheritDoc}
+     */
+    @Override String getName();
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isTraceEnabled();
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isTraceEnabled(Marker marker);
+    
+    /**
+     * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override void trace(String msg);
@@ -351,6 +325,18 @@ public sealed interface IMarkLogger extends Logger
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override void trace(Marker marker, String msg, Throwable t);
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isDebugEnabled();
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isDebugEnabled(Marker marker);
     
     /**
      * Print a <u>{@link Object}</u> at TRACE level.
@@ -425,6 +411,18 @@ public sealed interface IMarkLogger extends Logger
     @Override void debug(Marker marker, String msg, Throwable t);
     
     /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isInfoEnabled();
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isInfoEnabled(Marker marker);
+    
+    /**
      * Print a <u>{@link Object}</u> at TRACE level.
      * @deprecated This is not deprecated, but it is marked because this is only used for quick debugging, the standard log info should not be such short, and indescriptive.
      */
@@ -496,6 +494,18 @@ public sealed interface IMarkLogger extends Logger
     @Override void info(Marker marker, String msg, Throwable t);
     
     /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isWarnEnabled();
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isWarnEnabled(Marker marker);
+    
+    /**
      * Print a <u>{@link Object}</u> at TRACE level.
      * @deprecated This is not deprecated, but it is marked because this is only used for quick debugging, the standard log info should not be such short, and indescriptive.
      */
@@ -565,6 +575,18 @@ public sealed interface IMarkLogger extends Logger
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
     @Override void warn(Marker marker, String msg, Throwable t);
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isErrorEnabled();
+    
+    /**
+     * {@inheritDoc}
+     * @apiNote <b>If the condition from <u>{@link #configuredLogger(Predicate)}</u> is not met, this will always return {@code false}.</b>
+     */
+    @Override boolean isErrorEnabled(Marker marker);
     
     /**
      * Print a <u>{@link Object}</u> at TRACE level.
@@ -699,77 +721,76 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     private final @NotNull Predicate<Level> condition;
     
     private static final @NotNull Predicate<Level> TRUE = ignored -> true;
+    static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     //endregion
     
     //  region Constructor & Static Factories
     private MarkLogger(
-        @NotNull Logger logger,
+        @NotNull Class<?> clazz,
         @Nullable Marker defaultMarker,
         @Nullable Marker errorMarker,
         @Nullable Marker warnMarker,
         @NotNull Predicate<Level> condition
     )
     {
-        if(logger instanceof IMarkLogger)
-            throw new IllegalArgumentException("The logger to be wrapped is MarkLogger, this will cause nested wrapping, which is not allowed!");
-        
-        this.logger = requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(clazz, "Param \"clazz\" must not be null!");
+        this.logger = LoggerFactory.getLogger(clazz);
         this.defaultMarker = defaultMarker;
         this.errorMarker = errorMarker;
         this.warnMarker = warnMarker;
         this.condition = condition;
     }
     
-    static @NotNull MarkLogger marklessLogger(@NotNull Logger logger)
+    static @NotNull MarkLogger marklessLogger(@NotNull Class<?> clazz)
     {
-        requireNonNull(logger, "Param \"logger\" must not be null!");
-        return new MarkLogger(logger, null, null, null, TRUE);
+        requireNonNull(clazz, "Param \"clazz\" must not be null!");
+        return new MarkLogger(clazz, null, null, null, TRUE);
     }
     
-    static @NotNull MarkLogger markedLogger(@NotNull Logger logger, @NotNull Marker marker)
+    static @NotNull MarkLogger markedLogger(@NotNull Class<?> clazz, @NotNull Marker marker)
     {
-        requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(clazz, "Param \"clazz\" must not be null!");
         requireNonNull(marker, "Param \"marker\" must not be null!");
         
-        return new MarkLogger(logger, marker, marker, marker, TRUE);
+        return new MarkLogger(clazz, marker, marker, marker, TRUE);
     }
     
-    static @NotNull MarkLogger markedLogger(@NotNull Logger logger, @NotNull String mark)
+    static @NotNull MarkLogger markedLogger(@NotNull Class<?> clazz, @NotNull String mark)
     {
-        requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(clazz, "Param \"clazz\" must not be null!");
         requireNonNull(mark, "Param \"mark\" must not be null!");
         
         final Marker marker = MarkerFactory.getMarker(mark);
         
-        return new MarkLogger(logger, marker, marker, marker, TRUE);
+        return new MarkLogger(clazz, marker, marker, marker, TRUE);
     }
     
-    static @NotNull MarkLogger withMarkerSuffixes(@NotNull Logger logger, @NotNull Marker marker)
+    static @NotNull MarkLogger withMarkerSuffixes(@NotNull Class<?> clazz, @NotNull Marker marker)
     {
-        requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(clazz, "Param \"clazz\" must not be null!");
         requireNonNull(marker, "Param \"marker\" must not be null!");
         
         final Marker err = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_ERR"));
         final Marker warn = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_WARN"));
         
-        return new MarkLogger(logger, marker, err, warn, TRUE);
+        return new MarkLogger(clazz, marker, err, warn, TRUE);
     }
     
-    static @NotNull MarkLogger withMarkerSuffixes(@NotNull Logger logger, @NotNull String mark)
+    static @NotNull MarkLogger withMarkerSuffixes(@NotNull Class<?> clazz, @NotNull String mark)
     {
-        requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(clazz, "Param \"clazz\" must not be null!");
         requireNonNull(mark, "Param \"mark\" must not be null!");
         
-        return withMarkerSuffixes(logger, MarkerFactory.getMarker(mark));
+        return withMarkerSuffixes(clazz, MarkerFactory.getMarker(mark));
     }
     
     /**
      * Produces a highly configurable logger, which supports adaptive markers suffix<i>(with {@code adaptive} arg's value equaling {@code true})</i>,
      * and the ability to log message, depending on arg {@code condition}.
      */
-    private static @NotNull MarkLogger configuredLogger(@NotNull Logger logger, @Nullable Marker marker, boolean adaptive, @NotNull Predicate<Level> condition)
+    private static @NotNull MarkLogger configuredLogger(@NotNull Class<?> clazz, @Nullable Marker marker, boolean adaptive, @NotNull Predicate<Level> condition)
     {
-        requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(clazz, "Param \"clazz\" must not be null!");
         requireNonNull(condition, "Param \"condition\" must not be null!");
         
         if(marker == null && adaptive)
@@ -782,33 +803,26 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
             final Marker err = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_ERR"));
             final Marker warn = MarkerFactory.getMarker(adaptSuffix(marker.getName(), "_WARN"));
             
-            return new MarkLogger(logger, marker, err, warn, condition);
+            return new MarkLogger(clazz, marker, err, warn, condition);
         }
         
-        return new MarkLogger(logger, marker, marker, marker, condition);
+        return new MarkLogger(clazz, marker, marker, marker, condition);
     }
     
-    static @NotNull MarkLogger configuredLogger(@NotNull Logger logger, @NotNull String mark, @NotNull Predicate<Level> condition, boolean adaptive)
-    { return configuredLogger(logger, MarkerFactory.getMarker(mark), adaptive, condition); }
+    static @NotNull MarkLogger configuredLogger(@NotNull Class<?> clazz, @NotNull String mark, @NotNull Predicate<Level> condition, boolean adaptive)
+        { return configuredLogger(clazz, MarkerFactory.getMarker(mark), adaptive, condition); }
     
-    static @NotNull MarkLogger configuredLogger(@NotNull Logger logger, @NotNull Predicate<Level> condition)
-    { return configuredLogger(logger, null, false, condition); }
+    static @NotNull MarkLogger configuredLogger(@NotNull Class<?> clazz, @NotNull Predicate<Level> condition)
+        { return configuredLogger(clazz, null, false, condition); }
     
     static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, BooleanSupplier extra)
-    { return leveledCondition(level, situation, extra, false); }
-    
-    static @NotNull Predicate<Level> allowWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra)
-    { return leveledCondition(level, situation, () -> extra, false); }
-    
-    static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, boolean extra)
-    { return leveledCondition(level, situation, () -> extra, true); }
+        { return leveledCondition(level, situation, extra, false); }
     
     static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, BooleanSupplier extra)
-    { return leveledCondition(level, situation, extra, true); }
+        { return leveledCondition(level, situation, extra, true); }
     //endregion
     
     //  region Scoped Marker Logics
-    
     /**
      * {@inheritDoc}
      */
@@ -878,39 +892,39 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     //  region Log Print Commons
     //*:== Trace
-    @Override public void trace(@Nullable String message) { this.print(logger::trace, Level.TRACE, getMarker(), message); }
+    @Override public void trace(@Nullable String message) { this.print(logger::trace, TRACE, getMarker(), message); }
     
-    @Override public void trace(@Nullable String message, Object @Nullable ... args) { this.print(logger::trace, Level.TRACE, getMarker(), message, args); }
+    @Override public void trace(@Nullable String message, Object @Nullable ... args) { this.print(logger::trace, TRACE, getMarker(), message, args); }
     
-    @Override public void trace(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::trace, Level.TRACE, getMarker(), message, throwable); }
+    @Override public void trace(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::trace, TRACE, getMarker(), message, throwable); }
     
     //*:== Debug
-    @Override public void debug(@Nullable String message) { this.print(logger::debug, Level.DEBUG, getMarker(), message); }
+    @Override public void debug(@Nullable String message) { this.print(logger::debug, DEBUG, getMarker(), message); }
     
-    @Override public void debug(@Nullable String message, Object @Nullable ... args) { this.print(logger::debug, Level.DEBUG, getMarker(), message, args); }
+    @Override public void debug(@Nullable String message, Object @Nullable ... args) { this.print(logger::debug, DEBUG, getMarker(), message, args); }
     
-    @Override public void debug(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::debug, Level.DEBUG, getMarker(), message, throwable); }
+    @Override public void debug(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::debug, DEBUG, getMarker(), message, throwable); }
     
     //*:== Info
-    @Override public void info(@Nullable String message) { this.print(logger::info, Level.INFO, getMarker(), message); }
+    @Override public void info(@Nullable String message) { this.print(logger::info, INFO, getMarker(), message); }
     
-    @Override public void info(@Nullable String message, Object @Nullable ... args) { this.print(logger::info, Level.INFO, getMarker(), message, args); }
+    @Override public void info(@Nullable String message, Object @Nullable ... args) { this.print(logger::info, INFO, getMarker(), message, args); }
     
-    @Override public void info(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::info, Level.INFO, getMarker(), message, throwable); }
+    @Override public void info(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::info, INFO, getMarker(), message, throwable); }
     
     //*:== Warn
-    @Override public void warn(@Nullable String message) { this.print(logger::warn, Level.WARN, getMarker(), message); }
+    @Override public void warn(@Nullable String message) { this.print(logger::warn, WARN, getMarker(), message); }
     
-    @Override public void warn(@Nullable String message, Object @Nullable ... args) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, args); }
+    @Override public void warn(@Nullable String message, Object @Nullable ... args) { this.print(logger::warn, WARN, getWarnMarker(), message, args); }
     
-    @Override public void warn(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::warn, Level.WARN, getWarnMarker(), message, throwable); }
+    @Override public void warn(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::warn, WARN, getWarnMarker(), message, throwable); }
     
     //*:== Error
-    @Override public void error(@Nullable String message) { this.print(logger::error, Level.ERROR, getErrorMarker(), message); }
+    @Override public void error(@Nullable String message) { this.print(logger::error, ERROR, getErrorMarker(), message); }
     
-    @Override public void error(@Nullable String message, Object @Nullable ... args) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, args); }
+    @Override public void error(@Nullable String message, Object @Nullable ... args) { this.print(logger::error, ERROR, getErrorMarker(), message, args); }
     
-    @Override public void error(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::error, Level.ERROR, getErrorMarker(), message, throwable); }
+    @Override public void error(@Nullable String message, @Nullable Throwable throwable) { this.print(logger::error, ERROR, getErrorMarker(), message, throwable); }
     //endregion
     
     //  region Private helpers
@@ -1047,14 +1061,14 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
             {
                 map.put("name", ml -> ml.logger.getName());
                 map.put("defaultMarkerName", ml -> ml.getNameSafely(getMarker()));
-                map.put("warnMarkerName", ml -> ml.getNameSafely(getErrorMarker()));
+                map.put("warnMarkerName", ml -> ml.getNameSafely(getWarnMarker()));
                 map.put("errorMarkerName", ml -> ml.getNameSafely(getErrorMarker()));
                 map.put("markerStacks", ml -> ml.mutableMarker.get() != null ? mutableMarker.get().toString() : "N/A");
-                map.put("traceAccess", ml -> ml.condition.test(Level.TRACE));
-                map.put("debugAccess", ml -> ml.condition.test(Level.DEBUG));
-                map.put("infoAccess", ml -> ml.condition.test(Level.INFO));
-                map.put("warnAccess", ml -> ml.condition.test(Level.WARN));
-                map.put("errorAccess", ml -> ml.condition.test(Level.ERROR));
+                map.put("traceAccess", ml -> ml.condition.test(TRACE));
+                map.put("debugAccess", ml -> ml.condition.test(DEBUG));
+                map.put("infoAccess", ml -> ml.condition.test(INFO));
+                map.put("warnAccess", ml -> ml.condition.test(WARN));
+                map.put("errorAccess", ml -> ml.condition.test(ERROR));
             },
             10
         );
@@ -1068,110 +1082,94 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     //region SLF4J Integrations
     @Override public @NotNull String getName() { return logger.getName(); }
     
-    @Override public boolean isTraceEnabled() { return logger.isTraceEnabled(); }
+    @Override public boolean isTraceEnabled() { return condition.test(TRACE) && logger.isTraceEnabled(); }
     
-    @Override public void trace(String format, Object arg) { this.print(logger::trace, Level.TRACE, getMarker(), format, arg); }
+    @Override public void trace(String format, Object arg) { this.print(logger::trace, TRACE, getMarker(), format, arg); }
     
-    @Override public void trace(String format, Object arg1, Object arg2) { this.print(logger::trace, Level.TRACE, getMarker(), format, arg1, arg2); }
+    @Override public void trace(String format, Object arg1, Object arg2) { this.print(logger::trace, TRACE, getMarker(), format, arg1, arg2); }
     
-    @Override public boolean isTraceEnabled(Marker marker) { return logger.isTraceEnabled(marker); }
+    @Override public boolean isTraceEnabled(Marker marker) { return condition.test(TRACE) && logger.isTraceEnabled(marker); }
     
-    @Override public void trace(Marker marker, String msg) { this.print(logger::trace, Level.TRACE, marker, msg); }
+    @Override public void trace(Marker marker, String msg) { this.print(logger::trace, TRACE, marker, msg); }
     
-    @Override public void trace(Marker marker, String format, Object arg) { this.print(logger::trace, Level.TRACE, marker, format, arg); }
+    @Override public void trace(Marker marker, String format, Object arg) { this.print(logger::trace, TRACE, marker, format, arg); }
     
-    @Override public void trace(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::trace, Level.TRACE, marker, format, arg1, arg2); }
+    @Override public void trace(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::trace, TRACE, marker, format, arg1, arg2); }
     
-    @Override public void trace(Marker marker, String format, Object... argArray) { this.print(logger::trace, Level.TRACE, marker, format, argArray); }
+    @Override public void trace(Marker marker, String format, Object... argArray) { this.print(logger::trace, TRACE, marker, format, argArray); }
     
-    @Override public void trace(Marker marker, String msg, Throwable t) { this.print(logger::trace, Level.TRACE, marker, msg, t); }
+    @Override public void trace(Marker marker, String msg, Throwable t) { this.print(logger::trace, TRACE, marker, msg, t); }
     
-    @Override public boolean isDebugEnabled() { return logger.isDebugEnabled(); }
+    @Override public boolean isDebugEnabled() { return condition.test(DEBUG) && logger.isDebugEnabled(); }
     
-    @Override public void debug(String format, Object arg) { this.print(logger::debug, Level.DEBUG, getMarker(), format, arg); }
+    @Override public void debug(String format, Object arg) { this.print(logger::debug, DEBUG, getMarker(), format, arg); }
     
-    @Override public void debug(String format, Object arg1, Object arg2) { this.print(logger::debug, Level.DEBUG, getMarker(), format, arg1, arg2); }
+    @Override public void debug(String format, Object arg1, Object arg2) { this.print(logger::debug, DEBUG, getMarker(), format, arg1, arg2); }
     
-    @Override public boolean isDebugEnabled(Marker marker) { return logger.isDebugEnabled(marker); }
+    @Override public boolean isDebugEnabled(Marker marker) { return condition.test(DEBUG) && logger.isDebugEnabled(marker); }
     
-    @Override public void debug(Marker marker, String msg) { this.print(logger::debug, Level.DEBUG, marker, msg); }
+    @Override public void debug(Marker marker, String msg) { this.print(logger::debug, DEBUG, marker, msg); }
     
-    @Override public void debug(Marker marker, String format, Object arg) { this.print(logger::debug, Level.DEBUG, marker, format, arg); }
+    @Override public void debug(Marker marker, String format, Object arg) { this.print(logger::debug, DEBUG, marker, format, arg); }
     
-    @Override public void debug(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::debug, Level.DEBUG, marker, format, arg1, arg2); }
+    @Override public void debug(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::debug, DEBUG, marker, format, arg1, arg2); }
     
-    @Override public void debug(Marker marker, String format, Object... arguments) { this.print(logger::debug, Level.DEBUG, marker, format, arguments); }
+    @Override public void debug(Marker marker, String format, Object... arguments) { this.print(logger::debug, DEBUG, marker, format, arguments); }
     
-    @Override public void debug(Marker marker, String msg, Throwable t) { this.print(logger::debug, Level.DEBUG, marker, msg, t); }
+    @Override public void debug(Marker marker, String msg, Throwable t) { this.print(logger::debug, DEBUG, marker, msg, t); }
     
-    @Override public boolean isInfoEnabled() { return logger.isInfoEnabled(); }
+    @Override public boolean isInfoEnabled() { return condition.test(INFO) && logger.isInfoEnabled(); }
     
-    @Override public void info(String format, Object arg) { this.print(logger::info, Level.INFO, getMarker(), format, arg); }
+    @Override public void info(String format, Object arg) { this.print(logger::info, INFO, getMarker(), format, arg); }
     
-    @Override public void info(String format, Object arg1, Object arg2) { this.print(logger::info, Level.INFO, getMarker(), format, arg1, arg2); }
+    @Override public void info(String format, Object arg1, Object arg2) { this.print(logger::info, INFO, getMarker(), format, arg1, arg2); }
     
-    @Override public boolean isInfoEnabled(Marker marker) { return logger.isInfoEnabled(marker); }
+    @Override public boolean isInfoEnabled(Marker marker) { return condition.test(INFO) && logger.isInfoEnabled(marker); }
     
-    @Override public void info(Marker marker, String msg) { this.print(logger::info, Level.INFO, marker, msg); }
+    @Override public void info(Marker marker, String msg) { this.print(logger::info, INFO, marker, msg); }
     
-    @Override public void info(Marker marker, String format, Object arg) { this.print(logger::info, Level.INFO, marker, format, arg); }
+    @Override public void info(Marker marker, String format, Object arg) { this.print(logger::info, INFO, marker, format, arg); }
     
-    @Override public void info(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::info, Level.INFO, marker, format, arg1, arg2); }
+    @Override public void info(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::info, INFO, marker, format, arg1, arg2); }
     
-    @Override public void info(Marker marker, String format, Object... arguments) { this.print(logger::info, Level.INFO, marker, format, arguments); }
+    @Override public void info(Marker marker, String format, Object... arguments) { this.print(logger::info, INFO, marker, format, arguments); }
     
-    @Override public void info(Marker marker, String msg, Throwable t) { this.print(logger::info, Level.INFO, marker, msg, t); }
+    @Override public void info(Marker marker, String msg, Throwable t) { this.print(logger::info, INFO, marker, msg, t); }
     
-    @Override public boolean isWarnEnabled() { return logger.isWarnEnabled(); }
+    @Override public boolean isWarnEnabled() { return condition.test(WARN) && logger.isWarnEnabled(); }
     
-    @Override public void warn(String format, Object arg) { this.print(logger::warn, Level.WARN, getMarker(), format, arg); }
+    @Override public void warn(String format, Object arg) { this.print(logger::warn, WARN, getMarker(), format, arg); }
     
-    @Override public void warn(String format, Object arg1, Object arg2) { this.print(logger::warn, Level.WARN, getMarker(), format, arg1, arg2); }
+    @Override public void warn(String format, Object arg1, Object arg2) { this.print(logger::warn, WARN, getMarker(), format, arg1, arg2); }
     
-    @Override public boolean isWarnEnabled(Marker marker) { return logger.isWarnEnabled(marker); }
+    @Override public boolean isWarnEnabled(Marker marker) { return condition.test(WARN) && logger.isWarnEnabled(marker); }
     
-    @Override public void warn(Marker marker, String msg) { this.print(logger::warn, Level.WARN, marker, msg); }
+    @Override public void warn(Marker marker, String msg) { this.print(logger::warn, WARN, marker, msg); }
     
-    @Override public void warn(Marker marker, String format, Object arg) { this.print(logger::warn, Level.WARN, marker, format, arg); }
+    @Override public void warn(Marker marker, String format, Object arg) { this.print(logger::warn, WARN, marker, format, arg); }
     
-    @Override public void warn(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::warn, Level.WARN, marker, format, arg1, arg2); }
+    @Override public void warn(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::warn, WARN, marker, format, arg1, arg2); }
     
-    @Override public void warn(Marker marker, String format, Object... arguments) { this.print(logger::warn, Level.WARN, marker, format, arguments); }
+    @Override public void warn(Marker marker, String format, Object... arguments) { this.print(logger::warn, WARN, marker, format, arguments); }
     
-    @Override public void warn(Marker marker, String msg, Throwable t) { this.print(logger::warn, Level.WARN, marker, msg, t); }
+    @Override public void warn(Marker marker, String msg, Throwable t) { this.print(logger::warn, WARN, marker, msg, t); }
     
-    @Override public boolean isErrorEnabled() { return logger.isErrorEnabled(); }
+    @Override public boolean isErrorEnabled() { return condition.test(ERROR) && logger.isErrorEnabled(); }
     
-    @Override public void error(String format, Object arg) { this.print(logger::error, Level.ERROR, getMarker(), format, arg); }
+    @Override public void error(String format, Object arg) { this.print(logger::error, ERROR, getMarker(), format, arg); }
     
-    @Override public void error(String format, Object arg1, Object arg2) { this.print(logger::error, Level.ERROR, getMarker(), format, arg1, arg2); }
+    @Override public void error(String format, Object arg1, Object arg2) { this.print(logger::error, ERROR, getMarker(), format, arg1, arg2); }
     
-    @Override public boolean isErrorEnabled(Marker marker) { return logger.isErrorEnabled(marker); }
+    @Override public boolean isErrorEnabled(Marker marker) { return condition.test(ERROR) && logger.isErrorEnabled(marker); }
     
-    @Override public void error(Marker marker, String msg) { this.print(logger::error, Level.ERROR, marker, msg); }
+    @Override public void error(Marker marker, String msg) { this.print(logger::error, ERROR, marker, msg); }
     
-    @Override public void error(Marker marker, String format, Object arg) { this.print(logger::error, Level.ERROR, marker, format, arg); }
+    @Override public void error(Marker marker, String format, Object arg) { this.print(logger::error, ERROR, marker, format, arg); }
     
-    @Override public void error(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::error, Level.ERROR, marker, format, arg1, arg2); }
+    @Override public void error(Marker marker, String format, Object arg1, Object arg2) { this.print(logger::error, ERROR, marker, format, arg1, arg2); }
     
-    @Override public void error(Marker marker, String format, Object... arguments) { this.print(logger::error, Level.ERROR, marker, format, arguments); }
+    @Override public void error(Marker marker, String format, Object... arguments) { this.print(logger::error, ERROR, marker, format, arguments); }
     
-    @Override public void error(Marker marker, String msg, Throwable t) { this.print(logger::error, Level.ERROR, marker, msg, t); }
-    
-    @Override public LoggingEventBuilder makeLoggingEventBuilder(Level level) { return IMarkLogger.super.makeLoggingEventBuilder(level); }
-    
-    @Override public LoggingEventBuilder atLevel(Level level) { return IMarkLogger.super.atLevel(level); }
-    
-    @Override public boolean isEnabledForLevel(Level level) { return IMarkLogger.super.isEnabledForLevel(level); }
-    
-    @Override public LoggingEventBuilder atTrace() { return IMarkLogger.super.atTrace(); }
-    
-    @Override public LoggingEventBuilder atDebug() { return IMarkLogger.super.atDebug(); }
-    
-    @Override public LoggingEventBuilder atInfo() { return IMarkLogger.super.atInfo(); }
-    
-    @Override public LoggingEventBuilder atWarn() { return IMarkLogger.super.atWarn(); }
-    
-    @Override public LoggingEventBuilder atError() { return IMarkLogger.super.atError(); }
+    @Override public void error(Marker marker, String msg, Throwable t) { this.print(logger::error, ERROR, marker, msg, t); }
     //endregion
 }

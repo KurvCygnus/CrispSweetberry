@@ -20,9 +20,29 @@ import java.util.function.Function;
 /**
  * This is an extension interface for all classes that has complex data, prints nested JSON-structured info instead of
  * <u>{@link Record#toString() record's ugly #toString()}</u>, with <u>{@link #getFields()}</u> implemented.
+ * @implSpec <pre>{@code
+ *  public record Pair<L, R>(L left, R right) implements INestedPrintable<Pair<L, R>>
+ *  {
+ *      @Override public @NotNull String toString() { return toNestedString(); }
+ *
+ *      @Override public @NotNull @Unmodifiable Map<String, Function<Pair<L, R>, @Nullable Object>> getFields()
+ *      {
+ *          return INestedPrintable.buildFieldMap(
+ *              map ->
+ *              {
+ *                  map.put("left", Pair::left);
+ *                  map.put("right", Pair::right);
+ *              },
+ *              2// The quantity of this class's printable fields, optional param. 
+ *               // Specifying with correct quantity will be initialization slightly faster.
+ *          );
+ *      }
+ *  }
+ * }</pre>
  * @author Kurv Cygnus
  * @apiNote Due to Java's {@code interface} limitation, you have to overwrite <u>{@link Object#toString()}</u> with calling <u>{@link #toNestedString()}</u> by your own.
  * @see IAutoNestedPrintable
+ * @see #toNestedString(int) 
  * @see #buildFieldMap
  * <span style="color: f84b4b">MUST SEE:<br> </span><u>{@link #buildFieldMap(Consumer)}</u>, <u>{@link #buildFieldMap(Consumer, int)}</u>, <u>{@link #buildFieldMap(Pair[])}</u>
  * @since 1.0 Release
@@ -131,6 +151,25 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     
     @ApiStatus.NonExtendable default @NotNull String toNestedString() { return toNestedString(0); }
     
+    /**
+     * Alt method for printing. It is used for such a case:
+     * <pre>{@code
+     *  LOGGER.debug(
+     *      """
+     *      The statsis of this procession:
+     *          Id: {}
+     *          Stat: {}
+     *          Data:
+     *          {}
+     *      """,
+     *      id,
+     *      stat,
+     *      data.toNestedString(6)
+     *  );
+     * }</pre>
+     * Here, {@code data} is <u>{@link INestedPrintable}</u>'s implementer, its position is not started at the head of line, which will mess up the print result.<br>
+     * In that case, you can use this method.
+     */
     @ApiStatus.NonExtendable default @NotNull String toNestedString(@Range(from = 0, to = Integer.MAX_VALUE) int indent)
     {
         if(indent < 0)
@@ -181,7 +220,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             return;
         }
         
-        final String prefix = name.isEmpty() ? indent : "%s%s: ".formatted(indent, name);
+        final String prefix = name.isEmpty() ? indent : indent + name + ": ";
         
         switch(obj)
         {

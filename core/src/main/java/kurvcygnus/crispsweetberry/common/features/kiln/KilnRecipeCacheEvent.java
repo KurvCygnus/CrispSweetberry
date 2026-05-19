@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
@@ -48,7 +47,6 @@ import java.util.Objects;
 public final class KilnRecipeCacheEvent
 {
     private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
-        LogUtils.getLogger(),
         IMarkLogger.allowWhen(Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_EVENT_DEBUG)
     );
     

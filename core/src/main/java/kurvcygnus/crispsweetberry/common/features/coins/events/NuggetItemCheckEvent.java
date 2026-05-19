@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.coins.events;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
@@ -45,7 +44,7 @@ import java.util.function.Supplier;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class NuggetItemCheckEvent
 {
-    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "NUGGET_CHECK");
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("NUGGET_CHECK");
     
     public static Supplier<Item> copperNuggetSupplier = () -> Items.AIR;
     public static Supplier<Item> diamondNuggetSupplier = () -> Items.AIR;

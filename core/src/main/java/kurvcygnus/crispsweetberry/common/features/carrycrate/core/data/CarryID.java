@@ -71,7 +71,7 @@ public final class CarryID implements INestedPrintable<CarryID>
     > __$1NT3RNAL_R3ST0R3$__ =
         IVault.ofCustomMatch(
             CarryID::new,
-            new Pair<>(
+            Pair.of(
                 CarryEngine.INST,
                 Optional.empty()
             ),

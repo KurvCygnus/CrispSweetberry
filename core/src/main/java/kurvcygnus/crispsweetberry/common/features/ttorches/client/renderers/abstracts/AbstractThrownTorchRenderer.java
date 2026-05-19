@@ -164,19 +164,19 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         appendTextureName(path, entity, pair);
         
         if(hasStateVariation() && entity.getTier() == AbstractThrownTorchEntity.TIER_GONE)
-            path.append("_%s".formatted(getAltTextureName()));
+            path.append('_').append(getAltTextureName());
         
         if(hasAnimation())
         {
             final int index = entity.tickCount / getAnimationDurationTicks() % getTotalAnimationFrames() + TEXTURE_INDEX_CORRECTION_STD;
-            path.append("_%d".formatted(index));
+            path.append('_').append(index);
         }
         
         return DefinitionUtils.getModNamespacedLocation(path.append(TEXTURE_SUFFIX).toString());
     }
     
     protected void appendTextureName(@NotNull StringBuilder path, @NotNull T entity, @NotNull AbstractThrownTorchRenderer.FacingTuple pair)
-        { path.append("_%s_%s".formatted(pair.horizontalFacing().getAlias(), pair.verticalFacing().getAlias())); }
+        { path.append(pair.horizontalFacing().getAlias()).append(pair.verticalFacing().getAlias()); }
     
     /**
      * @deprecated This method can't support the demand of thrown torches' muti-direction sprites.<br>

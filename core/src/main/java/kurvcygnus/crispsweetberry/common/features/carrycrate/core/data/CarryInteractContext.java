@@ -14,7 +14,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
-import kurvcygnus.crispsweetberry.lib.base.lang.Maybe;
+import kurvcygnus.crispsweetberry.lib.base.lang.TriVariant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -71,7 +71,7 @@ public final class CarryInteractContext implements INestedPrintable<CarryInterac
     private final @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
     private final @NotNull Consumer<CarryID> listenerRemove;
     private final @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter;
-    private final @NotNull Maybe<BlockState, LivingEntity, BlockEntity> targets;
+    private final @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets;
     private final @NotNull ISealableBox<CarryID> carryID;
     private @Nullable InteractionResult result = null;
     
@@ -112,7 +112,7 @@ public final class CarryInteractContext implements INestedPrintable<CarryInterac
         this.listenerInsert = listenerInsert;
         this.listenerRemove = listenerRemove;
         this.placeContentGetter = placeContentGetter;
-        this.targets = Maybe.ofNullable(targetState, targetEntity, targetBlockEntity);
+        this.targets = TriVariant.ofNullable(targetState, targetEntity, targetBlockEntity);
         this.carryID = ISealableBox.ofNullable(carryID);
     }
     
@@ -217,10 +217,10 @@ public final class CarryInteractContext implements INestedPrintable<CarryInterac
     public @NotNull ServerPlayer player() { return player; }
     public @NotNull BlockPos interactPos() { return interactPos; }
     public @NotNull ItemStack carryCrate() { return carryCrate; }
-    public void insertListener(@NotNull CarryID carryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?> factory) { this.listenerInsert.accept(carryID, factory); }
+    public void insertListener(@NotNull CarryID carryID, @NotNull ICarryRegistryView.IBaseCarryAdapterFactory<?, ?> factory) { this.listenerInsert.accept(carryID, factory); }
     public void removeListener(@NotNull CarryID carryID) { this.listenerRemove.accept(carryID); }
     public @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter() { return placeContentGetter; }
-    public @NotNull Maybe<BlockState, LivingEntity, BlockEntity> targets() { return targets; }
+    public @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets() { return targets; }
     public @NotNull ISealableBox<CarryID> carryID() { return carryID; }
     public @Nullable InteractionResult result() { return result; }
     public @NotNull ISealableBox<TriState> listener() { return listener; }

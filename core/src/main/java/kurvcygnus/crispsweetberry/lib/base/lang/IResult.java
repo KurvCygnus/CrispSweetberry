@@ -195,7 +195,7 @@ final class FailureResult<T, E extends Throwable> implements IResult<T, E>
     
     @Override public int hashCode() { return Objects.hash(exception); }
     
-    @Override public @NotNull String toString() { return "Result -> exception: %s".formatted(exception); }
+    @Override public @NotNull String toString() { return "Result -> exception: " + exception; }
 }
 
 @ApiStatus.Internal
@@ -246,5 +246,5 @@ final class SuccessResult<T, E extends Throwable> implements IResult<T, E>
     
     @Override public int hashCode() { return Objects.hash(value); }
     
-    @Override public @NotNull String toString() { return "Result -> value: %s".formatted(value); }
+    @Override public @NotNull String toString() { return "Result -> value: " + value; }
 }

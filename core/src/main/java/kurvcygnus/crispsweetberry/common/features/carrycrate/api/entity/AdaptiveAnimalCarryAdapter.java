@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,7 +38,7 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
      */
     public static final double MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME = Math.pow(0.9D, 2) * 1.4D;
    
-    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "ANIMAL_CARRY");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("ANIMAL_CARRY");
     
     private final int penaltyRate;
     

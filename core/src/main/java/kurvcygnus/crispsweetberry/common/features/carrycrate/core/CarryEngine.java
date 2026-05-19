@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
@@ -114,7 +113,7 @@ public enum CarryEngine
     
     private static final ThreadLocal<Boolean> IS_INTERACTING_WITH_BE = ThreadLocal.withInitial(() -> false);
     
-    private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger(LogUtils.getLogger());
+    private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
     //endregion
     
     //region Initialization Data & Engine Persistent Lifecycle
@@ -131,7 +130,7 @@ public enum CarryEngine
         static final String UUID = "uuid";
         static final String ID = "id";
         static final String ENTRIES = "entries";
-        static final String DATA = "%s_persistent_carry_listeners".formatted(CrispSweetberry.NAMESPACE);
+        static final String DATA = DefinitionUtils.namespacedUnderscoreId("persistent_carry_listeners");
         
         private ListTag entries = null;
         
@@ -201,7 +200,7 @@ public enum CarryEngine
             final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer());
             handle.changeMarker("CARRY_DATA_RECOVER");
             
-            final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.apply(new Pair<>(INST, Optional.of(event))).orElseThrow();
+            final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.apply(Pair.of(INST, Optional.of(event))).orElseThrow();
             data.getEntries().ifPresent(
                 listTag ->
                 {

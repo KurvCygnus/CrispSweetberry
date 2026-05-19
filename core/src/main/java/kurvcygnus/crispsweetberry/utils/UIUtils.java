@@ -71,7 +71,7 @@ public final class UIUtils
         
         FunctionalUtils.throwIf(
             rows <= 0 || cols <= 0,
-            "Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: %d, cols: %d".formatted(rows, cols),
+            DefinitionUtils.quickFormat("Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: {}, cols: {}", rows, cols),
             IllegalArgumentException::new
         );
         

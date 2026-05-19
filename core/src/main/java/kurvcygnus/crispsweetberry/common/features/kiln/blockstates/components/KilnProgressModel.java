@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
@@ -36,7 +35,7 @@ public final class KilnProgressModel
     private KilnEnumCollections.VisualTrend trend;
     private boolean isIgnited;
     
-    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(LogUtils.getLogger(), "PROGRESS_MISMATCH");
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("PROGRESS_MISMATCH");
     
     public KilnProgressModel(@NotNull KilnBlockEntity blockEntity)
     {

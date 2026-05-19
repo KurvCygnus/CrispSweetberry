@@ -17,8 +17,10 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -38,6 +40,16 @@ public final class DefinitionUtils
     private static final Logger LOGGER = LogUtils.getLogger();
     
     /**
+     * Generates a formated <u>{@link String}</u>, with {@code {}} as placeholder.
+     * @apiNote It is mainly used for <u>{@link Throwable}</u>'s message initialization, and it is obviously faster than <u>{@link String#formatted(Object...)}</u>.
+     */
+    public static @NotNull String quickFormat(@NotNull String format, @Nullable Object @Nullable ... args)
+    {
+        requireNonNull(format, "Param \"format\" must not be null!");
+        return MessageFormatter.arrayFormat(format, args).getMessage();
+    }
+    
+    /**
      * Produces a <u>{@link ResourceLocation}</u>, with <b>{@code crispsweetberry}</b> as its namespace.
      */
     @Contract("_ -> new") public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation) 
@@ -46,11 +58,27 @@ public final class DefinitionUtils
         return ResourceLocation.fromNamespaceAndPath(CrispSweetberry.NAMESPACE, assetLocation);
     }
     
+    public static @NotNull String namespacedDotId(@NotNull String suffix)
+    {
+        requireNonNull(suffix, "Param \"suffix\" must not be null!");
+        return quickFormat("{}.{}", CrispSweetberry.NAMESPACE, suffix);
+    }
+    
+    public static @NotNull String namespacedUnderscoreId(@NotNull String suffix)
+    {
+        requireNonNull(suffix, "Param \"suffix\" must not be null!");
+        return quickFormat("{}_{}", CrispSweetberry.NAMESPACE, suffix);
+    }
+    
     /**
      * Creates a <b>Identity Name</b> for a persistent custom <u>{@link CompoundTag}</u> data, with <b>{@code crispsweetberry}</b> as its namespace,
      * <b>{@code persistent_tags}</b> as its category scope.
      */
-    public static @NotNull String createPersistentTag(@NotNull String tagName) { return "%s.persistent_tags.%s".formatted(CrispSweetberry.NAMESPACE, tagName); }
+    public static @NotNull String createPersistentTag(@NotNull String tagName)
+    {
+        requireNonNull(tagName, "Param \"tagName\" must not be null!");
+        return quickFormat("{}.{}", namespacedDotId("persistent_tags"), tagName);
+    }
     
     /**
      * Unwarps a <u>{@link Component}</u>, and returns its text.
@@ -84,7 +112,7 @@ public final class DefinitionUtils
         
         for(final E enumConstant: enumClass.getEnumConstants())
             if(!enumMap.containsKey(enumConstant))
-                throw new IllegalStateException("Enum constant \"%s\" does not own a corresponded value!".formatted(enumConstant));
+                throw new IllegalStateException(quickFormat("Enum constant \"{}\" does not own a corresponded value!", enumConstant));
         
         return Collections.unmodifiableMap(enumMap);
     }

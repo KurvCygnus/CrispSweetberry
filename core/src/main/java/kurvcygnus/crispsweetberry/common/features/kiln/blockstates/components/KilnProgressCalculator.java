@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
@@ -66,7 +65,6 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     private boolean hasWarnedAbnormalFactor = false;
     
     private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
-        LogUtils.getLogger(),
         IMarkLogger.allowWhen(Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_CAL_DEBUG)
     );
     
@@ -127,7 +125,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                     "Multiply",
                 currentProcessFactor,
                 canUseAverageReward ?
-                    ", non-empty recipes: %d".formatted(nonEmptyCount) :
+                    ", non-empty recipes: " + nonEmptyCount :
                     ""
             );
         }

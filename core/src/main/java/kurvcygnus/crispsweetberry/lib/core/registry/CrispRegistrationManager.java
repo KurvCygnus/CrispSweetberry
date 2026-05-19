@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
-import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
@@ -20,6 +19,7 @@ import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -41,7 +41,7 @@ import java.util.function.BiConsumer;
     
     private static @Nullable CrispRegistrationManager INSTANCE = new CrispRegistrationManager();
     
-    private final IMarkLogger logger = IMarkLogger.withMarkerSuffixes(LogUtils.getLogger(), "REGISTRY_MANAGER");
+    private final IMarkLogger logger = IMarkLogger.withMarkerSuffixes("REGISTRY_MANAGER");
     private final Set<ModContainer> visited = Collections.newSetFromMap(new IdentityHashMap<>());
     
     private CrispRegistrationManager() { if(!ACCESS.orThrow()) throw new AssertionError("No, you can't create a new instance of this!"); }
@@ -87,7 +87,9 @@ import java.util.function.BiConsumer;
                         logger.error("Failed to instantiate registry: {}", data.clazz().getClassName(), e);
                         return null;
                     }
-                    throw new IllegalStateException("Class \"%s\" has violated the contract: It is not a singleton enum.".formatted(data.clazz().getClassName()));
+                    throw new IllegalStateException(
+                        MessageFormatter.format("Class \"{}\" has violated the contract: It is not a singleton enum.", data.clazz().getClassName()).getMessage()
+                    );
                 }
             ).
             filter(Objects::nonNull).
