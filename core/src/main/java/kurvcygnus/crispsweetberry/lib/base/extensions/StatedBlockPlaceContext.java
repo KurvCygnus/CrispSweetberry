@@ -39,6 +39,20 @@ import java.util.function.Function;
  */
 public final class StatedBlockPlaceContext extends BlockPlaceContext implements INestedPrintable<StatedBlockPlaceContext>
 {
+    private static final @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+        map ->
+        {
+            map.put("player", StatedBlockPlaceContext::getPlayer);
+            map.put("hand", StatedBlockPlaceContext::getHand);
+            map.put("hitResult", StatedBlockPlaceContext::getHitResult);
+            map.put("level", StatedBlockPlaceContext::getLevel);
+            map.put("interactItem", StatedBlockPlaceContext::getItemInHand);
+            map.put("clickedPos", StatedBlockPlaceContext::getClickedPos);
+            map.put("placeState", statedBlockPlaceContext -> statedBlockPlaceContext.placeState);
+        },
+        7
+    );
+    
     private final BlockState placeState;
     
     public StatedBlockPlaceContext(@NotNull UseOnContext context, BlockState placeState)
@@ -99,22 +113,7 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext implements 
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> getFields()
-    {
-        return INestedPrintable.buildFieldMap(
-            map ->
-            {
-                map.put("player", StatedBlockPlaceContext::getPlayer);
-                map.put("hand", StatedBlockPlaceContext::getHand);
-                map.put("hitResult", StatedBlockPlaceContext::getHitResult);
-                map.put("level", StatedBlockPlaceContext::getLevel);
-                map.put("interactItem", StatedBlockPlaceContext::getItemInHand);
-                map.put("clickedPos", StatedBlockPlaceContext::getClickedPos);
-                map.put("placeState", statedBlockPlaceContext -> statedBlockPlaceContext.placeState);
-            },
-            7
-        );
-    }
+    @Override public @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> getFields() { return FIELD_MAP; }
     
     @Override public boolean takeNullFieldAsOptional() { return true; }
 }

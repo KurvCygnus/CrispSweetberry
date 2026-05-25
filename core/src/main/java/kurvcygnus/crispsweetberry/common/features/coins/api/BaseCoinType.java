@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.coins.api;
 
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -36,7 +37,7 @@ import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<C>, INestedPrintable<BaseCoinType<C>>
+public abstract class BaseCoinType<C extends ICoinType<C>> extends BaseNestedPrinter<BaseCoinType<C>> implements ICoinType<C>
 {
     private final @NotNull String namespace;
     protected final @NotNull String id;
@@ -107,8 +108,6 @@ public abstract class BaseCoinType<C extends ICoinType<C>> implements ICoinType<
     @Override public float getStrength() { return this.strength; }
     
     @Override public boolean shouldAppear() { return this.enableCondition.test(this.nuggetSupplier); }
-    
-    @Override public @NotNull String toString() { return toNestedString(); }
     
     @Override public @NotNull @Unmodifiable Map<String, Function<BaseCoinType<C>, @Nullable Object>> getFields()
     {

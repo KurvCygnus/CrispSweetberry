@@ -22,10 +22,12 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.events.CarryCrateCopyProcessor;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
-import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
+import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.core.HolderLookup;
@@ -52,6 +54,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,12 +62,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData.CarryBlockEntityDataHolder;
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.*;
 
-//? TODO: Take Middle Click Copy into account, that shit breaks the uniqueness of [[CarryID]].
 //? FIX: Somehow, when capturing entity with one carryCrate, component persistent won't work.
 //? According to debugging, this bug doesn't happen before the end of [[CarryCrateItem#interactLivingEntity]]. SHIT, Minecraft's code is awesome.
 //? FIX: BlockEntity's Placement is now working fine, but serialization needs to get fixed, currently it doesn't work.
@@ -111,6 +112,16 @@ public enum CarryEngine
             }
         );
     
+    @ApiStatus.Internal public static final IVault<ITriConsumer<CarryType, CarryID, CarryID>, Optional<?>> INSERT_ACCESS = IVault.ofAccessLimited(
+        (type, original, newID) ->
+        {
+            @SuppressWarnings("unchecked")//! Safe Casting. Internal Map Mutation is always legal.
+            final var subLookup = (Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(type);
+            subLookup.put(newID, subLookup.get(original));
+        },
+        CarryCrateCopyProcessor.class
+    );
+    
     private static final ThreadLocal<Boolean> IS_INTERACTING_WITH_BE = ThreadLocal.withInitial(() -> false);
     
     private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
@@ -134,23 +145,27 @@ public enum CarryEngine
         
         private ListTag entries = null;
         
+        private CarryListenerSaveData() {}
+        
+        private static @NotNull CarryListenerSaveData create() { return new CarryListenerSaveData(); }
+        
         @Override public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
         {
             try(final var ignored = LOGGER.pushMarker("PERSISTENT"))
             {
                 final ListTag entryList = new ListTag();
                 
-                final BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> insertToData =
-                    (id, $) ->
-                    {
-                        final CompoundTag entry = new CompoundTag();
-                        entry.putString(ID, id.id());
-                        entry.putString(UUID, id.uuid());
-                        entryList.add(entry);
-                        LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid(), id.id());
-                    };
-                
-                LISTENER_LOOKUP.values().forEach(map -> map.forEach(insertToData));
+                for(final var lookup: LISTENER_LOOKUP.values())
+                    lookup.forEach(
+                        (id, $) ->
+                        {
+                            final CompoundTag entry = new CompoundTag();
+                            entry.putString(ID, id.id());
+                            entry.putString(UUID, id.uuid());
+                            entryList.add(entry);
+                            LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid(), id.id());
+                        }
+                    );
                 
                 tag.put(ENTRIES, entryList);
             }
@@ -165,7 +180,7 @@ public enum CarryEngine
             final DimensionDataStorage storage = server.overworld().getDataStorage();
             
             final SavedData.Factory<CarryListenerSaveData> factory = new Factory<>(
-                CarryListenerSaveData::new,
+                CarryListenerSaveData::create,
                 CarryListenerSaveData::load
             );
             
@@ -174,7 +189,7 @@ public enum CarryEngine
         
         private static @NotNull CarryListenerSaveData load(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
         {
-            final CarryListenerSaveData data = new CarryListenerSaveData();
+            final CarryListenerSaveData data = CarryListenerSaveData.create();
             data.entries = tag.getList(ENTRIES, 10);
             
             return data;
@@ -191,16 +206,14 @@ public enum CarryEngine
     {
         try(final var handle = LOGGER.pushMarker("CARRY_INIT"))
         {
-            LOGGER.debug("Cleaning listeners' cache...");
             BLOCK_ENTITY_CARRY_LISTENERS.clear();
             BLOCK_CARRY_LISTENERS.clear();
             ENTITY_CARRY_LISTENERS.clear();
-            LOGGER.debug("Clean completed.");
             
             final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer());
             handle.changeMarker("CARRY_DATA_RECOVER");
             
-            final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.apply(Pair.of(INST, Optional.of(event))).orElseThrow();
+            final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.tryGet(Optional.of(event));
             data.getEntries().ifPresent(
                 listTag ->
                 {
@@ -230,11 +243,11 @@ public enum CarryEngine
                                 LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType().name(), fullID);
                             }
                         );
+                    
+                    handle.changeMarker("CARRY_ENGINE_STARTED");
+                    LOGGER.debug("Listeners recovered. Carry engine, start!");
                 }
             );
-            
-            handle.changeMarker("CARRY_ENGINE_STARTED");
-            LOGGER.debug("Listeners recovered. Carry engine, start!");
         }
     }
     //endregion
@@ -327,8 +340,8 @@ public enum CarryEngine
             
             final var level = context.getLevel();
             final var interactPos = context.getInteractPos();
-            final Optional<Player> optionalPlayer = context.getPlayer();
-            final ItemStack carryCrate = context.getCarryCrate();
+            final var optionalPlayer = context.getPlayer();
+            final var carryCrate = context.getCarryCrate();
             final @Nullable var carryData = context.getCarryData();
             
             if(!level.isClientSide)
@@ -340,7 +353,7 @@ public enum CarryEngine
             
             final @Nullable CarryType action = switch(context)
             {
-                case CarryBlocklikeInteractContext(UseOnContext ctx) ->
+                case CarryBlocklikeInteractContext ctx ->
                 {
                     if(optionalPlayer.isEmpty() || level.getBlockState(interactPos).is(Blocks.VOID_AIR))
                     {
@@ -359,7 +372,7 @@ public enum CarryEngine
                         yield null;
                     }
                     
-                    useOnContext = ctx;
+                    useOnContext = ctx.context();
                     
                     yield switch(carryData)
                     {
@@ -439,11 +452,11 @@ public enum CarryEngine
                 return InteractionResult.SUCCESS_NO_ITEM_USED;//! Using SUCCESS, or [[InteractionResult#sidedSuccess]] may lead to [[ItemStack#shrink]].
             }
             
-            final ServerLevel serverLevel = (ServerLevel) level;
-            final ServerPlayer serverPlayer = (ServerPlayer) optionalPlayer.get();
+            final var serverLevel = (ServerLevel) level;
+            final var serverPlayer = (ServerPlayer) optionalPlayer.get();
             
             handle.changeMarker("CARRY_ID_QUERY");
-            final @Nullable CarryID carryID = context.getCarryID();
+            final @Nullable var carryID = context.getCarryID();
             LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
             
             final @Nullable var interactResult = CarryOperationExecutor.INST.handle(

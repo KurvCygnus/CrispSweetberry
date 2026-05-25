@@ -8,10 +8,12 @@
 
 package kurvcygnus.crispsweetberry.lib.base.functions;
 
+import java.io.Serializable;
+
 /**
  * A specialized <u>{@link java.util.function.Function Function}</u> for primitive type {@code byte}.
  * @author Kurv Cygnus
  * @see ToByteBiFunction
  * @since 1.0 Release
  */
-@FunctionalInterface public interface ToByteFunction<T> { byte applyAsByte(T value); }
+@FunctionalInterface public interface ToByteFunction<T> extends Serializable { byte applyAsByte(T value); }

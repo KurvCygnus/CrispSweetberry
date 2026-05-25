@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.functions.*;
 import org.jetbrains.annotations.Contract;
@@ -26,7 +27,7 @@ import java.util.function.*;
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-public final class Pair<L, R> implements Map.Entry<L, R>, INestedPrintable<Pair<L, R>>
+public final class Pair<L, R> extends BaseNestedPrinter<Pair<L, R>> implements Map.Entry<L, R>
 {
     private final @NotNull L left;
     private final @NotNull R right;
@@ -244,8 +245,6 @@ public final class Pair<L, R> implements Map.Entry<L, R>, INestedPrintable<Pair<
     
     @Contract(value = "_ -> fail", pure = true) @Override public R setValue(@Nullable R value)
         { throw new UnsupportedOperationException("This is an immutable Class. Value mutation is not allowed!"); }
-    
-    @Override public @NotNull String toString() { return toNestedString(); }
     
     @Override public @NotNull @Unmodifiable Map<String, Function<Pair<L, R>, @Nullable Object>> getFields()
         { return INestedPrintable.buildFieldMap(Pair.of("left", Pair::left), Pair.of("right", Pair::right)); }

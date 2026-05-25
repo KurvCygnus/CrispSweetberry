@@ -8,9 +8,12 @@
 
 package kurvcygnus.crispsweetberry.lib.base.exceptions;
 
+import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 public class StructuredException extends RuntimeException implements IStructuredThrowable
 {
@@ -19,22 +22,25 @@ public class StructuredException extends RuntimeException implements IStructured
     
     public StructuredException(@NotNull Throwable wrappedException, @NotNull String type)
     {
-        super(buildMessage(wrappedException));
+        super(MessageFormatter.format("<{}> {}", checkEx(wrappedException), checkType(type)).getMessage(), wrappedException);
         
         this.wrappedException = wrappedException;
         this.type = checkType(type);
     }
     
+    public static <T> @NotNull IResult<T, StructuredException> failedResult(@NotNull Throwable wrappedException, @NotNull String type)
+        { return IResult.ofFailed(new StructuredException(wrappedException, type)); }
+    
+    public static <T> @NotNull IResult<T, StructuredException> failedResult(@NotNull String message, @NotNull Function<String, Throwable> exceptionFactory, @NotNull String type)
+    {
+        Objects.requireNonNull(message, "Param \"message\" must not be null!");
+        Objects.requireNonNull(exceptionFactory, "Param \"exceptionFactory\" must not be null!");
+        return IResult.ofFailed(new StructuredException(exceptionFactory.apply(message), type));
+    }
+    
     @Override public @NotNull Throwable wrappedException() { return wrappedException; }
     
     @Override public @NotNull String type() { return type; }
-    
-    private static @NotNull String buildMessage(@NotNull Throwable wrappedException)
-    {
-        final var stringBuilder = new StringBuilder("<").append(checkEx(wrappedException).getClass().getSimpleName()).append("> ");
-        stringBuilder.append(wrappedException.getMessage());
-        return stringBuilder.toString();
-    }
     
     private static @NotNull Throwable checkEx(@NotNull Throwable wrappedException)
     {

@@ -33,15 +33,17 @@ import java.util.function.Function;
  *                  map.put("left", Pair::left);
  *                  map.put("right", Pair::right);
  *              },
- *              2// The quantity of this class's printable fields, optional param. 
- *               // Specifying with correct quantity will be initialization slightly faster.
+ *              2// The quantity of this class's printable fields, optional param.
+ *               // Specifying with correct quantity will make initialization slightly faster.
  *          );
  *      }
  *  }
  * }</pre>
  * @author Kurv Cygnus
  * @apiNote Due to Java's {@code interface} limitation, you have to overwrite <u>{@link Object#toString()}</u> with calling <u>{@link #toNestedString()}</u> by your own.
+ * <b>Or, if your class is a regular class and haven't inherit something, you can {@code extends} <u>{@link BaseNestedPrinter}</u>.</b>
  * @see IAutoNestedPrintable
+ * @see BaseNestedPrinter
  * @see #toNestedString(int) 
  * @see #buildFieldMap
  * <span style="color: f84b4b">MUST SEE:<br> </span><u>{@link #buildFieldMap(Consumer)}</u>, <u>{@link #buildFieldMap(Consumer, int)}</u>, <u>{@link #buildFieldMap(Pair[])}</u>
@@ -51,7 +53,27 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
 {
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
-     * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.
+     * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.<br>
+     * Also, <b>it is recommended to make the return value of this method as a constant. Since <u>{@link #getFields()}</u> is NOT a {@code static method},
+     * <span style="color: f84b4b">it is dangerous and easy to leak the instance state in the map, polluting the <u>{@link #toNestedString() toString()}</u> result.</span></b>
+     * <br><br>
+     * Example: <pre>{@code
+     *  @Override public @NotNull @Unmodifiable Map<String, Function<Foo<T>, @Nullable Object>> getFields()
+     *  {
+     *      return INestedPrintable.buildFieldMap(
+     *          map ->
+     *          {
+     *              map.put("value", that -> that.current().value);
+     *              map.put("state", that -> that.getStateName(state));
+     *              // Oh no! `this.state` get leaked!
+     *              // Now state has been bound to a unique instance,
+     *              // making it unable to display the field correctly,
+     *              // and hard to get recycled.
+     *          }
+     *      );
+     *  }
+     * }</pre>
+     * <i>This won't happen in a constant.</i>
      */
     static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
         @NotNull Consumer<Map<String, Function<T, @Nullable Object>>> consumer
@@ -60,12 +82,37 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
         final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>();
         consumer.accept(map);
+        
+        if(map.isEmpty())
+            throw new IllegalArgumentException("Param \"consumer\" doesn't insert any element into the map, this is invalid!");
+        
         return Collections.unmodifiableMap(map);
     }
     
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
-     * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.
+     * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.<br>
+     * Also, <b>it is recommended to make the return value of this method as a constant. Since <u>{@link #getFields()}</u> is NOT a {@code static method},
+     * <span style="color: f84b4b">it is dangerous and easy to leak the instance state in the map, polluting the <u>{@link #toNestedString() toString()}</u> result.</span></b>
+     * <br>
+     * Example: <pre>{@code
+     *  @Override public @NotNull @Unmodifiable Map<String, Function<Foo<T>, @Nullable Object>> getFields()
+     *  {
+     *      return INestedPrintable.buildFieldMap(
+     *          map ->
+     *          {
+     *              map.put("value", that -> that.current().value);
+     *              map.put("state", that -> that.getStateName(state));
+     *              // Oh no! `this.state` get leaked!
+     *              // Now state has been bound to a unique instance,
+     *              // making it unable to display the field correctly,
+     *              // and hard to get recycled.
+     *          },
+     *          2
+     *      );
+     *  }
+     * }</pre>
+     * <i>This won't happen in a constant.</i>
      */
     static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
         @NotNull Consumer<Map<String, Function<T, @Nullable Object>>> consumer,
@@ -75,6 +122,10 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
         final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>(allocSize, 1F);
         consumer.accept(map);
+        
+        if(map.isEmpty())
+            throw new IllegalArgumentException("Param \"consumer\" doesn't insert any element into the map, this is invalid!");
+        
         return Collections.unmodifiableMap(map);
     }
     
@@ -84,6 +135,9 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * Also, this method uses <u>{@link Pair}</u>, it makes writing boilerplate faster,
      * but reminds that <b>Java's generic deduction often fails at such a usage. You have to specify the type of pair at some situations,
      * however, method reference will always work fine in this method, which lambda CAN'T.</b>
+     * <hr>
+     * Also, <b>it is recommended to make the return value of this method as a constant. Since <u>{@link #getFields()}</u> is NOT a {@code static method},
+     * <span style="color: f84b4b">it is dangerous and easy to leak the instance state in the map, polluting the <u>{@link #toNestedString() toString()}</u> result.</span></b>
      */
     @SafeVarargs static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
         @NotNull Pair<String, Function<T, @Nullable Object>> @NotNull ... pairs
@@ -159,8 +213,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      *      The statsis of this procession:
      *          Id: {}
      *          Stat: {}
-     *          Data:
-     *          {}
+     *          Data: {}
      *      """,
      *      id,
      *      stat,
@@ -185,7 +238,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     {
         final String indentString = " ".repeat(currentIndent);
         
-        stringBuilder.append(this.getClass().getSimpleName()).append(indentString);
+        stringBuilder.append(this.getClass().getSimpleName()).append('\n').append(indentString).append("{\n");
         
         final int nextIndent = currentIndent + getIndent();
         final String fieldIndent = " ".repeat(nextIndent);
@@ -535,7 +588,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         @NotNull String indent,
         @NotNull String name,
         @NotNull String value
-    ) { stringBuilder.append(indent).append(name).append(": ").append(value).append("\n"); }
+    ) { stringBuilder.append(indent).append(name).append(": ").append(value).append('\n'); }
 }
 
 /**
@@ -546,4 +599,4 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
  * {@code public} constants, so we use {@code package-private} <u>{@link Enum}</u> to store cache instead,
  * which can deny unexpected access(both directly, and on reflect aspect).
  */
-enum Cacher { INST; static final Map<Class<?>, Map<String, Function<Object, @Nullable Object>>> CACHE = new ConcurrentHashMap<>(); }
+@ApiStatus.Internal enum Cacher { INST; static final Map<Class<?>, Map<String, Function<Object, @Nullable Object>>> CACHE = new ConcurrentHashMap<>(); }

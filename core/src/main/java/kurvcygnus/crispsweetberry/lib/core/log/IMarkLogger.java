@@ -8,8 +8,10 @@
 
 package kurvcygnus.crispsweetberry.lib.core.log;
 
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -21,7 +23,6 @@ import org.slf4j.event.Level;
 
 import java.util.ArrayDeque;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.*;
 
 import static java.util.Objects.requireNonNull;
@@ -31,7 +32,9 @@ import static org.slf4j.event.Level.*;
  * This is a simple wrapper for SLF4J's <u>{@link Logger}</u>. It reduces the verbosity of passing <u>{@link Marker}</u> to log functions.
  * @author Kurv Cygnus
  * @apiNote We recommend using {@code SCREAMING_SNAKE_CASE} for <u>{@link Marker}</u>, because it is more attractive, and easy to search.<br>
- * <b>This logger uses <u>{@link ThreadLocal}</u>. Do not leak <u>{@link IMarkerHandle IMarkerHandle}</u> across async boundaries</b>.
+ * <b>This logger uses <u>{@link ThreadLocal}</u>. Do not leak <u>{@link IMarkerHandle IMarkerHandle}</u> across async boundaries</b>.<br>
+ * <i>(However, in async, you can solve this with passing <u>{@link Marker}</u> into logging methods manually to override {@code IMarkLogger}'s mechanic,
+ * which solves basic problems, you can see <u>{@link #info(Marker, String)}</u> as an example)</i>
  * @since 1.0 Release
  */
 public sealed interface IMarkLogger extends Logger
@@ -204,6 +207,7 @@ public sealed interface IMarkLogger extends Logger
          *      LOGGER.info("42");
          *  }
          * }</pre>
+         * @see #pushMarker(Marker)
          */
         void changeMarker(@NotNull Marker marker);
         
@@ -225,6 +229,7 @@ public sealed interface IMarkLogger extends Logger
          *      LOGGER.info("42");
          *  }
          * }</pre>
+         * @see #pushMarker(String)
          */
         void changeMarker(@NotNull String mark);
         
@@ -233,12 +238,15 @@ public sealed interface IMarkLogger extends Logger
          * @apiNote This method is idempotent. Calling it multiple times will not pop more than one marker.
          * <b>Failure to close this handle (especially in async or pooled thread environments) will lead to
          * <i>Marker Pollution</i></b>.
+         * @deprecated It is no longer recommended to {@code #close} the resource manually. Use
+         * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>
+         * instead.
          */
-        @Override void close();
+        @Override @Deprecated @ApiStatus.Obsolete void close();
     }
     
     /**
-     * Print a <u>{@link Object}</u> at TRACE level.
+     * Prints a <u>{@link Object}</u> at TRACE level.
      * @deprecated This is not deprecated, but it is marked because this is only used for quick debugging, the standard log info should not be such short, and indescriptive.
      */
     @Deprecated default void trace(Object object) { this.trace("{}", object); }
@@ -264,7 +272,7 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void trace(String msg);
+    @Override void trace(String message);
     
     /**
      * {@inheritDoc}
@@ -289,14 +297,14 @@ public sealed interface IMarkLogger extends Logger
      *
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void trace(String msg, Throwable t);
+    @Override void trace(String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void trace(Marker marker, String msg);
+    @Override void trace(Marker marker, String message);
     
     /**
      * {@inheritDoc}
@@ -324,7 +332,7 @@ public sealed interface IMarkLogger extends Logger
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void trace(Marker marker, String msg, Throwable t);
+    @Override void trace(Marker marker, String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
@@ -339,17 +347,16 @@ public sealed interface IMarkLogger extends Logger
     @Override boolean isDebugEnabled(Marker marker);
     
     /**
-     * Print a <u>{@link Object}</u> at TRACE level.
+     * Prints a <u>{@link Object}</u> at TRACE level.
      * @deprecated This is not deprecated, but it is marked because this is only used for quick debugging, the standard log info should not be such short, and indescriptive.
      */
     @Deprecated default void debug(Object object) { this.debug("{}", object); }
     
     /**
      * {@inheritDoc}
-     *
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void debug(String msg);
+    @Override void debug(String message);
     
     /**
      * {@inheritDoc}
@@ -373,14 +380,14 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void debug(String msg, Throwable t);
+    @Override void debug(String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void debug(Marker marker, String msg);
+    @Override void debug(Marker marker, String message);
     
     /**
      * {@inheritDoc}
@@ -408,7 +415,7 @@ public sealed interface IMarkLogger extends Logger
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void debug(Marker marker, String msg, Throwable t);
+    @Override void debug(Marker marker, String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
@@ -423,7 +430,7 @@ public sealed interface IMarkLogger extends Logger
     @Override boolean isInfoEnabled(Marker marker);
     
     /**
-     * Print a <u>{@link Object}</u> at TRACE level.
+     * Prints a <u>{@link Object}</u> at TRACE level.
      * @deprecated This is not deprecated, but it is marked because this is only used for quick debugging, the standard log info should not be such short, and indescriptive.
      */
     @Deprecated default void info(Object object) { this.info("{}", object); }
@@ -432,7 +439,7 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void info(String msg);
+    @Override void info(String message);
     
     /**
      * {@inheritDoc}
@@ -456,14 +463,14 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void info(String msg, Throwable t);
+    @Override void info(String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void info(Marker marker, String msg);
+    @Override void info(Marker marker, String message);
     
     /**
      * {@inheritDoc}
@@ -491,7 +498,7 @@ public sealed interface IMarkLogger extends Logger
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void info(Marker marker, String msg, Throwable t);
+    @Override void info(Marker marker, String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
@@ -506,7 +513,7 @@ public sealed interface IMarkLogger extends Logger
     @Override boolean isWarnEnabled(Marker marker);
     
     /**
-     * Print a <u>{@link Object}</u> at TRACE level.
+     * Prints a <u>{@link Object}</u> at TRACE level.
      * @deprecated This is not deprecated, but it is marked because this is only used for quick debugging, the standard log info should not be such short, and indescriptive.
      */
     @Deprecated default void warn(Object object) { this.warn("{}", object); }
@@ -515,7 +522,7 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void warn(String msg);
+    @Override void warn(String message);
     
     /**
      * {@inheritDoc}
@@ -539,7 +546,7 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void warn(String msg, Throwable t);
+    @Override void warn(String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
@@ -574,7 +581,7 @@ public sealed interface IMarkLogger extends Logger
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void warn(Marker marker, String msg, Throwable t);
+    @Override void warn(Marker marker, String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
@@ -589,7 +596,7 @@ public sealed interface IMarkLogger extends Logger
     @Override boolean isErrorEnabled(Marker marker);
     
     /**
-     * Print a <u>{@link Object}</u> at TRACE level.
+     * Prints a <u>{@link Object}</u> at TRACE level.
      * @deprecated This is not deprecated, but it is marked because this is only used for quick debugging, the standard log info should not be such short, and indescriptive.
      */
     @Deprecated default void error(Object object) { this.error("{}", object); }
@@ -598,7 +605,7 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void error(String msg);
+    @Override void error(String message);
     
     /**
      * {@inheritDoc}
@@ -622,14 +629,14 @@ public sealed interface IMarkLogger extends Logger
      * {@inheritDoc}
      * @apiNote <span style="color: 95cc6d">This log method will take <u>{@link MarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void error(String msg, Throwable t);
+    @Override void error(String message, Throwable throwable);
     
     /**
      * {@inheritDoc}
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void error(Marker marker, String msg);
+    @Override void error(Marker marker, String message);
     
     /**
      * {@inheritDoc}
@@ -657,13 +664,13 @@ public sealed interface IMarkLogger extends Logger
      * @apiNote <span style="color: f84b4b">This log method won't be overridden by
      * <u>{@link IMarkLogger}</u>'s <u>{@link Marker}</u> usage rule.</span>
      */
-    @Override void error(Marker marker, String msg, Throwable t);
+    @Override void error(Marker marker, String message, Throwable throwable);
     
     @NotNull String toString();
     
     enum ConditionSituation
     {
-        EQUAL(Objects::equals),
+        EQUAL((fieldLevel, argLevel) -> fieldLevel == argLevel),
         HIGHER((fieldLevel, argLevel) -> fieldLevel.toInt() >= argLevel.toInt()),
         LOWER((fieldLevel, argLevel) -> fieldLevel.toInt() <= argLevel.toInt());
         
@@ -673,7 +680,7 @@ public sealed interface IMarkLogger extends Logger
     }
 }
 
-final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
+final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLogger
 {
     //  region Fields & Constants
     /**
@@ -722,6 +729,23 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     private static final @NotNull Predicate<Level> TRUE = ignored -> true;
     static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    
+    private static final Map<String, Function<MarkLogger, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+        map ->
+        {
+            map.put("name", ml -> ml.logger.getName());
+            map.put("defaultMarkerName", ml -> ml.getNameSafely(ml.getMarker()));
+            map.put("warnMarkerName", ml -> ml.getNameSafely(ml.getWarnMarker()));
+            map.put("errorMarkerName", ml -> ml.getNameSafely(ml.getErrorMarker()));
+            map.put("markerStacks", ml -> ml.mutableMarker.get() != null ? ml.mutableMarker.get().toString() : "N/A");
+            map.put("traceAccess", ml -> ml.condition.test(TRACE));
+            map.put("debugAccess", ml -> ml.condition.test(DEBUG));
+            map.put("infoAccess", ml -> ml.condition.test(INFO));
+            map.put("warnAccess", ml -> ml.condition.test(WARN));
+            map.put("errorAccess", ml -> ml.condition.test(ERROR));
+        },
+        10
+    );
     //endregion
     
     //  region Constructor & Static Factories
@@ -869,8 +893,9 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
         
         /**
          * {@inheritDoc}
+         * @deprecated See <u>{@link IMarkerHandle#close()}</u>.
          */
-        @Override public void close()
+        @SuppressWarnings("deprecated") @Deprecated @Override public void close()
         {
             if(closed)
                 return;
@@ -1054,27 +1079,7 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
         return l -> reverse == situation.condition.test(l, level) || extra.getAsBoolean();
     }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<MarkLogger, @Nullable Object>> getFields()
-    {
-        return INestedPrintable.buildFieldMap(
-            map ->
-            {
-                map.put("name", ml -> ml.logger.getName());
-                map.put("defaultMarkerName", ml -> ml.getNameSafely(getMarker()));
-                map.put("warnMarkerName", ml -> ml.getNameSafely(getWarnMarker()));
-                map.put("errorMarkerName", ml -> ml.getNameSafely(getErrorMarker()));
-                map.put("markerStacks", ml -> ml.mutableMarker.get() != null ? mutableMarker.get().toString() : "N/A");
-                map.put("traceAccess", ml -> ml.condition.test(TRACE));
-                map.put("debugAccess", ml -> ml.condition.test(DEBUG));
-                map.put("infoAccess", ml -> ml.condition.test(INFO));
-                map.put("warnAccess", ml -> ml.condition.test(WARN));
-                map.put("errorAccess", ml -> ml.condition.test(ERROR));
-            },
-            10
-        );
-    }
-    
-    @Override public @NotNull String toString() { return toNestedString(); }
+    @Override public @NotNull @Unmodifiable Map<String, Function<MarkLogger, @Nullable Object>> getFields() { return FIELD_MAP; }
     
     private @NotNull String getNameSafely(@Nullable Marker marker) { return marker == null ? "N/A" : marker.getName(); }
     //endregion
@@ -1090,7 +1095,7 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public boolean isTraceEnabled(Marker marker) { return condition.test(TRACE) && logger.isTraceEnabled(marker); }
     
-    @Override public void trace(Marker marker, String msg) { this.print(logger::trace, TRACE, marker, msg); }
+    @Override public void trace(Marker marker, String message) { this.print(logger::trace, TRACE, marker, message); }
     
     @Override public void trace(Marker marker, String format, Object arg) { this.print(logger::trace, TRACE, marker, format, arg); }
     
@@ -1098,7 +1103,7 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public void trace(Marker marker, String format, Object... argArray) { this.print(logger::trace, TRACE, marker, format, argArray); }
     
-    @Override public void trace(Marker marker, String msg, Throwable t) { this.print(logger::trace, TRACE, marker, msg, t); }
+    @Override public void trace(Marker marker, String message, Throwable throwable) { this.print(logger::trace, TRACE, marker, message, throwable); }
     
     @Override public boolean isDebugEnabled() { return condition.test(DEBUG) && logger.isDebugEnabled(); }
     
@@ -1108,7 +1113,7 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public boolean isDebugEnabled(Marker marker) { return condition.test(DEBUG) && logger.isDebugEnabled(marker); }
     
-    @Override public void debug(Marker marker, String msg) { this.print(logger::debug, DEBUG, marker, msg); }
+    @Override public void debug(Marker marker, String message) { this.print(logger::debug, DEBUG, marker, message); }
     
     @Override public void debug(Marker marker, String format, Object arg) { this.print(logger::debug, DEBUG, marker, format, arg); }
     
@@ -1116,7 +1121,7 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public void debug(Marker marker, String format, Object... arguments) { this.print(logger::debug, DEBUG, marker, format, arguments); }
     
-    @Override public void debug(Marker marker, String msg, Throwable t) { this.print(logger::debug, DEBUG, marker, msg, t); }
+    @Override public void debug(Marker marker, String message, Throwable throwable) { this.print(logger::debug, DEBUG, marker, message, throwable); }
     
     @Override public boolean isInfoEnabled() { return condition.test(INFO) && logger.isInfoEnabled(); }
     
@@ -1126,7 +1131,7 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public boolean isInfoEnabled(Marker marker) { return condition.test(INFO) && logger.isInfoEnabled(marker); }
     
-    @Override public void info(Marker marker, String msg) { this.print(logger::info, INFO, marker, msg); }
+    @Override public void info(Marker marker, String message) { this.print(logger::info, INFO, marker, message); }
     
     @Override public void info(Marker marker, String format, Object arg) { this.print(logger::info, INFO, marker, format, arg); }
     
@@ -1134,13 +1139,13 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public void info(Marker marker, String format, Object... arguments) { this.print(logger::info, INFO, marker, format, arguments); }
     
-    @Override public void info(Marker marker, String msg, Throwable t) { this.print(logger::info, INFO, marker, msg, t); }
+    @Override public void info(Marker marker, String message, Throwable throwable) { this.print(logger::info, INFO, marker, message, throwable); }
     
     @Override public boolean isWarnEnabled() { return condition.test(WARN) && logger.isWarnEnabled(); }
     
-    @Override public void warn(String format, Object arg) { this.print(logger::warn, WARN, getMarker(), format, arg); }
+    @Override public void warn(String format, Object arg) { this.print(logger::warn, WARN, getWarnMarker(), format, arg); }
     
-    @Override public void warn(String format, Object arg1, Object arg2) { this.print(logger::warn, WARN, getMarker(), format, arg1, arg2); }
+    @Override public void warn(String format, Object arg1, Object arg2) { this.print(logger::warn, WARN, getWarnMarker(), format, arg1, arg2); }
     
     @Override public boolean isWarnEnabled(Marker marker) { return condition.test(WARN) && logger.isWarnEnabled(marker); }
     
@@ -1152,17 +1157,17 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public void warn(Marker marker, String format, Object... arguments) { this.print(logger::warn, WARN, marker, format, arguments); }
     
-    @Override public void warn(Marker marker, String msg, Throwable t) { this.print(logger::warn, WARN, marker, msg, t); }
+    @Override public void warn(Marker marker, String message, Throwable throwable) { this.print(logger::warn, WARN, marker, message, throwable); }
     
     @Override public boolean isErrorEnabled() { return condition.test(ERROR) && logger.isErrorEnabled(); }
     
-    @Override public void error(String format, Object arg) { this.print(logger::error, ERROR, getMarker(), format, arg); }
+    @Override public void error(String format, Object arg) { this.print(logger::error, ERROR, getErrorMarker(), format, arg); }
     
-    @Override public void error(String format, Object arg1, Object arg2) { this.print(logger::error, ERROR, getMarker(), format, arg1, arg2); }
+    @Override public void error(String format, Object arg1, Object arg2) { this.print(logger::error, ERROR, getErrorMarker(), format, arg1, arg2); }
     
     @Override public boolean isErrorEnabled(Marker marker) { return condition.test(ERROR) && logger.isErrorEnabled(marker); }
     
-    @Override public void error(Marker marker, String msg) { this.print(logger::error, ERROR, marker, msg); }
+    @Override public void error(Marker marker, String message) { this.print(logger::error, ERROR, marker, message); }
     
     @Override public void error(Marker marker, String format, Object arg) { this.print(logger::error, ERROR, marker, format, arg); }
     
@@ -1170,6 +1175,6 @@ final class MarkLogger implements IMarkLogger, INestedPrintable<MarkLogger>
     
     @Override public void error(Marker marker, String format, Object... arguments) { this.print(logger::error, ERROR, marker, format, arguments); }
     
-    @Override public void error(Marker marker, String msg, Throwable t) { this.print(logger::error, ERROR, marker, msg, t); }
+    @Override public void error(Marker marker, String message, Throwable throwable) { this.print(logger::error, ERROR, marker, message, throwable); }
     //endregion
 }

@@ -27,6 +27,17 @@ public record CalculationResult(
     @NotNull KilnEnumCollections.VisualTrend trend
 ) implements INestedPrintable<CalculationResult>
 {
+    private static final @NotNull @Unmodifiable Map<String, Function<CalculationResult, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+        map ->
+        {
+            map.put("realProgress", CalculationResult::currentRealProgress);
+            map.put("visualProgress", CalculationResult::currentVisualProgress);
+            map.put("logicalResult", c -> c.logicalResult.name());
+            map.put("trend", c -> c.trend.name());
+        },
+        4
+    );
+    
     @Contract("_, _ -> new")
     public static @NotNull CalculationResult unexpectedResult(@Range(from = 0, to = 1) double currentRealProgress, @Range(from = 0, to = 1) double currentVisualProgress)
     {
@@ -38,17 +49,5 @@ public record CalculationResult(
         );
     }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<CalculationResult, @Nullable Object>> getFields()
-    {
-        return INestedPrintable.buildFieldMap(
-            map ->
-            {
-                map.put("realProgress", CalculationResult::currentRealProgress);
-                map.put("visualProgress", CalculationResult::currentVisualProgress);
-                map.put("logicalResult", c -> c.logicalResult.name());
-                map.put("trend", c -> c.trend.name());
-            },
-            4
-        );
-    }
+    @Override public @NotNull @Unmodifiable Map<String, Function<CalculationResult, @Nullable Object>> getFields() { return FIELD_MAP; }
 }

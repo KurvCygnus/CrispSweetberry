@@ -408,7 +408,7 @@ public final class I18nProcessor extends AbstractProcessor
                             formatted(lang.getCode())
                     );
                 }
-                catch(IOException e) { printError("Can't create JSON file. Details: %s".formatted(e.getMessage())); }
+                catch(IOException e) { printError("Can't create JSON file. Details: " + e); }
             }
         );
     }

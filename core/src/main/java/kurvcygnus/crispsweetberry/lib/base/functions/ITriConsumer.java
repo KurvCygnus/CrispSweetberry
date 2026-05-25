@@ -8,7 +8,9 @@
 
 package kurvcygnus.crispsweetberry.lib.base.functions;
 
-@FunctionalInterface public interface ITriConsumer<T, U, V>
+import java.io.Serializable;
+
+@FunctionalInterface public interface ITriConsumer<T, U, V> extends Serializable
 {
     void accept(T t, U u, V v);
 }

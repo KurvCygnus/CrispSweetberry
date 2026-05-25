@@ -8,10 +8,12 @@
 
 package kurvcygnus.crispsweetberry.lib.base.functions;
 
+import java.io.Serializable;
+
 /**
  * A specialized <u>{@link java.util.function.BiFunction BiFunction}</u> for primitive type {@code char}.
  * @author Kurv Cygnus
  * @see ToCharFunction
  * @since 1.0 Release
  */
-@FunctionalInterface public interface ToCharBiFunction<T, U> { char applyAsChar(T t, U u);}
+@FunctionalInterface public interface ToCharBiFunction<T, U> extends Serializable { char applyAsChar(T t, U u);}

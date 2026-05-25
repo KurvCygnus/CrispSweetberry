@@ -8,11 +8,14 @@
 
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
+import com.google.errorprone.annotations.DoNotCall;
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.*;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.HashSet;
 import java.util.List;
@@ -123,7 +126,14 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
         for(int index = 0; index < size; index++)
         {
             final var deferredRegister = getter.apply(index);
-            Objects.requireNonNull(deferredRegister, "The element in array's index %d is null! Content: %s".formatted(index, deferredRegister));
+            Objects.requireNonNull(
+                deferredRegister,
+                MessageFormatter.format(
+                    "The element in array's index {} is null! Content: {}",
+                    index,
+                    deferredRegister
+                ).getMessage()
+            );
             
             if(!mem.add(deferredRegister))
             {
@@ -187,7 +197,7 @@ sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
      * @implNote This is useless, literally. It is existed to suppress "unused" warnings,
      * since generic arg {@code T} is <b>only</b> used to restrict implementer's type.
      */
-    @SuppressWarnings("unused") private @Nullable T dummy() { return null; }
+    @SuppressWarnings("unused") @DoNotCall @Deprecated(forRemoval = true) private @Nullable T dummy() { return null; }
 }
 
 /**
@@ -232,8 +242,17 @@ sealed interface ISortable
      */
     @NotNull PriorityPair getPriority();
     
-    final class PriorityPair implements INestedPrintable<PriorityPair>
+    final class PriorityPair extends BaseNestedPrinter<PriorityPair>
     {
+        private static final @NotNull @Unmodifiable Map<String, Function<PriorityPair, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("mainRange", p -> p.mainRange.name());
+                map.put("subRange", p -> p.subRange);
+            },
+            2
+        );
+        
         private final PriorityRange mainRange;
         private final @Range(from = 1, to = 999) int subRange;
         
@@ -259,19 +278,7 @@ sealed interface ISortable
         
         @Override public int hashCode() { return Objects.hash(mainRange, subRange); }
         
-        @Override public @NotNull String toString() { return toNestedString(); }
-        
-        @Override public @NotNull @Unmodifiable Map<String, Function<PriorityPair, @Nullable Object>> getFields()
-        {
-            return INestedPrintable.buildFieldMap(
-                map ->
-                {
-                    map.put("mainRange", p -> p.mainRange.name());
-                    map.put("subRange", p -> p.subRange);
-                },
-                2
-            );
-        }
+        @Override public @NotNull @Unmodifiable Map<String, Function<PriorityPair, @Nullable Object>> getFields() { return FIELD_MAP; }
     }
     
     /**

@@ -17,6 +17,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +44,11 @@ public final class CarryInteractContextCollection
      */
     public sealed interface ICarryInteractContext
     {
+        static @NotNull ICarryInteractContext ofBlocklike(@NotNull UseOnContext context) { return new CarryBlocklikeInteractContext(context); }
+        
+        static @NotNull ICarryInteractContext ofEntity(@NotNull ItemStack carryCrate, @NotNull Player player, @NotNull LivingEntity target)
+            { return new CarryEntityInteractContext(carryCrate, player, target); }
+        
         @NotNull ItemStack getCarryCrate();
         @NotNull Level getLevel();
         @NotNull BlockPos getInteractPos();
@@ -52,65 +59,93 @@ public final class CarryInteractContextCollection
     }
     
     /**
-     * The specific context for <u>{@link net.minecraft.world.level.block.Block Block}</u>, and <u>{@link net.minecraft.world.level.block.entity.BlockEntity BlockEntity}</u>
+     * The specific context for <u>{@link Block Block}</u>, and <u>{@link BlockEntity BlockEntity}</u>
      * cases.<br><br>
      * <i>That's why it is called "blocklike".</i>
-     * @since 1.0 Release
      * @author Kurv Cygnus
-     * @param context The data this class provides as extra, <b>it is a must in a legal blocklike interaction</b>.
+     * @since 1.0 Release
      */
-    public record CarryBlocklikeInteractContext(@NotNull UseOnContext context) implements ICarryInteractContext
-    {
-        public CarryBlocklikeInteractContext { Objects.requireNonNull(context, "Param \"context\" must not be null!"); }
-        
-        @Override public @NotNull ItemStack getCarryCrate() { return context.getItemInHand(); }
-        
-        @Override public @NotNull Level getLevel() { return context.getLevel(); }
-        
-        @Override public @NotNull BlockPos getInteractPos() { return context.getClickedPos(); }
-        
-        @Override public @NotNull Optional<Player> getPlayer() { return Optional.ofNullable(context.getPlayer()); }
-    }
+     public static final class CarryBlocklikeInteractContext implements ICarryInteractContext
+     {
+         private final @NotNull UseOnContext context;
+         
+         private CarryBlocklikeInteractContext(@NotNull UseOnContext context)
+         {
+             Objects.requireNonNull(context, "Param \"context\" must not be null!");
+             this.context = context;
+         }
+         
+         @Override public @NotNull ItemStack getCarryCrate() { return context.getItemInHand(); }
+         
+         @Override public @NotNull Level getLevel() { return context.getLevel(); }
+         
+         @Override public @NotNull BlockPos getInteractPos() { return context.getClickedPos(); }
+         
+         @Override public @NotNull Optional<Player> getPlayer() { return Optional.ofNullable(context.getPlayer()); }
+         
+         public @NotNull UseOnContext context() { return context; }
+         
+         @Override public boolean equals(Object obj) { return this == obj || obj instanceof CarryBlocklikeInteractContext that && this.context.equals(that.context); }
+         
+         @Override public int hashCode() { return Objects.hash(context); }
+         
+         @Override public @NotNull String toString() { return "CarryBlocklikeInteractContext: " + context; }
+         
+     }
     
     /**
      * The specific context for <u>{@link LivingEntity Entity}</u> interaction.
-     * @since 1.0 Release
      * @author Kurv Cygnus
-     * @param carryCrate The <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem Carry Crate Intsance}</u> to be mutated.
-     *                   <span style="color: 95cc6d">Essential data for interaction.</span>
-     * @param player Also one of the <span style="color: 95cc6d">essential data.</span> However, different from <u>{@link CarryBlocklikeInteractContext CarryBlocklikeInteractContext}</u>,
-     *               this cannot be {@code null}, since such an interaction will be invalid in that case.
-     * @param target The <u>{@link LivingEntity Entity}</u> that will be processed. <b>This is the unique and extra data that is required in entity interaction.</b>
+     * @since 1.0 Release
      */
-    public record CarryEntityInteractContext(@NotNull ItemStack carryCrate, @NotNull Player player, @NotNull LivingEntity target)
-    implements ICarryInteractContext, INestedPrintable<CarryEntityInteractContext>
-    {
-        public CarryEntityInteractContext
-        {
-            Objects.requireNonNull(carryCrate, "Param \"carryCrate\" must not be null!");
-            Objects.requireNonNull(player, "Param \"player\" must not be null!");
-            Objects.requireNonNull(target, "Param \"target\" must not be null!");
-        }
-        
-        @Override public @NotNull ItemStack getCarryCrate() { return carryCrate; }
-        
-        @Override public @NotNull Level getLevel() { return player.level(); }
-        
-        @Override public @NotNull BlockPos getInteractPos() { return target.getOnPos(); }
-        
-        @Override public @NotNull Optional<Player> getPlayer() { return Optional.of(player); }
-        
-        @Override public @NotNull @Unmodifiable Map<String, Function<CarryEntityInteractContext, @Nullable Object>> getFields()
-        {
-            return INestedPrintable.buildFieldMap(
-                map ->
-                {
-                    map.put("carryCrate", CarryEntityInteractContext::carryCrate);
-                    map.put("player", CarryEntityInteractContext::player);
-                    map.put("target", CarryEntityInteractContext::target);
-                },
-                3
-            );
-        }
-    }
+     public static final class CarryEntityInteractContext implements ICarryInteractContext, INestedPrintable<CarryEntityInteractContext>
+     {
+         private static final @NotNull @Unmodifiable Map<String, Function<CarryEntityInteractContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+             map ->
+             {
+                 map.put("carryCrate", CarryEntityInteractContext::getCarryCrate);
+                 map.put("player", CarryEntityInteractContext::getPlayer);
+                 map.put("target", CarryEntityInteractContext::target);
+             },
+             3
+         );
+         
+         private final @NotNull ItemStack carryCrate;
+         private final @NotNull Player player;
+         private final @NotNull LivingEntity target;
+         
+         private CarryEntityInteractContext(@NotNull ItemStack carryCrate, @NotNull Player player, @NotNull LivingEntity target)
+         {
+             Objects.requireNonNull(carryCrate, "Param \"carryCrate\" must not be null!");
+             Objects.requireNonNull(player, "Param \"player\" must not be null!");
+             Objects.requireNonNull(target, "Param \"target\" must not be null!");
+             this.carryCrate = carryCrate;
+             this.player = player;
+             this.target = target;
+         }
+         
+         @Override public @NotNull ItemStack getCarryCrate() { return carryCrate; }
+         
+         @Override public @NotNull Level getLevel() { return player.level(); }
+         
+         @Override public @NotNull BlockPos getInteractPos() { return target.getOnPos(); }
+         
+         @Override public @NotNull Optional<Player> getPlayer() { return Optional.of(player); }
+         
+         @Override public @NotNull @Unmodifiable Map<String, Function<CarryEntityInteractContext, @Nullable Object>> getFields() { return FIELD_MAP; }
+         
+         public @NotNull LivingEntity target() { return target; }
+         
+         @Override public boolean equals(Object obj)
+         {
+             return this == obj || obj instanceof CarryEntityInteractContext that &&
+                 this.carryCrate.equals(that.carryCrate) &&
+                 this.player.equals(that.player) &&
+                 this.target.equals(that.target);
+         }
+         
+         @Override public int hashCode() { return Objects.hash(carryCrate, player, target); }
+         
+         @Override public @NotNull String toString() { return toNestedString(); }
+     }
 }

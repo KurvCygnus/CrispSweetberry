@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -41,7 +41,7 @@ public interface IAutoNestedPrintable<T extends IAutoNestedPrintable<T>> extends
      */
     default boolean gonnaBeCruel() { return false; }
     
-    @Override default @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields()
+    @Override @ApiStatus.NonExtendable default @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields()
     {
         final var fieldMap = new LinkedHashMap<String, Function<T, @Nullable Object>>();
         final var clazz = this.getClass();
@@ -63,15 +63,15 @@ public interface IAutoNestedPrintable<T extends IAutoNestedPrintable<T>> extends
                     {
                         if(gonnaBeCruel())
                             throw new IllegalStateException(
-                                DefinitionUtils.quickFormat(
+                                MessageFormatter.format(
                                     "Error Occurred while accessing field \"{}#{}\":\n",
                                     clazz.getName(),
                                     field.getName()
-                                ),
+                                ).getMessage(),
                                 e
                             );
                         
-                        return MessageFormatter.format("Error Occurred while accessing field: ", e);
+                        return MessageFormatter.format("Error Occurred while accessing field: ", e).getMessage();
                     }
                 }
             );

@@ -11,6 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
@@ -60,8 +61,28 @@ import java.util.function.Function;
  * </ul>
  * @since 1.0 Release
  */
-public final class CarryInteractContext implements INestedPrintable<CarryInteractContext>
+public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractContext>
 {
+    private static final @NotNull @Unmodifiable Map<String, Function<CarryInteractContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+        map ->
+        {
+            map.put("actionType", CarryInteractContext::actionType);
+            map.put("level", CarryInteractContext::level);
+            map.put("player", CarryInteractContext::player);
+            map.put("interactPos", CarryInteractContext::interactPos);
+            map.put("carryCrate", CarryInteractContext::carryCrate);
+            map.put("targets", CarryInteractContext::targets);
+            map.put("carryID", CarryInteractContext::carryID);
+            map.put("result", CarryInteractContext::result);
+            map.put("listener", CarryInteractContext::listener);
+            map.put("component", CarryInteractContext::component);
+            map.put("target", CarryInteractContext::target);
+            map.put("data", CarryInteractContext::data);
+            map.put("blockEntityType", CarryInteractContext::blockEntityType);
+        },
+        13
+    );
+    
     //*:=== Init fields
     private final @NotNull CarryType actionType;
     private final @NotNull ServerLevel level;
@@ -252,30 +273,7 @@ public final class CarryInteractContext implements INestedPrintable<CarryInterac
     
     @Override public int hashCode() { return Objects.hash(actionType, level, player, interactPos, carryCrate, targets, carryID, result, listener, component, target, data, blockEntityType); }
     
-    @Override public @NotNull String toString() { return toNestedString(); }
-    
-    @Override public @NotNull @Unmodifiable Map<String, Function<CarryInteractContext, @Nullable Object>> getFields()
-    {
-        return INestedPrintable.buildFieldMap(
-            map ->
-            {
-                map.put("actionType", CarryInteractContext::actionType);
-                map.put("level", CarryInteractContext::level);
-                map.put("player", CarryInteractContext::player);
-                map.put("interactPos", CarryInteractContext::interactPos);
-                map.put("carryCrate", CarryInteractContext::carryCrate);
-                map.put("targets", CarryInteractContext::targets);
-                map.put("carryID", CarryInteractContext::carryID);
-                map.put("result", CarryInteractContext::result);
-                map.put("listener", CarryInteractContext::listener);
-                map.put("component", CarryInteractContext::component);
-                map.put("target", CarryInteractContext::target);
-                map.put("data", CarryInteractContext::data);
-                map.put("blockEntityType", CarryInteractContext::blockEntityType);
-            },
-            13
-        );
-    }
+    @Override public @NotNull @Unmodifiable Map<String, Function<CarryInteractContext, @Nullable Object>> getFields() { return FIELD_MAP; }
     
     @Override public boolean takeNullFieldAsOptional() { return true; }
 }

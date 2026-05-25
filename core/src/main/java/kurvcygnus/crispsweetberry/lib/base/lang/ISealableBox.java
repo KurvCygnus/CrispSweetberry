@@ -9,16 +9,21 @@
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
+import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.trait.INullableContainer;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 /**
  * A state-aware container that provides fine-grained control over value assignment and lifecycle.
@@ -180,7 +185,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     @Override default boolean withCheck() { return false; }
 }
 
-@NotThreadSafe final class SealableBox<T> implements ISealableBox<T>
+@NotThreadSafe final class SealableBox<T> implements ISealableBox<T>, INestedPrintable<SealableBox<T>>
 {
     private @Nullable T value;
     private @MagicConstant(valuesFromClass = Privates.class) byte state;
@@ -272,10 +277,22 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @Override public int hashCode() { return Objects.hashCode(value); }
     
-    @Override public @NotNull String toString() { return Privates.toStringTemplate(value, state); }
+    @Override public @NotNull String toString() { return toNestedString(); }
+    
+    @Override public @NotNull @Unmodifiable Map<String, Function<SealableBox<T>, @Nullable Object>> getFields()
+    {
+        return INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("value", SealableBox::value);
+                map.put("state", box -> Privates.getStateName(box.state));
+            },
+            2
+        );
+    }
 }
 
-@ThreadSafe final class AtomicSealableBox<T> implements ISealableBox<T>
+@ThreadSafe final class AtomicSealableBox<T> extends BaseNestedPrinter<AtomicSealableBox<T>> implements ISealableBox<T>
 {
     private final AtomicReference<AtomicPair<T>> pair;
     
@@ -372,10 +389,16 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @Override public int hashCode() { return Objects.hashCode(pair.get().value); }
     
-    @Override public @NotNull String toString()
+    @Override public @NotNull @Unmodifiable Map<String, Function<AtomicSealableBox<T>, @Nullable Object>> getFields()
     {
-        final AtomicPair<T> current = current();
-        return Privates.toStringTemplate(current.value, current.state);
+        return INestedPrintable.buildFieldMap(
+            map ->
+            {
+                map.put("value", box -> box.current().value);
+                map.put("state", box -> Privates.getStateName(box.current().state));
+            },
+            2
+        );
     }
     
     private record AtomicPair<T>(@Nullable T value, byte state) {}
@@ -388,19 +411,15 @@ final class Privates
     static final byte BOUND = 2;
     static final byte SEALED = 3;
     
-    static @NotNull String toStringTemplate(@Nullable Object value, byte state)
+    static @NotNull String getStateName(byte state)
     {
-        return "ISealableBox: value: %s, state: %s".
-            formatted(
-                state != SEALED ? value : "INACCESSIBLE",
-                switch(state)
-                {
-                    case Privates.UNBOUND -> "UNBOUND";
-                    case Privates.ASSIGNABLE -> "ASSIGNABLE";
-                    case Privates.BOUND -> "BOUND";
-                    case Privates.SEALED -> "SEALED";
-                    default -> throw new IllegalStateException("Unexpected value: %s".formatted(state));
-                }
-            );
+        return switch(state)
+        {
+            case Privates.UNBOUND -> "UNBOUND";
+            case Privates.ASSIGNABLE -> "ASSIGNABLE";
+            case Privates.BOUND -> "BOUND";
+            case Privates.SEALED -> "SEALED";
+            default -> throw new IllegalStateException("Unexpected value: %s".formatted(state));
+        };
     }
 }

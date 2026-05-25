@@ -8,10 +8,12 @@
 
 package kurvcygnus.crispsweetberry.lib.base.functions;
 
+import java.io.Serializable;
+
 /**
  * A specialized <u>{@link java.util.function.Function Function}</u> for primitive type {@code short}.
  * @author Kurv Cygnus
  * @see ToShortBiFunction
  * @since 1.0 Release
  */
-@FunctionalInterface public interface ToShortFunction<T> { short applyAsShort(T t); }
+@FunctionalInterface public interface ToShortFunction<T> extends Serializable { short applyAsShort(T t); }

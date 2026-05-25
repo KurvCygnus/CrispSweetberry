@@ -29,7 +29,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -42,7 +41,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
@@ -145,16 +147,21 @@ public enum CarryRegistryManager implements ICarryRegistryView
         );
     }
     
+    private static final Set<MobCategory> AUTO_BIND_CATEGORIES = Set.of(
+        MobCategory.CREATURE,
+        MobCategory.AXOLOTLS,
+        MobCategory.WATER_CREATURE,
+        MobCategory.WATER_AMBIENT
+    );
+    
     @SuppressWarnings("unchecked")//! Unsafe casting, with try-catch ;)
     private static void autoEntityBind()
     {
         BuiltInRegistries.ENTITY_TYPE.stream().
+            filter(entityType -> AUTO_BIND_CATEGORIES.contains(entityType.getCategory())).
             filter(
                 entityType ->
                 {
-                    if(!Objects.equals(entityType.getCategory(), MobCategory.CREATURE))
-                        return false;
-                    
                     LOGGER.debug("Captured entity \"{}\" as friendly entity.", entityType.getDescriptionId());
                     
                     final AABB aabb = entityType.getSpawnAABB(0D, 0D, 0D);
@@ -166,8 +173,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
                         entityType.getDescriptionId(),
                         isAcceptable ?
                             "accepted" :
-                            "rejected. Its volume doesn't meet the condition. Volume: %f".
-                                formatted(entityVolume)
+                            "rejected. Its volume doesn't meet the condition. Volume: " + entityVolume
                     );
                     
                     return isAcceptable;
@@ -176,6 +182,11 @@ public enum CarryRegistryManager implements ICarryRegistryView
             forEach(
                 animalType ->
                 {
+                    //! Wandering trader is [[MobCategory#CREATURE]], despite that category should not contain it,
+                    //! but this it is not a bug, as our Minecraft Devs always saying, IT IS A FEATURE, A GOD DAMMIT AND STUPID FEATURE.
+                    if(animalType.equals(EntityType.WANDERING_TRADER))
+                        return;
+                    
                     //! Seems hacky? Actually, this is the best reality solution of such a situation.
                     //! [[EntityType]] has a method [[EntityType#getBaseClass()]], which actually turns out to be hard-coded, returning "Entity.class" only.
                     //! So, Animal.class#isAssignableFrom(Class<?>) will not work.
@@ -184,23 +195,10 @@ public enum CarryRegistryManager implements ICarryRegistryView
                     //! What about [[EntityType#create(Level)]]?
                     //! [[Level]] is unaccessible during game initialization, doing that is even more hacky than this.
                     //! Besides, dummy level is a hard stuff, this doesn't worth it.
-                    try
-                    {
-                        final EntityType<? extends Animal> animal = (EntityType<? extends Animal>) animalType;
-                        
-                        //! Somehow, wandering trader is counted as an animal, despite it is not a animal.
-                        //! Due to [[EntityType]]'s constant attribute, using [[Object#equals]] to check is
-                        //! legal(despite [[EntityType]] itself didn't implement that).
-                        //! In such a case, [[Object#equals]] has same effect as `==`, and `==` is slightly faster.
-                        //! But Java is a nerd, we can't use `==` simply because variable `animal`'s generic arg doesn't
-                        //! equals [[EntityType#WANDERING_TRADER]]'s.
-                        //noinspection EqualsBetweenInconvertibleTypes
-                        if(animal.equals(EntityType.WANDERING_TRADER))
-                            return;
-                        
-                        CarryRegistryManager.INST.unsafeRegisterEntity(animal, AdaptiveAnimalCarryAdapter::new);
-                    }
-                    catch(ClassCastException $) { LOGGER.debug("Entity \"{}\" is not an animal. Skipped.", animalType.getDescriptionId()); }
+                    //! At least [[TagKey]] will definitely work, right?
+                    //! NO. NeoForge's [[Tags]] has removed Animal Tag 😭.
+                    //! Choosing any of these implementations will just get cooked.
+                    CarryRegistryManager.INST.unsafeRegisterEntity((EntityType<? extends LivingEntity>) animalType, AdaptiveAnimalCarryAdapter::new);
                 }
             );
     }

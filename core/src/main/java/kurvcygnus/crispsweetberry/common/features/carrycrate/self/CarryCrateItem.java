@@ -16,6 +16,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryT
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryRegistryManager;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StackableToolBlockItem;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.Component;
@@ -39,8 +40,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants.*;
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.CarryBlocklikeInteractContext;
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.CarryEntityInteractContext;
 
 public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
 {
@@ -54,7 +53,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         @NotNull Player player,
         @NotNull LivingEntity interactionTarget,
         @NotNull InteractionHand hand
-    ) { return CarryEngine.interact(new CarryEntityInteractContext(stack, player, interactionTarget)); }
+    ) { return CarryEngine.interact(CarryInteractContextCollection.ICarryInteractContext.ofEntity(stack, player, interactionTarget)); }
     
     @Override public @NotNull InteractionResult useOn(@NotNull UseOnContext context)
     {
@@ -72,7 +71,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         }
         
         return Objects.requireNonNullElseGet(
-            CarryEngine.interact(new CarryBlocklikeInteractContext(context)),
+            CarryEngine.interact(CarryInteractContextCollection.ICarryInteractContext.ofBlocklike(context)),
             () -> super.useOn(context)
         );
     }
@@ -87,6 +86,8 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         
         CarryEngine.carryingTick(this, stack, level, entity, slotId);
     }
+    
+    
     
     @Override public void appendHoverText(
         @NotNull ItemStack stack,

@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 
@@ -64,8 +65,11 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
         catch(ClassCastException e)
         {
             throw new IllegalArgumentException(
-                "Adapter Type Mismatch! Attempted to bind adapter to blockEntity: %s, but this adapter expects: %s".
-                    formatted(blockEntity.getClass().getSimpleName(), this.getClass().getSimpleName())
+                MessageFormatter.format(
+                    "Adapter Type Mismatch! Attempted to bind adapter to blockEntity: {}, but this adapter expects: {}",
+                    blockEntity.getClass().getSimpleName(),
+                    this.getClass().getSimpleName()
+                ).getMessage()
             );
         }
     }

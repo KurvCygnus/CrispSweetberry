@@ -6,14 +6,15 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.lib.base.functions;
-
-import java.io.Serializable;
+package kurvcygnus.crispsweetberry.utils.constants;
 
 /**
- * A specialized <u>{@link java.util.function.Function Function}</u> for primitive type {@code char}.
- * @author Kurv Cygnus
- * @see ToCharBiFunction
  * @since 1.0 Release
  */
-@FunctionalInterface public interface ToCharFunction<T> extends Serializable { char applyAsChar(T t);}
+public final class ComponentConstants
+{
+    private ComponentConstants() { throw new IllegalAccessError("Class \"ComponentConstants\" is not meant to be instantized!"); }
+    
+    public static final String UI = "ui";
+    public static final String CARRY_CRATE = "carry_crate";
+}

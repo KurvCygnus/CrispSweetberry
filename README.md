@@ -65,7 +65,7 @@ Crisp Sweetberry primarily focuses on:
 
 Crisp Sweetberry is currently available **only** for:
 
-* **Minecraft 26.1**
+* **Minecraft 26.2**
 * **NeoForge Mod Loader**
 
 Major updates will be released in **themed waves**, similar to official Minecraft updates.\
@@ -75,7 +75,7 @@ If certain extensible features become popular enough, they may be split into sta
 
 ## Installation
 
-1. Download **NeoForge** for **Minecraft 26.1**.
+1. Download **NeoForge** for **Minecraft 26.2**.
    You can find detailed installation instructions in NeoForge’s official documentation:
    at [this link](https://docs.neoforged.net/user/docs/)
 

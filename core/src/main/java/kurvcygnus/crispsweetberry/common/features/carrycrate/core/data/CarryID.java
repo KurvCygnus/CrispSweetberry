@@ -12,13 +12,16 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.events.CarryCrateCopyProcessor;
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
-import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.Event;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +43,7 @@ import java.util.function.Supplier;
  * @since 1.0 Release
  */
 @ApiStatus.Internal
-public final class CarryID implements INestedPrintable<CarryID>
+public final class CarryID extends BaseNestedPrinter<CarryID>
 {
     private static final Codec<CarryID> CODEC = RecordCodecBuilder.create(
         inst -> inst.group(
@@ -64,19 +67,31 @@ public final class CarryID implements INestedPrintable<CarryID>
             String,
             CarryID
         >,
-        Pair<
-            CarryEngine,
-            Optional<ServerStartedEvent>
-        >
+        Optional<Event>
     > __$1NT3RNAL_R3ST0R3$__ =
-        IVault.ofCustomMatch(
+        IVault.ofAccessLimited(
             CarryID::new,
-            Pair.of(
-                CarryEngine.INST,
-                Optional.empty()
-            ),
-            ($, __) -> $.left().equals(__.left()) && __.right().isPresent()
+            Optional.empty(),
+            ($, __) ->
+            {
+                if(__.isEmpty())
+                    return false;
+                
+                final var ___ = __.get();
+                return ___ instanceof ServerStartedEvent || ___ instanceof ScreenEvent.MouseButtonPressed.Pre;
+            },
+            CarryEngine.class,
+            CarryCrateCopyProcessor.class
         );
+    
+    private static final @NotNull @Unmodifiable Map<String, Function<CarryID, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+        map ->
+        {
+            map.put("Recovery ID", CarryID::id);
+            map.put("UUID", CarryID::uuid);
+        },
+        2
+    );
     
     private final @NotNull String id;
     private final @NotNull String uuid;
@@ -95,8 +110,6 @@ public final class CarryID implements INestedPrintable<CarryID>
         );
     }
     
-    @Override public @NotNull String toString() { return toNestedString(); }
-    
     public @NotNull String id() { return id; }
     
     public @NotNull String uuid() { return uuid; }
@@ -110,15 +123,5 @@ public final class CarryID implements INestedPrintable<CarryID>
     
     @Override public int hashCode() { return Objects.hash(id, uuid); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<CarryID, @Nullable Object>> getFields()
-    {
-        return INestedPrintable.buildFieldMap(
-            map ->
-            {
-                map.put("Recovery ID", CarryID::id);
-                map.put("UUID", CarryID::uuid);
-            },
-            2
-        );
-    }
+    @Override public @NotNull @Unmodifiable Map<String, Function<CarryID, @Nullable Object>> getFields() { return FIELD_MAP; }
 }

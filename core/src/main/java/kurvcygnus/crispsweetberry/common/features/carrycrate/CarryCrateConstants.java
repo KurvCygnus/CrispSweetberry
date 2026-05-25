@@ -13,6 +13,7 @@ import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRangeMap;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
+import kurvcygnus.crispsweetberry.utils.constants.ComponentConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -37,7 +38,7 @@ public final class CarryCrateConstants
         "zh_cn = 命悬一纸..."
     })
     public static final Component UI__CARRY_CRATE__LOW_DURABILITY_DESCRIPTION = UIUtils.dimmedItalicText(
-        DefinitionUtils.namespacedDotId("ui.carry_crate.low_durability_description")
+        DefinitionUtils.namespacedDotId(ComponentConstants.UI, ComponentConstants.CARRY_CRATE, "low_durability_description")
     );
     
     @AutoI18n({
@@ -46,7 +47,7 @@ public final class CarryCrateConstants
         "zh_cn = 略显沧桑"
     })
     public static final Component UI__CARRY_CRATE__MEDIUM_DURABILITY_DESCRIPTION = UIUtils.dimmedItalicText(
-        DefinitionUtils.namespacedDotId("ui.carry_crate.medium_durability_description")
+        DefinitionUtils.namespacedDotId(ComponentConstants.UI, ComponentConstants.CARRY_CRATE, "medium_durability_description")
     );
     
     @AutoI18n({
@@ -55,7 +56,7 @@ public final class CarryCrateConstants
         "zh_cn = 稳固如初"
     })
     public static final Component UI__CARRY_CRATE__HIGH_DURABILITY_DESCRIPTION = UIUtils.dimmedItalicText(
-        DefinitionUtils.namespacedDotId("ui.carry_crate.high_durability_description")
+        DefinitionUtils.namespacedDotId(ComponentConstants.UI, ComponentConstants.CARRY_CRATE, "high_durability_description")
     );
     
     private static final CrispRanger LOW_DURABILITY_RANGE = CrispRanger.closedOpen(0, CARRY_CRATE_MAX_DURABILITY / 3);
@@ -84,7 +85,7 @@ public final class CarryCrateConstants
         "zh_cn = 内容:~@s"
     })
     public static final Supplier<MutableComponent> UI__CARRY_CRATE__CONTENT_PREFIX = () ->
-        UIUtils.dimmedText(DefinitionUtils.namespacedDotId("ui.carry_crate.content_prefix"));
+        UIUtils.dimmedText(DefinitionUtils.namespacedDotId(ComponentConstants.UI, ComponentConstants.CARRY_CRATE, "content_prefix"));
     
     @AutoI18n({
         "en_us = Contains~@s",
@@ -92,7 +93,7 @@ public final class CarryCrateConstants
         "zh_cn = 装了"
     })
     public static final Supplier<MutableComponent> UI__CARRY_CRATE__LAYER_PREFIX = () ->
-        UIUtils.dimmedText(DefinitionUtils.namespacedDotId("ui.carry_crate.layer_prefix"));
+        UIUtils.dimmedText(DefinitionUtils.namespacedDotId(ComponentConstants.UI, ComponentConstants.CARRY_CRATE, "layer_prefix"));
     
     @AutoI18n({
         "en_us = ~@slayers",
@@ -100,5 +101,5 @@ public final class CarryCrateConstants
         "zh_cn = 份"
     })
     public static final Supplier<MutableComponent> UI__CARRY_CRATE__LAYER_SUFFIX = () ->
-        UIUtils.dimmedText(DefinitionUtils.namespacedDotId("ui.carry_crate.layer_suffix"));
+        UIUtils.dimmedText(DefinitionUtils.namespacedDotId(ComponentConstants.UI, ComponentConstants.CARRY_CRATE, "layer_suffix"));
 }

@@ -172,10 +172,11 @@ public final class CarryData
                 type: {},
                 causesOverweight: {},
                 startTime: {},
-                payload: {}
+                payload:
+                {}
             }
             """,
-            new Object[] { carryType, causesOverweight, startTime, unionData.toString().indent(8) }
+            new Object[] { carryType, causesOverweight, startTime, unionData.toString().indent(4) }
         ).getMessage();
     }
     //endregion

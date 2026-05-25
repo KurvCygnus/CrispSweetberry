@@ -50,7 +50,7 @@ public final class DefinitionUtils
     }
     
     /**
-     * Produces a <u>{@link ResourceLocation}</u>, with <b>{@code crispsweetberry}</b> as its namespace.
+     * Produces a <u>{@link ResourceLocation}</u>, with <u>{@link CrispSweetberry#NAMESPACE "crispsweetberry"}</u> as its namespace.
      */
     @Contract("_ -> new") public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation) 
     {
@@ -64,10 +64,30 @@ public final class DefinitionUtils
         return quickFormat("{}.{}", CrispSweetberry.NAMESPACE, suffix);
     }
     
+    public static @NotNull String namespacedDotId(@NotNull String... suffixes)
+    {
+        requireNonNull(suffixes, "Param \"suffixes\" must not be null!");
+        final var stringBuilder = new StringBuilder(CrispSweetberry.NAMESPACE);
+        for(final String suffix: suffixes)
+            stringBuilder.append('.').append(suffix);
+        
+        return stringBuilder.toString();
+    }
+    
     public static @NotNull String namespacedUnderscoreId(@NotNull String suffix)
     {
         requireNonNull(suffix, "Param \"suffix\" must not be null!");
         return quickFormat("{}_{}", CrispSweetberry.NAMESPACE, suffix);
+    }
+    
+    public static @NotNull String namespacedUnderscoreId(@NotNull String... suffixes)
+    {
+        requireNonNull(suffixes, "Param \"suffixes\" must not be null!");
+        final var stringBuilder = new StringBuilder(CrispSweetberry.NAMESPACE);
+        for(final String suffix: suffixes)
+            stringBuilder.append('_').append(suffix);
+        
+        return stringBuilder.toString();
     }
     
     /**

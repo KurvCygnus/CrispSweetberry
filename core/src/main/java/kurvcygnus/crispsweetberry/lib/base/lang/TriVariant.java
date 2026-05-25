@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
+import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ import java.util.stream.Stream;
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-public final class TriVariant<L, M, R> implements INestedPrintable<TriVariant<L, M, R>>
+public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M, R>>
 {
     private final @Nullable L left;
     private final @Nullable M middle;
@@ -341,8 +342,6 @@ public final class TriVariant<L, M, R> implements INestedPrintable<TriVariant<L,
         @NotNull Function<? super M, ? extends U> middleMapper,
         @NotNull Function<? super R, ? extends U> rightMapper
     ) { return Stream.of(compress(ArrayList::new, leftMapper, middleMapper, rightMapper)); }
-    
-    @Override public @NotNull String toString() { return toNestedString(); }
     
     @Override public @NotNull @Unmodifiable Map<String, Function<TriVariant<L, M, R>, @Nullable Object>> getFields()
     {

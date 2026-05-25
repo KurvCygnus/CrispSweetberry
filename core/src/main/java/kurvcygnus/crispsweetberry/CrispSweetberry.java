@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry;
 
+import kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
@@ -62,7 +63,8 @@ public final class CrispSweetberry
      * multi-rounded and asynchronous, also, as player exited the world, entering the new one, creative tabs will be reloaded</b>, so
      * we can only use <u>{@link IVault}</u>.
      */
-    public static final IVault<Map<ResourceKey<CreativeModeTab>, Set<TabEntry>>, BuildCreativeModeTabContentsEvent> TAB_LOOKUP = IVault.ofTypeMatchOnly(TAB_ENTRIES);
+    public static final IVault<Map<ResourceKey<CreativeModeTab>, Set<TabEntry>>, BuildCreativeModeTabContentsEvent> TAB_LOOKUP =
+        IVault.ofAccessLimited(TAB_ENTRIES, CrispCreativeTabsRegistryEvent.class);
     
     private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("MOD_INIT");
     

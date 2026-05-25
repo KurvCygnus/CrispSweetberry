@@ -61,12 +61,30 @@ If you have any questions, feel free to ask.
 2. We don't mind your own code style as long as it could be formatted by any code formatter,
    but we **do hope** you use **CamelCase** for anything that is not a constant or an enum, and **Allman style** as the final submit format.
 
+   Example:
+   ```java
+   private void yaw(
+       @NotNull Foo foo,
+       @NotNull List<Bar> bars,
+       @Nullable Consumer<Bar> callback
+   ) throws IllegalArgumentException
+   {
+       Objects.requireNonNull(foo, "Param \"foo\" must not be null!");
+       Objects.requireNonNull(bars, "Param \"bars\" must not be null!");
+   
+       if(callback == null)
+           return;
+        
+       bars.stream().
+           filter(foo.bar()::baz).
+           forEach(callback);
+   }
+   ```
+
 3. Any modified or newly added functionality **must include Javadocs**, explaining:
 
    * **Why** it exists
-
    * **How** it should be used when it couldn't be understood easily from its implementation
-
    * **What should be avoided** when it has footguns or trade-offs.
 
    > Concise, clear documentation is preferred over long explanations.

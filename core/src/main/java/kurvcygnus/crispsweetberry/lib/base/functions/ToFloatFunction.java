@@ -8,10 +8,12 @@
 
 package kurvcygnus.crispsweetberry.lib.base.functions;
 
+import java.io.Serializable;
+
 /**
  * A specialized <u>{@link java.util.function.Function Function}</u> for primitive type {@code float}.
  * @author Kurv Cygnus
  * @see ToFloatBiFunction
  * @since 1.0 Release
  */
-@FunctionalInterface public interface ToFloatFunction<T> { float applyAsFloat(T t); }
+@FunctionalInterface public interface ToFloatFunction<T> extends Serializable { float applyAsFloat(T t); }

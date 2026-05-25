@@ -118,18 +118,17 @@ enum CarryOperationExecutor
                 {
                     LOGGER.error(
                         """
-                            
-                            An error occurred while executing carry pipeline tasks.
-                            
-                            Happens at: {}
-                            Error Details: {}
-                            
-                            The detailed pipeline task of this round of execution:
-                            {}
-                            
-                            This is a serious logic issue.
-                            {}
-                            """,
+                        
+                        An error occurred while executing carry pipeline tasks.
+                        
+                        Happens at: {}
+                        Error Details: {}
+                        
+                        The detailed pipeline task of this round of execution: {}
+                        
+                        This is a serious logic issue.
+                        {}
+                        """,
                         ex.type(),
                         ex.getMessage(),
                         ex.causeData().toString(),
@@ -308,17 +307,17 @@ enum CarryOperationExecutor
                         adapterFactory,
                         Objects.requireNonNull(
                             blockEntityDataHolder.getType().create(targetPos, targetState),
-                            """
+                            DefinitionUtils.quickFormat(
+                                """
                                 Fatal:
-                                Failed to create blockEntity "%s"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
+                                Failed to create blockEntity "{}"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
                                 method is called at improper time.
                                 
-                                %s
-                                """.
-                                formatted(
-                                    blockEntityType.toString(),
-                                    MetainfoConstants.FEEDBACK_MESSAGE
-                                )
+                                {}
+                                """,
+                                blockEntityType.toString(),
+                                MetainfoConstants.FEEDBACK_MESSAGE
+                            )
                         )
                     )
             );
@@ -333,7 +332,7 @@ enum CarryOperationExecutor
         
         final AbstractBlockEntityCarryAdapter<? extends BlockEntity> adapter = optionalAdapter.get();
         
-        final CompoundTag tagData = new CompoundTag();
+        final var tagData = new CompoundTag();
         adapter.loadCarryTag(tagData, level.registryAccess());//* #onPlacedProcess() may have side effects on BE's data, we should load data before it.
         
         adapter.onPlacedProcess(

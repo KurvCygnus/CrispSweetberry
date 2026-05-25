@@ -52,6 +52,26 @@
    ```
 
 2. 我们不介意你个人的代码习惯, 但是请确保你的**命名风格是驼峰命名法**, 并且为**Allman 风格**, 其它可以通过格式化解决的我们完全接受.
+   
+   示例:
+   ```java
+   private void yaw(
+       @NotNull Foo foo,
+       @NotNull List<Bar> bars,
+       @Nullable Consumer<Bar> callback
+   ) throws IllegalArgumentException
+   {
+       Objects.requireNonNull(foo, "Param \"foo\" must not be null!");
+       Objects.requireNonNull(bars, "Param \"bars\" must not be null!");
+   
+       if(callback == null)
+           return;
+        
+       bars.stream().
+           filter(foo.bar()::baz).
+           forEach(callback);
+   }
+   ```
 
 3. 你修改或新增的功能, 必须配套编写 Javadocs, 文档应当说明:
    - 这个功能*为什么存在*

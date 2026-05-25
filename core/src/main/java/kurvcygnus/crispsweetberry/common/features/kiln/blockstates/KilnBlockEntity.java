@@ -228,8 +228,11 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                 final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.min();
                 final ItemStack stackInSlot = containerItems.get(slotIndex);
                 
-                LOGGER.debug("slotIndex: {}, cacheIndex: {}, content: {}",
-                    slotIndex, cacheIndex, stackInSlot.getDisplayName()
+                LOGGER.debug(
+                    "slotIndex: {}, cacheIndex: {}, content: {}",
+                    slotIndex,
+                    cacheIndex,
+                    stackInSlot.getDisplayName()
                 );
                 
                 if(stackInSlot.isEmpty())
@@ -239,8 +242,11 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                     if(inputState != InputState.VALID)
                     {
                         handle.changeMarker("INPUT_STATE_CHANGED");
-                        LOGGER.debug("{} -> VALID (at slot {}, stack: {})",
-                            inputState, slotIndex, stackInSlot.getDisplayName()
+                        LOGGER.debug(
+                            "{} -> VALID (at slot {}, stack: {})",
+                            inputState,
+                            slotIndex,
+                            stackInSlot.getDisplayName()
                         );
                     }
                     
@@ -265,8 +271,11 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                         recipeCache.set(cacheIndex, EMPTY_RECIPE);
                     
                     handle.changeMarker("CACHE_WRITE");
-                    LOGGER.debug("write cache[{}] from slot {} -> {}",
-                        cacheIndex, slotIndex, optionalKilnRecipe
+                    LOGGER.debug(
+                        "write cache[{}] from slot {} -> {}",
+                        cacheIndex,
+                        slotIndex,
+                        optionalKilnRecipe
                     );
                 }
                 else
@@ -279,8 +288,11 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                 final KilnRecipe cache = recipeCache.get(cacheIndex);
                 
                 handle.changeMarker("CACHE_CONFIRM");
-                LOGGER.debug("new cache at index {}: [Ingredient: {}, Result: {}]",
-                    slotIndex, cache.ingredient(), cache.result()
+                LOGGER.debug(
+                    "new cache at index {}: [Ingredient: {}, Result: {}]",
+                    slotIndex,
+                    cache.ingredient(),
+                    cache.result()
                 );
             }
             

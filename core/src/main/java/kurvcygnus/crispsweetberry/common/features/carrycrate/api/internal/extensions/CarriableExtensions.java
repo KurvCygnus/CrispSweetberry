@@ -77,7 +77,7 @@ public final class CarriableExtensions
          * During the execution of {@code #carryTick(TickingContext)}, <b>adapters will be created with {@code null} values</b>.<br>
          * So, <span style="color: f84b4b">do not try to get adapters field(block, blockEntity...) and use, <u>{@link NullPointerException NPE}</u> will be thrown.</span>
          */
-        default void carryingTick(@NotNull TickingContext context) {}
+        @ApiStatus.OverrideOnly default void carryingTick(@NotNull TickingContext context) {}
     }
     
     /**

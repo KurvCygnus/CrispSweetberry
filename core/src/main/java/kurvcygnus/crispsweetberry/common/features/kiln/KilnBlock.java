@@ -136,7 +136,7 @@ public final class KilnBlock extends BaseEntityBlock
         final ItemStack itemstack = context.getItemInHand();
         
         boolean isLit = true;
-        final CustomData customData = itemstack.get(DataComponents.CUSTOM_DATA);
+        final var customData = itemstack.get(DataComponents.CUSTOM_DATA);
         if(customData != null && customData.contains(LIT_PROPERTY))
             isLit = customData.copyTag().getBoolean(LIT_PROPERTY);
         
@@ -168,7 +168,7 @@ public final class KilnBlock extends BaseEntityBlock
         if(state.is(newState.getBlock()))
             return;
         
-        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        final var blockEntity = level.getBlockEntity(pos);
         
         if(blockEntity instanceof KilnBlockEntity kiln)
         {
@@ -219,55 +219,65 @@ public final class KilnBlock extends BaseEntityBlock
     //endregion
     
     //region Interact Basics
-    @Override protected @NotNull InteractionResult useWithoutItem
-    (@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult)
+    @Override protected @NotNull InteractionResult useWithoutItem(
+        @NotNull BlockState state,
+        @NotNull Level level,
+        @NotNull BlockPos pos,
+        @NotNull Player player,
+        @NotNull BlockHitResult hitResult
+    )
     {
         if(level.isClientSide)
             return InteractionResult.SUCCESS;
-        else
+        
+        final var blockEntity = level.getBlockEntity(pos);
+        if(blockEntity instanceof KilnBlockEntity kiln)
         {
-            final BlockEntity blockEntity = level.getBlockEntity(pos);
-            if(blockEntity instanceof KilnBlockEntity kiln)
-            {
-                player.openMenu(kiln, pos);
-                player.awardStat(KilnRegistries.INTERACT_WITH_KILN.value());
-            }
-            
-            return InteractionResult.CONSUME;
+            player.openMenu(kiln, pos);
+            player.awardStat(KilnRegistries.INTERACT_WITH_KILN.value());
         }
+        
+        return InteractionResult.CONSUME;
     }
     
-    @Override protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
-        @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult)
+    @Override protected @NotNull ItemInteractionResult useItemOn(
+        @NotNull ItemStack stack,
+        @NotNull BlockState state,
+        @NotNull Level level,
+        @NotNull BlockPos pos,
+        @NotNull Player player,
+        @NotNull InteractionHand hand,
+        @NotNull BlockHitResult hitResult
+    )
+    {
+        if(state.getValue(LIT))
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        
+        final Item itemInHand = stack.getItem();
+        
+        if(canLitStuff(stack, itemInHand))
+        {
+            final boolean isDamageable = stack.isDamageableItem();
+            final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
+            
+            level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
+                SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
+            );
+            
+            if(!level.isClientSide)
             {
-                if(state.getValue(LIT))
-                    return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-                
-                final Item itemInHand = stack.getItem();
-                
-                if(canLitStuff(stack, itemInHand))
-                {
-                    final boolean isDamageable = stack.isDamageableItem();
-                    final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
-                    
-                    level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
-                        SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
-                    );
-                    
-                    if(!level.isClientSide)
-                    {
-                        level.setBlockAndUpdate(pos, state.setValue(LIT, true));
-                        if(isDamageable)
-                            stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
-                        else
-                            stack.consume(1, player);
-                    }
-                    
-                    return ItemInteractionResult.sidedSuccess(level.isClientSide);
-                }
-                
-                return ItemInteractionResult.FAIL;
+                level.setBlockAndUpdate(pos, state.setValue(LIT, true));
+                if(isDamageable)
+                    stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+                else
+                    stack.consume(1, player);
             }
+            
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        
+        return ItemInteractionResult.FAIL;
+    }
     //endregion
     
     //region Visual Display & Helpers
