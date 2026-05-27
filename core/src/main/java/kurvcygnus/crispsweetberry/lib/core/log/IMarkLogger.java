@@ -783,6 +783,8 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
     {
         requireNonNull(clazz, "Param \"clazz\" must not be null!");
         requireNonNull(mark, "Param \"mark\" must not be null!");
+        if(mark.isBlank())
+            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
         
         final Marker marker = MarkerFactory.getMarker(mark);
         
@@ -804,6 +806,8 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
     {
         requireNonNull(clazz, "Param \"clazz\" must not be null!");
         requireNonNull(mark, "Param \"mark\" must not be null!");
+        if(mark.isBlank())
+            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
         
         return withMarkerSuffixes(clazz, MarkerFactory.getMarker(mark));
     }
@@ -834,7 +838,13 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
     }
     
     static @NotNull MarkLogger configuredLogger(@NotNull Class<?> clazz, @NotNull String mark, @NotNull Predicate<Level> condition, boolean adaptive)
-        { return configuredLogger(clazz, MarkerFactory.getMarker(mark), adaptive, condition); }
+    {
+        requireNonNull(mark, "Param \"mark\" must not be null!");
+        if(mark.isBlank())
+            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
+        
+        return configuredLogger(clazz, MarkerFactory.getMarker(mark), adaptive, condition);
+    }
     
     static @NotNull MarkLogger configuredLogger(@NotNull Class<?> clazz, @NotNull Predicate<Level> condition)
         { return configuredLogger(clazz, null, false, condition); }

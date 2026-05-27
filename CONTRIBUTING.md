@@ -19,8 +19,7 @@ If you have any questions, feel free to ask.
    NeoForge’s tooling and official guidance are currently focused on IntelliJ IDEA.
 
 2. If using IntelliJ IDEA, please install the <u>[**Better Highlights**](https://plugins.jetbrains.com/plugin/12895-better-highlights)</u> plugin.\
-   We recommend using `*` as a single-line comment prefix to mark critical information or describe the specific purpose of a code region.
-   (For region, you can see details from [here](#region)),\
+   We recommend using `*` as a single-line comment prefix to mark critical information or describe the specific purpose of a code region.(For region, you can see details from [here](#region)),\
    and using `!` to highlight potential errors, edge cases, or complex exception handling logic.
 
    ```java
@@ -37,6 +36,8 @@ If you have any questions, feel free to ask.
 
 4. After cloning the repo, **please initialize your local repo with these commands**:
    ```shell
+    # If you are using IDEA,
+    # you can(and also recommended) directly run this command by clicking the gutter on left side bar.
     git config filter.hide-i18n.clean "sed 's/^i18n_path=.*/#i18n_path=/'"
     git config filter.hide-i18n.smudge "cat"
     git add --renormalize .

@@ -15,6 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extens
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarryTickable;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarryVerifiable;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This is the basic of all carry adapters.<br>
@@ -28,4 +29,5 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 public abstract class AbstractCarryAdapter<T extends CarryData.CarryDataBaseHolder> implements ICarriableLifecycle<T>, ICarryTickable, ICarryVerifiable
 {
+    public abstract @NotNull String toString();
 }

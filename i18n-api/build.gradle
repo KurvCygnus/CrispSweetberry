@@ -6,6 +6,10 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
+//? This build script serves I18n API's facade: [[AutoI18n]].
+
+//? Processor's Build Script: [[../i18n-processor/build.gradle]].
+
 plugins {
     id 'java-library'
 }
@@ -15,7 +19,7 @@ dependencies {
 }
 
 group = mod_group_id
-version = mod_id
+version = mod_version
 
 jar {
     manifest {

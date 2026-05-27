@@ -30,11 +30,9 @@ import java.util.concurrent.CompletableFuture;
  * <u>{@link net.neoforged.api.distmarker.Dist#DEDICATED_SERVER ServerSide}</u>, so just remind that adding these params to 
  * <u>{@link EventBusSubscriber}</u> will cause problems(will be silent at some cases), don't do this.
  */
-@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
-public final class CrispDataGenEvent
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE) final class DataGenEvent
 {
-    @SubscribeEvent
-    static void dataGenerate(@NotNull GatherDataEvent event)
+    @SubscribeEvent static void dataGenerate(@NotNull GatherDataEvent event)
     {
         final DataGenerator generator = event.getGenerator();
         final PackOutput output = generator.getPackOutput();
@@ -43,12 +41,12 @@ public final class CrispDataGenEvent
         
         generator.addProvider(
             event.includeServer(),
-            new CrispRecipeProvider(output, lookupProvider)
+            new RecipeProvider(output, lookupProvider)
         );
         
         generator.addProvider(
             event.includeClient(),
-            new CrispBlockstateProvider(output, existingFileHelper)
+            new BlockstateProvider(output, existingFileHelper)
         );
         
         generator.addProvider(
@@ -58,7 +56,7 @@ public final class CrispDataGenEvent
                 Collections.emptySet(),
                 List.of(
                     new LootTableProvider.SubProviderEntry(
-                        CrispBlockLootSubProvider::new,
+                        BlockLootSubProvider::new,
                         LootContextParamSets.BLOCK
                     ),
                     new LootTableProvider.SubProviderEntry(

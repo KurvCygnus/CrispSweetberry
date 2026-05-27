@@ -28,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.io.Serializable;
+
 /**
  * A collection class holds the all unique abilities of 
  * <u>{@link AbstractBlockEntityCarryAdapter BlockEntity's adapter}</u>.
@@ -83,7 +85,7 @@ public final class CarriableBlockEntityExtensions
      * @author Kurv Cygnus
      * @see CarriableExtensions.ICarriableLifecycle Base Lifecycle Interface
      * @implNote This interface is actually necessary because the existence of 
-     * <u>{@link CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic ISimpleBlockEntityPenaltyLogic}</u>, 
+     * <u>{@link CarriableSimpleLogicCollection.OfSimpleBlockEntityPenalty ISimpleBlockEntityPenaltyLogic}</u>,
      * without this interface, the implementor of that interface have to do <b>Default Method Delegation</b>, which makes it not "Simple".
      * <br><br>
      * Also, interface methods are used by internal implementation, which doesn't have blockEntity instance at all the time, 
@@ -121,7 +123,7 @@ public final class CarriableBlockEntityExtensions
         /**
          * The new base penaltyRate getter for blockEntity.<br>
          * With the reference of {@code blockEntity}, its return value can be much more flexible.
-         * @see CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic Recommend Universal Implementation
+         * @see CarriableSimpleLogicCollection.OfSimpleBlockEntityPenalty Recommend Universal Implementation
          */
         @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull E blockEntity);
         
@@ -138,7 +140,7 @@ public final class CarriableBlockEntityExtensions
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ICarrySerializable
+    public interface ICarrySerializable extends Serializable
     {
         /**
          * Load <u>{@link BlockEntity}</u>'s serialized data.<br><br>

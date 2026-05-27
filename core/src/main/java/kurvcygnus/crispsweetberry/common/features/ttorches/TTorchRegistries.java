@@ -29,8 +29,8 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableSoulTo
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableTorchItem;
 import kurvcygnus.crispsweetberry.common.features.ttorches.sync.SoulFireTagPayloads;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;

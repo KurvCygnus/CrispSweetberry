@@ -8,9 +8,8 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.OfSimpleBlockEntityContentDrop;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -43,7 +42,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @implNote The access the vanilla data relies on <u>{@link CarriableVanillaBlockEntityAccessors.IVanillaBrewingStandAccessor mixin accessor}</u>.
  */
 public class BaseVanillaBrewingStandAdapter<E extends BrewingStandBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>, ISimpleBlockEntityBreakLogic<E>, ISimpleBlockEntityPenaltyDropLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> implements CarriableSimpleLogicCollection.OfSimpleBlockEntityPenalty<E>, CarriableSimpleLogicCollection.OfSimpleBlockEntityBreak<E>, OfSimpleBlockEntityContentDrop<E>
 {
     //region Constants & Constructor
     protected static final int OUTPUT_SLOT_START_INDEX = 0;

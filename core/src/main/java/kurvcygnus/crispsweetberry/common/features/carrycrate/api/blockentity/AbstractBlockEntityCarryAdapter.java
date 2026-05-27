@@ -116,7 +116,7 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
      *  )
      *  {
      *      final CompoundTag dataTag = blockEntity.saveCustomOnly(registries);
-     *      tag.union(dataTag);
+     *      tag.merge(dataTag);
      *  }
      * }</pre>
      */
@@ -175,4 +175,6 @@ extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IA
         return this.getPenaltyRate(this.blockEntity);
     }
     //endregion
+    
+    @Override public @NotNull String toString() { return blockEntity != null ? blockEntity.toString() + blockEntity.getPersistentData() : "N/A"; }
 }

@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.lib.base.extensions;
 
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import org.jetbrains.annotations.*;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.io.Serializable;
 import java.util.*;
@@ -249,7 +250,13 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             final Object object = entry.getValue().apply((T) this);
             
             if(name.isBlank())
-                throw new IllegalArgumentException("The field of Class \"%s\" has a unpresentable name! Value: %s".formatted(this.getClass().getSimpleName(), object));
+                throw new IllegalArgumentException(
+                    MessageFormatter.format(
+                        "The field of Class \"{}\" has a unpresentable name! Value: {}",
+                        this.getClass().getSimpleName(),
+                        object
+                    ).getMessage()
+                );
             
             analyseAndAppend(stringBuilder, nextIndent, fieldIndent, visited, name, object);
         }
@@ -281,7 +288,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             {
                 if(!visited.add(nested))
                 {
-                    appendEntryTemplate(stringBuilder, indent, name, "...(Circular Reference on %s)".formatted(nested.getClass().getSimpleName()));
+                    appendEntryTemplate(stringBuilder, indent, name, circularReferenceTemplate(nested.getClass(), false));
                     return;
                 }
                 
@@ -291,12 +298,12 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             }
             case Iterable<?> iterable ->
             {
+                //noinspection DuplicatedCode
                 if(!visited.add(iterable))
                 {
-                    appendEntryTemplate(stringBuilder, indent, name, "[...(Circular Reference on %s)]".formatted(iterable.getClass().getSimpleName()));
+                    appendEntryTemplate(stringBuilder, indent, name, circularReferenceTemplate(iterable.getClass(), true));
                     return;
                 }
-                //noinspection DuplicatedCode
                 stringBuilder.append(prefix).append("\n[\n");
                 final int nextIndent = currentIndent + getIndent();
                 final String nextIndentStr = " ".repeat(nextIndent);
@@ -307,9 +314,10 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             }
             case Map<?, ?> map ->
             {
+                //noinspection DuplicatedCode
                 if(!visited.add(map))
                 {
-                    appendEntryTemplate(stringBuilder, indent, name, "[...(Circular Reference %s)]".formatted(map.getClass().getSimpleName()));
+                    appendEntryTemplate(stringBuilder, indent, name, circularReferenceTemplate(map.getClass(), true));
                     return;
                 }
                 stringBuilder.append(prefix).append("\n[\n");
@@ -327,16 +335,14 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             }
             case Optional<?> box -> stringBuilder.append(prefix).append(box.map(Object::toString).orElse("null")).append('\n');
             //* That's why we ALWAYS like C#.
-            case Object[] array -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, array, prefix);
-            case int[] intArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, intArray, prefix);
-            case long[] longArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, longArray, prefix);
-            case byte[] byteArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, byteArray, prefix);
-            case float[] floatArray ->
-                arrayAppend(stringBuilder, currentIndent, indent, visited, name, floatArray, prefix);
-            case double[] doubleArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, doubleArray, prefix);
-            case char[] charArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, charArray, prefix);
-            case boolean[] boolArray ->
-                arrayAppend(stringBuilder, currentIndent, indent, visited, name, boolArray, prefix);
+            case Object  [] array       -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, array,       prefix);
+            case int     [] intArray    -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, intArray,    prefix);
+            case long    [] longArray   -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, longArray,   prefix);
+            case byte    [] byteArray   -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, byteArray,   prefix);
+            case float   [] floatArray  -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, floatArray,  prefix);
+            case double  [] doubleArray -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, doubleArray, prefix);
+            case char    [] charArray   -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, charArray,   prefix);
+            case boolean [] boolArray   -> arrayAppend(stringBuilder, currentIndent, indent, visited, name, boolArray,   prefix);
             default -> stringBuilder.append(prefix).append(obj).append('\n');
         }
     }
@@ -582,6 +588,14 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         stringBuilder.append(indent).append("]\n");
     }
     //endregion
+    
+    private static @NotNull String circularReferenceTemplate(@NotNull Class<?> clazz, boolean isDataStructure)
+    {
+        return MessageFormatter.format(
+            "{}...(Circular Reference {}){}",
+            new Object[] { isDataStructure ? '[' : "", clazz.getSimpleName(), isDataStructure ? ']' : "" }
+        ).getMessage();
+    }
     
     private static void appendEntryTemplate(
         @NotNull StringBuilder stringBuilder,

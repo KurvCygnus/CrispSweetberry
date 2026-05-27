@@ -16,7 +16,7 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
-import org.slf4j.Logger;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * As its name implied, this is an adapter for animal entities, which features auto compat.
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
  * <b>So, for most custom animals, there's even no need to write compat manually</b>, unless you have further customization demand, then you should 
  * write it, and the auto compat will ignore this entity.
  */
-public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends AbstractEntityCarryAdapter<E> implements CarriableSimpleLogicCollection.ISimpleCarriableEntityBreakLogic
+public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends AbstractEntityCarryAdapter<E> implements CarriableSimpleLogicCollection.OfSimpleEntityBreak
 {
     /**
      * <u>{@link net.minecraft.world.entity.animal.Cow Cow}</u>'s <u>{@link net.minecraft.world.phys.AABB Bounding Box}</u>.<br>
@@ -53,8 +53,10 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
             
             if(volume > MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
                 throw new IllegalArgumentException(
-                    "Entity \"%s\" is too big to be boxed into Carry Crate! Volume: %f, Expected: Smaller than %f".
-                        formatted(entity.getName().getString(), volume, MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
+                    MessageFormatter.format(
+                        "Entity \"%s\" is too big to be boxed into Carry Crate! Volume: %f, Expected: Smaller than %f",
+                        new Object[] { entity.getName().getString(), volume, MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME }
+                    ).getMessage()
                 );
             
             this.penaltyRate = (int) (
@@ -68,6 +70,4 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
     @Override public @Range(from = NO_PENALTY, to = Integer.MAX_VALUE) int getPenaltyRate() { return this.penaltyRate; }
     
     @Override public @NotNull Class<?> getSupportedType() { return Animal.class; }
-    
-    @Override public @NotNull Logger getLogger() { return LOGGER; }
 }

@@ -192,7 +192,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     SealableBox(@Nullable T value, @MagicConstant(valuesFromClass = Privates.class) byte state)
     {
-        assert state >= Privates.UNBOUND && state <= Privates.SEALED : "Param \"state\"'s value is illegal: %d".formatted(state);
+        assert state >= Privates.UNBOUND && state <= Privates.SEALED : "Param \"state\"'s value is illegal: " + state;
         
         this.value = value;
         this.state = state;
@@ -298,7 +298,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     AtomicSealableBox(@Nullable T value, @MagicConstant(valuesFromClass = Privates.class) byte state)
     {
-        assert state >= Privates.UNBOUND && state <= Privates.SEALED : "Param \"state\"'s value is illegal: %d".formatted(state);
+        assert state >= Privates.UNBOUND && state <= Privates.SEALED : "Param \"state\"'s value is illegal: " + state;
         this.pair = new AtomicReference<>(new AtomicPair<>(value, state));
     }
     
@@ -419,7 +419,7 @@ final class Privates
             case Privates.ASSIGNABLE -> "ASSIGNABLE";
             case Privates.BOUND -> "BOUND";
             case Privates.SEALED -> "SEALED";
-            default -> throw new IllegalStateException("Unexpected value: %s".formatted(state));
+            default -> throw new IllegalStateException("Unexpected value: " + state);
         };
     }
 }

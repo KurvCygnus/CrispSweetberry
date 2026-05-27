@@ -64,8 +64,7 @@ public final class TRedstoneTorchExtensions
             this.explosionChance = 0.25F + this.ordinal() * 0.1F;
         }
         
-        @Override
-        public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
+        @Override public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
         
         public int getSignalStrength() { return signalStrength; }
         
@@ -121,7 +120,7 @@ public final class TRedstoneTorchExtensions
     /**
      * Carries the basic constants and methods that both block and behavior needs.
      */
-    interface IShared
+    sealed interface OfShared permits TemporaryRedstoneTorchBehavior, TemporaryRedstoneTorchBlock, TemporaryRedstoneWallTorchBlock
     {
         BooleanProperty REDSTONE_LIT = BooleanProperty.create("lit");
         BooleanProperty WAXED = BooleanProperty.create("wax");
@@ -143,20 +142,20 @@ public final class TRedstoneTorchExtensions
     /**
      * Carries the data that is only used for Block.
      */
-    interface IBlock
+    sealed interface OfBlock permits TemporaryRedstoneTorchBlock, TemporaryRedstoneWallTorchBlock
     {
         int REDSTONE_MAX_BRIGHTNESS = 7;
         int REDSTONE_MIN_BRIGHTNESS = 0;
         int REDSTONE_TORCH_SIGNAL_SEND_DELAY = 2;
         
         ToIntFunction<BlockState> REDSTONE_BRIGHTNESS_FORMULA = bs -> 
-            bs.getValue(IShared.REDSTONE_LIT) ? Math.max(0, REDSTONE_MAX_BRIGHTNESS - bs.getValue(IShared.OXIDIZE_STATE).ordinal()) : REDSTONE_MIN_BRIGHTNESS;
+            bs.getValue(OfShared.REDSTONE_LIT) ? Math.max(0, REDSTONE_MAX_BRIGHTNESS - bs.getValue(OfShared.OXIDIZE_STATE).ordinal()) : REDSTONE_MIN_BRIGHTNESS;
     }
     
     /**
      * Carries the data that is only used for Behavior.
      */
-    interface IBehavior
+    sealed interface OfBehavior permits TemporaryRedstoneTorchBehavior
     {
         int getSignal(@NotNull BlockState blockState, @NotNull Direction side);
         

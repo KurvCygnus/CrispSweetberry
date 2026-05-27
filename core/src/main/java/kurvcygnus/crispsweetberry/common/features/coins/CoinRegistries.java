@@ -17,7 +17,7 @@ import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStack
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinStackItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
+import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;

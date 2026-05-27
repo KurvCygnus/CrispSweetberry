@@ -74,8 +74,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstrac
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.entities.ThrownRedstoneTorchEntity Entity
  * @see kurvcygnus.crispsweetberry.common.features.ttorches.items.ThrowableRedstoneTorchItem Item
  */
-public final class TemporaryRedstoneTorchBehavior
-extends AbstractTemporaryTorchBehavior implements TRedstoneTorchExtensions.IBehavior, TRedstoneTorchExtensions.IShared
+public final class TemporaryRedstoneTorchBehavior extends AbstractTemporaryTorchBehavior implements TRedstoneTorchExtensions.OfBehavior, TRedstoneTorchExtensions.OfShared
 {
     public <T extends AbstractGenericTorchBlock<? extends AbstractTemporaryTorchBehavior>> TemporaryRedstoneTorchBehavior(@NotNull Lazy<T> torchBlock)
         { super(torchBlock); }

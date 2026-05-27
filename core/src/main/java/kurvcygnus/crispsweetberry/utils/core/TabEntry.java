@@ -6,22 +6,26 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils;
+package kurvcygnus.crispsweetberry.utils.core;
 
-import net.minecraft.world.level.storage.loot.LootPool;
-import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public final class CrispLootUtils
+/**
+ * A simple data holder for <u>{@link kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent tab registry}</u>.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ */
+public record TabEntry(@NotNull Supplier<? extends Item> itemSupplier, @NotNull ResourceKey<CreativeModeTab> tab)
 {
-    private CrispLootUtils() { throw new IllegalAccessError(); }
-    
-    public static @NotNull LootTable.Builder initLootPool(@NotNull Supplier<LootPool.Builder> pool)
+    public TabEntry
     {
-        Objects.requireNonNull(pool, "Param \"pool\" must not be null!");
-        return LootTable.lootTable().withPool(pool.get());
+        Objects.requireNonNull(itemSupplier, "Param \"itemSupplier\" must not be null!");
+        Objects.requireNonNull(tab, "Param \"tab\" must not be null!");
     }
 }

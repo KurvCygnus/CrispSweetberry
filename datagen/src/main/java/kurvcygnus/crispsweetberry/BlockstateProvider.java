@@ -18,13 +18,12 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
-public final class CrispBlockstateProvider extends BlockStateProvider
+public final class BlockstateProvider extends BlockStateProvider
 {
-    public CrispBlockstateProvider(@NotNull PackOutput output, @NotNull ExistingFileHelper exFileHelper)
+    public BlockstateProvider(@NotNull PackOutput output, @NotNull ExistingFileHelper exFileHelper)
         { super(output, CrispSweetberry.NAMESPACE, exFileHelper); }
     
-    @Override
-    protected void registerStatesAndModels()
+    @Override protected void registerStatesAndModels()
     {
         final ModelFile kilnOff = models().orientableWithBottom("kiln",
             modLoc("block/kiln_side"),

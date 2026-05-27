@@ -52,7 +52,7 @@ public final class DefinitionUtils
     /**
      * Produces a <u>{@link ResourceLocation}</u>, with <u>{@link CrispSweetberry#NAMESPACE "crispsweetberry"}</u> as its namespace.
      */
-    @Contract("_ -> new") public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation) 
+    @Contract("_ -> new") public static @NotNull ResourceLocation getModNamespacedLocation(@NotNull String assetLocation)
     {
         requireNonNull(assetLocation, "Param \"assetLocation\" cannot be null!");
         return ResourceLocation.fromNamespaceAndPath(CrispSweetberry.NAMESPACE, assetLocation);

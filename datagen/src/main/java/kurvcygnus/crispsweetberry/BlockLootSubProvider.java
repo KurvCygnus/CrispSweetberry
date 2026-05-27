@@ -11,7 +11,6 @@ package kurvcygnus.crispsweetberry;
 import com.google.common.collect.Iterables;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -28,14 +27,13 @@ import java.util.Collections;
 import java.util.List;
 
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries.CARRY_CRATE_BLOCK;
-import static kurvcygnus.crispsweetberry.utils.CrispLootUtils.initLootPool;
+import static kurvcygnus.crispsweetberry.utils.LootUtils.initLootPool;
 
-final class CrispBlockLootSubProvider extends BlockLootSubProvider
+final class BlockLootSubProvider extends net.minecraft.data.loot.BlockLootSubProvider
 {
-    CrispBlockLootSubProvider(@NotNull HolderLookup.Provider registries) { super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags(), registries); }
+    BlockLootSubProvider(@NotNull HolderLookup.Provider registries) { super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags(), registries); }
     
-    @Override
-    protected void generate()
+    @Override protected void generate()
     {
         this.add(CARRY_CRATE_BLOCK.value(), block ->
             initLootPool(() -> LootPool.lootPool().
@@ -56,8 +54,7 @@ final class CrispBlockLootSubProvider extends BlockLootSubProvider
         this.dropSelf(KilnRegistries.KILN_BLOCK.value());
     }
     
-    @Override
-    protected @NotNull Iterable<Block> getKnownBlocks()
+    @Override protected @NotNull Iterable<Block> getKnownBlocks()
     {
         final List<Block> miscList = List.of(CARRY_CRATE_BLOCK.value());
         final List<Block> kilnList = List.of(KilnRegistries.KILN_BLOCK.value());

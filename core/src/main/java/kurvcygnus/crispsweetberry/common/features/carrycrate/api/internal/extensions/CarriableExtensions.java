@@ -40,7 +40,7 @@ public final class CarriableExtensions
      * <br>
      * <b>The smaller the Penalty Rate is, the faster the durability drops</b>.
      * @since 1.0 Release
-     * @see CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic Container Item Based Penalty Logic Implementation
+     * @see CarriableSimpleLogicCollection.OfSimpleBlockEntityPenalty Container Item Based Penalty Logic Implementation
      * @author Kurv Cygnus
      */
     public interface ICarriableLifecycle<T extends CarryData.CarryDataBaseHolder>

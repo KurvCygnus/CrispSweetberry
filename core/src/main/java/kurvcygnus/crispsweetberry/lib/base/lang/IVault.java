@@ -274,12 +274,12 @@ public sealed interface IVault<TValue, TToken> extends Function<TToken, Optional
      * Gets the value of this vault holds, as long as the token matches the requirement.
      * @throws IllegalArgumentException When token doesn't matches the requirement.
      */
-    @NotNull TValue tryGet(@NotNull TToken token) throws IllegalArgumentException;
+    @NotNull TValue tryGet(TToken token) throws IllegalArgumentException;
     
     /**
      * Gets the value of this vault holds, as long as the token matches the requirement.
      */
-    @NotNull Optional<TValue> trySafeGet(@NotNull TToken token);
+    @NotNull Optional<TValue> trySafeGet(TToken token);
     
     /**
      * Tweaks the value of this vault, as long as the vault itself is mutable, with token matches the requirement.

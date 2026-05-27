@@ -16,6 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 
@@ -52,8 +53,11 @@ public abstract class AbstractEntityCarryAdapter<E extends LivingEntity> extends
         catch(ClassCastException ex) 
         {
             throw new IllegalArgumentException(
-                "Adapter Type Mismatch! Attempted to bind adapter to entity: %s, but this adapter expects: %s".
-                    formatted(entity.getClass().getSimpleName(), this.getClass().getSimpleName())
+                MessageFormatter.format(
+                    "Adapter Type Mismatch! Attempted to bind adapter to entity: {}, but this adapter expects: {}",
+                    entity.getClass().getSimpleName(),
+                    this.getClass().getSimpleName()
+                ).getMessage()
             );
         }
     }
@@ -67,17 +71,24 @@ public abstract class AbstractEntityCarryAdapter<E extends LivingEntity> extends
      * In a nutshell, <b>using {@code #getEntity()} during <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>
      * will throw <u>{@link NullPointerException}</u>, and you shouldn't use this at most cases.</b>
      */
-    protected final @NotNull E getEntity() 
+    protected final @NotNull E getEntity()
     {
         Objects.requireNonNull(
             entity,
-            """
+            MessageFormatter.format(
+                """
                 Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
-                method is called at improper time, with improper param. %s
-                """.
-                formatted(MetainfoConstants.FEEDBACK_MESSAGE)
+                method is called at improper time, with improper param. {}
+                """,
+                MetainfoConstants.FEEDBACK_MESSAGE
+            ).getMessage()
         );
         
         return entity;
+    }
+    
+    @Override public @NotNull String toString()
+    {
+        return "";
     }
 }

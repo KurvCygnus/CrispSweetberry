@@ -6,12 +6,23 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
+//? This is the build script of I18n API's generator.
+
+//? Main Build Script: [[../build.gradle]]
+//? API Build Script: [[../i18n-api/build.gradle]]
+
+//? Necessary SPI Declarations:
+//* Javax: [[./src/main/resources/META-INF/services/javax.annotation.processing.Processor]]
+//* Gradle: [[./src/main/resources/META-INF/gradle/incremental.annotation.processors]]
+
+//* Processor Core: [[I18nProcessor]]
+
 plugins {
     id 'java-library'
 }
 
 group = mod_group_id
-version = mod_id
+version = mod_version
 
 repositories {
     mavenCentral()

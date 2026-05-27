@@ -12,6 +12,7 @@ import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -26,6 +27,8 @@ import java.util.UUID;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class CarryCrateCopyProcessor
 {
+    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("CARRY_PERSISTENT");
+    
     @SubscribeEvent static void onScreenMouseClick(ScreenEvent.MouseButtonPressed.@NotNull Pre event)
     {
         if(event.getButton() != GLFW.GLFW_MOUSE_BUTTON_MIDDLE)
@@ -49,6 +52,7 @@ public final class CarryCrateCopyProcessor
             !originalStack.has(CarryCrateRegistries.CARRY_CRATE_DATA.value())
         ) return;
         
+        LOGGER.debug("Stack \"{}\" meets the comndition. Taking over the Copy Logic.", originalStack);
         event.setCanceled(true);
         
         final var builder = CarryID.__$1NT3RNAL_R3ST0R3$__.tryGet(Optional.of(event));
@@ -61,8 +65,12 @@ public final class CarryCrateCopyProcessor
         assert data != null;
         
         final var newID = builder.apply(carryID.id(), UUID.randomUUID().toString().replace("-", ""));
+        final var type = data.carryType();
+        
+        LOGGER.debug("New CarryID generated: {}\nTrying to add it to listener lookup with CarryType {}.", newID, type);
+        
         clonedStack.set(CarryCrateRegistries.CARRY_ID.get(), newID);
-        CarryEngine.INSERT_ACCESS.tryGet(Optional.empty()).accept(data.carryType(), carryID, newID);
+        CarryEngine.INSERT_ACCESS.tryGet(Optional.empty()).accept(type, carryID, newID);
         
         //! This event will only be fired during gaming, which means [[Minecraft#gameMode]] always exists.
         assert mc.gameMode != null;

@@ -173,9 +173,9 @@ public final class CarryData
                 causesOverweight: {},
                 startTime: {},
                 payload:
-                {}
+            {}
             }
-            """,
+            """,//! Notes that `unionData`'s print is called with [[String#indent]]. So we shouldn't align placeholder to "payload".
             new Object[] { carryType, causesOverweight, startTime, unionData.toString().indent(4) }
         ).getMessage();
     }

@@ -8,9 +8,8 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.OfSimpleBlockEntityContentDrop;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableVanillaBlockEntityAccessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <E> The blockEntity this adapter takes responsibility of.
  */
 public class SimpleContainerBlockEntityCarryAdapter<E extends BaseContainerBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>, ISimpleBlockEntityBreakLogic<E>, ISimpleBlockEntityPenaltyDropLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> implements CarriableSimpleLogicCollection.OfSimpleBlockEntityPenalty<E>, CarriableSimpleLogicCollection.OfSimpleBlockEntityBreak<E>, OfSimpleBlockEntityContentDrop<E>
 {
     public SimpleContainerBlockEntityCarryAdapter(@NotNull BlockEntity blockEntity) { super(blockEntity); }
     

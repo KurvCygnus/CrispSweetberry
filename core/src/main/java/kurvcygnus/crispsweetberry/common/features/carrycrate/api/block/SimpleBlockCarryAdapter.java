@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.block;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleCarriableBlockBreakLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.OfSimpleBlockBreak;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import net.minecraft.world.level.block.Block;
@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Range;
  * @see kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent Register Event
  * @param <B> The block this adapter takes responsibility of.
  */
-public class SimpleBlockCarryAdapter<B extends Block> extends AbstractBlockCarryAdapter<B> implements ISimpleCarriableBlockBreakLogic
+public class SimpleBlockCarryAdapter<B extends Block> extends AbstractBlockCarryAdapter<B> implements OfSimpleBlockBreak
 {
     protected static final int DEFAULT_ACCEPTABLE_COUNT = 1;
     

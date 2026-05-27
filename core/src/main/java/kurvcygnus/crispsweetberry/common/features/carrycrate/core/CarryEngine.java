@@ -30,6 +30,7 @@ import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -49,7 +50,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.TriState;
@@ -67,8 +67,12 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
 import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContextCollection.*;
 
 //? FIX: Somehow, when capturing entity with one carryCrate, component persistent won't work.
-//? According to debugging, this bug doesn't happen before the end of [[CarryCrateItem#interactLivingEntity]]. SHIT, Minecraft's code is awesome.
+//? According to debugging, this bug doesn't happen before the end of [[CarryCrateItem#interactLivingEntity]].
+
 //? FIX: BlockEntity's Placement is now working fine, but serialization needs to get fixed, currently it doesn't work.
+//? NEW PROGRESS: Same as the 1st FIX issue, before [[CarryCrateItem#useOn]]'s ending, everything seems good.
+//? So:
+//? TODO: Find out the network sync issue!
 
 /**
  * The core engine of the whole carry system. As you can could see, it is complex enough to be an independent class.<br>
@@ -80,10 +84,10 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.Ca
  *             <u>{@link CarryCrateItem#interactLivingEntity(ItemStack, Player, LivingEntity, InteractionHand) entity interact}</u>
  *         </i>).
  *     </li>
- *     <li>Owning the <u>{@link #LISTENER_LOOKUP Table}</u> <b>that holds CarryCrates that has data</b>, whose are needed to be monitored.</li>
+ *     <li>Owning the <u>{@link #LISTENER_LOOKUP Lookup}</u> <b>that holds contented CarryCrates</b>, whose are needed to be monitored.</li>
  *     <li>Dispatching the carrying behaviors of CarryCrates that has data.(See <u>{@link #carryingTick(CarryCrateItem, ItemStack, Level, Entity, int)}</u>)</li>
  *     <li>
- *         Saving/Restoring the <u>{@link #LISTENER_LOOKUP listner table}</u> on game start/end(See <u>{@link CarryListenerSaveData}</u>, <u>{@link #startEngine(ServerStartedEvent)}</u>).
+ *         Saving/Restoring the <u>{@link #LISTENER_LOOKUP listner lookup}</u> on game start/end(See <u>{@link CarryListenerSaveData}</u>, <u>{@link #startEngine(ServerStartedEvent)}</u>).
  *     </li>
  * </ul>
  * @since 1.0 Release
@@ -135,7 +139,36 @@ public enum CarryEngine
      * @author Kurv Cygnus
      * @implNote This class only contains the data field and <u>{@link #save(CompoundTag, HolderLookup.Provider) save logic}</u>,
      * <b>The data shall be saved once the data is marked as dirty(At <u>{@link CarryOperationExecutor}</u>).</b>
+     * <hr>
+     * Also, you may ask:
+     * <h3><b>"Why this persistent operation only involves <u>{@link CarryID}</u>? Where is <u>{@link CarryData}</u>???"</b></h3>
+     * <br>
+     * The answer is, <b><i><span style="color: 95cc6d">they are ignored by design, since there's no need to.</span></i></b>
+     * <br>
+     * Explanations: Both <u>{@link CarryID}</u> and <u>{@link CarryData}</u> are a type of <u>{@link net.minecraft.core.component.DataComponentType DataComponentType}</u>,
+     * which means, they can and only exists on <u>{@link net.minecraft.world.item.Item Item}</u> as attachments, <b>and their persistent are handled by Minecraft itself.</b>
+     * <hr>
+     * <h3><i>Then, why save <u>{@link CarryID}</u> again?</i></h3>
+     * The answer is <u>{@link CarryEngine}</u> have to monitor contented <u>{@link CarryCrateItem CarryCrates}</u>,
+     * since we have to make <u>{@link #carryingTick(CarryCrateItem, ItemStack, Level, Entity, int)}</u> work.<br>
+     * Thus, iterating all <u>{@link ItemStack item intsnaces}</u> to rebuild <u>{@link #LISTENER_LOOKUP}</u> is stupid, because:
+     * <ul>
+     *     <li><span style="color: f84b4b">Slow.</span> Iterating needs to scan a number of chunks, which is a disaster.</li>
+     *     <li>
+     *         <span style="color: f84b4b">Edgy.</span> Minecraft won't load all chunks to grantee performance.
+     *         <span style="color: f84b4b">Iterating CANNOT get all <u>{@link ItemStack item instances}</u> at ALL.</span><br>
+     *         Also, <b>how about backpack mod's contents, <u>{@link BlockEntity}</u> contents and so on?</b>
+     *     </li>
+     *     <li>
+     *         <span style="color: f84b4b">Capable of causing side effects.</span>
+     *         Visiting these data too early can lead to unexpected firing of <u>{@link net.neoforged.bus.api.Event Event}</u>, or something else,
+     *         despite it won't always happen.
+     *     </li>
+     * </ul>
+     * , and we'll lose the info of corresponded
+     * <u>{@link AbstractCarryAdapter adapters}</u>, so we have to save these info into a file to recover <u>{@link #LISTENER_LOOKUP}</u>.
      */
+    @ApiStatus.Internal
     static final class CarryListenerSaveData extends SavedData
     {
         static final String UUID = "uuid";
@@ -147,13 +180,13 @@ public enum CarryEngine
         
         private CarryListenerSaveData() {}
         
-        private static @NotNull CarryListenerSaveData create() { return new CarryListenerSaveData(); }
+        static @NotNull CarryListenerSaveData create() { return new CarryListenerSaveData(); }
         
         @Override public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
         {
             try(final var ignored = LOGGER.pushMarker("PERSISTENT"))
             {
-                final ListTag entryList = new ListTag();
+                final var entryList = new ListTag();
                 
                 for(final var lookup: LISTENER_LOOKUP.values())
                     lookup.forEach(
@@ -177,8 +210,13 @@ public enum CarryEngine
             //! Explanation: Minecraft saves most world data by dimension.
             //! [[CarryEngine#LISTENER_LOOKUP]] is expected to be cross-dimensional,
             //! and in such a case, we choose to use [[Level#OVERWORLD]] as standard.
-            final DimensionDataStorage storage = server.overworld().getDataStorage();
+            final var storage = server.overworld().getDataStorage();
             
+            //* Notes that [[net.minecraft.world.level.saveddata.SavedData.Factory]] is actually not a factory.
+            //* More precisely, it is a file IO Pair, with [[Supplier]] as output(by calling instance method [[SavedData#save]]),
+            //* [[BiFunction]] as input(loading file, here equals to method [[CarryListenerSaveData#load]]).
+            //* We need to send this pair into server by [[DimensionDataStorage#computeIfAbsent]],
+            //* only then the file shall be processed.
             final SavedData.Factory<CarryListenerSaveData> factory = new Factory<>(
                 CarryListenerSaveData::create,
                 CarryListenerSaveData::load
@@ -204,18 +242,18 @@ public enum CarryEngine
     @SuppressWarnings("unchecked")//! Unsafe casting, however, with the restrict of enum [[CarryType]], it is actually safe.
     @SubscribeEvent static void startEngine(@NotNull ServerStartedEvent event)
     {
-        try(final var handle = LOGGER.pushMarker("CARRY_INIT"))
-        {
-            BLOCK_ENTITY_CARRY_LISTENERS.clear();
-            BLOCK_CARRY_LISTENERS.clear();
-            ENTITY_CARRY_LISTENERS.clear();
-            
-            final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer());
-            handle.changeMarker("CARRY_DATA_RECOVER");
-            
-            final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.tryGet(Optional.of(event));
-            data.getEntries().ifPresent(
-                listTag ->
+        BLOCK_ENTITY_CARRY_LISTENERS.clear();
+        BLOCK_CARRY_LISTENERS.clear();
+        ENTITY_CARRY_LISTENERS.clear();
+        
+        final CarryListenerSaveData data = CarryListenerSaveData.get(event.getServer());
+        
+        //! DO NOT MOVE THIS INTO LAMBDA. See [[IVault#ofAccessLimited]], it is related to [[StackWalker]].
+        final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.tryGet(Optional.of(event));
+        data.getEntries().ifPresent(
+            listTag ->
+            {
+                try(final var handle = LOGGER.pushMarker("CARRY_DATA_RECOVER"))
                 {
                     LOGGER.debug("SavedData acquired. Continue to recover listeners.");
                     listTag.stream().
@@ -229,16 +267,15 @@ public enum CarryEngine
                                 final CarryID fullID = internalRestore.apply(id, uuid);
                                 LOGGER.debug("Got CarryID: {}", fullID);
                                 
-                                final ResourceLocation resourceLocation = ResourceLocation.parse(id);
-                                final @Nullable var adapter = CarryRegistryManager.INST.searchFactory(resourceLocation);
+                                final @Nullable var adapter = CarryRegistryManager.INST.searchFactory(ResourceLocation.parse(id));
                                 
                                 if(adapter == null)
                                 {
-                                    LOGGER.error("Entry with ID \"{}\" doesn't have a corresponded factory!", resourceLocation);
+                                    LOGGER.error("Entry with CarryID \"{}\" doesn't have a corresponded factory!", fullID);
                                     return;
                                 }
                                 
-                                ((HashMap<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(adapter.getType())).put(fullID, adapter);
+                                ((Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(adapter.getType())).put(fullID, adapter);
                                 
                                 LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType().name(), fullID);
                             }
@@ -247,8 +284,8 @@ public enum CarryEngine
                     handle.changeMarker("CARRY_ENGINE_STARTED");
                     LOGGER.debug("Listeners recovered. Carry engine, start!");
                 }
-            );
-        }
+            }
+        );
     }
     //endregion
     
@@ -269,13 +306,13 @@ public enum CarryEngine
         
         final var carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
         final var data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        assert carryID != null : "UwU";//! [[DataComponentHolder#has()]] has granted the safety.
-        assert data != null: "UwU";//! `assert` doesn't work in non-debugging environment, it won't bring any extra performance penalty comparing to [[Objects#requireNonNull]].
+        assert carryID != null;//! [[DataComponentHolder#has()]] has granted the safety.
+        assert data != null;//! `assert` doesn't work in non-debugging environment, it won't bring any extra performance penalty comparing to [[Objects#requireNonNull]].
         
         final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid(), slotId);
         
         final int penaltyRate = data.unionData().getPenaltyRate();
-        final var adapter = getCarryAdapter(LISTENER_LOOKUP.get(data.carryType()), carryID);
+        final @Nullable var adapter = getCarryAdapter(LISTENER_LOOKUP.get(data.carryType()), carryID);
         
         if(adapter == null)//! Due to C/S sync, and also the competitive state between carry operation and map, returning at here can prevent potential NPE.
             return;
@@ -299,11 +336,7 @@ public enum CarryEngine
                     level.getGameTime() - data.startTime()
                 );
                 
-                OverweightEffect.updateFactorAndEffect(
-                    player,
-                    data,
-                    TriState.FALSE
-                );
+                OverweightEffect.updateFactorAndEffect(player, data, TriState.FALSE);
                 
                 carryCrate.remove(CarryCrateRegistries.CARRY_CRATE_DATA.get());
                 carryCrate.remove(CarryCrateRegistries.CARRY_ID.get());
@@ -313,11 +346,10 @@ public enum CarryEngine
                 data.carryType().equals(CarryType.BLOCK_ENTITY) &&
                 adapter instanceof AbstractBlockEntityCarryAdapter<?> blockEntityCarryAdapter &&
                 level.getRandom().nextFloat() < (float) carryCrate.getDamageValue() / carryCrate.getMaxDamage()
-            )
-                carryCrate.set(
-                    CarryCrateRegistries.CARRY_CRATE_DATA.get(),
-                    blockEntityCarryAdapter.onPenaltyDrop(context)
-                );
+            ) carryCrate.set(
+                CarryCrateRegistries.CARRY_CRATE_DATA.get(),
+                blockEntityCarryAdapter.onPenaltyDrop(context)
+            );
             
             carryCrate.remove(CarryCrateRegistries.CARRY_TICK_COUNTER.get());
             return;
@@ -385,7 +417,7 @@ public enum CarryEngine
                             final CarryType result = targetBlockEntity != null ? CarryType.BLOCK_ENTITY : CarryType.BLOCK;
                             
                             //! As you can see, once the [[CarryType]] is BLOCK_ENTITY, "targetBlockEntity" won't be null.
-                            assert targetBlockEntity != null : "UwU";
+                            assert targetBlockEntity != null;
                             yield validateBlocklikeAction(result, targetBlockEntity, targetBlockState);
                         }
                         case CarryData that when that.unionData() instanceof CarryData.CarryEntityDataHolder holder ->
@@ -404,15 +436,33 @@ public enum CarryEngine
                                 case CarryBlockEntityDataHolder blockEntityDataHolder ->
                                 {
                                     IS_INTERACTING_WITH_BE.set(true);
+                                    
+                                    final var type = blockEntityDataHolder.getType();
+                                    
                                     targetBlockState = blockEntityDataHolder.getState();
-                                    targetBlockEntity = blockEntityDataHolder.getType().create(interactPos, targetBlockState);
+                                    //* NOTE: This logic is illegal on Vanilla.
+                                    //* It is implemented with the help of [[CarryEngine#IS_INTERACTING_WITH_BE]] and [[CarryBlockEntityValidationPasser]].
+                                    targetBlockEntity = Objects.requireNonNull(
+                                        type.create(interactPos, targetBlockState),
+                                        DefinitionUtils.quickFormat(
+                                            """
+                                            Fatal:
+                                            Failed to create blockEntity "{}"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
+                                            method is called at improper time.
+                                            
+                                            {}
+                                            """,
+                                            type.toString(),
+                                            MetainfoConstants.FEEDBACK_MESSAGE
+                                        )
+                                    );
                                 }
                                 case CarryData.CarryBlockDataHolder blockDataHolder ->
                                 {
                                     targetBlockState = blockDataHolder.getState();
                                     targetBlockEntity = null;
                                 }
-                                default -> throw new IllegalStateException("Impossible branch!\n%s".formatted(carryData.unionData()));
+                                default -> throw new IllegalStateException("Impossible branch!\n" + carryData.unionData());
                             }
                             
                             yield carryData.unionData().getBoundType();
@@ -486,7 +536,13 @@ public enum CarryEngine
     //endregion
     
     //region API & Helpers
-    public boolean isInteracting() { return IS_INTERACTING_WITH_BE.get(); }
+    /**
+     * @implNote There's no need to refactor this into <u>{@link IVault}</u>, especially with <u>{@link IVault#ofAccessLimited(Object, Class[])}</u>.<br>
+     * That's because <b>mixin class doesn't exist during runtime. Thus, mixin framework takes any Classes that uses mixin class references as illegal access,
+     * causing exception on game start.</b><br><br>
+     * <i>Also, this hook is just revealing a {@code boolean}, man. What can others do with this?</i>
+     */
+    @ApiStatus.Internal public boolean isInteracting() { return IS_INTERACTING_WITH_BE.get(); }
     
     private static @Nullable AbstractCarryAdapter<?> getCarryAdapter(
         @NotNull Map<CarryID, ? extends ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> map,

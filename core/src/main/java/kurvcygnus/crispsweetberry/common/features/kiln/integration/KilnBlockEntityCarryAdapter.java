@@ -8,8 +8,8 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.integration;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.OfSimpleBlockEntityBreak;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import net.minecraft.core.HolderLookup;
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 public final class KilnBlockEntityCarryAdapter extends AbstractBlockEntityCarryAdapter<KilnBlockEntity> 
-implements ISimpleBlockEntityBreakLogic<KilnBlockEntity>, ISimpleBlockEntityPenaltyDropLogic<KilnBlockEntity>
+implements OfSimpleBlockEntityBreak<KilnBlockEntity>, CarriableSimpleLogicCollection.OfSimpleBlockEntityContentDrop<KilnBlockEntity>
 {
     private KilnCarriableExtensions.KilnBlockEntityContext context;
     

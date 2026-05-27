@@ -16,15 +16,24 @@ import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import net.minecraft.world.InteractionResult;
 import net.neoforged.neoforge.common.util.TriState;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
+/**
+ * A simple exception for <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine CarryEngine}</u>'s core logic error handling,
+ * which wraps an exception to make Functional Pipelines fluent, with self-descriptive error type tags, abnormal data snapshot and rollback ability provided.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see StructuredException
+ * @see ITransitionalThrowable
+ */
 public final class CarryInteractHandleException extends StructuredException
 implements ITransitionalThrowable<CarryInteractHandleException, CarryInteractContext, InteractionResult>
 {
-    private static final BinaryOperator<String> TYPE_TEMPLATE = "%s_%s"::formatted;
+    private static final BinaryOperator<String> TYPE_TEMPLATE = (s1, s2) -> MessageFormatter.format("{}_{}", s1, s2).getMessage();
     
     private final CarryInteractContext causeData;
     

@@ -15,7 +15,10 @@ import kurvcygnus.crispsweetberry.common.registries.CrispItems;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.*;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.Tags;
@@ -23,18 +26,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class CrispRecipeProvider extends RecipeProvider
+public final class RecipeProvider extends net.minecraft.data.recipes.RecipeProvider
 {
     private final VanillaCoinRecipeProvider coinRecipeProvider;
     
-    CrispRecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries) 
+    RecipeProvider(@NotNull PackOutput output, @NotNull CompletableFuture<HolderLookup.Provider> registries)
     {
         super(output, registries);
         this.coinRecipeProvider = new VanillaCoinRecipeProvider(output, registries);
     }
     
-    @Override
-    protected void buildRecipes(@NotNull RecipeOutput output)
+    @Override protected void buildRecipes(@NotNull RecipeOutput output)
     {
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, KilnRegistries.KILN_BLOCK_ITEM.value()).
             pattern("TTT").

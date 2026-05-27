@@ -11,10 +11,7 @@ package kurvcygnus.crispsweetberry.annotations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * This is a simple annotation used for data generation, <b>specially on internationalization(i18n)</b>.
@@ -46,6 +43,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
+@Documented
 public @interface AutoI18n
 {
     /**

@@ -8,6 +8,13 @@
 
 //? Main build script: [[../build.gradle]]
 
+//? This is the build script of Crisp Sweetberry's main module: Core.
+//? Core carries the main content for gameplay, which is exposed to players.
+
+//? Core relies on I18n API as an compile dependency, for localization files' generation.
+
+//? I18n API's Build script: [[../i18n-api/build.gradle]]
+
 plugins {
     id 'java-library'
     id 'maven-publish'

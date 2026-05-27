@@ -27,6 +27,7 @@ import java.util.function.Function;
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see INestedPrintable
+ * @see BaseNestedPrinter.OfAuto
  * @apiNote Reflect is dangerous when the implementer is managed by {@code module-info.java}, and it is slow, so use this on condition.
  */
 public interface IAutoNestedPrintable<T extends IAutoNestedPrintable<T>> extends INestedPrintable<T>

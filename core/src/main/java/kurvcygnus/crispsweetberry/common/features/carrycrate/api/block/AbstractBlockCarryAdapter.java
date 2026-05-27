@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 
@@ -53,8 +54,11 @@ implements CarriableBlockExtensions.ICarryBlockStackable
         catch(ClassCastException e)
         {
             throw new IllegalArgumentException(
-                "Adapter Type Mismatch! Attempted to bind adapter to block: %s, but this adapter expects: %s".
-                    formatted(block.getClass().getSimpleName(), this.getClass().getSimpleName())
+                MessageFormatter.format(
+                    "Adapter Type Mismatch! Attempted to bind adapter to block: {}, but this adapter expects: {}",
+                    block.getClass().getSimpleName(),
+                    this.getClass().getSimpleName()
+                ).getMessage()
             );
         }
     }
@@ -77,13 +81,17 @@ implements CarriableBlockExtensions.ICarryBlockStackable
     {
         Objects.requireNonNull(
             block,
-            """
+            MessageFormatter.format(
+                """
                 Assertion failed: Field "block" happens to be null, this shouldn't be happen, which usually means
                 method is called at improper time, with improper param. %s
-                """.
-                formatted(MetainfoConstants.FEEDBACK_MESSAGE)
+                """,
+                MetainfoConstants.FEEDBACK_MESSAGE
+            ).getMessage()
         );
         
         return block;
     }
+    
+    @Override public @NotNull String toString() { return block != null ? block.toString() : "N/A"; }
 }

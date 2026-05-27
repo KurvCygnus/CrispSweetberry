@@ -13,6 +13,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,8 +66,10 @@ public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends M
         {
             if(map.containsKey(e.getKey()))
                 throw new IllegalArgumentException(
-                    "This interface doesn't work on duplicated cases! Key \"%s\" has these enums conflicted: %s, %s.".
-                    formatted(e.getKey(), e, map.get(e.getKey()))
+                    MessageFormatter.format(
+                        "This interface doesn't work on duplicated cases! Key \"{}\" has these enums conflicted: {}, {}.",
+                        new Object[] { e.getKey(), e, map.get(e.getKey()) }
+                    ).getMessage()
                 );
             
             map.put(e.getKey(), e);

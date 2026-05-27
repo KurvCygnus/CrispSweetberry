@@ -8,9 +8,8 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.OfSimpleBlockEntityContentDrop;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -38,7 +37,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @implNote The access the vanilla data relies on <u>{@link IVanillaFurnaceSeriesAccessor mixin accessor}</u>.
  */
 public class BaseVanillaFurnaceSeriesAdapter<E extends AbstractFurnaceBlockEntity>
-extends AbstractBlockEntityCarryAdapter<E> implements ISimpleBlockEntityPenaltyLogic<E>, ISimpleBlockEntityBreakLogic<E>, ISimpleBlockEntityPenaltyDropLogic<E>
+extends AbstractBlockEntityCarryAdapter<E> implements CarriableSimpleLogicCollection.OfSimpleBlockEntityPenalty<E>, CarriableSimpleLogicCollection.OfSimpleBlockEntityBreak<E>, OfSimpleBlockEntityContentDrop<E>
 {
     // region Constants & Constructor
     protected static final int INPUT_SLOT_INDEX = 0;

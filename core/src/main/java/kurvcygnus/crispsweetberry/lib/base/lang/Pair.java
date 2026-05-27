@@ -8,7 +8,6 @@
 
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
-import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.functions.*;
 import org.jetbrains.annotations.Contract;
@@ -27,17 +26,12 @@ import java.util.function.*;
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-public final class Pair<L, R> extends BaseNestedPrinter<Pair<L, R>> implements Map.Entry<L, R>
+public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, INestedPrintable<Pair<L, R>>
 {
-    private final @NotNull L left;
-    private final @NotNull R right;
-    
-    private Pair(@NotNull L left, @NotNull R right)
+    public Pair
     {
         Objects.requireNonNull(left, "Param \"left\" must not be null!");
         Objects.requireNonNull(right, "Param \"right\" must not be null!");
-        this.left = left;
-        this.right = right;
     }
     
     public static <L, R> @NotNull Pair<L, R> of(@NotNull L left, @NotNull R right) { return new Pair<>(left, right); }
@@ -249,17 +243,5 @@ public final class Pair<L, R> extends BaseNestedPrinter<Pair<L, R>> implements M
     @Override public @NotNull @Unmodifiable Map<String, Function<Pair<L, R>, @Nullable Object>> getFields()
         { return INestedPrintable.buildFieldMap(Pair.of("left", Pair::left), Pair.of("right", Pair::right)); }
     
-    public @NotNull L left() { return left; }
-    
-    public @NotNull R right() { return right; }
-    
-    @Override public boolean equals(@Nullable Object obj)
-    {
-        return this == obj ||
-            obj instanceof Pair<?, ?> that &&
-            Objects.equals(left, that.left) &&
-            Objects.equals(right, that.right);
-    }
-    
-    @Override public int hashCode() { return Objects.hash(left, right); }
+    @Override public @NotNull String toString() { return toNestedString(); }
 }

@@ -395,18 +395,18 @@ public enum CarryRegistryManager implements ICarryRegistryView
         
         throwIf(
             adapter.getPenaltyRate() < 0,
-            "The penaltyRate of \"%s\"'s adapter should be non-negative! Current is: %d".formatted(obj.toString(), adapter.getPenaltyRate()),
+            DefinitionUtils.quickFormat("The penaltyRate of \"{}\"'s adapter should be non-negative! Current is: {}", obj.toString(), adapter.getPenaltyRate()),
             IllegalStateException::new
         );
         
         if(obj instanceof Block block && adapter instanceof AbstractBlockCarryAdapter<?> blockCarryAdapter)
             throwIf(
                 blockCarryAdapter.getAcceptableCount() <= 0,
-                "The acceptableCount of \"%s\"'s adapter should be positive! Current is: %d".
-                    formatted(
-                        block.getDescriptionId(),
-                        blockCarryAdapter.getAcceptableCount()
-                    ),
+                DefinitionUtils.quickFormat(
+                    "The acceptableCount of \"{}\"'s adapter should be positive! Current is: {}",
+                    block.getDescriptionId(),
+                    blockCarryAdapter.getAcceptableCount()
+                ),
                 IllegalStateException::new
             );
     }
@@ -422,7 +422,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         final Class<?> keyType = carryType.boundClass();
         
         if(!keyType.isAssignableFrom(key.getClass()))
-            throw new IllegalArgumentException("Invalid factory creation type! Expected: %s, got: %s".formatted(keyType, key.getClass()));
+            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Invalid factory creation type! Expected: {}, got: {}", keyType, key.getClass()));
         
         return Optional.ofNullable((F) REGISTRY_LOOKUP.get(carryType).get(keyType.cast(key)));
     }

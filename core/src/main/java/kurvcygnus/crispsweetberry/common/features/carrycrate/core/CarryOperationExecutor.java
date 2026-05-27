@@ -198,7 +198,8 @@ enum CarryOperationExecutor
         final CompoundTag tagData = new CompoundTag();
         adapter.onCarriedSequence(
             new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(
-                level, targetPos,
+                level,
+                targetPos,
                 context.player(),
                 carryID != null ? carryID.uuid() : null
             )
@@ -294,31 +295,17 @@ enum CarryOperationExecutor
         final var carryCrate = context.carryCrate();
         final var data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
         final @Nullable var carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
-        assert data != null : "UwU";
+        assert data != null;
         
         final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.unionData();
         final var blockEntityType = blockEntityDataHolder.getType();
         
-        //* NOTE: This logic is illegal on Vanilla. It is implemented with the help of [[CarryEngine#IS_INTERACTING_WITH_BE]] and [[CarryBlockEntityValidationPasser]].
         final Optional<AbstractBlockEntityCarryAdapter<? extends BlockEntity>> optionalAdapter = CarryRegistryManager.INST.
             getBlockEntityAdapter(blockEntityType).map(
                 adapterFactory ->
                     createBlockEntityAdapter(
                         adapterFactory,
-                        Objects.requireNonNull(
-                            blockEntityDataHolder.getType().create(targetPos, targetState),
-                            DefinitionUtils.quickFormat(
-                                """
-                                Fatal:
-                                Failed to create blockEntity "{}"'s adapter. This usually means the blockEntity's type registration itself has dataflow issue, or this
-                                method is called at improper time.
-                                
-                                {}
-                                """,
-                                blockEntityType.toString(),
-                                MetainfoConstants.FEEDBACK_MESSAGE
-                            )
-                        )
+                        context.targets().right()
                     )
             );
         
@@ -330,9 +317,9 @@ enum CarryOperationExecutor
                 CarryType.BLOCK_ENTITY
             );
         
-        final AbstractBlockEntityCarryAdapter<? extends BlockEntity> adapter = optionalAdapter.get();
+        final var adapter = optionalAdapter.get();
         
-        final var tagData = new CompoundTag();
+        final var tagData = blockEntityDataHolder.getTagData();
         adapter.loadCarryTag(tagData, level.registryAccess());//* #onPlacedProcess() may have side effects on BE's data, we should load data before it.
         
         adapter.onPlacedProcess(
@@ -350,7 +337,8 @@ enum CarryOperationExecutor
             context.success().unbox(
                 CarryData.createBlockEntity(
                     targetState,
-                    tagData,
+                    //* The old [[CarryData]]'s tagData is not reliable at here, since #onPlacedProcess() may have side effects, so we should read and save it IRT.
+                    DefinitionUtils.createTag(tag -> adapter.saveCarryTag(tag, level.registryAccess())),
                     blockEntityDataHolder.getType(),
                     adapter.getPenaltyRate(),
                     data.causesOverweight(),
@@ -363,7 +351,7 @@ enum CarryOperationExecutor
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> blockUnbox(@NotNull CarryInteractContext context)
     {
         final var carryData = context.carryCrate().get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        assert carryData != null : "UwU";
+        assert carryData != null;
         final var targetState = context.targets().left();
         final CarryData.CarryBlockDataHolder blockDataHolder = carryData.unionData();
         
@@ -402,7 +390,7 @@ enum CarryOperationExecutor
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> entityUnbox(@NotNull CarryInteractContext context)
     {
         final var carryData = context.carryCrate().get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        assert carryData != null : "UwU";
+        assert carryData != null;
         return IResult.of(context.unbox(carryData));
     }
     //endregion
@@ -469,17 +457,9 @@ enum CarryOperationExecutor
     //*:=== Component
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> componentProcess(@NotNull CarryInteractContext context)
     {
-        final @Nullable var carryID = context.carryID().value();
-        final @Nullable var carryData = context.data().value();
+        final var carryID = context.carryID().orThrow();
+        final var carryData = context.data().orThrow();
         final TriState component = context.component().orThrow();
-        
-        if(carryID == null || carryData == null)
-            return CarryInteractHandleException.component(
-                context.pass(),
-                DefinitionUtils.quickFormat("Component mutation failed, because part, or all of the parameters' value are invalid. id: {}, data: {}", carryID, carryData),
-                IllegalArgumentException::new,
-                component
-            );
         
         final ItemStack crate = context.carryCrate();
         
@@ -556,8 +536,13 @@ enum CarryOperationExecutor
         if(!level.setBlockAndUpdate(pos, Blocks.VOID_AIR.defaultBlockState()))
             return CarryInteractHandleException.target(
                 context.pass(),
-                "Unable to change position <%d, %d, %d>'s blockstate! Original Blockstate: %s".
-                    formatted(pos.getX(), pos.getY(), pos.getZ(), level.getBlockState(pos).toString()),
+                DefinitionUtils.quickFormat(
+                    "Unable to change position <{}, {}, {}>'s blockstate! Original Blockstate: {}",
+                    pos.getX(),
+                    pos.getY(),
+                    pos.getZ(),
+                    level.getBlockState(pos).toString()
+                ),
                 IllegalAccessError::new,
                 context.actionType(),
                 TriState.TRUE
@@ -626,7 +611,7 @@ enum CarryOperationExecutor
                 TriState.FALSE
             );
         
-        assert context.data().value() != null : "UwU";
+        assert context.data().value() != null;
         final CarryData.CarryBlockEntityDataHolder holder = context.data().orThrow().unionData();
         final var stateToPlace = holder.getState();
         final var pos = context.interactPos();
@@ -636,12 +621,14 @@ enum CarryOperationExecutor
         if(blockEntity == null)
             return CarryInteractHandleException.target(
                 context.fail(),
-                """
-                    Failed to create blockEntity "%s"'s adapter.
+                DefinitionUtils.quickFormat(
+                    """
+                    Failed to create blockEntity "{}"'s adapter.
                     This usually means the blockEntity's type registration itself has dataflow issues,
                     or this method is called at improper time.
-                    """.
-                    formatted(blockEntityType.toString()),
+                    """,
+                    blockEntityType.toString()
+                ),
                 IllegalStateException::new,
                 CarryType.BLOCK_ENTITY,
                 TriState.FALSE
@@ -775,7 +762,7 @@ enum CarryOperationExecutor
         if(!carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
             return CarryInteractHandleException.miscFailed(
                 context.fallback(),
-                "ItemStack \"%s\" has no CarryData, can't release content.",
+                DefinitionUtils.quickFormat("ItemStack \"{}\" has no CarryData, can't release content.", carryCrate),
                 IllegalArgumentException::new,
                 "UNBOX_DATA_PRECHECK"
             );

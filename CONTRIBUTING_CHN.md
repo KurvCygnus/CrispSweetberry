@@ -32,6 +32,7 @@
 
 4. 在克隆了仓库代码后, **请务必用这些指令初始化你的本地仓库**:
    ```shell
+    # 如果你在使用IDEA进行开发, 你可以且建议通过点击左侧的侧边栏图标来直接运行这段代码.
     git config filter.hide-i18n.clean "sed 's/^i18n_path=.*/#i18n_path=/'"
     git config filter.hide-i18n.smudge "cat"
     git add --renormalize .

@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.lib.core.registry;
+package kurvcygnus.crispsweetberry.utils.core;
 
 import kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent;
 import kurvcygnus.crispsweetberry.client.registries.CrispCreativeTabs;

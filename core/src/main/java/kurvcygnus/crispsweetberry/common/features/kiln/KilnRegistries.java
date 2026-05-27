@@ -17,8 +17,8 @@ import kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnBlockEnti
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeSerializer;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;

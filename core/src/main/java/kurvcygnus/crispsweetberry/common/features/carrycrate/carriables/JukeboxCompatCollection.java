@@ -8,8 +8,8 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.carriables;
 
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityBreakLogic;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.ISimpleBlockEntityPenaltyDropLogic;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.OfSimpleBlockEntityBreak;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import net.minecraft.core.BlockPos;
@@ -42,7 +42,7 @@ public final class JukeboxCompatCollection
      * @author Kurv Cygnus
      */
     public static final class JukeboxBlockEntityCarryAdapter extends AbstractBlockEntityCarryAdapter<JukeboxBlockEntity>
-    implements ISimpleBlockEntityBreakLogic<JukeboxBlockEntity>, ISimpleBlockEntityPenaltyDropLogic<JukeboxBlockEntity>
+    implements OfSimpleBlockEntityBreak<JukeboxBlockEntity>, CarriableSimpleLogicCollection.OfSimpleBlockEntityContentDrop<JukeboxBlockEntity>
     {
         public JukeboxBlockEntityCarryAdapter(@NotNull BlockEntity blockEntity) { super(blockEntity); }
         

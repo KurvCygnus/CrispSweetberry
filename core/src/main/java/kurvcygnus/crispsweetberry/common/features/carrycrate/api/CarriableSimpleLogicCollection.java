@@ -12,6 +12,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -31,7 +32,6 @@ import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +56,7 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ISimpleCarriableBlockBreakLogic extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryBlockDataHolder>
+    public interface OfSimpleBlockBreak extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryBlockDataHolder>
     {
         /**
          * Get the <u>{@link Item}</u> that should be dropped by its <u>{@link net.minecraft.world.level.block.Block Block}</u>.
@@ -72,13 +72,18 @@ public final class CarriableSimpleLogicCollection
     //endregion
     
     //region BlockEntity
+//    public interface OfSimplePersistent<E extends BlockEntity> extends CarriableBlockEntityExtensions.ICarrySerializable
+//    {
+//
+//    }
+    
     /**
      * This interface provides a simple yet universal <u>{@link #getPenaltyRate(E) penaltyRate formula}</u> for blockEntity adapters.
      * @param <E> The blockEntity this adapter takes responsibility of.
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ISimpleBlockEntityPenaltyLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>
+    public interface OfSimpleBlockEntityPenalty<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>
     {
         /**
          * A abstract method to get item list, which is essential for penaltyRate's <u>{@link #getPenaltyRate() calculation}</u>.
@@ -146,7 +151,7 @@ public final class CarriableSimpleLogicCollection
      * you should override method <u>{@link #getItemsTagID()}</u>.
      * @since 1.0 Release
      */
-    public non-sealed interface ISimpleBlockEntityPenaltyDropLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
+    public non-sealed interface OfSimpleBlockEntityContentDrop<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
     {
         @Override default @NotNull CarryData onPenaltyDrop(CarriableExtensions.@NotNull TickingContext context)
         {
@@ -207,7 +212,7 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public non-sealed interface ISimpleBlockEntityBreakLogic<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
+    public non-sealed interface OfSimpleBlockEntityBreak<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
     {
         @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryBlockEntityDataHolder dataHolder, long elapsedTime)
         {
@@ -227,7 +232,7 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ISimpleCarriableEntityBreakLogic extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryEntityDataHolder>
+    public interface OfSimpleEntityBreak extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryEntityDataHolder>
     {
         @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryEntityDataHolder dataHolder, long elapsedTime)
         {
@@ -242,14 +247,17 @@ public final class CarriableSimpleLogicCollection
                 level.addFreshEntity(entity);
             }
             else
-                getLogger().error(
+                Privates.LOGGER.error(
                     "Cannot instantiate entity with its data \"{}\". This is a serious serialization issue. {}",
                     dataTag,
                     MetainfoConstants.FEEDBACK_MESSAGE
                 );
         }
-        
-        @NotNull Logger getLogger();
     }
     //endregion
+    
+    static final class Privates
+    {
+        private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("SIMPLE_CARRY_LOGICS");
+    }
 }

@@ -12,6 +12,7 @@ import kurvcygnus.crispsweetberry.api.AbstractCoinLootTableProvider;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackBlock;
 import net.minecraft.core.HolderLookup;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -21,8 +22,7 @@ final class VanillaCoinLootTableProvider extends AbstractCoinLootTableProvider
 {
     VanillaCoinLootTableProvider(HolderLookup.Provider registries) { super(registries); }
     
-    @Override
-    protected @NotNull List<? extends AbstractCoinStackBlock<?>> initCoinBlockLists()
+    @Override protected @NotNull @Unmodifiable List<? extends AbstractCoinStackBlock<?>> initCoinBlockLists()
     {
         return List.of(
             COPPER_COIN_STACK_BLOCK.get(),

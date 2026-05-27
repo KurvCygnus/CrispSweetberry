@@ -24,8 +24,8 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem
 import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.extensions.IStackableTool;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.lib.core.registry.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
+import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;

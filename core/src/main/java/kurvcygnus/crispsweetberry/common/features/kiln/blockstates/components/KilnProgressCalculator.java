@@ -12,6 +12,7 @@ import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.NonNullList;
 import org.intellij.lang.annotations.MagicConstant;
@@ -171,8 +172,8 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 this.lastProcessFactor,
                 processState.name(),
                 this.balanceTick > 0 ?
-                    ", %d balance tick%s remain%s".
-                    formatted(
+                    DefinitionUtils.quickFormat(
+                        ", {} balance tick{} remain{}",
                         remainingTicks,
                         remainingTicks == 1 ?
                         "s" :

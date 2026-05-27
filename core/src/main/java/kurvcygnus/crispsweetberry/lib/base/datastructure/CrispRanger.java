@@ -13,6 +13,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.*;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -67,7 +68,7 @@ public final class CrispRanger implements Iterable<Integer>
             throw new IllegalArgumentException("This is an empty, and illegal range!");
         
         if(min >= max)
-            throw new IllegalArgumentException("Min(%d) is not smaller than max(%d), this is an illegal range!".formatted(min, max));
+            throw new IllegalArgumentException(MessageFormatter.format("Min({}) is not smaller than max({}), this is an illegal range!", min, max).getMessage());
         
         this.min = minClosed ? min : ++min;
         this.max = maxClosed ? max : --max;
@@ -496,7 +497,7 @@ public final class CrispRanger implements Iterable<Integer>
     
     @Override public int hashCode() { return Objects.hash(min, max); }
     
-    public @CheckReturnValue @NotNull String toString() { return "[%d, %d]".formatted(this.min, this.max); }
+    public @CheckReturnValue @NotNull String toString() { return MessageFormatter.format("[{}, {}]", this.min, this.max).getMessage(); }
     //endregion
     
     //region Inner Helpers

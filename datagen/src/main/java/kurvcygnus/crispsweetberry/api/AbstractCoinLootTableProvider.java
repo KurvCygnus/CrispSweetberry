@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackBlo
 import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
 import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.IsCrunchingCondition;
 import kurvcygnus.crispsweetberry.common.features.coins.api.datagen.SetCoinCountFunction;
-import kurvcygnus.crispsweetberry.utils.CrispLootUtils;
+import kurvcygnus.crispsweetberry.utils.LootUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
@@ -49,7 +49,7 @@ public abstract class AbstractCoinLootTableProvider extends BlockLootSubProvider
         requireNonNull(coinType, "Param \"coinType\" must not be null!");
         
         this.add(coinStackBlock, blockAttributes ->
-            CrispLootUtils.initLootPool(() -> LootPool.lootPool().
+            LootUtils.initLootPool(() -> LootPool.lootPool().
                 setRolls(ConstantValue.exactly(1F)).
                 add(createAlternatives(coinType))
             )
