@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.trait.ICRTPCaster;
 import org.jetbrains.annotations.*;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -50,7 +51,7 @@ import java.util.function.Function;
  * <span style="color: f84b4b">MUST SEE:<br> </span><u>{@link #buildFieldMap(Consumer)}</u>, <u>{@link #buildFieldMap(Consumer, int)}</u>, <u>{@link #buildFieldMap(Pair[])}</u>
  * @since 1.0 Release
  */
-public interface INestedPrintable<T extends INestedPrintable<T>> extends Serializable
+public interface INestedPrintable<T extends INestedPrintable<T>> extends Serializable, ICRTPCaster<INestedPrintable<T>, T>
 {
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
@@ -234,7 +235,6 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         return stringBuilder.toString();
     }
     
-    @SuppressWarnings("unchecked")//! CRTP grantees the safety.
     private void buildNestedString(@NotNull StringBuilder stringBuilder, int currentIndent, @NotNull Set<Object> visited)
     {
         final String indentString = " ".repeat(currentIndent);
@@ -247,7 +247,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         for(final var entry: getFields(this.getClass()).entrySet())
         {
             final String name = entry.getKey();
-            final Object object = entry.getValue().apply((T) this);
+            final Object object = entry.getValue().apply(getSelf());
             
             if(name.isBlank())
                 throw new IllegalArgumentException(

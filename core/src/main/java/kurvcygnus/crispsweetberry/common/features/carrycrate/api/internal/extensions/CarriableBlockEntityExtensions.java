@@ -146,7 +146,7 @@ public final class CarriableBlockEntityExtensions
          * Load <u>{@link BlockEntity}</u>'s serialized data.<br><br>
          * <span style="color: 95ce6d">If have no specific demand, directly use <u>{@link BlockEntity#loadCustomOnly(CompoundTag, HolderLookup.Provider)}</u> is OK.</span>
          */
-        void loadCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries);
+        void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries);
         
         /**
          * Save <u>{@link BlockEntity}</u>'s data as <u>{@link CompoundTag}</u>.<br><br>
@@ -162,6 +162,6 @@ public final class CarriableBlockEntityExtensions
          *  }
          * }</pre>
          */
-        void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries);
+        void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries);
     }
 }

@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
+import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransactionalThrowable;
 import kurvcygnus.crispsweetberry.lib.base.exceptions.StructuredException;
 import org.intellij.lang.annotations.Flow;
 import org.jetbrains.annotations.ApiStatus;
@@ -35,6 +36,7 @@ import java.util.stream.Stream;
  *              return ex.rollback();
  *          }
  *      );
+ *  // [[ITransitionalThrowable]] is used at here.
  * }</pre>
  * @param <T> The type of data this holder holds.
  * @param <E> The type of exception this holder holds.
@@ -205,6 +207,22 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @see #map(Function)
      */
     <X extends Throwable> @NotNull IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper);
+    
+    /**
+     * Transforms the failure exception into <u>{@link StructuredException}</u>, with given {@code type}.
+     * @param type The error type this exception belongs to. Cannot be null, and empty string
+     * @return a new <u>{@link IResult}</u> with transformed <u>{@link StructuredException}</u>, or the same success
+     * @see #mapException(Function)
+     */
+    @NotNull IResult<T, StructuredException> structuredException(@NotNull String type);
+    
+    /**
+     * Transforms the failure exception into <u>{@link StructuredException}</u>, with given transforming <u>{@link Function}</u>..
+     * @param typeGenerator the <u>{@link Function}</u> that maps the exception to a <u>{@link String}</u> that represents <u>{@link StructuredException}</u>'s type
+     * @return a new <u>{@link IResult}</u> with transformed <u>{@link StructuredException}</u>, or the same success
+     * @see #mapException(Function)
+     */
+    @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> typeGenerator);
 
     /**
      * Transforms both the success value and the failure exception in a single pass.
@@ -367,6 +385,8 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @throws NullPointerException if the matched function is null
      * @see #map(Function)
      * @see #orElseMapException(Function)
+     * @apiNote See <u>{@link ITransactionalThrowable ITransitionalThrowable}</u>, and <u>{@link StructuredException}</u>.
+     * Both of these utils can play an important and powerful role in this method.
      */
     <U> U fold(
         @NotNull @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) Function<? super T, ? extends U> success,
@@ -390,19 +410,26 @@ final class FailureResult<T, E extends Throwable> implements IResult<T, E>
     @Override public boolean isSucceed() { return false; }
 
     @Override public void ifFailure(@NotNull Consumer<E> action) { action.accept(exception); }
-
-    @Override public @NotNull <U> IResult<U, E> map(@NotNull Function<? super T, ? extends U> mapper) { return new FailureResult<>(exception); }
+    
+    @SuppressWarnings("unchecked")//! Valid casting since value does not exist.
+    @Override public @NotNull <U> IResult<U, E> map(@NotNull Function<? super T, ? extends U> mapper) { return (IResult<U, E>) this; }
 
     @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper)
         { return new FailureResult<>(mapper.apply(exception)); }
-
+    
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull String type) { return StructuredException.failedResult(exception, type); }
+    
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> typeGenerator)
+        { return StructuredException.failedResult(exception, typeGenerator.apply(exception)); }
+    
     @Override public @NotNull <U, X extends Throwable> IResult<U, X> dualMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper
     ) { return new FailureResult<>(exceptionMapper.apply(exception)); }
-
+    
+    @SuppressWarnings("unchecked")//! Valid casting since value does not exist.
     @Override public @NotNull <U> IResult<U, E> flatMap(@NotNull Function<? super T, ? extends IResult<U, E>> mapper)
-        { return new FailureResult<>(exception); }
+        { return (IResult<U, E>) this; }
 
     @Override public @NotNull Optional<T> asOptional() { return Optional.empty(); }
 
@@ -446,9 +473,16 @@ final class SuccessResult<T, E extends Throwable> implements IResult<T, E>
 
     @Override public @NotNull <U> IResult<U, E> map(@NotNull Function<? super T, ? extends U> mapper) { return new SuccessResult<>(mapper.apply(value)); }
 
+    @SuppressWarnings("unchecked")//! Valid casting since exception does not exist.
     @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper)
-        { return new SuccessResult<>(value); }
-
+        { return (IResult<T, X>) this; }
+    
+    @SuppressWarnings("unchecked")//! Valid casting since exception does not exist.
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull String type) { return (IResult<T, StructuredException>) this; }
+    
+    @SuppressWarnings("unchecked")//! Valid casting since exception does not exist.
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> typeGenerator) { return (IResult<T, StructuredException>) this; }
+    
     @Override public @NotNull <U, X extends Throwable> IResult<U, X> dualMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper

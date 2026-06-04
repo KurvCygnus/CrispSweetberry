@@ -18,8 +18,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.core.exceptions.CarryInteractHandleException;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import kurvcygnus.crispsweetberry.lib.base.lang.TriVariant;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
@@ -91,9 +90,6 @@ enum CarryOperationExecutor
             }
         );
     
-    private static final Map<Boolean, Map<CarryType, Function<CarryInteractContext, IResult<CarryInteractContext, CarryInteractHandleException>>>> HANDLE_METHODS =
-        Map.of(true, BOX_IN_METHODS, false, UNBOX_METHODS);
-    
     private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("CARRY_LOGIC");
     //endregion
     
@@ -105,10 +101,8 @@ enum CarryOperationExecutor
         //* ↑ Equals to `return this.carryIDProcess(context)`.
         //* Despite this one is more semantically friendly, it creates one more [[IResult]], brings more performance penalty.
         
-        final var actionType = context.actionType();
-        
         return this.carryIDProcess(context).
-            flatMap(HANDLE_METHODS.get(!context.carryCrate().has(CarryCrateRegistries.CARRY_CRATE_DATA.get())).get(actionType)).
+            flatMap((!context.carryCrate().has(CarryCrateRegistries.CARRY_CRATE_DATA.get()) ? BOX_IN_METHODS : UNBOX_METHODS).get(context.actionType())).
             flatMap(CarryOperationExecutor.INST::listenerProcess).
             flatMap(CarryOperationExecutor.INST::componentProcess).
             flatMap(CarryOperationExecutor.INST::targetProcess).
@@ -129,7 +123,7 @@ enum CarryOperationExecutor
                         This is a serious logic issue.
                         {}
                         """,
-                        ex.type(),
+                        ex.tag(),
                         ex.getMessage(),
                         ex.causeData().toString(),
                         MetainfoConstants.FEEDBACK_MESSAGE,
@@ -401,12 +395,12 @@ enum CarryOperationExecutor
     {
         final @Nullable var carryID = context.carryID().value();
         final @Nullable var carryData = context.data().value();
-        final TriState listener = context.listener().orThrow();
+        final TriState listener = context.listener();
         
         if(carryID == null)
             return CarryInteractHandleException.listener(
                 context.pass(),
-                "Listener's mutation miscFailed, because the CarryID doesn't exist.",
+                "Listener's mutation failed, because the CarryID doesn't exist.",
                 IllegalArgumentException::new,
                 listener
             );
@@ -418,7 +412,7 @@ enum CarryOperationExecutor
                 if(carryData == null)
                     return CarryInteractHandleException.listener(
                         context.pass(),
-                        "Listener's mutation miscFailed, because the CarryData doesn't exist, which is required by insertion.",
+                        "Listener's mutation failed, because the CarryData doesn't exist, which is required by insertion.",
                         IllegalArgumentException::new,
                         TriState.TRUE
                     );
@@ -459,7 +453,7 @@ enum CarryOperationExecutor
     {
         final var carryID = context.carryID().orThrow();
         final var carryData = context.data().orThrow();
-        final TriState component = context.component().orThrow();
+        final TriState component = context.component();
         
         final ItemStack crate = context.carryCrate();
         
@@ -499,13 +493,15 @@ enum CarryOperationExecutor
     //*:=== Target
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> targetProcess(@NotNull CarryInteractContext context)
     {
+        final TriState target = context.target();
+        
         //* This can't be done in [[CarryOperationExecutor#componentProcess]],
         //* because component I/O only means the update of the [[ItemStack]]'s data,
         //* it can't represent whether the player's carryFactor should change.
-        OverweightEffect.updateFactorAndEffect(context.player(), context.data().orThrow(), context.target().orThrow());
+        OverweightEffect.updateFactorAndEffect(context.player(), context.data().orThrow(), target);
         
         return Objects.requireNonNullElse(
-            switch(context.target().orThrow())
+            switch(target)
             {
                 case TRUE ->
                 {
@@ -561,7 +557,7 @@ enum CarryOperationExecutor
         if(carryData == null)
             return CarryInteractHandleException.target(
                 context.pass(),
-                "Carry Crate's content release miscFailed because the CarryData does not exist, which is required by insertion.",
+                "Carry Crate's content release failed because the CarryData does not exist, which is required by insertion.",
                 IllegalArgumentException::new,
                 context.actionType(),
                 TriState.FALSE
@@ -576,27 +572,42 @@ enum CarryOperationExecutor
                 TriState.FALSE
             );
         
+        if(context.actionType().equals(CarryType.BLOCK_ENTITY))
+        {
+            final var deserializedResult = blockEntityReleaseExtra(context);
+            if(deserializedResult.isFailure())
+            {
+                blocklikeTargetRollback(context);
+                return deserializedResult;
+            }
+        }
+        
+        final @Nullable CompoundTag nbt;
         final var stateToPlace = switch(context.actionType())
         {
-            case CarryType that when
-                that.equals(CarryType.BLOCK) && carryData.unionData() instanceof CarryData.CarryBlockDataHolder holder ->
-                holder.getState();
-            case CarryType that when
-                that.equals(CarryType.BLOCK_ENTITY) && carryData.unionData() instanceof CarryData.CarryBlockEntityDataHolder holder ->
-                holder.getState();
-            default -> throw new IllegalArgumentException("Assertion miscFailed: CarryType and CarryData's type doesn't match!");
+            case CarryType that when that.equals(CarryType.BLOCK) && carryData.unionData() instanceof CarryData.CarryBlockDataHolder holder ->
+            {
+                nbt = null;
+                yield holder.getState();
+            }
+            case CarryType that when that.equals(CarryType.BLOCK_ENTITY) && carryData.unionData() instanceof CarryData.CarryBlockEntityDataHolder holder ->
+            {
+                nbt = holder.getTagData();
+                yield holder.getState();
+            }
+            default -> throw new IllegalArgumentException("Assertion failed: CarryType and CarryData's type doesn't match!");
         };
         
-        final InteractionResult placeResult = contextFunction.apply(stateToPlace).performPlace(false);
+        final InteractionResult placeResult = contextFunction.apply(stateToPlace, nbt).performPlace(false);
         
         if(placeResult.equals(InteractionResult.FAIL))
-            return this.listenerProcess(context.rollback()).flatMap(CarryOperationExecutor.INST::componentProcess).map(CarryInteractContext::fail);
-        
-        if(context.actionType().equals(CarryType.BLOCK_ENTITY))
-            return blockEntityReleaseExtra(context);
+            return blocklikeTargetRollback(context);
         
         return IResult.of(context.success());
     }
+    
+    private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> blocklikeTargetRollback(@NotNull CarryInteractContext context)
+        { return listenerProcess(context.rollback()).flatMap(CarryOperationExecutor.INST::componentProcess).map(CarryInteractContext::fail); }
     
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> blockEntityReleaseExtra(@NotNull CarryInteractContext context)
     {
@@ -612,29 +623,9 @@ enum CarryOperationExecutor
             );
         
         assert context.data().value() != null;
-        final CarryData.CarryBlockEntityDataHolder holder = context.data().orThrow().unionData();
-        final var stateToPlace = holder.getState();
         final var pos = context.interactPos();
         final var level = context.level();
-        final @Nullable var blockEntity = blockEntityType.create(pos, stateToPlace);
         
-        if(blockEntity == null)
-            return CarryInteractHandleException.target(
-                context.fail(),
-                DefinitionUtils.quickFormat(
-                    """
-                    Failed to create blockEntity "{}"'s adapter.
-                    This usually means the blockEntity's type registration itself has dataflow issues,
-                    or this method is called at improper time.
-                    """,
-                    blockEntityType.toString()
-                ),
-                IllegalStateException::new,
-                CarryType.BLOCK_ENTITY,
-                TriState.FALSE
-            );
-        
-        blockEntity.loadCustomOnly(holder.getTagData(), level.registryAccess());
         level.blockEntityChanged(pos);
         
         return IResult.of(context.success());
@@ -663,7 +654,7 @@ enum CarryOperationExecutor
         if(carryData == null)
             return CarryInteractHandleException.target(
                 context.pass(),
-                "Carry Crate's content release miscFailed because the CarryData's value is invalid, which is required by insert.",
+                "Carry Crate's content release failed because the CarryData's value is invalid, which is required by insert.",
                 IllegalArgumentException::new,
                 CarryType.ENTITY,
                 TriState.FALSE
@@ -672,7 +663,7 @@ enum CarryOperationExecutor
         if(contextGetter == null)
             return CarryInteractHandleException.target(
                 context.fail(),
-                "Carry Crate's content release miscFailed because this interaction is triggered with an unexpected mean!",
+                "Carry Crate's content release failed because this interaction is triggered with an unexpected mean!",
                 IllegalStateException::new,
                 CarryType.ENTITY,
                 TriState.FALSE
@@ -695,7 +686,7 @@ enum CarryOperationExecutor
         //! because [[CarryInteractContext#interactPos]] doesn't contain [[Direction]], and that is nullable, which doesn't worth be an independent field.
         //! Notes that this method can only be called by [[CarryCrateItem#useOn]], it does has [[UseOnContext]].
         //! And since we doesn't need to place any blocks, we create its children class [[StatedBlockPlaceContext]] with `null`.
-        final @Nullable var spawnPos = getSafePosition(level, contextGetter.apply(null), entityToSpawn.get());
+        final @Nullable var spawnPos = getSafePosition(level, contextGetter.apply(null, null), entityToSpawn.get());
         
         if(spawnPos == null)
             return this.listenerProcess(context.rollback()).flatMap(CarryOperationExecutor.INST::componentProcess).map(CarryInteractContext::fail);

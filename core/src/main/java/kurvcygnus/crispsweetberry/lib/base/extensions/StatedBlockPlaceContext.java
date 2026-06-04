@@ -37,9 +37,9 @@ import java.util.function.Function;
  * @since 1.0 Release
  * @author Kurv Cygnus
  */
-public final class StatedBlockPlaceContext extends BlockPlaceContext implements INestedPrintable<StatedBlockPlaceContext>
+public class StatedBlockPlaceContext extends BlockPlaceContext implements INestedPrintable<StatedBlockPlaceContext>
 {
-    private static final @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+    protected static final @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
         map ->
         {
             map.put("player", StatedBlockPlaceContext::getPlayer);
@@ -76,7 +76,7 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext implements 
         
         if(
             !level.isUnobstructed(this.placeState, pos, player == null ? CollisionContext.empty() : CollisionContext.of(player)) ||
-            !level.setBlock(pos, this.placeState, Block.UPDATE_ALL_IMMEDIATE)
+            !this.setBlock(level, pos, this.placeState, Block.UPDATE_ALL_IMMEDIATE)
         )
             return InteractionResult.FAIL;
         
@@ -106,6 +106,9 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext implements 
         
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
+    
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! Keep this method's meaning normal.
+    protected boolean setBlock(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, int flags) { return level.setBlock(pos, newState, flags); }
     
     @Override public boolean equals(Object object) { return this == object || object instanceof StatedBlockPlaceContext that && this.placeState.equals(that.placeState); }
     

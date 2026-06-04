@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaBrewingStandAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
@@ -72,10 +73,19 @@ public final class CarriableSimpleLogicCollection
     //endregion
     
     //region BlockEntity
-//    public interface OfSimplePersistent<E extends BlockEntity> extends CarriableBlockEntityExtensions.ICarrySerializable
-//    {
-//
-//    }
+    /**
+     * TODO
+     */
+    public interface OfSimplePersistent<E extends BlockEntity> extends CarriableBlockEntityExtensions.ICarrySerializable
+    {
+        void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries);
+        
+        void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries);
+        
+        @Override default void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.loadAdditional(tag, registries); }
+        
+        @Override default void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.saveAdditional(tag, registries); }
+    }
     
     /**
      * This interface provides a simple yet universal <u>{@link #getPenaltyRate(E) penaltyRate formula}</u> for blockEntity adapters.

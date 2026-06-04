@@ -26,7 +26,7 @@ If you have any questions, feel free to ask.
    //  e.g.
    //* This is an important comment!
    //! This is a comment that explains potential errors.
-   //? This is a comment that records your confusion, TODO, or the explaination in build script and config.
+   //? This is a comment that records your confusion, TODO, or the explanation in build script and config.
    ```
    
    Also, you can write *reference* in comments, with pattern `[[]]`, both file and class reference are OK.

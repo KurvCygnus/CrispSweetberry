@@ -8,10 +8,10 @@
 
 package kurvcygnus.crispsweetberry.lib.base.trait;
 
-import kurvcygnus.crispsweetberry.lib.base.functions.ToByteFunction;
-import kurvcygnus.crispsweetberry.lib.base.functions.ToCharFunction;
-import kurvcygnus.crispsweetberry.lib.base.functions.ToFloatFunction;
-import kurvcygnus.crispsweetberry.lib.base.functions.ToShortFunction;
+import it.unimi.dsi.fastutil.objects.Object2ByteFunction;
+import it.unimi.dsi.fastutil.objects.Object2CharFunction;
+import it.unimi.dsi.fastutil.objects.Object2FloatFunction;
+import it.unimi.dsi.fastutil.objects.Object2ShortFunction;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -142,7 +142,7 @@ public interface INullableContainer<T> extends Supplier<T>
         return mapper.apply(value);
     }
     
-    default byte destructToByte(@NotNull ToByteFunction<? super T> mapper, byte defaultValue)
+    default byte destructToByte(@NotNull Object2ByteFunction<? super T> mapper, byte defaultValue)
     {
         if(withCheck())
             Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
@@ -151,10 +151,10 @@ public interface INullableContainer<T> extends Supplier<T>
         
         if(value == null)
             return defaultValue;
-        return mapper.applyAsByte(value);
+        return mapper.apply(value);
     }
     
-    default short destructToShort(@NotNull ToShortFunction<? super T> mapper, short defaultValue)
+    default short destructToShort(@NotNull Object2ShortFunction<? super T> mapper, short defaultValue)
     {
         if(withCheck())
             Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
@@ -163,7 +163,7 @@ public interface INullableContainer<T> extends Supplier<T>
         
         if(value == null)
             return defaultValue;
-        return mapper.applyAsShort(value);
+        return mapper.apply(value);
     }
     
     default int destructToInt(@NotNull ToIntFunction<? super T> mapper, int defaultValue)
@@ -190,7 +190,7 @@ public interface INullableContainer<T> extends Supplier<T>
         return mapper.applyAsLong(value);
     }
     
-    default float destructToFloat(@NotNull ToFloatFunction<? super T> mapper, float defaultValue)
+    default float destructToFloat(@NotNull Object2FloatFunction<? super T> mapper, float defaultValue)
     {
         if(withCheck())
             Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
@@ -199,10 +199,10 @@ public interface INullableContainer<T> extends Supplier<T>
         
         if(value == null)
             return defaultValue;
-        return mapper.applyAsFloat(value);
+        return mapper.apply(value);
     }
     
-    default float destructToFloat(@NotNull ToFloatFunction<? super T> mapper) { return destructToFloat(mapper, Float.NaN); }
+    default float destructToFloat(@NotNull Object2FloatFunction<? super T> mapper) { return destructToFloat(mapper, Float.NaN); }
     
     default double destructToDouble(@NotNull ToDoubleFunction<? super T> mapper, double defaultValue)
     {
@@ -232,7 +232,7 @@ public interface INullableContainer<T> extends Supplier<T>
     
     //* ...
     //* To be honest, if you really have such a rare demand like this, I can just say nothing about it.
-    default char destructToChar(@NotNull ToCharFunction<? super T> mapper, char defaultValue)
+    default char destructToChar(@NotNull Object2CharFunction<? super T> mapper, char defaultValue)
     {
         if(withCheck())
             Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
@@ -241,7 +241,7 @@ public interface INullableContainer<T> extends Supplier<T>
         
         if(value == null)
             return defaultValue;
-        return mapper.applyAsChar(value);
+        return mapper.apply(value);
     }
     
     @Override default @Nullable T get() { return value(); }

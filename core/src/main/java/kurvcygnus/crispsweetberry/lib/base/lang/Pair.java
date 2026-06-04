@@ -8,8 +8,15 @@
 
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
+import it.unimi.dsi.fastutil.objects.Object2ByteFunction;
+import it.unimi.dsi.fastutil.objects.Object2CharFunction;
+import it.unimi.dsi.fastutil.objects.Object2FloatFunction;
+import it.unimi.dsi.fastutil.objects.Object2ShortFunction;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
-import kurvcygnus.crispsweetberry.lib.base.functions.*;
+import kurvcygnus.crispsweetberry.lib.base.functions.ToByteBiFunction;
+import kurvcygnus.crispsweetberry.lib.base.functions.ToCharBiFunction;
+import kurvcygnus.crispsweetberry.lib.base.functions.ToFloatBiFunction;
+import kurvcygnus.crispsweetberry.lib.base.functions.ToShortBiFunction;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,16 +59,16 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
         return mapper.apply(this.left);
     }
     
-    public byte destructLeftToByte(@NotNull ToByteFunction<? super L> mapper)
+    public byte destructLeftToByte(@NotNull Object2ByteFunction<? super L> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsByte(this.left);
+        return mapper.apply(this.left);
     }
     
-    public short destructLeftToShort(@NotNull ToShortFunction<? super L> mapper)
+    public short destructLeftToShort(@NotNull Object2ShortFunction<? super L> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsShort(this.left);
+        return mapper.apply(this.left);
     }
     
     public int destructLeftToInt(@NotNull ToIntFunction<? super L> mapper)
@@ -76,10 +83,10 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
         return mapper.applyAsLong(this.left);
     }
     
-    public float destructLeftToFloat(@NotNull ToFloatFunction<? super L> mapper)
+    public float destructLeftToFloat(@NotNull Object2FloatFunction<? super L> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsFloat(this.left);
+        return mapper.apply(this.left);
     }
     
     public double destructLeftToDouble(@NotNull ToDoubleFunction<? super L> mapper)
@@ -88,10 +95,10 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
         return mapper.applyAsDouble(this.left);
     }
     
-    public char destructLeftToChar(@NotNull ToCharFunction<? super L> mapper)
+    public char destructLeftToChar(@NotNull Object2CharFunction<? super L> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsChar(this.left);
+        return mapper.apply(this.left);
     }
     
     public boolean destructLeftToBoolean(@NotNull Predicate<? super L> mapper)
@@ -114,16 +121,16 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
         return mapper.apply(this.right);
     }
     
-    public byte destructRightToByte(@NotNull ToByteFunction<? super R> mapper)
+    public byte destructRightToByte(@NotNull Object2ByteFunction<? super R> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsByte(this.right);
+        return mapper.apply(this.right);
     }
     
-    public short destructRightToShort(@NotNull ToShortFunction<? super R> mapper)
+    public short destructRightToShort(@NotNull Object2ShortFunction<? super R> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsShort(this.right);
+        return mapper.apply(this.right);
     }
     
     public int destructRightToInt(@NotNull ToIntFunction<? super R> mapper)
@@ -138,10 +145,10 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
         return mapper.applyAsLong(this.right);
     }
     
-    public float destructRightToFloat(@NotNull ToFloatFunction<? super R> mapper)
+    public float destructRightToFloat(@NotNull Object2FloatFunction<? super R> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsFloat(this.right);
+        return mapper.apply(this.right);
     }
     
     public double destructRightToDouble(@NotNull ToDoubleFunction<? super R> mapper)
@@ -150,10 +157,10 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
         return mapper.applyAsDouble(this.right);
     }
     
-    public char destructRightToChar(@NotNull ToCharFunction<? super R> mapper)
+    public char destructRightToChar(@NotNull Object2CharFunction<? super R> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
-        return mapper.applyAsChar(this.right);
+        return mapper.apply(this.right);
     }
     
     public boolean destructRightToBoolean(@NotNull Predicate<? super R> mapper)

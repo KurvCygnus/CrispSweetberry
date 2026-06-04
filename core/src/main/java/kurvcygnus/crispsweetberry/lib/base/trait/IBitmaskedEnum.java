@@ -41,7 +41,7 @@ import java.util.Set;
  * )</i>
  * @param <E> The <u>{@link Enum}</u> it bounds to.
  */
-public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
+public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>> extends ICRTPCaster<IBitmaskedEnum<E>, E>
 {
     //region Mask Constants & Lookups
     int MASK    = 0x3;
@@ -58,10 +58,9 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>>
     @ApiStatus.NonExtendable default int shiftDefault() { return DEFAULT    << shift(); }
     @ApiStatus.NonExtendable default int shiftExtra()   { return EXTRA      << shift(); }
     
-    @SuppressWarnings("unchecked")//! This interface can only be implemented by [[Enum]], so we can do such a violate casting.
     default @Range(from = 0, to = 15) int getIndex()
     {
-        final E enumeration = (E) this;
+        final E enumeration = getSelf();
         
         if(withOverflowCheck() && InterfaceHelper.MEMO.add(getClass()))
         {

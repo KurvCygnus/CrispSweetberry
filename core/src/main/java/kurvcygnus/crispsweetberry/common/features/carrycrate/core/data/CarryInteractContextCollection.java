@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.core.data;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,7 +32,7 @@ import java.util.function.Function;
 
 /**
  * This is the collection of data classes that <b>unifies the universal data getters for common usage data, and also the unique data for specific cases.</b>
- * @see kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem CarryCrateItem
+ * @see CarryCrateItem CarryCrateItem
  * @see kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine#interact(ICarryInteractContext) Usage 
  */
 @ApiStatus.Internal

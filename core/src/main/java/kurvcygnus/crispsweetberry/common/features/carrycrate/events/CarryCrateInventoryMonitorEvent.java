@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.events;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Containers;

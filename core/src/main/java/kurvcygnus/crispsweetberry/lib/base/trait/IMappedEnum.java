@@ -34,7 +34,7 @@ import java.util.Objects;
  * @author Kurv Cygnus
  * @see #getKey()
  */
-public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends Map.Entry<T, E>
+public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends Map.Entry<T, E>, ICRTPCaster<IMappedEnum<T, E>, E>
 {
     /**
      * @apiNote It is <span style="color: f84b4b">NOT</span> recommend to bound the key with a non-{@code final} field.<hr>
@@ -84,8 +84,7 @@ public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends M
         return Pair.of(getKey(), getValue());
     }
     
-    @SuppressWarnings("unchecked")//! CRTP grantees the safety.
-    @ApiStatus.NonExtendable @Override default E getValue() { return (E) this; }
+    @ApiStatus.NonExtendable @Override default E getValue() { return getSelf(); }
     
     @ApiStatus.NonExtendable @Override default E setValue(E value) { throw new UnsupportedOperationException(); }
 }

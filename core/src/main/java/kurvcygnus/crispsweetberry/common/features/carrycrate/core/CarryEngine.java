@@ -23,9 +23,8 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extens
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.events.CarryCrateCopyProcessor;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
-import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
@@ -71,8 +70,21 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.Ca
 
 //? FIX: BlockEntity's Placement is now working fine, but serialization needs to get fixed, currently it doesn't work.
 //? NEW PROGRESS: Same as the 1st FIX issue, before [[CarryCrateItem#useOn]]'s ending, everything seems good.
-//? So:
-//? TODO: Find out the network sync issue!
+//? DEBUG RESULT: In [[CommonHooks#onPlaceItemIntoWorld]], [[BlockSnapshot]]'s blockEntity failed to sync because,
+//? before tagData is deserialized, the snapshot has already been added to [[Level#capturedBlockSnapshots]], with [[StatedBlockPlaceContext#performPlace]] called.
+//? Two Choices present:
+//? 1. Adjust [[CarryOperationExecutor#blockEntityReleaseExtra]] to the head of [[CarryOperationExecutor#blocklikeTargetRelease]].
+//? 2. Keep this call order, involving [[Level#capturedBlockSnapshots]]'s content instead.
+//* We currently perfer 1. 2 is too slow and unstable, also bad for maintaining.
+//* Choice 1 has been done. Now only left untested.
+//? ISSUE: DOESN'T WORK. Reason: [[BlockSnapshot]] gets blockEntity's data with FUCKING [[BlockSnapshot#getBlockEntityTag]], it gets blockEntity by blockPos,
+//? which OF COURSE can't get BE. We need to inherit this mess!!!
+//? ... Still not working?????? backing to the conclusion before -- MUST BE NETWORK SYNC, FUCK.
+//? REASON FIND OUT: OMG, FUCK MINECRAFT, blcokEntity just got erased, so that's the reason.
+//? So, yeah, let's try to find out where did blockEntity has became invalid, AGAIN, thank you, mojang.
+//? Finally, we found it. At [[LevelChunk]], its field, [[ChunkAccess#blockEntities]] doesn't have blockEntity, reason? IDK. Anyways, I just want to fix this shit.
+//? TBH, why shouldn't I move to indie game dev, instead of serving this old, janky, hacky, and bloat closed-source software for free?
+//? I think I'm gonna probably ditch this project if the 1st release failed to get a good feedback.
 
 /**
  * The core engine of the whole carry system. As you can could see, it is complex enough to be an independent class.<br>
@@ -119,7 +131,7 @@ public enum CarryEngine
     @ApiStatus.Internal public static final IVault<ITriConsumer<CarryType, CarryID, CarryID>, Optional<?>> INSERT_ACCESS = IVault.ofAccessLimited(
         (type, original, newID) ->
         {
-            @SuppressWarnings("unchecked")//! Safe Casting. Internal Map Mutation is always legal.
+            @SuppressWarnings("unchecked")//! Safe Casting. Internal Map Mutation is always legal, no [[ClassCastException]], granted by [[CarryType]].
             final var subLookup = (Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(type);
             subLookup.put(newID, subLookup.get(original));
         },
@@ -441,7 +453,7 @@ public enum CarryEngine
                                     
                                     targetBlockState = blockEntityDataHolder.getState();
                                     //* NOTE: This logic is illegal on Vanilla.
-                                    //* It is implemented with the help of [[CarryEngine#IS_INTERACTING_WITH_BE]] and [[CarryBlockEntityValidationPasser]].
+                                    //* It is implemented with the help of [[CarryEngine#IS_INTERACTING_WITH_BE]] and [[CarryBlockEntityValidationPasser#tryPass]].
                                     targetBlockEntity = Objects.requireNonNull(
                                         type.create(interactPos, targetBlockState),
                                         DefinitionUtils.quickFormat(
@@ -456,6 +468,8 @@ public enum CarryEngine
                                             MetainfoConstants.FEEDBACK_MESSAGE
                                         )
                                     );
+                                    
+                                    IS_INTERACTING_WITH_BE.set(false);
                                 }
                                 case CarryData.CarryBlockDataHolder blockDataHolder ->
                                 {
@@ -481,12 +495,8 @@ public enum CarryEngine
                 }
             };
             
-            switch(action)
-            {
-                case null -> { return null; }
-                case BLOCK_ENTITY -> IS_INTERACTING_WITH_BE.set(true);
-                default -> {}
-            }
+            if(action == null)
+                return null;
             
             handle.changeMarker("ACTION_SELECT");
             
@@ -518,16 +528,13 @@ public enum CarryEngine
                     carryCrate,
                     ((Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(action))::put,
                     LISTENER_LOOKUP.get(action)::remove,
-                    useOnContext != null ? state -> new StatedBlockPlaceContext(useOnContext, state) : null,
+                    useOnContext != null ? (state, nbt) -> new CarryPlaceContext(useOnContext, state, nbt) : null,
                     targetBlockState,
                     targetEntity,
                     targetBlockEntity,
                     carryID
                 )
             );
-            
-            if(action.equals(CarryType.BLOCK_ENTITY))
-                IS_INTERACTING_WITH_BE.set(false);
             
             return interactResult;
             //endregion

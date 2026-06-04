@@ -103,7 +103,7 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
     
     @Contract("null, null, null -> fail")
     public static <L, M, R> @NotNull TriVariant<L, M, R> ofNullable(@Nullable L left, @Nullable M middle, @Nullable R right)
-    { return new TriVariant<>(left, middle, right); }
+        { return new TriVariant<>(left, middle, right); }
     
     public @NotNull L left()
     {
@@ -112,7 +112,17 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
         return left;
     }
     
-    public <U> @NotNull U mapLeftOrThrow(@NotNull Function<? super L, ? extends U> mapper)
+    @SuppressWarnings("unchecked") public <U> @NotNull TriVariant<U, M, R> mapLeft(@NotNull Function<? super L, ? extends U> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        if(left == null)
+            return (TriVariant<U, M, R>) this;
+        
+        return ofNullable(mapper.apply(left), middle, right);
+    }
+    
+    public <U> @NotNull U destructLeftOrThrow(@NotNull Function<? super L, ? extends U> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
         if(left == null)
@@ -139,7 +149,7 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
     public @NotNull TriVariant<L, M, R> replaceLeft(@NotNull L left)
     {
         Objects.requireNonNull(left, "Param \"left\" must not be null!");
-        return new TriVariant<>(left, middle, right);
+        return ofNullable(left, middle, right);
     }
     
     public @NotNull M middle()
@@ -149,7 +159,17 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
         return middle;
     }
     
-    public <U> @NotNull U mapMiddleOrThrow(@NotNull Function<? super M, ? extends U> mapper)
+    @SuppressWarnings("unchecked") public <U> @NotNull TriVariant<L, U, R> mapMiddle(@NotNull Function<? super M, ? extends U> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        if(middle == null)
+            return (TriVariant<L, U, R>) this;
+        
+        return ofNullable(left, mapper.apply(middle), right);
+    }
+    
+    public <U> @NotNull U destructMiddleOrThrow(@NotNull Function<? super M, ? extends U> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
         if(middle == null)
@@ -175,7 +195,7 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
     public @NotNull TriVariant<L, M, R> replaceMiddle(@NotNull M middle)
     {
         Objects.requireNonNull(middle, "Param \"middle\" must not be null!");
-        return new TriVariant<>(left, middle, right);
+        return ofNullable(left, middle, right);
     }
     
     public @NotNull R right()
@@ -185,7 +205,17 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
         return right;
     }
     
-    public <U> @NotNull U mapRightOrThrow(@NotNull Function<? super R, ? extends U> mapper)
+    @SuppressWarnings("unchecked") public <U> @NotNull TriVariant<L, M, U> mapRight(@NotNull Function<? super R, ? extends U> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        
+        if(right == null)
+            return (TriVariant<L, M, U>) this;
+        
+        return ofNullable(left, middle, mapper.apply(right));
+    }
+    
+    public <U> @NotNull U destructRightOrThrow(@NotNull Function<? super R, ? extends U> mapper)
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
         if(right == null)
@@ -211,7 +241,7 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
     public @NotNull TriVariant<L, M, R> replaceRight(@NotNull R right)
     {
         Objects.requireNonNull(right, "Param \"right\" must not be null!");
-        return new TriVariant<>(left, middle, right);
+        return ofNullable(left, middle, right);
     }
     
     public boolean isLeftPresent() { return left != null; }
@@ -258,8 +288,7 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
         @NotNull Function<? super L, ? extends U> leftMapper,
         @NotNull Function<? super M, ? extends U> middleMapper,
         @NotNull Function<? super R, ? extends U> rightMapper
-    )
-    { return this.fold(leftMapper, middleMapper, rightMapper, false); }
+    ) { return this.fold(leftMapper, middleMapper, rightMapper, false); }
     
     public <U> U fold(
         @NotNull Function<? super L, ? extends U> leftMapper,

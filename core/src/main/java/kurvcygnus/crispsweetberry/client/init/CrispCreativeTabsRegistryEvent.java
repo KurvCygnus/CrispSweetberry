@@ -52,7 +52,7 @@ public final class CrispCreativeTabsRegistryEvent
             if(entry.tab() == event.getTabKey())
             {
                 event.accept(item);
-                LOGGER.debug("Registered item \"{}\" to tab \"{}\".", item.getDefaultInstance().getDisplayName(), entry.tab());
+                LOGGER.debug("Registered item \"{}\" to tab \"{}\".", item.getDefaultInstance().getDisplayName().getString(), entry.tab());
             }
         }
     }

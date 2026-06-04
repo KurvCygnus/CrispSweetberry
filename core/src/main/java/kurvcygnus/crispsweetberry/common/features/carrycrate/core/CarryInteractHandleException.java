@@ -6,15 +6,16 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.common.features.carrycrate.core.exceptions;
+package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInteractContext;
-import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransitionalThrowable;
+import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransactionalThrowable;
 import kurvcygnus.crispsweetberry.lib.base.exceptions.StructuredException;
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import net.minecraft.world.InteractionResult;
 import net.neoforged.neoforge.common.util.TriState;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -23,15 +24,16 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 /**
- * A simple exception for <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine CarryEngine}</u>'s core logic error handling,
+ * A simple exception for <u>{@link CarryEngine CarryEngine}</u>'s core logic error handling,
  * which wraps an exception to make Functional Pipelines fluent, with self-descriptive error type tags, abnormal data snapshot and rollback ability provided.
- * @since 1.0 Release
+ *
  * @author Kurv Cygnus
  * @see StructuredException
- * @see ITransitionalThrowable
+ * @see ITransactionalThrowable
+ * @since 1.0 Release
  */
-public final class CarryInteractHandleException extends StructuredException
-implements ITransitionalThrowable<CarryInteractHandleException, CarryInteractContext, InteractionResult>
+@ApiStatus.Internal final class CarryInteractHandleException extends StructuredException
+    implements ITransactionalThrowable<CarryInteractHandleException, CarryInteractContext, InteractionResult>
 {
     private static final BinaryOperator<String> TYPE_TEMPLATE = (s1, s2) -> MessageFormatter.format("{}_{}", s1, s2).getMessage();
     
@@ -107,32 +109,6 @@ implements ITransitionalThrowable<CarryInteractHandleException, CarryInteractCon
                         case TRUE -> "ADD";
                         case FALSE -> "REMOVE";
                         case DEFAULT -> "SKIP";
-                    }
-                ),
-                causeData
-            )
-        );
-    }
-    
-    public static <T> @NotNull IResult<T, CarryInteractHandleException> component(
-        @NotNull CarryInteractContext causeData,
-        @NotNull String message,
-        @NotNull Function<String, Throwable> exception,
-        @NotNull TriState state
-    )
-    {
-        assert state != null : "Param \"state\" must not be null!";
-        
-        return IResult.ofFailed(
-            new CarryInteractHandleException(
-                exception.apply(message),
-                TYPE_TEMPLATE.apply(
-                    "COMPONENT",
-                    switch(state)
-                    {
-                        case TRUE -> "INSERT";
-                        case FALSE -> "REMOVE";
-                        case DEFAULT -> "DO_NOTHING";
                     }
                 ),
                 causeData

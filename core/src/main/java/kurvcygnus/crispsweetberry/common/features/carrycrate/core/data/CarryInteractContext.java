@@ -17,6 +17,7 @@ import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.TriVariant;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -74,9 +76,9 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
             map.put("targets", CarryInteractContext::targets);
             map.put("carryID", CarryInteractContext::carryID);
             map.put("result", CarryInteractContext::result);
-            map.put("listener", CarryInteractContext::listener);
-            map.put("component", CarryInteractContext::component);
-            map.put("target", CarryInteractContext::target);
+            map.put("listener", c -> c.listener);
+            map.put("component", c -> c.component);
+            map.put("target", c -> c.target);
             map.put("data", CarryInteractContext::data);
             map.put("blockEntityType", CarryInteractContext::blockEntityType);
         },
@@ -91,7 +93,7 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
     private final @NotNull ItemStack carryCrate;
     private final @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
     private final @NotNull Consumer<CarryID> listenerRemove;
-    private final @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter;
+    private final @Nullable BiFunction<@Nullable BlockState, @Nullable CompoundTag, @NotNull StatedBlockPlaceContext> placeContentGetter;
     private final @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets;
     private final @NotNull ISealableBox<CarryID> carryID;
     private @Nullable InteractionResult result = null;
@@ -111,7 +113,7 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
         @NotNull ItemStack carryCrate,
         @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert,
         @NotNull Consumer<CarryID> listenerRemove,
-        @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter,
+        @Nullable BiFunction<@Nullable BlockState, @Nullable CompoundTag, @NotNull StatedBlockPlaceContext> placeContentGetter,
         @Nullable BlockState targetState,
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
@@ -145,7 +147,7 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
         @NotNull ItemStack carryCrate,
         @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert,
         @NotNull Consumer<CarryID> listenerRemove,
-        @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter,
+        @Nullable BiFunction<@Nullable BlockState, @Nullable CompoundTag, @NotNull StatedBlockPlaceContext> placeContentGetter,
         @Nullable BlockState targetState,
         @Nullable LivingEntity targetEntity,
         @Nullable BlockEntity targetBlockEntity,
@@ -240,13 +242,13 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
     public @NotNull ItemStack carryCrate() { return carryCrate; }
     public void insertListener(@NotNull CarryID carryID, @NotNull ICarryRegistryView.IBaseCarryAdapterFactory<?, ?> factory) { this.listenerInsert.accept(carryID, factory); }
     public void removeListener(@NotNull CarryID carryID) { this.listenerRemove.accept(carryID); }
-    public @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter() { return placeContentGetter; }
+    public @Nullable BiFunction<@Nullable BlockState, @Nullable CompoundTag, @NotNull StatedBlockPlaceContext> placeContentGetter() { return placeContentGetter; }
     public @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets() { return targets; }
     public @NotNull ISealableBox<CarryID> carryID() { return carryID; }
     public @Nullable InteractionResult result() { return result; }
-    public @NotNull ISealableBox<TriState> listener() { return listener; }
-    public @NotNull ISealableBox<TriState> component() { return component; }
-    public @NotNull ISealableBox<TriState> target() { return target; }
+    public @NotNull TriState listener() { return listener.orThrow(); }
+    public @NotNull TriState component() { return component.orThrow(); }
+    public @NotNull TriState target() { return target.orThrow(); }
     public @NotNull ISealableBox<CarryData> data() { return data; }
     public @NotNull ISealableBox<BlockEntityType<?>> blockEntityType() { return blockEntityType; }
     

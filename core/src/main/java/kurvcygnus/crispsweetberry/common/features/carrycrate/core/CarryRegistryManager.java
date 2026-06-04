@@ -18,6 +18,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAda
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
@@ -97,7 +98,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     private static final HashMap<ResourceLocation, ICarryEntityAdapterFactory<?, ?>> RECOVERY_ENTITY_REGISTRY = new HashMap<>();
     
     /**
-     * @implNote This map is mainly used for <u>{@link kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem Carry Crate}</u>'s content display,
+     * @implNote This map is mainly used for <u>{@link CarryCrateItem Carry Crate}</u>'s content display,
      * it caches the translation key of the content, so its content is depended on current language.
      */
     private static final HashMap<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();

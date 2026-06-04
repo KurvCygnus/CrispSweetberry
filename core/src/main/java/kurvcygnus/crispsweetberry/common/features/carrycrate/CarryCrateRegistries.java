@@ -19,9 +19,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryD
 import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.JukeboxCompatCollection;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.carriables.PowderSnowCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateBlock;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.CarryCrateItem;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.self.OverweightEffect;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateBlock;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.extensions.IStackableTool;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
