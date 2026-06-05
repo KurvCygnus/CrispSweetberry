@@ -25,6 +25,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInte
 import kurvcygnus.crispsweetberry.common.features.carrycrate.events.CarryCrateCopyProcessor;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
+import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
@@ -85,6 +86,25 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.Ca
 //? Finally, we found it. At [[LevelChunk]], its field, [[ChunkAccess#blockEntities]] doesn't have blockEntity, reason? IDK. Anyways, I just want to fix this shit.
 //? TBH, why shouldn't I move to indie game dev, instead of serving this old, janky, hacky, and bloat closed-source software for free?
 //? I think I'm gonna probably ditch this project if the 1st release failed to get a good feedback.
+//? So, we accessed [[LevelChunk#getBlockEntities]] to solve this, and without exception: still NOT WORKING, Minecraft's SUCH A MORON.
+//? GOOD, so what's next? DEBUG.
+//? THE WORST THING HAPPENED. Minecraft Server rejects the change. Reason? No CLUE, JUST AGAIN. Before quiting [[CommonHooks#onPlaceItemIntoWorld]], data is ok.
+//? JUST, OH, MY, FK GOD, why can't you just make it work, STUPID!
+//? Nothing to say. I'm tired. REALLY TIRED.
+//? I'M BACK TO KICK MINECRAFT's ASS!
+//? [[CommonHooks#onPlaceItemIntoWorld]] -> OK
+//? [[ItemStack#useOn]] -> OK
+//? [[ServerPlayerGameMode#useItemOn]] -> OK
+//? [[ServerGamePacketListenerImpl#handleUseItemOn]] -> Even this is OK???
+//? [[PacketUtils#ensureRunningOnSameThread]] -> Still exists.
+//? *After these calls, the logic becomes Threading and ticking related*
+//? So, could it be the issue of network sync? IDK.
+//? Emm, now I have a better idea --
+//? Why should I do these mess, instead of following Minecraft's rule?
+//? You see, in [[Level]], there exist a method called [[LevelAccessor#scheduleTick]], which called a [[Block]]'s [[BlockBehaviour#tick]] after specfied ticks.
+//* We can also do a custom scheduled task([[LevelAccessor#scheduleTick]] is for [[Block]] only) to load nbt,
+//* and [[CarryOperationExecutor]] shall only do data emulation and I/O.
+//? However, I'm exhausted this time, let's do it tomorrow.
 
 /**
  * The core engine of the whole carry system. As you can could see, it is complex enough to be an independent class.<br>
@@ -277,7 +297,7 @@ public enum CarryEngine
                                 final String id = entryTag.getString(CarryListenerSaveData.ID);
                                 final String uuid = entryTag.getString(CarryListenerSaveData.UUID);
                                 final CarryID fullID = internalRestore.apply(id, uuid);
-                                LOGGER.debug("Got CarryID: {}", fullID);
+                                LOGGER.debug("Restored CarryID: \n{}", fullID);
                                 
                                 final @Nullable var adapter = CarryRegistryManager.INST.searchFactory(ResourceLocation.parse(id));
                                 
@@ -517,7 +537,7 @@ public enum CarryEngine
             
             handle.changeMarker("CARRY_ID_QUERY");
             final @Nullable var carryID = context.getCarryID();
-            LOGGER.debug("Got CarryID: \"{}\"", Objects.requireNonNullElse(carryID, "N/A"));
+            LOGGER.debug("Got CarryID: \n{}", Objects.requireNonNullElse(carryID, "N/A"));
             
             final @Nullable var interactResult = CarryOperationExecutor.INST.handle(
                 CarryInteractContext.init(
@@ -528,7 +548,7 @@ public enum CarryEngine
                     carryCrate,
                     ((Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) LISTENER_LOOKUP.get(action))::put,
                     LISTENER_LOOKUP.get(action)::remove,
-                    useOnContext != null ? (state, nbt) -> new CarryPlaceContext(useOnContext, state, nbt) : null,
+                    useOnContext != null ? state -> new StatedBlockPlaceContext(useOnContext, state) : null,
                     targetBlockState,
                     targetEntity,
                     targetBlockEntity,

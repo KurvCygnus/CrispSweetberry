@@ -96,8 +96,14 @@ public abstract class AbstractTemporaryTorchBehavior
     
     protected void onPlaceSequence(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState oldState) { }
     
-    public @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
-    @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand)
+    public @NotNull ItemInteractionResult useItemOn(
+        @NotNull ItemStack stack,
+        @NotNull BlockState state,
+        @NotNull Level level,
+        @NotNull BlockPos pos,
+        @NotNull Player player,
+        @NotNull InteractionHand hand
+    )
     {
         if(!isRelitable() || this.getTorchBlock().isStillBright(state))
             return ItemInteractionResult.FAIL;
@@ -110,7 +116,10 @@ public abstract class AbstractTemporaryTorchBehavior
         final boolean isDamageable = stack.isDamageableItem();
         final float damageableItemPitch = level.getRandom().nextFloat() * 0.4F + 0.8F;
         
-        level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
+        level.playSound(
+            null,
+            pos,
+            isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
             SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? damageableItemPitch : NORMAL_SOUND_PITCH
         );
         

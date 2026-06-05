@@ -8,7 +8,6 @@
     "CarryBlockEntityValidationPasser",
     "CarryContainerQuickMoveInterceptor",
     "CarrySlotMoveInterceptor",
-    "IBlockSnapshotCreator",
     "VanillaBrewingStandAccessor",
     "VanillaFurnaceAccessor"
   ],

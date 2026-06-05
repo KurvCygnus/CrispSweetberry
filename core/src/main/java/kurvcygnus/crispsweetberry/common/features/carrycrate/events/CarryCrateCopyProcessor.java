@@ -52,7 +52,7 @@ public final class CarryCrateCopyProcessor
             !originalStack.has(CarryCrateRegistries.CARRY_CRATE_DATA.value())
         ) return;
         
-        LOGGER.debug("Stack \"{}\" meets the comndition. Taking over the Copy Logic.", originalStack);
+        LOGGER.debug("Stack \"{}\" meets the condition. Taking over the Copy Logic.", originalStack);
         event.setCanceled(true);
         
         final var builder = CarryID.__$1NT3RNAL_R3ST0R3$__.tryGet(Optional.of(event));

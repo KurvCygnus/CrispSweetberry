@@ -87,8 +87,6 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         CarryEngine.carryingTick(this, stack, level, entity, slotId);
     }
     
-    
-    
     @Override public void appendHoverText(
         @NotNull ItemStack stack,
         @NotNull TooltipContext context,
