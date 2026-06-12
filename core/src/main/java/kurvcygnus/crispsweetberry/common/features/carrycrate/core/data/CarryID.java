@@ -16,6 +16,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.events.CarryCrateCo
 import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
+import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,10 +26,8 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,20 +44,22 @@ import java.util.function.Supplier;
 @ApiStatus.Internal
 public final class CarryID extends BaseNestedPrinter<CarryID>
 {
+    private static final Function<CarryID, String> ID_GETTER = i -> i.id;
+    private static final Function<CarryID, String> UUID_GETTER = i -> i.uuid;
+    
     private static final Codec<CarryID> CODEC = RecordCodecBuilder.create(
         inst -> inst.group(
-            Codec.STRING.fieldOf("id").forGetter(CarryID::id),
-            Codec.STRING.fieldOf("uuid").forGetter(CarryID::uuid)
+            Codec.STRING.fieldOf("id").forGetter(ID_GETTER),
+            Codec.STRING.fieldOf("uuid").forGetter(UUID_GETTER)
         ).apply(inst, CarryID::new)
     );
     private static final StreamCodec<ByteBuf, CarryID> STREAM_CODEC = StreamCodec.composite(
-        ByteBufCodecs.STRING_UTF8, CarryID::id,
-        ByteBufCodecs.STRING_UTF8, CarryID::uuid,
+        ByteBufCodecs.STRING_UTF8, ID_GETTER,
+        ByteBufCodecs.STRING_UTF8, UUID_GETTER,
         CarryID::new
     );
     
-    public static final Supplier<DataComponentType<CarryID>> SERIALIZATION_DEF =
-        DataComponentType.<CarryID>builder().persistent(CODEC).networkSynchronized(STREAM_CODEC)::build;
+    public static final Supplier<DataComponentType<CarryID>> SERIALIZATION_DEF = SerializationTemplates.buildSerializeTemplate(CODEC, STREAM_CODEC);
     
     @ApiStatus.Internal public static final
     IVault<
@@ -84,17 +85,13 @@ public final class CarryID extends BaseNestedPrinter<CarryID>
             CarryCrateCopyProcessor.class
         );
     
-    private static final @NotNull @Unmodifiable Map<String, Function<CarryID, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
-        map ->
-        {
-            map.put("Recovery ID", CarryID::id);
-            map.put("UUID", CarryID::uuid);
-        },
+    private static final @NotNull @Unmodifiable INestedFieldMap<CarryID> FIELD_MAP = INestedPrintable.buildFieldMap(
+        map -> { map.put("Recovery ID", ID_GETTER); map.put("UUID", UUID_GETTER); },
         2
     );
     
-    private final @NotNull String id;
-    private final @NotNull String uuid;
+    public final @NotNull String id;
+    public final @NotNull String uuid;
     
     private CarryID(@NotNull String id, @NotNull String uuid)
     {
@@ -110,10 +107,6 @@ public final class CarryID extends BaseNestedPrinter<CarryID>
         );
     }
     
-    public @NotNull String id() { return id; }
-    
-    public @NotNull String uuid() { return uuid; }
-    
     @Override public boolean equals(Object obj)
     {
         return obj == this || obj instanceof CarryID that &&
@@ -123,5 +116,5 @@ public final class CarryID extends BaseNestedPrinter<CarryID>
     
     @Override public int hashCode() { return Objects.hash(id, uuid); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<CarryID, @Nullable Object>> getFields() { return FIELD_MAP; }
+    @Override public @NotNull @Unmodifiable INestedFieldMap<CarryID> getFields() { return FIELD_MAP; }
 }

@@ -360,11 +360,10 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         switch(result.logicalResult())
         {
             case CONTINUE, BALANCING -> {}
-            case INVALID ->
-            {
-                try(final var ignored = LOGGER.pushMarker("UNEXPECTED_RESULT"))
-                    { LOGGER.error("Received unexpected result \"{}\"", result.logicalResult().name()); }
-            }
+            case INVALID -> LOGGER.scopedMark(
+                "UNEXPECTED_RESULT",
+                ignored -> LOGGER.error("Received unexpected result \"{}\"", result.logicalResult().name())
+            );
             case SKIP -> { return false; }
         }
         

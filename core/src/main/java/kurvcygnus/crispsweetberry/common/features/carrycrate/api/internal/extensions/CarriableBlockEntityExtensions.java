@@ -41,6 +41,8 @@ import java.io.Serializable;
 @ApiStatus.Internal
 public final class CarriableBlockEntityExtensions
 {
+    public interface OfAll<E extends BlockEntity> extends IAtomicCarriable, IBlockEntityCarryLifecycle<E>, ICarrySerializable {}
+    
     /**
      * This interface holds the ability of carry crate engine's core feature, 
      * <b><u>{@link net.minecraft.world.level.block.entity.BlockEntity}</u> working emulation</b>, which 

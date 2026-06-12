@@ -8,17 +8,14 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.events;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRangeMap;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -51,27 +48,27 @@ final class ThrowableTorchZombieEvent
         CrispRangeMap.THROW
     );
     
-    @SubscribeEvent static void onNewZombieSpawn(@NotNull EntityJoinLevelEvent event)
+    @SubscribeEvent @DoNotCall static void onNewZombieSpawn(@NotNull EntityJoinLevelEvent event)
     {
         if(event.isCanceled())
             return;
         
-        final Entity entity = event.getEntity();
+        final var entity = event.getEntity();
         
         if(entity instanceof Zombie zombie)
         {
             if(!zombie.getItemInHand(InteractionHand.MAIN_HAND).isEmpty())
                 return;
             
-            final Level level = event.getLevel();
-            final RandomSource random = level.getRandom();
+            final var level = event.getLevel();
+            final var random = level.getRandom();
             
             if(random.nextFloat() > 0.05)
                 return;
             
             final int count = random.nextInt(DEPTH_RANDOM_MAPPER.getValueOrThrow(entity.getBlockY())) + 1;
             
-            final ItemStack throwableTorch = TTorchRegistries.THROWABLE_TORCH.value().getDefaultInstance();
+            final var throwableTorch = TTorchRegistries.THROWABLE_TORCH.value().getDefaultInstance();
             
             throwableTorch.setCount(count);
             
@@ -80,15 +77,13 @@ final class ThrowableTorchZombieEvent
         }
     }
     
-    @SubscribeEvent static void throwableTorchLit(@NotNull LivingDamageEvent.Pre event)
+    @SubscribeEvent @DoNotCall static void throwableTorchLit(@NotNull LivingDamageEvent.Pre event)
     {
-        final Entity entity = event.getSource().getEntity();
+        final var entity = event.getSource().getEntity();
         
         if(entity instanceof Zombie zombie && zombie.getItemInHand(InteractionHand.MAIN_HAND).is(TTorchRegistries.THROWABLE_TORCH))
         {
-            int fireTick = event.getEntity().getRemainingFireTicks();
-            fireTick = Math.min(fireTick + HIT_STD_EXTEND_FIRE_TICKS, HIT_STD_MAX_TICKS);
-            
+            final int fireTick = Math.min(event.getEntity().getRemainingFireTicks() + HIT_STD_EXTEND_FIRE_TICKS, HIT_STD_MAX_TICKS);
             event.getEntity().setRemainingFireTicks(fireTick);
         }
     }

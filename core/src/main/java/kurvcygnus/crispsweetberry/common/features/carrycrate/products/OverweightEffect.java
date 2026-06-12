@@ -15,6 +15,7 @@ import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.MathUtils;
+import kurvcygnus.crispsweetberry.utils.constants.FunctionalDummies;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.effect.MobEffect;
@@ -83,7 +84,7 @@ public final class OverweightEffect extends MobEffect
     }
     
     public static void updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state)
-        { updateFactorAndEffect(player, data, state, () -> {}); }
+        { updateFactorAndEffect(player, data, state, FunctionalDummies.runNothing()); }
     
     public static void updateFactorAndEffect(@NotNull Player player, @Nullable CarryData data, @NotNull TriState state, @NotNull Runnable unacceptableCallback)
     {
@@ -100,7 +101,7 @@ public final class OverweightEffect extends MobEffect
         final float layerFactor = switch(data)
         {
             case CarryData that when that.unionData() instanceof CarryData.CarryBlockDataHolder holder ->
-                1.00F / holder.getMaxCarryCount();//* 1.00F avoids the `(float)` casting, and also, it represents that this expression is a percentage calculation.
+                1.00F / holder.maxCarryCount;//* 1.00F avoids the `(float)` casting, and also, it represents that this expression is a percentage calculation.
             case null, default -> MAX_LAYER;      //* Thus, no necessary to constantize 1.00F.
         };
         
@@ -115,7 +116,7 @@ public final class OverweightEffect extends MobEffect
                     switch(data)
                     {
                         case null -> 0F;
-                        case CarryData that when !that.causesOverweight() -> LITE_ADD_FACTOR;
+                        case CarryData that when !that.causesOverweight -> LITE_ADD_FACTOR;
                         default -> STANDARD_ADD_FACTOR;
                     }
                 ) * layerFactor

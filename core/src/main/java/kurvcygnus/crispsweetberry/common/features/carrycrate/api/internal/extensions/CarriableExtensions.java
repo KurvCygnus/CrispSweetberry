@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Range;
 @ApiStatus.Internal
 public final class CarriableExtensions
 {
+    public interface OfAll<T extends CarryData.CarryDataBaseHolder> extends ICarriableLifecycle<T>, ICarryTickable, ICarryVerifiable {}
+    
     /**
      * This represents the lifecycle part of carry crate system.
      * <br><br>

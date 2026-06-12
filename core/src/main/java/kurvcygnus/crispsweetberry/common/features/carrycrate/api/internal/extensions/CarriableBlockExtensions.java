@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Range;
 @ApiStatus.Internal
 public final class CarriableBlockExtensions
 {
+    public interface OfAll extends ICarryBlockStackable {}
+    
     /**
      * This interface holds the ability of <b>boxing multi blocks for a single carry crate</b>.
      * @since 1.0 Release

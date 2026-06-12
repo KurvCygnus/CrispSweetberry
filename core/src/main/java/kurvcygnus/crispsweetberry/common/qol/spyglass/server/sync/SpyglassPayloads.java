@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync;
 
+import com.google.errorprone.annotations.DoNotCall;
 import io.netty.buffer.ByteBuf;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
@@ -115,7 +116,7 @@ public final class SpyglassPayloads
         }
     }
     
-    @SubscribeEvent static void registerPacket(@NotNull RegisterPayloadHandlersEvent event)
+    @SubscribeEvent @DoNotCall static void registerPacket(@NotNull RegisterPayloadHandlersEvent event)
     {
         final PayloadRegistrar registrar = event.registrar("1.0 Release");
         

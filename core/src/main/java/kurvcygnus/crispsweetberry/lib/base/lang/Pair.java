@@ -247,8 +247,7 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
     @Contract(value = "_ -> fail", pure = true) @Override public R setValue(@Nullable R value)
         { throw new UnsupportedOperationException("This is an immutable Class. Value mutation is not allowed!"); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<Pair<L, R>, @Nullable Object>> getFields()
-        { return INestedPrintable.buildFieldMap(Pair.of("left", Pair::left), Pair.of("right", Pair::right)); }
+    @Override public @NotNull @Unmodifiable INestedFieldMap<Pair<L, R>> getFields() { return INestedPrintable.buildFieldMap(Pair.of("left", Pair::left), Pair.of("right", Pair::right)); }
     
     @Override public @NotNull String toString() { return toNestedString(); }
 }

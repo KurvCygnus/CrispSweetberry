@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -63,45 +62,45 @@ import java.util.function.Function;
  */
 public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractContext>
 {
-    private static final @NotNull @Unmodifiable Map<String, Function<CarryInteractContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+    private static final @NotNull @Unmodifiable INestedFieldMap<CarryInteractContext> FIELD_MAP = INestedPrintable.buildFieldMap(
         map ->
         {
-            map.put("actionType", CarryInteractContext::actionType);
-            map.put("level", CarryInteractContext::level);
-            map.put("player", CarryInteractContext::player);
-            map.put("interactPos", CarryInteractContext::interactPos);
-            map.put("carryCrate", CarryInteractContext::carryCrate);
-            map.put("targets", CarryInteractContext::targets);
-            map.put("carryID", CarryInteractContext::carryID);
-            map.put("result", CarryInteractContext::result);
+            map.put("actionType", c -> c.actionType);
+            map.put("level", c -> c.level);
+            map.put("player", c -> c.player);
+            map.put("interactPos", c -> c.interactPos);
+            map.put("carryCrate", c -> c.carryCrate);
+            map.put("targets", c -> c.targets);
+            map.put("carryID", c -> c.carryID);
+            map.put("result", c -> c.result);
             map.put("listener", c -> c.listener);
             map.put("component", c -> c.component);
             map.put("target", c -> c.target);
-            map.put("data", CarryInteractContext::data);
-            map.put("blockEntityType", CarryInteractContext::blockEntityType);
+            map.put("data", c -> c.data);
+            map.put("blockEntityType", c -> c.blockEntityType);
         },
         13
     );
     
     //*:=== Init fields
-    private final @NotNull CarryType actionType;
-    private final @NotNull ServerLevel level;
-    private final @NotNull ServerPlayer player;
-    private final @NotNull BlockPos interactPos;
-    private final @NotNull ItemStack carryCrate;
+    public final @NotNull CarryType actionType;
+    public final @NotNull ServerLevel level;
+    public final @NotNull ServerPlayer player;
+    public final @NotNull BlockPos interactPos;
+    public final @NotNull ItemStack carryCrate;
     private final @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
     private final @NotNull Consumer<CarryID> listenerRemove;
-    private final @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter;
-    private final @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets;
-    private final @NotNull ISealableBox<CarryID> carryID;
+    public final @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter;
+    public final @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets;
+    public final @NotNull ISealableBox<CarryID> carryID;
     private @Nullable InteractionResult result = null;
     
     //*:=== Execute Extra Fields
-    private final ISealableBox<TriState> listener = ISealableBox.create();
-    private final ISealableBox<TriState> component = ISealableBox.create();
-    private final ISealableBox<TriState> target = ISealableBox.create();
-    private final ISealableBox<CarryData> data = ISealableBox.create();
-    private final ISealableBox<BlockEntityType<?>> blockEntityType = ISealableBox.create();
+    public final ISealableBox<TriState> listener = ISealableBox.create();
+    public final ISealableBox<TriState> component = ISealableBox.create();
+    public final ISealableBox<TriState> target = ISealableBox.create();
+    public final ISealableBox<CarryData> data = ISealableBox.create();
+    public final ISealableBox<BlockEntityType<?>> blockEntityType = ISealableBox.create();
     
     private CarryInteractContext(
         @NotNull CarryType actionType,
@@ -233,22 +232,12 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
         return this;
     }
     
-    public @NotNull CarryType actionType() { return actionType; }
-    public @NotNull ServerLevel level() { return level; }
-    public @NotNull ServerPlayer player() { return player; }
-    public @NotNull BlockPos interactPos() { return interactPos; }
-    public @NotNull ItemStack carryCrate() { return carryCrate; }
     public void insertListener(@NotNull CarryID carryID, @NotNull ICarryRegistryView.IBaseCarryAdapterFactory<?, ?> factory) { this.listenerInsert.accept(carryID, factory); }
     public void removeListener(@NotNull CarryID carryID) { this.listenerRemove.accept(carryID); }
-    public @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter() { return placeContentGetter; }
-    public @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets() { return targets; }
-    public @NotNull ISealableBox<CarryID> carryID() { return carryID; }
-    public @Nullable InteractionResult result() { return result; }
     public @NotNull TriState listener() { return listener.orThrow(); }
     public @NotNull TriState component() { return component.orThrow(); }
     public @NotNull TriState target() { return target.orThrow(); }
-    public @NotNull ISealableBox<CarryData> data() { return data; }
-    public @NotNull ISealableBox<BlockEntityType<?>> blockEntityType() { return blockEntityType; }
+    public @Nullable InteractionResult result() { return result; }
     
     @Override public boolean equals(Object obj)
     {
@@ -273,7 +262,7 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
     
     @Override public int hashCode() { return Objects.hash(actionType, level, player, interactPos, carryCrate, targets, carryID, result, listener, component, target, data, blockEntityType); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<CarryInteractContext, @Nullable Object>> getFields() { return FIELD_MAP; }
+    @Override public @NotNull @Unmodifiable INestedFieldMap<CarryInteractContext> getFields() { return FIELD_MAP; }
     
     @Override public boolean takeNullFieldAsOptional() { return true; }
 }

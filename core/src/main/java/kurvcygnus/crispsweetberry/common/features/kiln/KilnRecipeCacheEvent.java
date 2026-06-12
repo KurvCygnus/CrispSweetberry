@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
@@ -56,7 +57,7 @@ public final class KilnRecipeCacheEvent
      * mods and datapacks. This ensures our cache doesn't miss entries that are registered
      * late in the loading cycle.
      */
-    @SubscribeEvent static void getKilnRecipes(final @NotNull ServerStartedEvent event)
+    @SubscribeEvent @DoNotCall static void getKilnRecipes(final @NotNull ServerStartedEvent event)
         { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
     
     /**
@@ -67,7 +68,7 @@ public final class KilnRecipeCacheEvent
      * from the initial server start, leading to "ghost recipes" or crashes when the underlying
      * recipe objects no longer exist in the manager.
      */
-    @SubscribeEvent static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
+    @SubscribeEvent @DoNotCall static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
     {
         event.addListener((
             preparationBarrier,
@@ -77,8 +78,8 @@ public final class KilnRecipeCacheEvent
             backgroundExecutor,
             gameExecutor
             ) ->
-            preparationBarrier.wait(Unit.INSTANCE).thenRunAsync(() ->
-                collectRecipes(event.getServerResources().getRecipeManager(), event.getRegistryAccess()),
+            preparationBarrier.wait(Unit.INSTANCE).thenRunAsync(
+                () -> collectRecipes(event.getServerResources().getRecipeManager(), event.getRegistryAccess()),
                 gameExecutor
             )
         );
@@ -171,8 +172,10 @@ public final class KilnRecipeCacheEvent
                         }
                     }
                     
-                    LOGGER.debug("Completed a round of recipe collection, Ingredients: {}, current stream recipe componentExecutionType: {}",
-                        recipe.getIngredients(), recipeType
+                    LOGGER.debug(
+                        "Completed a round of recipe collection, Ingredients: {}, current stream recipe componentExecutionType: {}",
+                        recipe.getIngredients(),
+                        recipeType
                     );
                 }
             );

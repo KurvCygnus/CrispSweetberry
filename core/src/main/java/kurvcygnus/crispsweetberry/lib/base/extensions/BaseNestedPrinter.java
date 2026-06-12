@@ -9,12 +9,8 @@
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
-
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * A simple implementation of <u>{@link INestedPrintable}</u>, which overrides the <u>{@link Object#toString()}</u>, making this class's implementer only needs to
@@ -43,6 +39,6 @@ public abstract class BaseNestedPrinter<T extends BaseNestedPrinter<T>> implemen
      */
     public static abstract class OfAuto<T extends OfAuto<T>> extends BaseNestedPrinter<T> implements IAutoNestedPrintable<T>
     {
-        @Override public final @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields() { return IAutoNestedPrintable.super.getFields(); }
+        @Override public final @NotNull @Unmodifiable INestedFieldMap<T> getFields() { return IAutoNestedPrintable.super.getFields(); }
     }
 }

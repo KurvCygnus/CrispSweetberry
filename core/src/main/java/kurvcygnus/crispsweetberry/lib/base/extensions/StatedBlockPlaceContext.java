@@ -9,27 +9,20 @@
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * A extended <u>{@link BlockPlaceContext}</u>, which extends the ability of block placement with
@@ -39,7 +32,7 @@ import java.util.function.Function;
  */
 public final class StatedBlockPlaceContext extends BlockPlaceContext implements INestedPrintable<StatedBlockPlaceContext>
 {
-    private static final @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+    private static final @NotNull @Unmodifiable INestedFieldMap<StatedBlockPlaceContext> FIELD_MAP = INestedPrintable.buildFieldMap(
         map ->
         {
             map.put("player", StatedBlockPlaceContext::getPlayer);
@@ -68,11 +61,11 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext implements 
         if(!this.placeState.getBlock().isEnabled(this.getLevel().enabledFeatures()) || !this.canPlace())
             return InteractionResult.FAIL;
         
-        final Player player = this.getPlayer();
+        final var player = this.getPlayer();
         
-        final BlockPos pos = this.getClickedPos();
-        final Level level = this.getLevel();
-        final ItemStack itemStack = this.getItemInHand();
+        final var pos = this.getClickedPos();
+        final var level = this.getLevel();
+        final var itemStack = this.getItemInHand();
         
         if(
             !level.isUnobstructed(this.placeState, pos, player == null ? CollisionContext.empty() : CollisionContext.of(player)) ||
@@ -113,7 +106,7 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext implements 
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<StatedBlockPlaceContext, @Nullable Object>> getFields() { return FIELD_MAP; }
+    @Override public @NotNull @Unmodifiable INestedFieldMap<StatedBlockPlaceContext> getFields() { return FIELD_MAP; }
     
     @Override public boolean takeNullFieldAsOptional() { return true; }
 }

@@ -11,9 +11,6 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import org.jetbrains.annotations.*;
 
-import java.util.Map;
-import java.util.function.Function;
-
 /**
  * A simple value object for <u>{@link KilnProgressCalculator}</u>.
  * @since 1.0 Release
@@ -27,7 +24,7 @@ public record CalculationResult(
     @NotNull KilnEnumCollections.VisualTrend trend
 ) implements INestedPrintable<CalculationResult>
 {
-    private static final @NotNull @Unmodifiable Map<String, Function<CalculationResult, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+    private static final @NotNull @Unmodifiable INestedFieldMap<CalculationResult> FIELD_MAP = INestedPrintable.buildFieldMap(
         map ->
         {
             map.put("realProgress", CalculationResult::currentRealProgress);
@@ -49,5 +46,5 @@ public record CalculationResult(
         );
     }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<CalculationResult, @Nullable Object>> getFields() { return FIELD_MAP; }
+    @Override public @NotNull @Unmodifiable INestedFieldMap<CalculationResult> getFields() { return FIELD_MAP; }
 }

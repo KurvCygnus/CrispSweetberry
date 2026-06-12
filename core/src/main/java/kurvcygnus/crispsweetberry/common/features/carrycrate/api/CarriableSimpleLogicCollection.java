@@ -13,7 +13,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryD
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
-import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -33,6 +32,7 @@ import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,7 +66,7 @@ public final class CarriableSimpleLogicCollection
         
         @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryBlockDataHolder dataHolder, long elapsedTime)
         {
-            final Item itemToDrop = Objects.requireNonNullElse(getDropItem(), dataHolder.getState().getBlock().asItem());
+            final Item itemToDrop = Objects.requireNonNullElse(getDropItem(), dataHolder.state.getBlock().asItem());
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(itemToDrop));
         }
     }
@@ -167,7 +167,7 @@ public final class CarriableSimpleLogicCollection
         {
             final CarryData data = context.data();
             final CarryData.CarryBlockEntityDataHolder unionData = data.unionData();
-            final CompoundTag tag = unionData.getTagData();
+            final CompoundTag tag = unionData.tagData;
             final NonNullList<ItemStack> items = NonNullList.create();
             final Level level = context.level();
             final BlockPos dropPos = context.entity().getOnPos();
@@ -204,12 +204,12 @@ public final class CarriableSimpleLogicCollection
             final CompoundTag completedTag = ContainerHelper.saveAllItems(tag, items, level.registryAccess());
             
             return CarryData.createBlockEntity(
-                unionData.getState(),
+                unionData.state,
                 completedTag,
-                unionData.getType(),
-                unionData.getPenaltyRate(),
-                data.causesOverweight(),
-                data.startTime()
+                unionData.type,
+                unionData.penaltyRate,
+                data.causesOverweight,
+                data.startTime
             );
         }
     }
@@ -226,7 +226,7 @@ public final class CarriableSimpleLogicCollection
     {
         @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryBlockEntityDataHolder dataHolder, long elapsedTime)
         {
-            final CompoundTag dataTag = dataHolder.getTagData();
+            final CompoundTag dataTag = dataHolder.tagData;
             final NonNullList<ItemStack> items = NonNullList.create();
             
             loadAllItems(dataTag, items, level.registryAccess());
@@ -246,7 +246,7 @@ public final class CarriableSimpleLogicCollection
     {
         @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryEntityDataHolder dataHolder, long elapsedTime)
         {
-            final CompoundTag dataTag = dataHolder.getTagData();
+            final CompoundTag dataTag = dataHolder.tagData;
             final Optional<Entity> optionalEntity = EntityType.create(dataTag, level);
             
             if(optionalEntity.isPresent())
@@ -257,17 +257,14 @@ public final class CarriableSimpleLogicCollection
                 level.addFreshEntity(entity);
             }
             else
-                Privates.LOGGER.error(
-                    "Cannot instantiate entity with its data \"{}\". This is a serious serialization issue. {}",
-                    dataTag,
-                    MetainfoConstants.FEEDBACK_MESSAGE
+                System.err.println(
+                    MessageFormatter.format(
+                        "Cannot instantiate entity with its data \"{}\". This is a serious serialization issue. {}",
+                        dataTag,
+                        MetainfoConstants.FEEDBACK_MESSAGE
+                    ).getMessage()
                 );
         }
     }
     //endregion
-    
-    static final class Privates
-    {
-        private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("SIMPLE_CARRY_LOGICS");
-    }
 }

@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.events;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.core.CarryEngine;
@@ -29,7 +30,7 @@ public final class CarryCrateCopyProcessor
 {
     private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("CARRY_PERSISTENT");
     
-    @SubscribeEvent static void onScreenMouseClick(ScreenEvent.MouseButtonPressed.@NotNull Pre event)
+    @SubscribeEvent @DoNotCall static void onScreenMouseClick(ScreenEvent.MouseButtonPressed.@NotNull Pre event)
     {
         if(event.getButton() != GLFW.GLFW_MOUSE_BUTTON_MIDDLE)
             return;
@@ -64,8 +65,8 @@ public final class CarryCrateCopyProcessor
         assert carryID != null;
         assert data != null;
         
-        final var newID = builder.apply(carryID.id(), UUID.randomUUID().toString().replace("-", ""));
-        final var type = data.carryType();
+        final var newID = builder.apply(carryID.id, UUID.randomUUID().toString().replace("-", ""));
+        final var type = data.carryType;
         
         LOGGER.debug("New CarryID generated: {}\nTrying to add it to listener lookup with CarryType {}.", newID, type);
         

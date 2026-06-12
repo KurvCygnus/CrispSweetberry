@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.qol.spyglass.client.events;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloads;
@@ -95,7 +96,7 @@ public final class SpyglassQuickZoomEvent
         RELEASED
     }
     
-    @SubscribeEvent static void spyglassZoom(@NotNull ClientTickEvent.Post event)
+    @SubscribeEvent @DoNotCall static void spyglassZoom(@NotNull ClientTickEvent.Post event)
     {
         final Minecraft instance = Minecraft.getInstance();
         final LocalPlayer player = instance.player;
@@ -137,7 +138,7 @@ public final class SpyglassQuickZoomEvent
         }
     }
     
-    @SubscribeEvent static void zoom(@NotNull ComputeFovModifierEvent event)
+    @SubscribeEvent @DoNotCall static void zoom(@NotNull ComputeFovModifierEvent event)
     {
         if(!isZooming())
             return;
@@ -150,7 +151,7 @@ public final class SpyglassQuickZoomEvent
         event.setNewFovModifier(SpyglassItem.ZOOM_FOV_MODIFIER);
     }
     
-    @SubscribeEvent static void speedEdit(@NotNull MovementInputUpdateEvent event)
+    @SubscribeEvent @DoNotCall static void speedEdit(@NotNull MovementInputUpdateEvent event)
     {
         if(!isZooming())
             return;

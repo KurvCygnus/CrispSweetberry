@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.qol.spyglass;
 
+import com.google.errorprone.annotations.DoNotCall;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
@@ -52,7 +53,7 @@ public final class SpyglassClientRegistries
         CrispClientLiterals.CRISP_CONTROL_MENU_CATEGORY_KEY
     );
     
-    @SubscribeEvent static void registerKeyBind(final @NotNull RegisterKeyMappingsEvent event)
+    @SubscribeEvent @DoNotCall static void registerKeyBind(final @NotNull RegisterKeyMappingsEvent event)
     {
         LOGGER.info("Registering Spyglass Keybind...");
         event.register(SPYGLASS_ZOOM);

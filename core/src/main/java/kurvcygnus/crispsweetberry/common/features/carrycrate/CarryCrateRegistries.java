@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.SimpleBlockCarryAdapter;
@@ -22,7 +23,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryID;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateBlock;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
-import kurvcygnus.crispsweetberry.lib.base.extensions.IStackableTool;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
@@ -80,7 +80,7 @@ public enum CarryCrateRegistries implements IRegistrant<CarryCrateRegistries>
         CARRY_FACTOR_REGISTER
     );
     
-    @SubscribeEvent static void registerInternalBasicCarriables(@NotNull CarryAdapterRegisterEvent event)
+    @SubscribeEvent @DoNotCall static void registerInternalBasicCarriables(@NotNull CarryAdapterRegisterEvent event)
     {
         event.registerUniversal(
             Set.of(
@@ -134,14 +134,10 @@ public enum CarryCrateRegistries implements IRegistrant<CarryCrateRegistries>
         group = "carry_crate",
         key = "carry_crate"
     )
-    public static final Holder<Block> CARRY_CRATE_BLOCK = CARRY_CRATE_BLOCK_REGISTER.register(
-        "carry_crate", CarryCrateBlock::new
-    );
+    public static final Holder<Block> CARRY_CRATE_BLOCK = CARRY_CRATE_BLOCK_REGISTER.register("carry_crate", CarryCrateBlock::new);
     
     @RegisterToTab @AutoI18n(overrides = "carry_crate", key = "carry_crate")
-    public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register(
-        "carry_crate", CarryCrateItem::new
-    );
+    public static final Holder<Item> CARRY_CRATE_ITEM = CARRY_CRATE_ITEM_REGISTER.register("carry_crate", CarryCrateItem::new);
     
     @AutoI18n({
         "en_us = Overweight",
@@ -164,8 +160,8 @@ public enum CarryCrateRegistries implements IRegistrant<CarryCrateRegistries>
         "carry_crate.tick_counter", SerializationTemplates.INT_TEMPLATE
     );
     
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STACKABLE_TOOL_DURABILITY =
-        CARRY_CRATE_DATA_COMPONENT_REGISTER.register("carry_crate.durability", IStackableTool.getDataComponentTemplate());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CARRY_CRATE_DURABILITY =
+        CARRY_CRATE_DATA_COMPONENT_REGISTER.register("carry_crate.durability", CarryCrateItem.SERIALIZATION_TEMPLATE);
     
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(
         "carry_crate.carry_factor", SerializationTemplates.FLOAT_DATA_SYNCER.apply(() -> 0F)

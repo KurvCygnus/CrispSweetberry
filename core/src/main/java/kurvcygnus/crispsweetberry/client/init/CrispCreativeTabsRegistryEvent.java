@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.client.init;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
@@ -31,7 +32,7 @@ public final class CrispCreativeTabsRegistryEvent
 {
     private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("TAB_REGISTRY");
     
-    @SubscribeEvent public static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
+    @SubscribeEvent @DoNotCall public static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
     {
         final @Nullable var entries = CrispSweetberry.TAB_LOOKUP.tryGet(event).get(event.getTabKey());
         

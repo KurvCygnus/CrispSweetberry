@@ -11,7 +11,6 @@ package kurvcygnus.crispsweetberry.lib.base.extensions;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -30,7 +29,7 @@ import org.slf4j.Logger;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * This is a simple interface which allows a <b>stackable</b> <u>{@link Item}</u> to have durability.
@@ -48,6 +47,12 @@ import java.util.function.Function;
  */
 public interface IStackableTool<I extends Item & IStackableTool<I>>
 {
+    /**
+     * A simple <u>{@link DataComponentType}</u>'s definition template, which is can, and should be used by <u>{@link IStackableTool#getDataComponent()}</u>.
+     */
+    Supplier<DataComponentType<Integer>> SERIALIZATION_TEMPLATE = DataComponentType.<Integer>builder().
+        persistent(Codec.INT).networkSynchronized(ByteBufCodecs.INT)::build;
+    
     @Range(from = 1, to = Integer.MAX_VALUE) int getMaxDurability();
     
     @Range(from = 1, to = Integer.MAX_VALUE) int getPenaltyStandard();
@@ -166,15 +171,4 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     @NotNull DataComponentType<Integer> getDataComponent();
     
     @ApiStatus.OverrideOnly default @Nullable Logger getLogger() { return null; }
-    
-    /**
-     * Produces a simple <u>{@link DataComponentType}</u>'s definition template, which is can, and should be used by <u>{@link IStackableTool#getDataComponent()}</u>.
-     */
-    static @NotNull Function<ResourceLocation, DataComponentType<Integer>> getDataComponentTemplate()
-    {
-        return resourceLocation -> DataComponentType.<Integer>builder().
-            persistent(Codec.INT).
-            networkSynchronized(ByteBufCodecs.INT).
-            build();
-    }
 }

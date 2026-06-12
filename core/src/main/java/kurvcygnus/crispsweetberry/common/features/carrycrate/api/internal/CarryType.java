@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
     
     final MapCodec<? extends CarryData.CarryDataBaseHolder> codec;
     final StreamCodec<ByteBuf, ? extends CarryData.CarryDataBaseHolder> streamCodec;
-    private final Class<?> boundClass;
+    public final Class<?> boundClass;
     
     CarryType(
         @NotNull MapCodec<? extends CarryData.CarryDataBaseHolder> codec,
@@ -47,8 +47,6 @@ import org.jetbrains.annotations.NotNull;
     }
     
     @Override public @NotNull String getSerializedName() { return this.name().toLowerCase(); }
-    
-    @ApiStatus.Internal public @NotNull Class<?> boundClass() { return boundClass; }
     
     static final Codec<CarryType> CODEC = StringRepresentable.fromEnum(CarryType::values);
 }

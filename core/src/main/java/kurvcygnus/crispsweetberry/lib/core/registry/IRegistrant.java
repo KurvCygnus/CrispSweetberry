@@ -19,9 +19,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.regex.Pattern;
 
@@ -244,7 +242,7 @@ sealed interface ISortable
     
     final class PriorityPair extends BaseNestedPrinter<PriorityPair>
     {
-        private static final @NotNull @Unmodifiable Map<String, Function<PriorityPair, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+        private static final @NotNull @Unmodifiable INestedFieldMap<PriorityPair> FIELD_MAP = INestedPrintable.buildFieldMap(
             map ->
             {
                 map.put("mainRange", p -> p.mainRange.name());
@@ -278,7 +276,7 @@ sealed interface ISortable
         
         @Override public int hashCode() { return Objects.hash(mainRange, subRange); }
         
-        @Override public @NotNull @Unmodifiable Map<String, Function<PriorityPair, @Nullable Object>> getFields() { return FIELD_MAP; }
+        @Override public @NotNull @Unmodifiable INestedFieldMap<PriorityPair> getFields() { return FIELD_MAP; }
     }
     
     /**

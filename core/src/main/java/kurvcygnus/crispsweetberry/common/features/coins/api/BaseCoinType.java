@@ -14,13 +14,10 @@ import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -109,7 +106,7 @@ public abstract class BaseCoinType<C extends ICoinType<C>> extends BaseNestedPri
     
     @Override public boolean shouldAppear() { return this.enableCondition.test(this.nuggetSupplier); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<BaseCoinType<C>, @Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable INestedFieldMap<BaseCoinType<C>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->

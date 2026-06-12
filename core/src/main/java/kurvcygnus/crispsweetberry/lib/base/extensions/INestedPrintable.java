@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import kurvcygnus.crispsweetberry.lib.base.trait.ICRTPCaster;
 import org.jetbrains.annotations.*;
@@ -27,7 +28,7 @@ import java.util.function.Function;
  *  {
  *      @Override public @NotNull String toString() { return toNestedString(); }
  *
- *      @Override public @NotNull @Unmodifiable Map<String, Function<Pair<L, R>, @Nullable Object>> getFields()
+ *      @Override public @NotNull @Unmodifiable INestedFieldMap<Pair<L, R>> getFields()
  *      {
  *          return INestedPrintable.buildFieldMap(
  *              map ->
@@ -38,6 +39,9 @@ import java.util.function.Function;
  *              2// The quantity of this class's printable fields, optional param.
  *               // Specifying with correct quantity will make initialization slightly faster.
  *          );
+ *
+ *          // Using this is also valid:
+ *          // return INestedPrintable.buildFieldMap(new Pair<>("left", Pair::left), new Pair<>("right", Pair::right));
  *      }
  *  }
  * }</pre>
@@ -54,20 +58,41 @@ import java.util.function.Function;
 public interface INestedPrintable<T extends INestedPrintable<T>> extends Serializable, ICRTPCaster<INestedPrintable<T>, T>
 {
     /**
+     * A simple specified readonly <u>{@link Map}</u> that <u>{@link INestedPrintable}</u> requires,
+     * which makes writing the type of constant map quicker and easier and understand.
+     * <br><br>
+     * <i>Original verbose type: <u>{@link Map}</u><b>{@code <String, Function<T, ?>>}</b></i>, and <b>{@code wildcard} type is <u>{@link Nullable}</u></b>.
+     * @implNote Using {@code ?}(<i>wildcard</i>) instead of <u>{@link Object}</u> is for special cases, which you put constants <u>{@link Function}</u>
+     * (Serving multi functional libraries's definitions at most cases),
+     * like {@code private static final Function<Foo, String> ID_GETTER = f -> f.id;}, such <u>{@link Function}</u> are illegal in helper methods,
+     * since comparing to {@code ?}, <u>{@link Object}</u> requires the generic type must be exactly same. For non-constants case, the type is deduced,
+     * so it works.<hr>
+     * Also, you may ask about implementing this with <b>{@code type alias}</b> for simplicity.
+     * However, <span style="color: f84b4b">that'll 100% explode on Runtime,</span>
+     * <span style="color: 95cc6d">because Java is a Nominal Type Language, not a Structural Type Language.</span>
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     * @see INestedPrintable
+     * @see NestedFieldMap Implementation
+     * @param <T> A class that has implemented <u>{@link INestedPrintable}</u>.
+     */
+    sealed interface INestedFieldMap<T extends INestedPrintable<T>> extends SequencedMap<String, Function<T, ?>> {}
+    
+    /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
      * @apiNote Using this is necessary, because <u>{@link Map#of()}</u>'s result is <span style="color: f84b4b">UNORDERED</span>.<br>
      * Also, <b>it is recommended to make the return value of this method as a constant. Since <u>{@link #getFields()}</u> is NOT a {@code static method},
      * <span style="color: f84b4b">it is dangerous and easy to leak the instance state in the map, polluting the <u>{@link #toNestedString() toString()}</u> result.</span></b>
      * <br><br>
      * Example: <pre>{@code
-     *  @Override public @NotNull @Unmodifiable Map<String, Function<Foo<T>, @Nullable Object>> getFields()
+     *  @Override public @NotNull @Unmodifiable INestedFieldMap<Foo<T>> getFields()
      *  {
      *      return INestedPrintable.buildFieldMap(
      *          map ->
      *          {
      *              map.put("value", that -> that.current().value);
      *              map.put("state", that -> that.getStateName(state));
-     *              // Oh no! `this.state` get leaked!
+     *              // Oh no! `this.state` get leaked!           ↑
      *              // Now state has been bound to a unique instance,
      *              // making it unable to display the field correctly,
      *              // and hard to get recycled.
@@ -77,18 +102,13 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * }</pre>
      * <i>This won't happen in a constant.</i>
      */
-    static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
-        @NotNull Consumer<Map<String, Function<T, @Nullable Object>>> consumer
-    )
+    static <T extends INestedPrintable<T>> @NotNull @Unmodifiable INestedFieldMap<T> buildFieldMap(@NotNull Consumer<Map<String, Function<T, ?>>> consumer)
     {
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
-        final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>();
+        final var map = new LinkedHashMap<String, Function<T, ?>>();
         consumer.accept(map);
         
-        if(map.isEmpty())
-            throw new IllegalArgumentException("Param \"consumer\" doesn't insert any element into the map, this is invalid!");
-        
-        return Collections.unmodifiableMap(map);
+        return new NestedFieldMap<>(map);
     }
     
     /**
@@ -98,14 +118,14 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * <span style="color: f84b4b">it is dangerous and easy to leak the instance state in the map, polluting the <u>{@link #toNestedString() toString()}</u> result.</span></b>
      * <br>
      * Example: <pre>{@code
-     *  @Override public @NotNull @Unmodifiable Map<String, Function<Foo<T>, @Nullable Object>> getFields()
+     *  @Override public @NotNull @Unmodifiable INestedFieldMap<Foo<T>> getFields()
      *  {
      *      return INestedPrintable.buildFieldMap(
      *          map ->
      *          {
      *              map.put("value", that -> that.current().value);
      *              map.put("state", that -> that.getStateName(state));
-     *              // Oh no! `this.state` get leaked!
+     *              // Oh no! `this.state` get leaked!           ↑
      *              // Now state has been bound to a unique instance,
      *              // making it unable to display the field correctly,
      *              // and hard to get recycled.
@@ -116,19 +136,28 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * }</pre>
      * <i>This won't happen in a constant.</i>
      */
-    static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
-        @NotNull Consumer<Map<String, Function<T, @Nullable Object>>> consumer,
+    static <T extends INestedPrintable<T>> @NotNull @Unmodifiable INestedFieldMap<T> buildFieldMap(
+        @NotNull Consumer<Map<String, Function<T, ?>>> consumer,
         @Range(from = 1, to = Integer.MAX_VALUE) int allocSize
     )
     {
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
-        final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>(allocSize, 1F);
+        final var map = new LinkedHashMap<String, Function<T, ?>>(allocSize, 1F);
         consumer.accept(map);
         
-        if(map.isEmpty())
-            throw new IllegalArgumentException("Param \"consumer\" doesn't insert any element into the map, this is invalid!");
+        if(map.size() != allocSize)
+            System.err.println(
+                MessageFormatter.format(
+                    "The actual size of field map is {}, not {}(allocSize).\n This flaw happens at {}.",
+                    new Object[] {
+                        map.size(),
+                        allocSize,
+                        Cacher.STACK_WALKER.getCallerClass().getSimpleName()
+                    }
+                ).getMessage()
+            );
         
-        return Collections.unmodifiableMap(map);
+        return new NestedFieldMap<>(map);
     }
     
     /**
@@ -141,18 +170,15 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * Also, <b>it is recommended to make the return value of this method as a constant. Since <u>{@link #getFields()}</u> is NOT a {@code static method},
      * <span style="color: f84b4b">it is dangerous and easy to leak the instance state in the map, polluting the <u>{@link #toNestedString() toString()}</u> result.</span></b>
      */
-    @SafeVarargs static <T extends INestedPrintable<T>> @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> buildFieldMap(
-        @NotNull Pair<String, Function<T, @Nullable Object>> @NotNull ... pairs
+    @SafeVarargs static <T extends INestedPrintable<T>> @NotNull @Unmodifiable INestedFieldMap<T> buildFieldMap(
+        @NotNull Pair<String, Function<T, ?>> @NotNull ... pairs
     )
     {
         Objects.requireNonNull(pairs, "Param \"pairs\" must not be null!");
         
         final int length = pairs.length;
         
-        if(length == 0)
-            throw new IllegalArgumentException("Param \"pairs\" must not be empty!");
-        
-        final var map = new LinkedHashMap<String, Function<T, @Nullable Object>>(length + length % 2, 1F);
+        final var map = new LinkedHashMap<String, Function<T, ?>>(length + length % 2, 1F);
         
         for(final var pair: pairs)
         {
@@ -160,7 +186,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             map.put(pair.getKey(), pair.getValue());
         }
         
-        return Collections.unmodifiableMap(map);
+        return new NestedFieldMap<>(map);
     }
     
     /**
@@ -194,15 +220,15 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * @apiNote The return result should <b>NOT</b> be dynamic. Only the first get result will count, the laters will be ignored.
      * @see Cacher The reason
      */
-    @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields();
+    @NotNull @Unmodifiable INestedFieldMap<T> getFields();
     
     @SuppressWarnings("unchecked")//! Safe casting. It relies on [[Class]].
-    private @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields(@NotNull Class<?> clazz)
+    private @NotNull @Unmodifiable INestedFieldMap<T> getFields(@NotNull Class<?> clazz)
     {
         final var fields = Objects.requireNonNullElseGet(Cacher.CACHE.get(clazz), this::getFields);
         if(!Cacher.CACHE.containsKey(clazz))
-            Cacher.CACHE.put(clazz, (Map<String, Function<Object, Object>>) fields);
-        return (Map<String, Function<T, Object>>) fields;
+            Cacher.CACHE.put(clazz, (SequencedMap<String, Function<Object, Object>>) fields);
+        return (INestedFieldMap<T>) fields;
     }
     
     @ApiStatus.NonExtendable default @NotNull String toNestedString() { return toNestedString(0); }
@@ -230,23 +256,23 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         if(indent < 0)
             throw new IllegalArgumentException("Indent must be non-negative!");
         
-        final StringBuilder stringBuilder = new StringBuilder(getFields(this.getClass()).size() * getDefaultCapacityForEachField());
+        final var stringBuilder = new StringBuilder(getFields(this.getClass()).size() * getDefaultCapacityForEachField());
         buildNestedString(stringBuilder.append(startsAtNewLine() ? "\n" : ""), indent, Collections.newSetFromMap(new IdentityHashMap<>()));
         return stringBuilder.toString();
     }
     
     private void buildNestedString(@NotNull StringBuilder stringBuilder, int currentIndent, @NotNull Set<Object> visited)
     {
-        final String indentString = " ".repeat(currentIndent);
+        final var indentString = " ".repeat(currentIndent);
         
         stringBuilder.append(this.getClass().getSimpleName()).append('\n').append(indentString).append("{\n");
         
         final int nextIndent = currentIndent + getIndent();
-        final String fieldIndent = " ".repeat(nextIndent);
+        final var fieldIndent = " ".repeat(nextIndent);
         
         for(final var entry: getFields(this.getClass()).entrySet())
         {
-            final String name = entry.getKey();
+            final var name = entry.getKey();
             final Object object = entry.getValue().apply(getSelf());
             
             if(name.isBlank())
@@ -280,7 +306,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             return;
         }
         
-        final String prefix = name.isEmpty() ? indent : indent + name + ": ";
+        final var prefix = name.isEmpty() ? indent : MessageFormatter.format("{}{}: ", indent, name).getMessage();
         
         switch(obj)
         {
@@ -613,4 +639,49 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
  * {@code public} constants, so we use {@code package-private} <u>{@link Enum}</u> to store cache instead,
  * which can deny unexpected access(both directly, and on reflect aspect).
  */
-@ApiStatus.Internal enum Cacher { INST; static final Map<Class<?>, Map<String, Function<Object, @Nullable Object>>> CACHE = new ConcurrentHashMap<>(); }
+@ApiStatus.Internal enum Cacher
+{;
+    static final Map<Class<?>, SequencedMap<String, Function<Object, @Nullable Object>>> CACHE = new ConcurrentHashMap<>();
+    static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+}
+
+final class NestedFieldMap<T extends INestedPrintable<T>> implements INestedPrintable.INestedFieldMap<T>
+{
+    private final SequencedMap<String, Function<T, ?>> map;
+    
+    NestedFieldMap(@NotNull SequencedMap<String, Function<T, ?>> map)
+    {
+        Objects.requireNonNull(map, "Param \"map\" must not be null!");
+        
+        if(map.isEmpty())
+            throw new IllegalArgumentException("Param \"map\" doesn't insert any element into the map, this is invalid!");
+        
+        this.map = map;
+    }
+    
+    @Override public int size() { return map.size(); }
+    
+    @Override public boolean isEmpty() { return map.isEmpty(); }
+    
+    @Override public boolean containsKey(Object key) { return map.containsKey(key); }
+    
+    @Override public boolean containsValue(Object value) { return map.containsValue(value); }
+    
+    @Override public Function<T, ?> get(Object key) { return map.get(key); }
+    
+    @Override @DoNotCall public @Nullable Function<T, ?> put(String key, Function<T, ?> value) { throw new UnsupportedOperationException("awa"); }
+    
+    @Override @DoNotCall public Function<T, ?> remove(Object key) { throw new UnsupportedOperationException("uwu"); }
+    
+    @Override @DoNotCall public void putAll(@NotNull Map<? extends String, ? extends Function<T, ?>> m) { throw new UnsupportedOperationException("xwx"); }
+    
+    @Override @DoNotCall public void clear() { throw new UnsupportedOperationException("fuk u"); }
+    
+    @Override public @NotNull @Unmodifiable Set<String> keySet() { return Collections.unmodifiableSet(map.keySet()); }
+    
+    @Override public @NotNull @Unmodifiable Collection<Function<T, ?>> values() { return Collections.unmodifiableCollection(map.values()); }
+    
+    @Override public @NotNull @Unmodifiable Set<Entry<String, Function<T, ?>>> entrySet() { return Collections.unmodifiableSet(map.entrySet()); }
+    
+    @Override public @NotNull @Unmodifiable SequencedMap<String, Function<T, ?>> reversed() { return new NestedFieldMap<>(map.reversed()); }
+}

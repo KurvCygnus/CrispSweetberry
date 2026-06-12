@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
@@ -133,7 +134,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
      * <u>{@link net.minecraft.world.entity.Entity Entity}</u>'s <u>{@link #autoEntityBind() auto registration}</u>.<br>
      * After all of these are done, <span style="color: f84b4b">all registries will be frozen.</span>
      */
-    @SubscribeEvent static void register(@NotNull FMLLoadCompleteEvent event)
+    @SubscribeEvent @DoNotCall static void register(@NotNull FMLLoadCompleteEvent event)
     {
         CrispSweetberry.CRISP_BUS.orThrow().post(new CarryAdapterRegisterEvent(CarryRegistryManager.INST));
         
@@ -420,7 +421,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         assert carryType != null : "Param \"carryType\" must not be null!";
         assert key != null : "Param \"key\" must not be null!";
         
-        final Class<?> keyType = carryType.boundClass();
+        final Class<?> keyType = carryType.boundClass;
         
         if(!keyType.isAssignableFrom(key.getClass()))
             throw new IllegalArgumentException(DefinitionUtils.quickFormat("Invalid factory creation type! Expected: {}, got: {}", keyType, key.getClass()));
@@ -439,14 +440,12 @@ public enum CarryRegistryManager implements ICarryRegistryView
         return null;
     }
     
-    public @NotNull Optional<ICarryBlockEntityAdapterFactory<?, ?>> getBlockEntityAdapter(@Nullable BlockEntityType<?> blockEntityType)
+    @NotNull Optional<ICarryBlockEntityAdapterFactory<?, ?>> getBlockEntityAdapter(@Nullable BlockEntityType<?> blockEntityType)
         { return Optional.ofNullable(BLOCK_ENTITY_REGISTRY.get(blockEntityType)); }
     
-    public @NotNull Optional<ICarryBlockAdapterFactory<?, ?>> getBlockAdapter(@Nullable Block block)
-        { return Optional.ofNullable(BLOCK_REGISTRY.get(block)); }
+    @NotNull Optional<ICarryBlockAdapterFactory<?, ?>> getBlockAdapter(@Nullable Block block) { return Optional.ofNullable(BLOCK_REGISTRY.get(block)); }
     
-    public @NotNull Optional<ICarryEntityAdapterFactory<?, ?>> getEntityAdapter(@Nullable EntityType<?> entityType)
-        { return Optional.ofNullable(ENTITY_REGISTRY.get(entityType)); }
+    @NotNull Optional<ICarryEntityAdapterFactory<?, ?>> getEntityAdapter(@Nullable EntityType<?> entityType) { return Optional.ofNullable(ENTITY_REGISTRY.get(entityType)); }
     
     /**
      * Get the translation key by the specific <u>{@link ResourceLocation}</u>.

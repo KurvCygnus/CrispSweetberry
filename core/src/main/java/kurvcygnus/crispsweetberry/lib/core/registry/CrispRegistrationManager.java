@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
@@ -46,7 +47,7 @@ import java.util.function.BiConsumer;
     
     private CrispRegistrationManager() { if(!ACCESS.orThrow()) throw new AssertionError("No, you can't create a new instance of this!"); }
     
-    @SubscribeEvent static void destroyInstance(@NotNull FMLLoadCompleteEvent event)
+    @SubscribeEvent @DoNotCall static void destroyInstance(@NotNull FMLLoadCompleteEvent event)
     {
         assert INSTANCE != null;
         INSTANCE.logger.info("Registration phase finished, RegistrationManager destroyed.");

@@ -59,7 +59,7 @@ public final class CarryCrateBlock extends HorizontalDirectionalBlock
     @Override public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
     {
         final int durability = Objects.requireNonNullElse(
-            context.getItemInHand().get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()),
+            context.getItemInHand().get(CarryCrateRegistries.CARRY_CRATE_DURABILITY.get()),
             CarryCrateConstants.CARRY_CRATE_MAX_DURABILITY
         );
         
@@ -76,7 +76,7 @@ public final class CarryCrateBlock extends HorizontalDirectionalBlock
         //! Stream mostly returns an immutable collection, which may untrackable, and obsolete crash issues with other mods.
         for(final ItemStack itemStack: stacks)
             if(itemStack.is(this.asItem()))
-                itemStack.set(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get(), state.getValue(DURABILITY));
+                itemStack.set(CarryCrateRegistries.CARRY_CRATE_DURABILITY.get(), state.getValue(DURABILITY));
         
         return stacks;
     }

@@ -10,8 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.AbstractCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IAtomicCarriable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -23,8 +22,6 @@ import org.jetbrains.annotations.Range;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
-
-import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.ICarrySerializable;
 
 /**
  * This is the basic of BlockEntity Adapters, which doesn't include any usable logics.
@@ -40,7 +37,7 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal
  * @since 1.0 Release
  */
 public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity>
-extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements IAtomicCarriable, ICarrySerializable, IBlockEntityCarryLifecycle<E>
+extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements CarriableBlockEntityExtensions.OfAll<E>
 {
     //region Core Logics
     /**

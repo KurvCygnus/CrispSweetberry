@@ -10,15 +10,12 @@ package kurvcygnus.crispsweetberry.lib.base.extensions;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -42,9 +39,9 @@ public interface IAutoNestedPrintable<T extends IAutoNestedPrintable<T>> extends
      */
     default boolean gonnaBeCruel() { return false; }
     
-    @Override @ApiStatus.NonExtendable default @NotNull @Unmodifiable Map<String, Function<T, @Nullable Object>> getFields()
+    @Override @ApiStatus.NonExtendable default @NotNull @Unmodifiable INestedFieldMap<T> getFields()
     {
-        final var fieldMap = new LinkedHashMap<String, Function<T, @Nullable Object>>();
+        final var fieldMap = new LinkedHashMap<String, Function<T, ?>>();
         final var clazz = this.getClass();
         final var blacklist = getBlacklistedFields();
         
@@ -78,6 +75,6 @@ public interface IAutoNestedPrintable<T extends IAutoNestedPrintable<T>> extends
             );
         }
         
-        return Collections.unmodifiableMap(fieldMap);
+        return new NestedFieldMap<>(fieldMap);
     }
 }

@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
@@ -42,6 +44,7 @@ public final class DefinitionUtils
     /**
      * Generates a formated <u>{@link String}</u>, with {@code {}} as placeholder.
      * @apiNote It is mainly used for <u>{@link Throwable}</u>'s message initialization, and it is obviously faster than <u>{@link String#formatted(Object...)}</u>.
+     * @implNote The overload of this method doesn't exist, since <u>{@link MessageFormatter#arrayFormat(String, Object[])}</u>'s overload also creates object array.
      */
     public static @NotNull String quickFormat(@NotNull String format, @Nullable Object @Nullable ... args)
     {
@@ -127,7 +130,7 @@ public final class DefinitionUtils
         requireNonNull(enumClass, "Param \"enumClass\" must not be null!");
         requireNonNull(dataInsertAction, "Param \"dataInsertAction\" must not be null!");
         
-        final EnumMap<E, V> enumMap = new EnumMap<>(enumClass);
+        final var enumMap = new EnumMap<E, V>(enumClass);
         dataInsertAction.accept(enumMap);
         
         for(final E enumConstant: enumClass.getEnumConstants())
@@ -177,9 +180,28 @@ public final class DefinitionUtils
     {
         requireNonNull(action, "Param \"action\" must not be null!");
         
-        final CompoundTag tag = new CompoundTag();
+        final var tag = new CompoundTag();
         action.accept(tag);
         
         return tag;
+    }
+    
+    public static <E extends Throwable> void throwOnDevOrLogError(
+        @NotNull Function<String, E> function,
+        @NotNull Logger logger,
+        @NotNull String message,
+        @Nullable Object @Nullable ... args
+    ) throws E
+    {
+        requireNonNull(function, "Param \"function\" must not be null!");
+        requireNonNull(logger, "Param \"logger\" must not be null!");
+        requireNonNull(message, "Param \"message\" must not be null!");
+        
+        final var fullMessage = quickFormat(message, args);
+        
+        if(!FMLEnvironment.production)
+            throw function.apply(fullMessage);
+        
+        logger.error(fullMessage);
     }
 }

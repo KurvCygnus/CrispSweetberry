@@ -30,7 +30,7 @@ import java.util.Objects;
  * @since 1.0 Release
  */
 public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter<CarryData.CarryBlockDataHolder> 
-implements CarriableBlockExtensions.ICarryBlockStackable
+implements CarriableBlockExtensions.OfAll
 {
      /**
      * @apiNote During <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter 

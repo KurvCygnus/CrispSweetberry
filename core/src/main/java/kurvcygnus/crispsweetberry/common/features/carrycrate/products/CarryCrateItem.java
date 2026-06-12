@@ -103,7 +103,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         }
         
         final int durability = Objects.requireNonNullElse(
-            stack.get(CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get()),
+            stack.get(CarryCrateRegistries.CARRY_CRATE_DURABILITY.get()),
             CARRY_CRATE_MAX_DURABILITY
         );
         
@@ -112,31 +112,31 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         final @Nullable CarryID carryID = stack.get(CarryCrateRegistries.CARRY_ID.get());
         
         if(carryID != null)
-            CarryRegistryManager.INST.getCombinedContentTranslation(ResourceLocation.parse(carryID.id())).ifPresent(tooltipComponents::add);
+            CarryRegistryManager.INST.getCombinedContentTranslation(ResourceLocation.parse(carryID.id)).ifPresent(tooltipComponents::add);
         
         final var optionalData = Optional.ofNullable(stack.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()));
         
         optionalData.ifPresent(
             data ->
             {
-                if(!data.carryType().equals(CarryType.BLOCK))
+                if(!data.carryType.equals(CarryType.BLOCK))
                     return;
                 
                 final CarryData.CarryBlockDataHolder blockDataHolder = data.unionData();
                 
-                if(blockDataHolder.getMaxCarryCount() <= 1)
+                if(blockDataHolder.maxCarryCount <= 1)
                     return;
                 
                 tooltipComponents.add(
                     UI__CARRY_CRATE__LAYER_PREFIX.get().
-                        append(String.valueOf(blockDataHolder.getCarryCount())).
+                        append(String.valueOf(blockDataHolder.carryCount)).
                         append(UI__CARRY_CRATE__LAYER_SUFFIX.get())
                 );
             }
         );
     }
     
-    @Override public @NotNull DataComponentType<Integer> getDataComponent() { return CarryCrateRegistries.STACKABLE_TOOL_DURABILITY.get(); }
+    @Override public @NotNull DataComponentType<Integer> getDataComponent() { return CarryCrateRegistries.CARRY_CRATE_DURABILITY.get(); }
     
     @Override public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) { return false; }
     

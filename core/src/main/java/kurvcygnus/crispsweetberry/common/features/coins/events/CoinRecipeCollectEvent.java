@@ -9,10 +9,12 @@
 package kurvcygnus.crispsweetberry.common.features.coins.events;
 
 import com.google.common.collect.HashBiMap;
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -37,10 +39,10 @@ public final class CoinRecipeCollectEvent
     private static final HashBiMap<Item, Item> COIN_TO_NUGGET_RECIPES = HashBiMap.create();
     private static final HashBiMap<Item, Item> COIN_TO_STACK_RECIPES = HashBiMap.create();
     
-    @SubscribeEvent
-    static void collectCoinRecipes(final @NotNull ServerAboutToStartEvent event) { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
+    @SubscribeEvent @DoNotCall static void collectCoinRecipes(final @NotNull ServerAboutToStartEvent event)
+        { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
     
-    @SubscribeEvent static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
+    @SubscribeEvent @DoNotCall static void onAddReloadListener(final @NotNull AddReloadListenerEvent event)
     {
         event.addListener((
             preparationBarrier,
@@ -50,8 +52,8 @@ public final class CoinRecipeCollectEvent
             backgroundExecutor,
             gameExecutor
             ) ->
-            preparationBarrier.wait(net.minecraft.util.Unit.INSTANCE).thenRunAsync(() ->
-                    collectRecipes(event.getServerResources().getRecipeManager(), event.getRegistryAccess()),
+            preparationBarrier.wait(Unit.INSTANCE).thenRunAsync(
+                () -> collectRecipes(event.getServerResources().getRecipeManager(), event.getRegistryAccess()),
                 gameExecutor
             )
         );

@@ -20,10 +20,8 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 /**
  * A state-aware container that provides fine-grained control over value assignment and lifecycle.
@@ -279,7 +277,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @Override public @NotNull String toString() { return toNestedString(); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<SealableBox<T>, @Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable INestedFieldMap<SealableBox<T>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->
@@ -389,7 +387,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @Override public int hashCode() { return Objects.hashCode(pair.get().value); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<AtomicSealableBox<T>, @Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable INestedFieldMap<AtomicSealableBox<T>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->

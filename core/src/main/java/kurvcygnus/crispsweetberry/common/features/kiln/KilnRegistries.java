@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.events.CarryAdapterRegisterEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
@@ -82,7 +83,7 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
         KILN_STAT_REGISTER
     );
     
-    @SubscribeEvent static void registerCarry(@NotNull CarryAdapterRegisterEvent event) { event.register(KILN_BLOCK_ENTITY.get(), KilnBlockEntityCarryAdapter::new); }
+    @SubscribeEvent @DoNotCall static void registerCarry(@NotNull CarryAdapterRegisterEvent event) { event.register(KILN_BLOCK_ENTITY.get(), KilnBlockEntityCarryAdapter::new); }
     
     /**
      * This event assigns value to kiln item, depending on block's property <u>{@link KilnBlock#LIT}</u>.<br>
@@ -90,7 +91,7 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    @SubscribeEvent static void kilnItemDynamicSpriteEvent(@NotNull FMLClientSetupEvent event)
+    @SubscribeEvent @DoNotCall static void kilnItemDynamicSpriteEvent(@NotNull FMLClientSetupEvent event)
     {
         event.enqueueWork(() ->
             ItemProperties.register(
@@ -116,9 +117,9 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
      * @author Kurv Cygnus
      * @since 1.0 Release
      */
-    @SubscribeEvent static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KILN_MENU_TYPE.get(), KilnScreen::new); }
+    @SubscribeEvent @DoNotCall static void registerKilnScreen(final @NotNull RegisterMenuScreensEvent event) { event.register(KILN_MENU_TYPE.get(), KilnScreen::new); }
     
-    @SubscribeEvent static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
+    @SubscribeEvent @DoNotCall static void registerStat(@NotNull FMLCommonSetupEvent event) { event.enqueueWork(() -> Stats.CUSTOM.get(INTERACT_WITH_KILN.value())); }
     
     @AutoI18n(
         value = {

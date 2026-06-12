@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Range;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -47,10 +48,10 @@ public final class CarryData
     public static final Supplier<DataComponentType<CarryData>> SERIALIZATION_DEF =
         DataComponentType.<CarryData>builder().persistent(CarryDataCodec.INST).networkSynchronized(CarryDataStreamCodec.INST)::build;
     
-    private final @NotNull CarryType carryType;
+    public final @NotNull CarryType carryType;
     private final @NotNull CarryDataBaseHolder unionData;
-    private final boolean causesOverweight;
-    private final @Range(from = 0, to = Long.MAX_VALUE) long startTime;
+    public final boolean causesOverweight;
+    public final @Range(from = 0, to = Long.MAX_VALUE) long startTime;
     
     private CarryData(
         @NotNull CarryType carryType,
@@ -136,7 +137,7 @@ public final class CarryData
      * Gets the exact dataHolder of a specific type.
      * @apiNote <span style="color: f84b4b">Use it carefully, type mismatch will cause an immediate <u>{@link ClassCastException}</u></span>.
      */
-    @SuppressWarnings("unchecked")//! Unsafe casting, but is used only by internals.
+    @ApiStatus.Internal @SuppressWarnings("unchecked")//! Unsafe casting, but is used only by internals.
     public <T extends CarryDataBaseHolder> @NotNull T unionData()
     {
         return (T) switch(carryType)
@@ -146,12 +147,6 @@ public final class CarryData
             case ENTITY       -> (CarryEntityDataHolder)      this.unionData;
         };
     }
-    
-    public @NotNull CarryType carryType() { return carryType; }
-    
-    public boolean causesOverweight() { return causesOverweight; }
-    
-    public @Range(from = 0, to = Long.MAX_VALUE) long startTime() { return startTime; }
     
     @Override public boolean equals(@Nullable Object obj)
     {
@@ -165,7 +160,7 @@ public final class CarryData
     
     @Override public @NotNull String toString()
     {
-        return MessageFormatter.arrayFormat(
+        return MessageFormatter.format(
             """
             CarryData
             {
@@ -184,7 +179,7 @@ public final class CarryData
     //  region Internal Data Holders
     public sealed abstract static class CarryDataBaseHolder permits CarryBlockDataHolder, CarryEntityDataHolder, CarryBlockEntityDataHolder
     {
-        private final int penaltyRate;
+        public final int penaltyRate;
         
         protected CarryDataBaseHolder(@Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate)
         {
@@ -194,7 +189,7 @@ public final class CarryData
             this.penaltyRate = penaltyRate;
         }
         
-        public int getPenaltyRate() { return penaltyRate; }
+        protected int getPenaltyRate() { return penaltyRate; }
         
         /**
          * This getter method is used by internals for abstracted adapter getting logics.<br>
@@ -202,33 +197,35 @@ public final class CarryData
          */
         @ApiStatus.Internal public abstract @NotNull Object getCreationData();
         
-        public abstract @NotNull CarryType getBoundType();
-        
         @Override public abstract @NotNull String toString();
     }
     
     public static final class CarryBlockDataHolder extends CarryDataBaseHolder
     {
+        private static final Function<CarryBlockDataHolder, BlockState> BLOCK_STATE_GETTER = holder -> holder.state;
+        private static final Function<CarryBlockDataHolder, Integer> COUNT_GETTER = holder -> holder.carryCount;
+        private static final Function<CarryBlockDataHolder, Integer> MAX_COUNT_GETTER = holder -> holder.maxCarryCount;
+        
         static final MapCodec<CarryBlockDataHolder> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
                 Codec.INT.fieldOf(        "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
-                BlockState.CODEC.fieldOf( "state").forGetter(CarryBlockDataHolder::getState),
-                Codec.INT.fieldOf(        "carry_count").forGetter(CarryBlockDataHolder::getCarryCount),
-                Codec.INT.fieldOf(        "max_carry_count").forGetter(CarryBlockDataHolder::getMaxCarryCount)
+                BlockState.CODEC.fieldOf( "state").forGetter(BLOCK_STATE_GETTER),
+                Codec.INT.fieldOf(        "carry_count").forGetter(COUNT_GETTER),
+                Codec.INT.fieldOf(        "max_carry_count").forGetter(MAX_COUNT_GETTER)
             ).apply(inst, CarryBlockDataHolder::new)
         );
         
         static final StreamCodec<ByteBuf, CarryBlockDataHolder> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,                     CarryDataBaseHolder::getPenaltyRate,
-            ByteBufCodecs.fromCodec(BlockState.CODEC), CarryBlockDataHolder::getState,
-            ByteBufCodecs.VAR_INT,                     CarryBlockDataHolder::getCarryCount,
-            ByteBufCodecs.VAR_INT,                     CarryBlockDataHolder::getMaxCarryCount,
+            ByteBufCodecs.fromCodec(BlockState.CODEC), BLOCK_STATE_GETTER,
+            ByteBufCodecs.VAR_INT,                     COUNT_GETTER,
+            ByteBufCodecs.VAR_INT,                     MAX_COUNT_GETTER,
             CarryBlockDataHolder::new
         );
         
-        private final BlockState state;
-        private final int carryCount;
-        private final int maxCarryCount;
+        public final BlockState state;
+        public final int carryCount;
+        public final int maxCarryCount;
         
         private CarryBlockDataHolder(
             @Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate,
@@ -250,19 +247,11 @@ public final class CarryData
             this.maxCarryCount = maxCarryCount;
         }
         
-        public @NotNull BlockState getState() { return state; }
-        
-        public @Range(from = 1, to = Integer.MAX_VALUE) int getCarryCount() { return carryCount; }
-        
-        public @Range(from = 1, to = Integer.MAX_VALUE) int getMaxCarryCount() { return maxCarryCount; }
-        
         @Override public @NotNull Object getCreationData() { return this.state.getBlock(); }
-        
-        @Override public @NotNull CarryType getBoundType() { return CarryType.BLOCK; }
         
         @Override public @NotNull String toString()
         {
-            return MessageFormatter.arrayFormat(
+            return MessageFormatter.format(
                 """
                 CarryBlockData
                 {
@@ -277,23 +266,26 @@ public final class CarryData
     
     public static final class CarryEntityDataHolder extends CarryDataBaseHolder
     {
+        private static final Function<CarryEntityDataHolder, EntityType<?>> TYPE_GETTER = holder -> holder.type;
+        private static final Function<CarryEntityDataHolder, CompoundTag> TAG_GETTER = holder -> holder.tagData;
+        
         static final MapCodec<CarryEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
                 Codec.INT.fieldOf(                                   "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
-                BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(CarryEntityDataHolder::getType),
-                CompoundTag.CODEC.fieldOf(                           "tag_data").forGetter(CarryEntityDataHolder::getTagData)
+                BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(TYPE_GETTER),
+                CompoundTag.CODEC.fieldOf(                           "tag_data").forGetter(TAG_GETTER)
             ).apply(inst, CarryEntityDataHolder::new)
         );
         
         static final StreamCodec<ByteBuf, CarryEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, CarryDataBaseHolder::getPenaltyRate,
-            ByteBufCodecs.fromCodec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()), CarryEntityDataHolder::getType,
-            ByteBufCodecs.COMPOUND_TAG, CarryEntityDataHolder::getTagData,
+            ByteBufCodecs.fromCodec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()), TYPE_GETTER,
+            ByteBufCodecs.COMPOUND_TAG, TAG_GETTER,
             CarryEntityDataHolder::new
         );
         
-        private final EntityType<?> type;
-        private final CompoundTag tagData;
+        public final EntityType<?> type;
+        public final CompoundTag tagData;
         
         private CarryEntityDataHolder(@Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate, @NotNull EntityType<?> type, @NotNull CompoundTag tagData)
         {
@@ -305,13 +297,7 @@ public final class CarryData
             this.tagData = tagData;
         }
         
-        public @NotNull EntityType<?> getType() { return type; }
-        
-        public @NotNull CompoundTag getTagData() { return tagData; }
-        
-        @Override public @NotNull Object getCreationData() { return this.getType(); }
-        
-        @Override public @NotNull CarryType getBoundType() { return CarryType.ENTITY; }
+        @Override public @NotNull Object getCreationData() { return type; }
         
         @Override public @NotNull String toString()
         {
@@ -331,26 +317,30 @@ public final class CarryData
     
     public static final class CarryBlockEntityDataHolder extends CarryDataBaseHolder
     {
+        private static final Function<CarryBlockEntityDataHolder, BlockState> STATE_GETTER = holder -> holder.state;
+        private static final Function<CarryBlockEntityDataHolder, BlockEntityType<?>> TYPE_GETTER = holder -> holder.type;
+        private static final Function<CarryBlockEntityDataHolder, CompoundTag> TAG_GETTER = holder -> holder.tagData;
+        
         static final MapCodec<CarryBlockEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
                 Codec.INT.fieldOf(                                         "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
-                BlockState.CODEC.fieldOf(                                  "state").forGetter(CarryBlockEntityDataHolder::getState),
-                BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(CarryBlockEntityDataHolder::getType),
-                CompoundTag.CODEC.fieldOf(                                 "tag_data").forGetter(CarryBlockEntityDataHolder::getTagData)
+                BlockState.CODEC.fieldOf(                                  "state").forGetter(STATE_GETTER),
+                BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(TYPE_GETTER),
+                CompoundTag.CODEC.fieldOf(                                 "tag_data").forGetter(TAG_GETTER)
             ).apply(inst, CarryBlockEntityDataHolder::new)
         );
         
         static final StreamCodec<ByteBuf, CarryBlockEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,                                                      CarryDataBaseHolder::getPenaltyRate,
-            ByteBufCodecs.fromCodec(BlockState.CODEC),                                  CarryBlockEntityDataHolder::getState,
-            ByteBufCodecs.fromCodec(BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec()), CarryBlockEntityDataHolder::getType,
-            ByteBufCodecs.COMPOUND_TAG,                                                 CarryBlockEntityDataHolder::getTagData,
+            ByteBufCodecs.fromCodec(BlockState.CODEC),                                  STATE_GETTER,
+            ByteBufCodecs.fromCodec(BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec()), TYPE_GETTER,
+            ByteBufCodecs.COMPOUND_TAG,                                                 TAG_GETTER,
             CarryBlockEntityDataHolder::new
         );
         
-        private final BlockState state;
-        private final BlockEntityType<? extends BlockEntity> type;
-        private final CompoundTag tagData;
+        public final BlockState state;
+        public final BlockEntityType<? extends BlockEntity> type;
+        public final CompoundTag tagData;
         
         private CarryBlockEntityDataHolder(
             @Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate,
@@ -370,19 +360,11 @@ public final class CarryData
             this.tagData = tagData;
         }
         
-        public @NotNull BlockState getState() { return state; }
-        
-        public @NotNull BlockEntityType<? extends BlockEntity> getType() { return type; }
-        
-        public @NotNull CompoundTag getTagData() { return tagData; }
-        
-        @Override public @NotNull Object getCreationData() { return this.getType(); }
-        
-        @Override public @NotNull CarryType getBoundType() { return CarryType.BLOCK_ENTITY; }
+        @Override public @NotNull Object getCreationData() { return type; }
         
         @Override public @NotNull String toString()
         {
-            return MessageFormatter.arrayFormat(
+            return MessageFormatter.format(
                 """
                 CarryBlockEntityData
                 {
@@ -403,37 +385,55 @@ public final class CarryData
     {
         INST;
         
+        private static final String CARRY_TYPE = "carry_type";
+        private static final String DATA = "data";
+        private static final String START_TIME = "start_time";
+        private static final String CAUSES = "causes_overweight";
+        
+        private static final long TIME_FALLBACK_VALUE = 0L;
+        private static final boolean CAUSE_FLAG_FALLBACK_VALUE = true;
+        
         @Override public <T> DataResult<Pair<CarryData, T>> decode(@NotNull DynamicOps<T> ops, @NotNull T input)
         {
             return ops.getMap(input).flatMap(
                 map ->
                 {
-                    final @Nullable T typeElement = map.get("carry_type");
+                    final @Nullable T typeElement = map.get(CARRY_TYPE);
                     if(typeElement == null)
-                        return DataResult.error(() -> "Missing \"carry_type\" field");
+                        return DataResult.error(() -> "Missing \"%s\" field".formatted(CARRY_TYPE));
                     
                     return CarryType.CODEC.decode(ops, typeElement).flatMap(
                         typePair ->
                         {
-                            final CarryType type = typePair.getFirst();
+                            final var type = typePair.getFirst();
                             
-                            final T dataElement = map.get("data");
+                            final T dataElement = map.get(DATA);
                             
                             if(dataElement == null)
-                                return DataResult.error(() -> "Missing \"data\" field");
+                                return DataResult.error(() -> "Missing \"%s\" field".formatted(DATA));
                             
                             final MapCodec<? extends CarryDataBaseHolder> subCodec = type.codec;
                             final DataResult<? extends CarryDataBaseHolder> dataResult = subCodec.codec().parse(ops, dataElement);
                             
-                            final T timeElement = map.get("start_time");
-                            final DataResult<Long> timeResult = timeElement == null ?
-                                DataResult.success(0L) :
-                                Codec.LONG.decode(ops, timeElement).map(Pair::getFirst);
+                            final @Nullable T timeElement = map.get(START_TIME);
+                            final var timeResult = timeElement != null ?
+                                Codec.LONG.decode(ops, timeElement).map(Pair::getFirst) :
+                                DataResult.success(TIME_FALLBACK_VALUE);
+                            
+                            final @Nullable T causesElement = map.get(CAUSES);
+                            final var causesResult = causesElement != null ?
+                                Codec.BOOL.decode(ops, causesElement).map(Pair::getFirst) :
+                                DataResult.success(CAUSE_FLAG_FALLBACK_VALUE);
                             
                             return dataResult.flatMap(
-                                data -> timeResult.map(
-                                    startTime -> Pair.of(new CarryData(type, data, true, startTime), ops.empty())
-                                )
+                                data ->
+                                {
+                                    //? Yes, [[DataResult]] doesn't even have a fucking method like `getOrDefault`, this is an annoying monad implementation.
+                                    final long time = timeResult.isSuccess() ? timeResult.getOrThrow() : TIME_FALLBACK_VALUE;
+                                    final boolean causes = causesResult.isSuccess() ? causesResult.getOrThrow() : CAUSE_FLAG_FALLBACK_VALUE;
+                                    
+                                    return DataResult.success(Pair.of(new CarryData(type, data, causes, time), ops.empty()));
+                                }
                             );
                         }
                     );
@@ -444,12 +444,13 @@ public final class CarryData
         @SuppressWarnings("unchecked")//! Safe Casting.
         @Override public <T> @NotNull DataResult<T> encode(@NotNull CarryData input, @NotNull DynamicOps<T> ops, @NotNull T prefix)
         {
-            final MapCodec<CarryDataBaseHolder> dataCodec = (MapCodec<CarryDataBaseHolder>) input.carryType().codec;
+            final var dataCodec = (MapCodec<CarryDataBaseHolder>) input.carryType.codec;
             
             return ops.mapBuilder().
-                add("carry_type", CarryType.CODEC.encodeStart(ops, input.carryType())).
-                add("data", dataCodec.encoder().encodeStart(ops, input.unionData())).
-                add("start_time", Codec.LONG.encodeStart(ops, input.startTime())).
+                add(CARRY_TYPE, CarryType.CODEC.encodeStart(ops,     input.carryType)).
+                add(DATA,       dataCodec.encoder().encodeStart(ops, input.unionData)).
+                add(CAUSES,     Codec.BOOL.encodeStart(ops,          input.causesOverweight)).
+                add(START_TIME, Codec.LONG.encodeStart(ops,          input.startTime)).
                 build(prefix);
         }
     }
@@ -462,24 +463,26 @@ public final class CarryData
         
         @Override public @NotNull CarryData decode(@NotNull ByteBuf buffer)
         {
-            final CarryType type = ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).decode(buffer);
+            final var type = ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).decode(buffer);
             
-            final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) type.streamCodec;
-            final CarryDataBaseHolder data = dataCodec.decode(buffer);
+            final var dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) type.streamCodec;
+            final var data = dataCodec.decode(buffer);
             
             final long startTime = buffer.readLong();
+            final boolean causesOverweight = buffer.readBoolean();
             
-            return new CarryData(type, data, true, startTime);
+            return new CarryData(type, data, causesOverweight, startTime);
         }
         
         @Override public void encode(@NotNull ByteBuf buffer, @NotNull CarryData value)
         {
-            ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).encode(buffer, value.carryType());
+            ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).encode(buffer, value.carryType);
             
-            final StreamCodec<ByteBuf, CarryDataBaseHolder> dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) value.carryType().streamCodec;
-            dataCodec.encode(buffer, value.unionData());
+            final var dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) value.carryType.streamCodec;
+            dataCodec.encode(buffer, value.unionData);
             
-            buffer.writeLong(value.startTime());
+            buffer.writeLong(value.startTime);
+            buffer.writeBoolean(value.causesOverweight);
         }
     }
     //endregion

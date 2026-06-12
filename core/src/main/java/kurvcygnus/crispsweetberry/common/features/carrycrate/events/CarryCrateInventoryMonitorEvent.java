@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.events;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
@@ -33,10 +34,10 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateCo
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 final class CarryCrateInventoryMonitorEvent
 {
-    @SubscribeEvent static void gamemodeMonitor(@NotNull PlayerEvent.PlayerChangeGameModeEvent event)
+    @SubscribeEvent @DoNotCall static void gamemodeMonitor(@NotNull PlayerEvent.PlayerChangeGameModeEvent event)
         { OverweightEffect.updateFactorAndEffect(event.getEntity(), null, TriState.DEFAULT); }
     
-    @SubscribeEvent static void pickupPreMonitor(@NotNull ItemEntityPickupEvent.Pre event)
+    @SubscribeEvent @DoNotCall static void pickupPreMonitor(@NotNull ItemEntityPickupEvent.Pre event)
     {
         final ItemStack itemStack = getCrateWithCheck(event.getItemEntity().getItem());
         
@@ -57,7 +58,7 @@ final class CarryCrateInventoryMonitorEvent
      * @implNote Using <u>{@link ItemEntityPickupEvent.Post}</u> instead of <u>{@link ItemEntityPickupEvent.Pre}</u> since
      * the later one is fired as long as the drop is in the reach of player, which causes a disaster.
      */
-    @SubscribeEvent static void pickupPostMonitor(@NotNull ItemEntityPickupEvent.Post event)
+    @SubscribeEvent @DoNotCall static void pickupPostMonitor(@NotNull ItemEntityPickupEvent.Post event)
     {
         final ItemStack itemstack = getCrateWithCheck(event.getCurrentStack());
         
@@ -80,7 +81,7 @@ final class CarryCrateInventoryMonitorEvent
         OverweightEffect.updateFactorAndEffect(player, data, TriState.TRUE, () -> dropItem(player, itemstack));
     }
     
-    @SubscribeEvent static void tossMonitor(@NotNull ItemTossEvent event)
+    @SubscribeEvent @DoNotCall static void tossMonitor(@NotNull ItemTossEvent event)
     {
         final ItemStack itemstack = getCrateWithCheck(event.getEntity().getItem());
         

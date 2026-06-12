@@ -10,6 +10,8 @@ package kurvcygnus.crispsweetberry.utils;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,6 +24,8 @@ import static java.util.Objects.requireNonNull;
  */
 public final class FunctionalUtils
 {
+    private static final Logger log = LoggerFactory.getLogger(FunctionalUtils.class);
+    
     private FunctionalUtils() { throw new IllegalAccessError("Class \"FunctionalUtils\" is not meant to be instantized!"); }
     
     public static <T> void doIfNonNull(@Nullable T object, @NotNull Consumer<@NotNull T> action)

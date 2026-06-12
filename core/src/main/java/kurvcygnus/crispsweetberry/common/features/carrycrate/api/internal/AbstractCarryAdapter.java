@@ -11,9 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.block.AbstractBlockCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarriableLifecycle;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarryTickable;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarryVerifiable;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Kurv Cygnus
  */
 @ApiStatus.Internal
-public abstract class AbstractCarryAdapter<T extends CarryData.CarryDataBaseHolder> implements ICarriableLifecycle<T>, ICarryTickable, ICarryVerifiable
+public abstract class AbstractCarryAdapter<T extends CarryData.CarryDataBaseHolder> implements CarriableExtensions.OfAll<T>
 {
     public abstract @NotNull String toString();
 }

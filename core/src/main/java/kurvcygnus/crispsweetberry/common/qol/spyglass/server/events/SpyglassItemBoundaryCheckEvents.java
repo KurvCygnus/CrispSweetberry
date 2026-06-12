@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.qol.spyglass.server.events;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.SpyglassPayloads;
@@ -38,7 +39,7 @@ import static kurvcygnus.crispsweetberry.common.qol.spyglass.server.sync.Spyglas
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class SpyglassItemBoundaryCheckEvents
 {
-    @SubscribeEvent static void deathCheck(@NotNull LivingDeathEvent event)
+    @SubscribeEvent @DoNotCall static void deathCheck(@NotNull LivingDeathEvent event)
     {
         if(event.isCanceled())
             return;
@@ -51,7 +52,7 @@ public final class SpyglassItemBoundaryCheckEvents
         emergencyCleanup(player, player.getPersistentData().getInt(ORIGINAL_SLOT_TAG));
     }
     
-    @SubscribeEvent static void logoutCheck(@NotNull PlayerEvent.PlayerLoggedOutEvent event)
+    @SubscribeEvent @DoNotCall static void logoutCheck(@NotNull PlayerEvent.PlayerLoggedOutEvent event)
     {
         final Player player = event.getEntity();
         if(!player.getPersistentData().contains(ORIGINAL_SLOT_TAG))

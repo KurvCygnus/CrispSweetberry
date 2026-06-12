@@ -372,7 +372,7 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
         @NotNull Function<? super R, ? extends U> rightMapper
     ) { return Stream.of(compress(ArrayList::new, leftMapper, middleMapper, rightMapper)); }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<TriVariant<L, M, R>, @Nullable Object>> getFields()
+    @Override public @NotNull @Unmodifiable INestedFieldMap<TriVariant<L, M, R>> getFields()
     {
         return INestedPrintable.buildFieldMap(
             map ->

@@ -22,7 +22,6 @@ import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
 
 import java.util.ArrayDeque;
-import java.util.Map;
 import java.util.function.*;
 
 import static java.util.Objects.requireNonNull;
@@ -145,7 +144,7 @@ public sealed interface IMarkLogger extends Logger
     static @NotNull Predicate<Level> denyWhen(@NotNull Level level, @NotNull ConditionSituation situation, BooleanSupplier extra) { return MarkLogger.denyWhen(level, situation, extra); }
     
     /**
-     * Push a temporary marker to <u>{@link MarkLogger}</u>,
+     * Push a temporary marker to <u>{@link IMarkLogger}</u>,
      * and will always be used until current key is ended.<br><br>
      * <b>Thus, this will only work correctly and normally with
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>.
@@ -163,8 +162,8 @@ public sealed interface IMarkLogger extends Logger
     @NotNull IMarkerHandle pushMarker(@NotNull Marker marker);
     
     /**
-     * Push a temporary marker to <u>{@link MarkLogger}</u>,
-     * and will always be used until <u>{@link MarkLogger}</u>'s lifecycle is ended, which is obviously impossible.<br><br>
+     * Push a temporary marker to <u>{@link IMarkLogger}</u>,
+     * and will always be used until <u>{@link IMarkLogger}</u>'s lifecycle is ended, which is obviously impossible.<br><br>
      * <b>Thus, this will only work correctly and normally with
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a></b>.
      * @throws NullPointerException When {@code mark} is {@code null}
@@ -180,8 +179,24 @@ public sealed interface IMarkLogger extends Logger
      */
     @NotNull IMarkerHandle pushMarker(@NotNull String mark);
     
+    default void scopedMark(@NotNull Marker marker, @NotNull Consumer<IMarkerHandle> handleConsumer)
+    {
+        requireNonNull(marker, "Param \"marker\" must not be null!");
+        requireNonNull(handleConsumer, "Param \"handleConsumer\" must not be null!");
+        
+        try(final var handle = pushMarker(marker)) { handleConsumer.accept(handle); }
+    }
+    
+    default void scopedMark(@NotNull String mark, @NotNull Consumer<IMarkerHandle> handleConsumer)
+    {
+        requireNonNull(mark, "Param \"mark\" must not be null!");
+        if(mark.isBlank())
+            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
+        this.scopedMark(MarkerFactory.getMarker(mark), handleConsumer);
+    }
+    
     /**
-     * A simple interface to implement <u>{@link AutoCloseable}</u> for <u>{@link MarkLogger}</u>, making it usable in
+     * A simple interface to implement <u>{@link AutoCloseable}</u> for <u>{@link IMarkLogger}</u>, making it usable in
      * <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><u>Try-with-resources</u></a>.
      * @author Kurv Cygnus
      * @see #pushMarker(Marker) Usage
@@ -730,7 +745,7 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
     private static final @NotNull Predicate<Level> TRUE = ignored -> true;
     static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     
-    private static final Map<String, Function<MarkLogger, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+    private static final INestedFieldMap<MarkLogger> FIELD_MAP = INestedPrintable.buildFieldMap(
         map ->
         {
             map.put("name", ml -> ml.logger.getName());
@@ -1089,7 +1104,7 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
         return l -> reverse == situation.condition.test(l, level) || extra.getAsBoolean();
     }
     
-    @Override public @NotNull @Unmodifiable Map<String, Function<MarkLogger, @Nullable Object>> getFields() { return FIELD_MAP; }
+    @Override public @NotNull @Unmodifiable INestedFieldMap<MarkLogger> getFields() { return FIELD_MAP; }
     
     private @NotNull String getNameSafely(@Nullable Marker marker) { return marker == null ? "N/A" : marker.getName(); }
     //endregion

@@ -65,10 +65,10 @@ public final class SerializationTemplates
     
     public static final Function<Supplier<String>, Supplier<AttachmentType<String>>> STRING_DATA_SYNCER = buildSyncTemplate(Codec.STRING, ByteBufCodecs.STRING_UTF8);
     
-    private static <T> @NotNull Supplier<DataComponentType<T>> buildSerializeTemplate(@NotNull Codec<T> codec, @NotNull StreamCodec<ByteBuf, T> streamCodec)
+    public static <T> @NotNull Supplier<DataComponentType<T>> buildSerializeTemplate(@NotNull Codec<T> codec, @NotNull StreamCodec<ByteBuf, T> streamCodec)
         { return DataComponentType.<T>builder().persistent(codec).networkSynchronized(streamCodec)::build; }
     
-    private static <T> @NotNull Function<Supplier<T>, Supplier<AttachmentType<T>>> buildSyncTemplate(
+    public static <T> @NotNull Function<Supplier<T>, Supplier<AttachmentType<T>>> buildSyncTemplate(
         @NotNull Codec<T> codec,
         @NotNull StreamCodec<ByteBuf, T> streamCodec
     ) { return t -> AttachmentType.builder(t).serialize(codec).sync(streamCodec)::build; }

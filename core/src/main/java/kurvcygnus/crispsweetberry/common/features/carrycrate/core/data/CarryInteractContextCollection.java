@@ -25,10 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * This is the collection of data classes that <b>unifies the universal data getters for common usage data, and also the unique data for specific cases.</b>
@@ -101,7 +99,7 @@ public final class CarryInteractContextCollection
      */
      public static final class CarryEntityInteractContext implements ICarryInteractContext, INestedPrintable<CarryEntityInteractContext>
      {
-         private static final @NotNull @Unmodifiable Map<String, Function<CarryEntityInteractContext, @Nullable Object>> FIELD_MAP = INestedPrintable.buildFieldMap(
+         private static final @NotNull @Unmodifiable INestedFieldMap<CarryEntityInteractContext> FIELD_MAP = INestedPrintable.buildFieldMap(
              map ->
              {
                  map.put("carryCrate", CarryEntityInteractContext::getCarryCrate);
@@ -133,7 +131,7 @@ public final class CarryInteractContextCollection
          
          @Override public @NotNull Optional<Player> getPlayer() { return Optional.of(player); }
          
-         @Override public @NotNull @Unmodifiable Map<String, Function<CarryEntityInteractContext, @Nullable Object>> getFields() { return FIELD_MAP; }
+         @Override public @NotNull @Unmodifiable INestedFieldMap<CarryEntityInteractContext> getFields() { return FIELD_MAP; }
          
          public @NotNull LivingEntity target() { return target; }
          

@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.carrycrate.core;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
@@ -30,6 +31,7 @@ import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.constants.FunctionalDummies;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -69,43 +71,6 @@ import static kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.Ca
 //? FIX: Somehow, when capturing entity with one carryCrate, component persistent won't work.
 //? According to debugging, this bug doesn't happen before the end of [[CarryCrateItem#interactLivingEntity]].
 
-//? FIX: BlockEntity's Placement is now working fine, but serialization needs to get fixed, currently it doesn't work.
-//? NEW PROGRESS: Same as the 1st FIX issue, before [[CarryCrateItem#useOn]]'s ending, everything seems good.
-//? DEBUG RESULT: In [[CommonHooks#onPlaceItemIntoWorld]], [[BlockSnapshot]]'s blockEntity failed to sync because,
-//? before tagData is deserialized, the snapshot has already been added to [[Level#capturedBlockSnapshots]], with [[StatedBlockPlaceContext#performPlace]] called.
-//? Two Choices present:
-//? 1. Adjust [[CarryOperationExecutor#blockEntityReleaseExtra]] to the head of [[CarryOperationExecutor#blocklikeTargetRelease]].
-//? 2. Keep this call order, involving [[Level#capturedBlockSnapshots]]'s content instead.
-//* We currently perfer 1. 2 is too slow and unstable, also bad for maintaining.
-//* Choice 1 has been done. Now only left untested.
-//? ISSUE: DOESN'T WORK. Reason: [[BlockSnapshot]] gets blockEntity's data with FUCKING [[BlockSnapshot#getBlockEntityTag]], it gets blockEntity by blockPos,
-//? which OF COURSE can't get BE. We need to inherit this mess!!!
-//? ... Still not working?????? backing to the conclusion before -- MUST BE NETWORK SYNC, FUCK.
-//? REASON FIND OUT: OMG, FUCK MINECRAFT, blcokEntity just got erased, so that's the reason.
-//? So, yeah, let's try to find out where did blockEntity has became invalid, AGAIN, thank you, mojang.
-//? Finally, we found it. At [[LevelChunk]], its field, [[ChunkAccess#blockEntities]] doesn't have blockEntity, reason? IDK. Anyways, I just want to fix this shit.
-//? TBH, why shouldn't I move to indie game dev, instead of serving this old, janky, hacky, and bloat closed-source software for free?
-//? I think I'm gonna probably ditch this project if the 1st release failed to get a good feedback.
-//? So, we accessed [[LevelChunk#getBlockEntities]] to solve this, and without exception: still NOT WORKING, Minecraft's SUCH A MORON.
-//? GOOD, so what's next? DEBUG.
-//? THE WORST THING HAPPENED. Minecraft Server rejects the change. Reason? No CLUE, JUST AGAIN. Before quiting [[CommonHooks#onPlaceItemIntoWorld]], data is ok.
-//? JUST, OH, MY, FK GOD, why can't you just make it work, STUPID!
-//? Nothing to say. I'm tired. REALLY TIRED.
-//? I'M BACK TO KICK MINECRAFT's ASS!
-//? [[CommonHooks#onPlaceItemIntoWorld]] -> OK
-//? [[ItemStack#useOn]] -> OK
-//? [[ServerPlayerGameMode#useItemOn]] -> OK
-//? [[ServerGamePacketListenerImpl#handleUseItemOn]] -> Even this is OK???
-//? [[PacketUtils#ensureRunningOnSameThread]] -> Still exists.
-//? *After these calls, the logic becomes Threading and ticking related*
-//? So, could it be the issue of network sync? IDK.
-//? Emm, now I have a better idea --
-//? Why should I do these mess, instead of following Minecraft's rule?
-//? You see, in [[Level]], there exist a method called [[LevelAccessor#scheduleTick]], which called a [[Block]]'s [[BlockBehaviour#tick]] after specfied ticks.
-//* We can also do a custom scheduled task([[LevelAccessor#scheduleTick]] is for [[Block]] only) to load nbt,
-//* and [[CarryOperationExecutor]] shall only do data emulation and I/O.
-//? However, I'm exhausted this time, let's do it tomorrow.
-
 /**
  * The core engine of the whole carry system. As you can could see, it is complex enough to be an independent class.<br>
  * It is capable of doing these things:
@@ -133,9 +98,9 @@ public enum CarryEngine
     INST;
     
     //region Fields
-    private static final HashMap<CarryID, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_CARRY_LISTENERS = new HashMap<>();
-    private static final HashMap<CarryID, ICarryEntityAdapterFactory<?, ?>> ENTITY_CARRY_LISTENERS = new HashMap<>();
-    private static final HashMap<CarryID, ICarryBlockAdapterFactory<?, ?>> BLOCK_CARRY_LISTENERS = new HashMap<>();
+    private static final Map<CarryID, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_CARRY_LISTENERS = new HashMap<>();
+    private static final Map<CarryID, ICarryEntityAdapterFactory<?, ?>> ENTITY_CARRY_LISTENERS = new HashMap<>();
+    private static final Map<CarryID, ICarryBlockAdapterFactory<?, ?>> BLOCK_CARRY_LISTENERS = new HashMap<>();
     
     private static final Map<CarryType, Map<CarryID, ? extends IBaseCarryAdapterFactory<?, ?>>> LISTENER_LOOKUP =
         DefinitionUtils.createImmutableEnumMapWithCheck(
@@ -158,7 +123,7 @@ public enum CarryEngine
         CarryCrateCopyProcessor.class
     );
     
-    private static final ThreadLocal<Boolean> IS_INTERACTING_WITH_BE = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> IS_INTERACTING_WITH_BE = ThreadLocal.withInitial(FunctionalDummies::alwaysFalse);
     
     private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
     //endregion
@@ -225,10 +190,10 @@ public enum CarryEngine
                         (id, $) ->
                         {
                             final CompoundTag entry = new CompoundTag();
-                            entry.putString(ID, id.id());
-                            entry.putString(UUID, id.uuid());
+                            entry.putString(ID, id.id);
+                            entry.putString(UUID, id.uuid);
                             entryList.add(entry);
-                            LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid(), id.id());
+                            LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid, id.id);
                         }
                     );
                 
@@ -260,7 +225,7 @@ public enum CarryEngine
         private static @NotNull CarryListenerSaveData load(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries)
         {
             final CarryListenerSaveData data = CarryListenerSaveData.create();
-            data.entries = tag.getList(ENTRIES, 10);
+            data.entries = tag.getList(ENTRIES, CompoundTag.TAG_COMPOUND);
             
             return data;
         }
@@ -272,7 +237,7 @@ public enum CarryEngine
      * Deserialize the level's Save Data, restoring <u>{@link #LISTENER_LOOKUP}</u>.
      */
     @SuppressWarnings("unchecked")//! Unsafe casting, however, with the restrict of enum [[CarryType]], it is actually safe.
-    @SubscribeEvent static void startEngine(@NotNull ServerStartedEvent event)
+    @SubscribeEvent @DoNotCall static void startEngine(@NotNull ServerStartedEvent event)
     {
         BLOCK_ENTITY_CARRY_LISTENERS.clear();
         BLOCK_CARRY_LISTENERS.clear();
@@ -341,10 +306,10 @@ public enum CarryEngine
         assert carryID != null;//! [[DataComponentHolder#has()]] has granted the safety.
         assert data != null;//! `assert` doesn't work in non-debugging environment, it won't bring any extra performance penalty comparing to [[Objects#requireNonNull]].
         
-        final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid(), slotId);
+        final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid, slotId);
         
-        final int penaltyRate = data.unionData().getPenaltyRate();
-        final @Nullable var adapter = getCarryAdapter(LISTENER_LOOKUP.get(data.carryType()), carryID);
+        final int penaltyRate = data.unionData().penaltyRate;
+        final @Nullable var adapter = getCarryAdapter(LISTENER_LOOKUP.get(data.carryType), carryID);
         
         if(adapter == null)//! Due to C/S sync, and also the competitive state between carry operation and map, returning at here can prevent potential NPE.
             return;
@@ -365,7 +330,7 @@ public enum CarryEngine
                     level,
                     player.getOnPos(),
                     data.unionData(),
-                    level.getGameTime() - data.startTime()
+                    level.getGameTime() - data.startTime
                 );
                 
                 OverweightEffect.updateFactorAndEffect(player, data, TriState.FALSE);
@@ -375,7 +340,7 @@ public enum CarryEngine
             }
             
             if(
-                data.carryType().equals(CarryType.BLOCK_ENTITY) &&
+                data.carryType.equals(CarryType.BLOCK_ENTITY) &&
                 adapter instanceof AbstractBlockEntityCarryAdapter<?> blockEntityCarryAdapter &&
                 level.getRandom().nextFloat() < (float) carryCrate.getDamageValue() / carryCrate.getMaxDamage()
             ) carryCrate.set(
@@ -411,7 +376,7 @@ public enum CarryEngine
             if(!level.isClientSide)
                 LOGGER.debug(
                     "State of this interaction: Player: {}, Data: {}",
-                    optionalPlayer.map(player -> player.getDisplayName().getString()).orElse("N/A"),
+                    optionalPlayer.map(player -> player.getGameProfile().getName()).orElse("N/A"),
                     carryData
                 );
             
@@ -454,7 +419,7 @@ public enum CarryEngine
                         }
                         case CarryData that when that.unionData() instanceof CarryData.CarryEntityDataHolder holder ->
                         {
-                            targetEntity = (LivingEntity) holder.getType().create(level);
+                            targetEntity = (LivingEntity) holder.type.create(level);
                             targetBlockEntity = null;
                             targetBlockState = null;
                             yield CarryType.ENTITY;
@@ -469,9 +434,9 @@ public enum CarryEngine
                                 {
                                     IS_INTERACTING_WITH_BE.set(true);
                                     
-                                    final var type = blockEntityDataHolder.getType();
+                                    final var type = blockEntityDataHolder.type;
                                     
-                                    targetBlockState = blockEntityDataHolder.getState();
+                                    targetBlockState = blockEntityDataHolder.state;
                                     //* NOTE: This logic is illegal on Vanilla.
                                     //* It is implemented with the help of [[CarryEngine#IS_INTERACTING_WITH_BE]] and [[CarryBlockEntityValidationPasser#tryPass]].
                                     targetBlockEntity = Objects.requireNonNull(
@@ -493,13 +458,13 @@ public enum CarryEngine
                                 }
                                 case CarryData.CarryBlockDataHolder blockDataHolder ->
                                 {
-                                    targetBlockState = blockDataHolder.getState();
+                                    targetBlockState = blockDataHolder.state;
                                     targetBlockEntity = null;
                                 }
                                 default -> throw new IllegalStateException("Impossible branch!\n" + carryData.unionData());
                             }
                             
-                            yield carryData.unionData().getBoundType();
+                            yield carryData.carryType;
                         }
                     };
                 }

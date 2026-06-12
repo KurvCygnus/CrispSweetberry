@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.coins.events;
 
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
@@ -48,7 +49,7 @@ public final class CoinExperienceEvent
     private static final CrispRanger INVENTORY_INPUT_SLOTS_RANGE = CrispRanger.closed(INVENTORY_INPUT_SLOT_START_INDEX, INVENTORY_INPUT_SLOT_END_INDEX);
     private static final CrispRanger CRAFTING_TABLE_INPUT_SLOTS_RANGE = CrispRanger.closed(CRAFTING_TABLE_INPUT_SLOT_START_INDEX, CRAFTING_TABLE_INPUT_SLOT_END_INDEX);
     
-    @SubscribeEvent static void craftPreCheck(@NotNull PlayerContainerEvent event)
+    @SubscribeEvent @DoNotCall static void craftPreCheck(@NotNull PlayerContainerEvent event)
     {
         final AbstractContainerMenu menu = event.getContainer();
         
@@ -66,7 +67,7 @@ public final class CoinExperienceEvent
         }
     }
     
-    @SubscribeEvent static void craftCheck(@NotNull PlayerEvent.ItemCraftedEvent event)
+    @SubscribeEvent @DoNotCall static void craftCheck(@NotNull PlayerEvent.ItemCraftedEvent event)
     {
         final Item item = event.getCrafting().getItem();
         final Player player = event.getEntity();
