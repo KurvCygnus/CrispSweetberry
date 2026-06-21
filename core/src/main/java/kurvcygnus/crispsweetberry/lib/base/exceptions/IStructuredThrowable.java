@@ -50,7 +50,8 @@ public interface IStructuredThrowable
 
     /**
      * Returns the <b>tag</b> that categorizes this exception by <b>contextual semantics</b>.<br>
-     * This means, <span style="color: f84b4b">you shouldn't use it to do pattern matching, or rollback, it should only be used to represent process phase.</span>
+     * This means, <span style="color: f84b4b">you shouldn't use it to do pattern matching, or rollback externally,
+     * it should only be used to represent process phase, or being use by <u>{@link ITransactionalThrowable#rollback()}</u>.</span>
      * <br><br>
      * For rollback/recover ability, see <u>{@link ITransactionalThrowable}</u>.
      * @return a non-blank string identifier (e.g. {@code "NETWORK"}, {@code "VALIDATION"}), never null

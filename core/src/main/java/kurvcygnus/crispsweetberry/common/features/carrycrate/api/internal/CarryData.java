@@ -9,12 +9,11 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal;
 
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity.AbstractEntityCarryAdapter;
+import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -44,52 +43,57 @@ import java.util.function.Supplier;
 @ApiStatus.Internal
 public final class CarryData
 {
-    //  region Fields & Constructors
+    //region Fields & Constructors
     public static final Supplier<DataComponentType<CarryData>> SERIALIZATION_DEF =
         DataComponentType.<CarryData>builder().persistent(CarryDataCodec.INST).networkSynchronized(CarryDataStreamCodec.INST)::build;
     
     public final @NotNull CarryType carryType;
-    private final @NotNull CarryDataBaseHolder unionData;
+    private final @NotNull OfUniqueDataBase uniqueData;
     public final boolean causesOverweight;
     public final @Range(from = 0, to = Long.MAX_VALUE) long startTime;
+    public final @Range(from = CarriableExtensions.ICarriableLifecycle.NO_PENALTY, to = Integer.MAX_VALUE) int penaltyRate;
     
     private CarryData(
         @NotNull CarryType carryType,
-        @NotNull CarryDataBaseHolder unionData,
+        @NotNull OfUniqueDataBase uniqueData,
         boolean causesOverweight,
-        @Range(from = 0, to = Long.MAX_VALUE) long startTime
+        @Range(from = 0, to = Long.MAX_VALUE) long startTime,
+        @Range(from = CarriableExtensions.ICarriableLifecycle.NO_PENALTY, to = Integer.MAX_VALUE) int penaltyRate
     )
     {
         Objects.requireNonNull(carryType, "Param \"carryType\" must not be null!");
-        Objects.requireNonNull(unionData, "Param \"unionData\" must not be null!");
+        Objects.requireNonNull(uniqueData, "Param \"uniqueData\" must not be null!");
         if(startTime < 0)
-            throw new IllegalArgumentException("Param \"startTime\" must be greater than 0!");
+            throw new IllegalArgumentException("Param \"startTime\" must be an unsigned number!");
+        if(penaltyRate < 0)
+            throw new IllegalArgumentException("Param \"penaltyRate\" must be an unsigned number!");
         
         this.carryType = carryType;
-        this.unionData = unionData;
+        this.uniqueData = uniqueData;
         this.causesOverweight = causesOverweight;
         this.startTime = startTime;
+        this.penaltyRate = penaltyRate;
     }
     
     public static @NotNull CarryData createBlock(
         @NotNull BlockState state,
-        int penaltyRate,
+        @Range(from = CarriableExtensions.ICarriableLifecycle.NO_PENALTY, to = Integer.MAX_VALUE) int penaltyRate,
         int carryCount,
         int maxCarryCount,
         boolean causesOverweight,
-        long startTime
+        @Range(from = 0, to = Long.MAX_VALUE) long startTime
     )
     {
         return new CarryData(
             CarryType.BLOCK,
-            new CarryBlockDataHolder(
-                penaltyRate,
+            new OfBlockUniqueData(
                 state,
                 carryCount,
                 maxCarryCount
             ),
             causesOverweight,
-            startTime
+            startTime,
+            penaltyRate
         );
     }
     
@@ -97,54 +101,55 @@ public final class CarryData
         @NotNull BlockState state,
         @NotNull CompoundTag tagData,
         @NotNull BlockEntityType<? extends BlockEntity> type,
-        int penaltyRate,
+        @Range(from = CarriableExtensions.ICarriableLifecycle.NO_PENALTY, to = Integer.MAX_VALUE) int penaltyRate,
         boolean causesOverweight,
-        long startTime
+        @Range(from = 0, to = Long.MAX_VALUE) long startTime
     )
     {
         return new CarryData(
             CarryType.BLOCK_ENTITY,
-            new CarryBlockEntityDataHolder(
-                penaltyRate,
+            new OfBlockEntityUniqueData(
                 state,
                 type,
                 tagData
             ),
             causesOverweight,
-            startTime
+            startTime,
+            penaltyRate
         );
     }
     
     public static @NotNull CarryData createEntity(
-        int penaltyRate,
+        @NotNull AbstractEntityCarryAdapter<?> adapter,
         @NotNull EntityType<?> type,
         @NotNull CompoundTag tagData,
-        boolean causesOverweight,
-        long startTime
+        @Range(from = 0, to = Long.MAX_VALUE) long startTime
     )
     {
+        Objects.requireNonNull(adapter, "Param \"adapter\" must not be null!");
         return new CarryData(
             CarryType.ENTITY,
-            new CarryEntityDataHolder(penaltyRate, type, tagData),
-            causesOverweight, 
-            startTime
+            new OfEntityUniqueData(type, tagData),
+            adapter.causesOverweight(),
+            startTime,
+            adapter.getPenaltyRate()
         );
     }
     //endregion
     
-    //  region Data Getters & Essential methods
+    //region Data Getters & Essential methods
     /**
-     * Gets the exact dataHolder of a specific type.
+     * Gets the exact unique data of a specific type.
      * @apiNote <span style="color: f84b4b">Use it carefully, type mismatch will cause an immediate <u>{@link ClassCastException}</u></span>.
      */
     @ApiStatus.Internal @SuppressWarnings("unchecked")//! Unsafe casting, but is used only by internals.
-    public <T extends CarryDataBaseHolder> @NotNull T unionData()
+    public <T extends OfUniqueDataBase> @NotNull T matchUnique()
     {
         return (T) switch(carryType)
         {
-            case BLOCK_ENTITY -> (CarryBlockEntityDataHolder) this.unionData;
-            case BLOCK        -> (CarryBlockDataHolder)       this.unionData;
-            case ENTITY       -> (CarryEntityDataHolder)      this.unionData;
+            case BLOCK_ENTITY -> (OfBlockEntityUniqueData) this.uniqueData;
+            case BLOCK        -> (OfBlockUniqueData)       this.uniqueData;
+            case ENTITY       -> (OfEntityUniqueData)      this.uniqueData;
         };
     }
     
@@ -152,44 +157,36 @@ public final class CarryData
     {
         return obj instanceof CarryData that &&
             Objects.equals(this.carryType, that.carryType) &&
-            Objects.equals(this.unionData, that.unionData) &&
-            this.startTime == that.startTime;
+            Objects.equals(this.uniqueData, that.uniqueData) &&
+            this.startTime == that.startTime &&
+            this.penaltyRate == that.penaltyRate;
     }
     
-    @Override public int hashCode() { return Objects.hash(carryType, unionData, startTime); }
+    @Override public int hashCode() { return Objects.hash(carryType, uniqueData, startTime, penaltyRate); }
     
     @Override public @NotNull String toString()
     {
-        return MessageFormatter.format(
+        return MessageFormatter.arrayFormat(
             """
             CarryData
             {
                 type: {},
                 causesOverweight: {},
                 startTime: {},
+                penaltyRate: {}
                 payload:
             {}
             }
-            """,//! Notes that `unionData`'s print is called with [[String#indent]]. So we shouldn't align placeholder to "payload".
-            new Object[] { carryType, causesOverweight, startTime, unionData.toString().indent(4) }
+            """,//! Notes that `matchUnique`'s print is called with [[String#indent]]. So we shouldn't align placeholder to "payload".
+            new Object[] { carryType, causesOverweight, startTime, penaltyRate, uniqueData.toString().indent(4) }
         ).getMessage();
     }
     //endregion
     
-    //  region Internal Data Holders
-    public sealed abstract static class CarryDataBaseHolder permits CarryBlockDataHolder, CarryEntityDataHolder, CarryBlockEntityDataHolder
+    //region Internal Unique Data
+    public sealed abstract static class OfUniqueDataBase permits OfBlockUniqueData, OfEntityUniqueData, OfBlockEntityUniqueData
     {
-        public final int penaltyRate;
-        
-        protected CarryDataBaseHolder(@Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate)
-        {
-            if(penaltyRate < 0)
-                throw new IllegalArgumentException("Param \"penaltyRate\" must be a non-negative integer!");
-            
-            this.penaltyRate = penaltyRate;
-        }
-        
-        protected int getPenaltyRate() { return penaltyRate; }
+        protected OfUniqueDataBase() {}
         
         /**
          * This getter method is used by internals for abstracted adapter getting logics.<br>
@@ -200,42 +197,37 @@ public final class CarryData
         @Override public abstract @NotNull String toString();
     }
     
-    public static final class CarryBlockDataHolder extends CarryDataBaseHolder
+    public static final class OfBlockUniqueData extends OfUniqueDataBase
     {
-        private static final Function<CarryBlockDataHolder, BlockState> BLOCK_STATE_GETTER = holder -> holder.state;
-        private static final Function<CarryBlockDataHolder, Integer> COUNT_GETTER = holder -> holder.carryCount;
-        private static final Function<CarryBlockDataHolder, Integer> MAX_COUNT_GETTER = holder -> holder.maxCarryCount;
+        private static final Function<OfBlockUniqueData, BlockState> BLOCK_STATE_GETTER = holder -> holder.state;
+        private static final Function<OfBlockUniqueData, Integer> COUNT_GETTER = holder -> holder.carryCount;
+        private static final Function<OfBlockUniqueData, Integer> MAX_COUNT_GETTER = holder -> holder.maxCarryCount;
         
-        static final MapCodec<CarryBlockDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+        static final MapCodec<OfBlockUniqueData> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
-                Codec.INT.fieldOf(        "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BlockState.CODEC.fieldOf( "state").forGetter(BLOCK_STATE_GETTER),
                 Codec.INT.fieldOf(        "carry_count").forGetter(COUNT_GETTER),
                 Codec.INT.fieldOf(        "max_carry_count").forGetter(MAX_COUNT_GETTER)
-            ).apply(inst, CarryBlockDataHolder::new)
+            ).apply(inst, OfBlockUniqueData::new)
         );
         
-        static final StreamCodec<ByteBuf, CarryBlockDataHolder> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT,                     CarryDataBaseHolder::getPenaltyRate,
+        static final StreamCodec<ByteBuf, OfBlockUniqueData> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.fromCodec(BlockState.CODEC), BLOCK_STATE_GETTER,
             ByteBufCodecs.VAR_INT,                     COUNT_GETTER,
             ByteBufCodecs.VAR_INT,                     MAX_COUNT_GETTER,
-            CarryBlockDataHolder::new
+            OfBlockUniqueData::new
         );
         
         public final BlockState state;
         public final int carryCount;
         public final int maxCarryCount;
         
-        private CarryBlockDataHolder(
-            @Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate,
+        private OfBlockUniqueData(
             @NotNull BlockState state,
             @Range(from = 1, to = Integer.MAX_VALUE) int carryCount,
             @Range(from = 1, to = Integer.MAX_VALUE) int maxCarryCount
         )
         {
-            super(penaltyRate);
-            
             Objects.requireNonNull(state, "Param \"state\" must not be null!");
             if(carryCount < 1)
                 throw new IllegalArgumentException("Param \"carryCount\" must be a positive integer!");
@@ -251,7 +243,7 @@ public final class CarryData
         
         @Override public @NotNull String toString()
         {
-            return MessageFormatter.format(
+            return MessageFormatter.arrayFormat(
                 """
                 CarryBlockData
                 {
@@ -264,32 +256,29 @@ public final class CarryData
         }
     }
     
-    public static final class CarryEntityDataHolder extends CarryDataBaseHolder
+    public static final class OfEntityUniqueData extends OfUniqueDataBase
     {
-        private static final Function<CarryEntityDataHolder, EntityType<?>> TYPE_GETTER = holder -> holder.type;
-        private static final Function<CarryEntityDataHolder, CompoundTag> TAG_GETTER = holder -> holder.tagData;
+        private static final Function<OfEntityUniqueData, EntityType<?>> TYPE_GETTER = holder -> holder.type;
+        private static final Function<OfEntityUniqueData, CompoundTag> TAG_GETTER = holder -> holder.tagData;
         
-        static final MapCodec<CarryEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+        static final MapCodec<OfEntityUniqueData> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
-                Codec.INT.fieldOf(                                   "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(TYPE_GETTER),
                 CompoundTag.CODEC.fieldOf(                           "tag_data").forGetter(TAG_GETTER)
-            ).apply(inst, CarryEntityDataHolder::new)
+            ).apply(inst, OfEntityUniqueData::new)
         );
         
-        static final StreamCodec<ByteBuf, CarryEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, CarryDataBaseHolder::getPenaltyRate,
+        static final StreamCodec<ByteBuf, OfEntityUniqueData> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.fromCodec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()), TYPE_GETTER,
             ByteBufCodecs.COMPOUND_TAG, TAG_GETTER,
-            CarryEntityDataHolder::new
+            OfEntityUniqueData::new
         );
         
         public final EntityType<?> type;
         public final CompoundTag tagData;
         
-        private CarryEntityDataHolder(@Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate, @NotNull EntityType<?> type, @NotNull CompoundTag tagData)
+        private OfEntityUniqueData(@NotNull EntityType<?> type, @NotNull CompoundTag tagData)
         {
-            super(penaltyRate);
             Objects.requireNonNull(type, "Param \"type\" must not be null!");
             Objects.requireNonNull(tagData, "Param \"tagData\" must not be null!");
             
@@ -315,42 +304,37 @@ public final class CarryData
         }
     }
     
-    public static final class CarryBlockEntityDataHolder extends CarryDataBaseHolder
+    public static final class OfBlockEntityUniqueData extends OfUniqueDataBase
     {
-        private static final Function<CarryBlockEntityDataHolder, BlockState> STATE_GETTER = holder -> holder.state;
-        private static final Function<CarryBlockEntityDataHolder, BlockEntityType<?>> TYPE_GETTER = holder -> holder.type;
-        private static final Function<CarryBlockEntityDataHolder, CompoundTag> TAG_GETTER = holder -> holder.tagData;
+        private static final Function<OfBlockEntityUniqueData, BlockState> STATE_GETTER = holder -> holder.state;
+        private static final Function<OfBlockEntityUniqueData, BlockEntityType<?>> TYPE_GETTER = holder -> holder.type;
+        private static final Function<OfBlockEntityUniqueData, CompoundTag> TAG_GETTER = holder -> holder.tagData;
         
-        static final MapCodec<CarryBlockEntityDataHolder> CODEC = RecordCodecBuilder.mapCodec(
+        static final MapCodec<OfBlockEntityUniqueData> CODEC = RecordCodecBuilder.mapCodec(
             inst -> inst.group(
-                Codec.INT.fieldOf(                                         "penalty_rate").forGetter(CarryDataBaseHolder::getPenaltyRate),
                 BlockState.CODEC.fieldOf(                                  "state").forGetter(STATE_GETTER),
                 BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec().fieldOf( "type").forGetter(TYPE_GETTER),
                 CompoundTag.CODEC.fieldOf(                                 "tag_data").forGetter(TAG_GETTER)
-            ).apply(inst, CarryBlockEntityDataHolder::new)
+            ).apply(inst, OfBlockEntityUniqueData::new)
         );
         
-        static final StreamCodec<ByteBuf, CarryBlockEntityDataHolder> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT,                                                      CarryDataBaseHolder::getPenaltyRate,
+        static final StreamCodec<ByteBuf, OfBlockEntityUniqueData> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.fromCodec(BlockState.CODEC),                                  STATE_GETTER,
             ByteBufCodecs.fromCodec(BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec()), TYPE_GETTER,
             ByteBufCodecs.COMPOUND_TAG,                                                 TAG_GETTER,
-            CarryBlockEntityDataHolder::new
+            OfBlockEntityUniqueData::new
         );
         
         public final BlockState state;
         public final BlockEntityType<? extends BlockEntity> type;
         public final CompoundTag tagData;
         
-        private CarryBlockEntityDataHolder(
-            @Range(from = 0, to = Integer.MAX_VALUE) int penaltyRate,
+        private OfBlockEntityUniqueData(
             @NotNull BlockState state,
             @NotNull BlockEntityType<? extends BlockEntity> type,
             @NotNull CompoundTag tagData
         )
         {
-            super(penaltyRate);
-            
             Objects.requireNonNull(state, "Param \"state\" must not be null!");
             Objects.requireNonNull(type, "Param \"type\" must not be null!");
             Objects.requireNonNull(tagData, "Param \"tagData\" must not be null!");
@@ -379,7 +363,7 @@ public final class CarryData
     }
     //endregion
     
-    //  region Network Codec I/O Serialization
+    //region Network Codec I/O Serialization
     @ApiStatus.Obsolete//! Not recommend to analyze this.
     private enum CarryDataCodec implements Codec<CarryData>
     {
@@ -389,16 +373,23 @@ public final class CarryData
         private static final String DATA = "data";
         private static final String START_TIME = "start_time";
         private static final String CAUSES = "causes_overweight";
+        private static final String PENALTY_RATE = "penalty_rate";
         
         private static final long TIME_FALLBACK_VALUE = 0L;
+        private static final int PENALTY_RATE_FALLBACK_VALUE = 0;
         private static final boolean CAUSE_FLAG_FALLBACK_VALUE = true;
         
-        @Override public <T> DataResult<Pair<CarryData, T>> decode(@NotNull DynamicOps<T> ops, @NotNull T input)
+        //* |=================================================================================================|
+        //* | Notes that, generic `TargetType` stands for the file type that the data will be transformed to, |
+        //* | or unwrapped from, it could be NBT from Minecraft, TOML, YAML, JSON, etc.                       |
+        //* |=================================================================================================|
+        
+        @Override public <TargetType> DataResult<Pair<CarryData, TargetType>> decode(@NotNull DynamicOps<TargetType> ops, @NotNull TargetType input)
         {
             return ops.getMap(input).flatMap(
                 map ->
                 {
-                    final @Nullable T typeElement = map.get(CARRY_TYPE);
+                    final @Nullable TargetType typeElement = map.get(CARRY_TYPE);
                     if(typeElement == null)
                         return DataResult.error(() -> "Missing \"%s\" field".formatted(CARRY_TYPE));
                     
@@ -407,23 +398,17 @@ public final class CarryData
                         {
                             final var type = typePair.getFirst();
                             
-                            final T dataElement = map.get(DATA);
+                            final TargetType dataElement = map.get(DATA);
                             
                             if(dataElement == null)
                                 return DataResult.error(() -> "Missing \"%s\" field".formatted(DATA));
                             
-                            final MapCodec<? extends CarryDataBaseHolder> subCodec = type.codec;
-                            final DataResult<? extends CarryDataBaseHolder> dataResult = subCodec.codec().parse(ops, dataElement);
+                            final var subCodec = type.codec;
+                            final var dataResult = subCodec.codec().parse(ops, dataElement);
                             
-                            final @Nullable T timeElement = map.get(START_TIME);
-                            final var timeResult = timeElement != null ?
-                                Codec.LONG.decode(ops, timeElement).map(Pair::getFirst) :
-                                DataResult.success(TIME_FALLBACK_VALUE);
-                            
-                            final @Nullable T causesElement = map.get(CAUSES);
-                            final var causesResult = causesElement != null ?
-                                Codec.BOOL.decode(ops, causesElement).map(Pair::getFirst) :
-                                DataResult.success(CAUSE_FLAG_FALLBACK_VALUE);
+                            final var timeResult = unwrapData(map, ops, START_TIME, Codec.LONG, TIME_FALLBACK_VALUE);
+                            final var causesResult = unwrapData(map, ops, CAUSES, Codec.BOOL, CAUSE_FLAG_FALLBACK_VALUE);
+                            final var penaltyRateResult = unwrapData(map, ops, PENALTY_RATE, Codec.INT, PENALTY_RATE_FALLBACK_VALUE);
                             
                             return dataResult.flatMap(
                                 data ->
@@ -431,8 +416,9 @@ public final class CarryData
                                     //? Yes, [[DataResult]] doesn't even have a fucking method like `getOrDefault`, this is an annoying monad implementation.
                                     final long time = timeResult.isSuccess() ? timeResult.getOrThrow() : TIME_FALLBACK_VALUE;
                                     final boolean causes = causesResult.isSuccess() ? causesResult.getOrThrow() : CAUSE_FLAG_FALLBACK_VALUE;
+                                    final int penaltyRate = penaltyRateResult.isSuccess() ? penaltyRateResult.getOrThrow() : PENALTY_RATE_FALLBACK_VALUE;
                                     
-                                    return DataResult.success(Pair.of(new CarryData(type, data, causes, time), ops.empty()));
+                                    return DataResult.success(Pair.of(new CarryData(type, data, causes, time, penaltyRate), ops.empty()));
                                 }
                             );
                         }
@@ -441,16 +427,31 @@ public final class CarryData
             );
         }
         
-        @SuppressWarnings("unchecked")//! Safe Casting.
-        @Override public <T> @NotNull DataResult<T> encode(@NotNull CarryData input, @NotNull DynamicOps<T> ops, @NotNull T prefix)
+        private static <TargetType, T> @NotNull DataResult<T> unwrapData(
+            @NotNull MapLike<TargetType> map,
+            @NotNull DynamicOps<TargetType> ops,
+            @NotNull String id,
+            @NotNull Codec<T> codec,
+            @NotNull T fallback
+        )
         {
-            final var dataCodec = (MapCodec<CarryDataBaseHolder>) input.carryType.codec;
+            final @Nullable TargetType element = map.get(id);
+            return element != null ?
+                codec.decode(ops, element).map(Pair::getFirst) :
+                DataResult.success(fallback);
+        }
+        
+        @SuppressWarnings("unchecked")//! Safe Casting.
+        @Override public <TargetType> @NotNull DataResult<TargetType> encode(@NotNull CarryData input, @NotNull DynamicOps<TargetType> ops, @NotNull TargetType prefix)
+        {
+            final var dataCodec = (MapCodec<OfUniqueDataBase>) input.carryType.codec;
             
             return ops.mapBuilder().
-                add(CARRY_TYPE, CarryType.CODEC.encodeStart(ops,     input.carryType)).
-                add(DATA,       dataCodec.encoder().encodeStart(ops, input.unionData)).
-                add(CAUSES,     Codec.BOOL.encodeStart(ops,          input.causesOverweight)).
-                add(START_TIME, Codec.LONG.encodeStart(ops,          input.startTime)).
+                add(CARRY_TYPE,   CarryType.CODEC.encodeStart(ops,     input.carryType)).
+                add(DATA,         dataCodec.encoder().encodeStart(ops, input.uniqueData)).
+                add(CAUSES,       Codec.BOOL.encodeStart(ops,          input.causesOverweight)).
+                add(START_TIME,   Codec.LONG.encodeStart(ops,          input.startTime)).
+                add(PENALTY_RATE, Codec.INT.encodeStart(ops,           input.penaltyRate)).
                 build(prefix);
         }
     }
@@ -465,21 +466,22 @@ public final class CarryData
         {
             final var type = ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).decode(buffer);
             
-            final var dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) type.streamCodec;
+            final var dataCodec = (StreamCodec<ByteBuf, OfUniqueDataBase>) type.streamCodec;
             final var data = dataCodec.decode(buffer);
             
             final long startTime = buffer.readLong();
             final boolean causesOverweight = buffer.readBoolean();
+            final int penaltyRate = buffer.readInt();
             
-            return new CarryData(type, data, causesOverweight, startTime);
+            return new CarryData(type, data, causesOverweight, startTime, penaltyRate);
         }
         
         @Override public void encode(@NotNull ByteBuf buffer, @NotNull CarryData value)
         {
             ByteBufCodecs.idMapper(i -> CarryType.values()[i], CarryType::ordinal).encode(buffer, value.carryType);
             
-            final var dataCodec = (StreamCodec<ByteBuf, CarryDataBaseHolder>) value.carryType.streamCodec;
-            dataCodec.encode(buffer, value.unionData);
+            final var dataCodec = (StreamCodec<ByteBuf, OfUniqueDataBase>) value.carryType.streamCodec;
+            dataCodec.encode(buffer, value.uniqueData);
             
             buffer.writeLong(value.startTime);
             buffer.writeBoolean(value.causesOverweight);

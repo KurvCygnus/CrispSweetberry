@@ -29,7 +29,7 @@ import java.util.Objects;
  * @see SimpleBlockCarryAdapter Utility Adapter
  * @since 1.0 Release
  */
-public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter<CarryData.CarryBlockDataHolder> 
+public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter<CarryData.OfBlockUniqueData>
 implements CarriableBlockExtensions.OfAll
 {
      /**

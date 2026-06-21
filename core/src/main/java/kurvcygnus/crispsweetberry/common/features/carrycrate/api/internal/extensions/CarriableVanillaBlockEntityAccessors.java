@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Range;
 @ApiStatus.Internal
 public final class CarriableVanillaBlockEntityAccessors
 {
+    private CarriableVanillaBlockEntityAccessors() { throw new IllegalAccessError("Class \"CarriableVanillaBlockEntityAccessors\" is not meant to be instantized!"); }
+    
     /**
      * The accessor of <u>{@link net.minecraft.world.level.block.entity.BaseContainerBlockEntity BaseContainerBlockEntity}</u>.
      * @apiNote If you want to get item list, please consider inherit your adapter from 

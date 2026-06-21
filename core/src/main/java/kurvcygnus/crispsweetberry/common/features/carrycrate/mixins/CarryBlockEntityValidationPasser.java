@@ -43,7 +43,7 @@ public abstract class CarryBlockEntityValidationPasser
     @Inject(method = "validateBlockState", at = @At("HEAD"), cancellable = true)
     private void tryPass(@NotNull BlockState state, @NotNull CallbackInfo ci)
     {
-        if(!CarryEngine.INST.isInteracting())
+        if(!CarryEngine.isInteracting())
             return;
         
         ci.cancel();

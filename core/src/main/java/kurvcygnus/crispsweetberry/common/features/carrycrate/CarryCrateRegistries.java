@@ -149,11 +149,11 @@ public enum CarryCrateRegistries implements IRegistrant<CarryCrateRegistries>
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryID>> CARRY_ID = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-        "carry_crate.carry_id", CarryID.SERIALIZATION_DEF
+        "carry_crate.id", CarryID.SERIALIZATION_DEF
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CarryData>> CARRY_CRATE_DATA = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-        "carry_crate.union_data", CarryData.SERIALIZATION_DEF
+        "carry_crate.data", CarryData.SERIALIZATION_DEF
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CARRY_TICK_COUNTER = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(

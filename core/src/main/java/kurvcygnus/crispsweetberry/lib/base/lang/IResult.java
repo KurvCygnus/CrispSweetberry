@@ -12,6 +12,7 @@ import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransactionalThrowable;
 import kurvcygnus.crispsweetberry.lib.base.exceptions.StructuredException;
 import org.intellij.lang.annotations.Flow;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     /**
      * Wraps a non-null value into a successful <u>{@link IResult}</u>.
      * @param value the value to wrap, must not be null
-     * @param <T>   the type of the value
+     * @param <T>   the type of the value. <span style="color: f84b4b">Cannot be <u>{@link IResult}</u> or <u>{@link Optional}</u>.</span>
      * @param <E>   the exception type parameter (unused for success)
      * @return a new <u>{@link SuccessResult}</u> containing the given value
      * @throws NullPointerException if {@code value} is null
@@ -83,6 +84,8 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     static <T, E extends Throwable> @NotNull IResult<T, E> ofFailed(@NotNull String message, @NotNull Function<String, E> function)
     {
         Objects.requireNonNull(message, "Param \"message\" must not be null!");
+        if(message.isBlank())
+            throw new IllegalArgumentException("Param \"message\" must not be empty!");
         Objects.requireNonNull(function, "Param \"function\" must not be null!");
         return ofFailed(function.apply(message));
     }
@@ -102,20 +105,68 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     static <T, E extends Throwable> @NotNull IResult<T, E> ofFailed(@NotNull String message, @NotNull Throwable cause, @NotNull BiFunction<String, Throwable, E> function)
     {
         Objects.requireNonNull(message, "Param \"message\" must not be null!");
+        if(message.isBlank())
+            throw new IllegalArgumentException("Param \"message\" must not be empty!");
         Objects.requireNonNull(cause, "Param \"cause\" must not be null!");
         Objects.requireNonNull(function, "Param \"function\" must not be null!");
         return ofFailed(function.apply(message, cause));
+    }
+    
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")//! For conversion.
+    static <T, E extends Throwable> @NotNull IResult<T, E> fromOptional(
+        @NotNull Optional<T> optional,
+        @NotNull E exception
+    )
+    {
+        Objects.requireNonNull(optional, "Param \"optional\" must not be null!");
+        Objects.requireNonNull(exception, "Param \"exception\" must not be null!");
+        
+        return optional.<IResult<T, E>>map(SuccessResult::new).orElseGet(() -> new FailureResult<>(exception));
+    }
+    
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")//! For conversion.
+    static <T, E extends Throwable> @NotNull IResult<T, E> fromOptional(
+        @NotNull Optional<T> optional,
+        @NotNull String message,
+        @NotNull Function<String, E> function
+    )
+    {
+        Objects.requireNonNull(optional, "Param \"optional\" must not be null!");
+        Objects.requireNonNull(message, "Param \"message\" must not be null!");
+        if(message.isBlank())
+            throw new IllegalArgumentException("Param \"message\" must not be empty!");
+        Objects.requireNonNull(function, "Param \"function\" must not be null!");
+        
+        return optional.<IResult<T, E>>map(SuccessResult::new).orElseGet(() -> new FailureResult<>(function.apply(message)));
+    }
+    
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")//! For conversion.
+    static <T, E extends Throwable> @NotNull IResult<T, E> fromOptional(
+        @NotNull Optional<T> optional,
+        @NotNull String message,
+        @NotNull Throwable cause,
+        @NotNull BiFunction<String, Throwable, E> function
+    )
+    {
+        Objects.requireNonNull(optional, "Param \"optional\" must not be null!");
+        Objects.requireNonNull(message, "Param \"message\" must not be null!");
+        if(message.isBlank())
+            throw new IllegalArgumentException("Param \"message\" must not be empty!");
+        Objects.requireNonNull(cause, "Param \"cause\" must not be null!");
+        Objects.requireNonNull(function, "Param \"function\" must not be null!");
+        
+        return optional.<IResult<T, E>>map(SuccessResult::new).orElseGet(() -> new FailureResult<>(function.apply(message, cause)));
     }
 
     /**
      * Returns {@code true} if this result represents a successful outcome.
      */
-    boolean isSucceed();
+    @CheckReturnValue boolean isSucceed();
 
     /**
      * Returns {@code true} if this result represents a failed outcome.
      */
-    @ApiStatus.NonExtendable default boolean isFailure() { return !isSucceed(); }
+    @CheckReturnValue default boolean isFailure() { return !isSucceed(); }
 
     /**
      * Performs the given action on the contained value if this result is a success; otherwise does nothing.
@@ -140,7 +191,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @see #ifSucceed(Consumer)
      * @see #ifFailure(Consumer)
      */
-    @ApiStatus.NonExtendable default void dualAction(@NotNull Consumer<T> action, @NotNull Consumer<E> altAction)
+    default void biAction(@NotNull Consumer<T> action, @NotNull Consumer<E> altAction)
     {
         ifSucceed(action);
         ifFailure(altAction);
@@ -192,7 +243,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @return a new <u>{@link IResult}</u> with the mapped value on success, or the same failure
      * @throws NullPointerException if {@code mapper} is null and this result is a success
      * @see #flatMap(Function)
-     * @see #dualMap(Function, Function)
+     * @see #biMap(Function, Function)
      * @see java.util.Optional#map(Function)
      */
     <U> @NotNull @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true, targetIsContainer = true) IResult<U, E> map(@NotNull Function<? super T, ? extends U> mapper);
@@ -203,26 +254,26 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @param mapper the function to map the exception
      * @param <X>    the new exception type
      * @return a new <u>{@link IResult}</u> with the mapped exception on failure, or the same success
-     * @see #dualMap(Function, Function)
+     * @see #biMap(Function, Function)
      * @see #map(Function)
      */
     <X extends Throwable> @NotNull IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper);
     
     /**
-     * Transforms the failure exception into <u>{@link StructuredException}</u>, with given {@code type}.
-     * @param type The error type this exception belongs to. Cannot be null, and empty string
+     * Transforms the failure exception into <u>{@link StructuredException}</u>, with given {@code tag}.
+     * @param tag The error type this exception belongs to. Cannot be null, and empty string
      * @return a new <u>{@link IResult}</u> with transformed <u>{@link StructuredException}</u>, or the same success
      * @see #mapException(Function)
      */
-    @NotNull IResult<T, StructuredException> structuredException(@NotNull String type);
+    @NotNull IResult<T, StructuredException> structuredException(@NotNull String tag);
     
     /**
      * Transforms the failure exception into <u>{@link StructuredException}</u>, with given transforming <u>{@link Function}</u>..
-     * @param typeGenerator the <u>{@link Function}</u> that maps the exception to a <u>{@link String}</u> that represents <u>{@link StructuredException}</u>'s type
+     * @param tagGenerator the <u>{@link Function}</u> that maps the exception to a <u>{@link String}</u> that represents <u>{@link StructuredException}</u>'s type
      * @return a new <u>{@link IResult}</u> with transformed <u>{@link StructuredException}</u>, or the same success
      * @see #mapException(Function)
      */
-    @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> typeGenerator);
+    @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> tagGenerator);
 
     /**
      * Transforms both the success value and the failure exception in a single pass.
@@ -234,7 +285,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @see #map(Function)
      * @see #mapException(Function)
      */
-    <U, X extends Throwable> @NotNull IResult<U, X> dualMap(
+    <U, X extends Throwable> @NotNull IResult<U, X> biMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper
     );
@@ -291,17 +342,19 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     /**
      * Converts this result into a <u>{@link Optional}</u>.
      * @return an <u>{@link Optional}</u> containing the success value, or empty if this is a failure
-     * @apiNote The exception information is silently discarded. Prefer {@link #fold(Function, Function)}
-     * or {@link #orElseMapException(Function)} if you need to handle the failure case explicitly.
+     * @deprecated <span style="color: f84b4b">The exception information is silently discarded.</span> Prefer {@link #fold(Function, Function)}
+     * or {@link #orElseMapException(Function)} if you need to handle the failure case explicitly. It is recommended to only use this to pass result to method that
+     * accepts <u>{@link Optional}</u> only.
      */
-    @NotNull Optional<T> asOptional();
+    @NotNull @Deprecated Optional<T> asOptional();
 
     /**
      * Converts this result into a single-element or empty <u>{@link Stream}</u>.<br>
      * A success result yields a stream containing the value;<br>
      * a failure result yields an empty stream.
+     * @deprecated It's not recommended to use this at most situations, <b>only use this when other methods to pass accepts <u>{@link Stream}</u> only.</b>
      */
-    @NotNull Stream<T> asStream();
+    @NotNull @Deprecated Stream<T> asStream();
 
     /**
      * Returns the success value if this result is a success, or throws the contained exception if this is a failure.
@@ -312,6 +365,61 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @see #orElseMapException(Function)
      */
     @NotNull @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) T orThrow() throws E;
+    
+    /**
+     * Returns transformed success value if this result is a success, or throws the contained exception if this is a failure.
+     * @return the success value
+     * @throws E the contained exception if this is a failure
+     */
+    default @NotNull @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) <R> R destruct(@NotNull Function<T, R> destructor) throws E
+    {
+        Objects.requireNonNull(destructor, "Param \"destructor\" must not be null!");
+        return destructor.apply(orThrow());
+    }
+    
+    /**
+     * Returns an {@code int} transformed by success value if this result is a success, or throws the contained exception if this is a failure.
+     * @return the success value
+     * @throws E the contained exception if this is a failure
+     */
+    default @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) int destructToInt(@NotNull ToIntFunction<T> destructor) throws E
+    {
+        Objects.requireNonNull(destructor, "Param \"destructor\" must not be null!");
+        return destructor.applyAsInt(orThrow());
+    }
+    
+    /**
+     * Returns a {@code long} transformed by success value if this result is a success, or throws the contained exception if this is a failure.
+     * @return the success value
+     * @throws E the contained exception if this is a failure
+     */
+    default @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) long destructToLong(@NotNull ToLongFunction<T> destructor) throws E
+    {
+        Objects.requireNonNull(destructor, "Param \"destructor\" must not be null!");
+        return destructor.applyAsLong(orThrow());
+    }
+    
+    /**
+     * Returns a {@code double} transformed by success value if this result is a success, or throws the contained exception if this is a failure.
+     * @return the success value
+     * @throws E the contained exception if this is a failure
+     */
+    default @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) double destructToDouble(@NotNull ToDoubleFunction<T> destructor) throws E
+    {
+        Objects.requireNonNull(destructor, "Param \"destructor\" must not be null!");
+        return destructor.applyAsDouble(orThrow());
+    }
+    
+    /**
+     * Returns a {@code boolean} transformed by success value if this result is a success, or throws the contained exception if this is a failure.
+     * @return the success value
+     * @throws E the contained exception if this is a failure
+     */
+    default @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) boolean destructToBoolean(@NotNull Predicate<T> destructor) throws E
+    {
+        Objects.requireNonNull(destructor, "Param \"destructor\" must not be null!");
+        return destructor.test(orThrow());
+    }
 
     /**
      * Returns the success value if this result is a success, or the given {@code defaultValue} if this is a failure.
@@ -332,18 +440,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @see #orThrow()
      * @see #orElseMapException(Function)
      */
-    @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) @NotNull T orElseGet(@NotNull Supplier<? extends T> defaultValue);
-
-    /**
-     * Returns the success value if it satisfies the given condition, or {@code null} otherwise.
-     * If this result is a failure, returns {@code null}.
-     * @param condition the predicate to test the success value against
-     * @return the success value if it passes the condition, or {@code null}
-     * @see #assertOrThrow(Predicate)
-     * @see #map(Function)
-     * @apiNote Use <u>{@link #assertOrThrow(Predicate)}</u> if you prefer an exception over a {@code null} return.
-     */
-    @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) @Nullable T conditionalGet(@NotNull Predicate<? super T> condition);
+    @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) T orElseGet(@NotNull Supplier<? extends T> defaultValue);
 
     /**
      * Returns the success value if it satisfies the given condition, or throws {@link NoSuchElementException} otherwise.
@@ -351,16 +448,9 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      * @param condition the predicate to test the success value against
      * @return the success value if it passes the condition
      * @throws NoSuchElementException if the value does not satisfy the condition
-     * @see #conditionalGet(Predicate)
      */
-    default @NotNull @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true) T assertOrThrow(@NotNull Predicate<? super T> condition)
-    {
-        final @Nullable T value = conditionalGet(condition);
-
-        if(value == null)
-            throw new NoSuchElementException("The value doesn't meet the condition!");
-        return value;
-    }
+    @Flow(source = Flow.THIS_SOURCE, sourceIsContainer = true)
+    T conditionalGet(@NotNull Predicate<? super T> condition) throws NoSuchElementException, IllegalStateException;
 
     /**
      * Returns the success value if this result is a success, or applies the given mapper to the
@@ -417,23 +507,22 @@ final class FailureResult<T, E extends Throwable> implements IResult<T, E>
     @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper)
         { return new FailureResult<>(mapper.apply(exception)); }
     
-    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull String type) { return StructuredException.failedResult(exception, type); }
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull String tag) { return StructuredException.failedResult(exception, tag); }
     
-    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> typeGenerator)
-        { return StructuredException.failedResult(exception, typeGenerator.apply(exception)); }
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> tagGenerator)
+        { return StructuredException.failedResult(exception, tagGenerator.apply(exception)); }
     
-    @Override public @NotNull <U, X extends Throwable> IResult<U, X> dualMap(
+    @Override public @NotNull <U, X extends Throwable> IResult<U, X> biMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper
     ) { return new FailureResult<>(exceptionMapper.apply(exception)); }
     
     @SuppressWarnings("unchecked")//! Valid casting since value does not exist.
-    @Override public @NotNull <U> IResult<U, E> flatMap(@NotNull Function<? super T, ? extends IResult<U, E>> mapper)
-        { return (IResult<U, E>) this; }
+    @Override public @NotNull <U> IResult<U, E> flatMap(@NotNull Function<? super T, ? extends IResult<U, E>> mapper) { return (IResult<U, E>) this; }
 
-    @Override public @NotNull Optional<T> asOptional() { return Optional.empty(); }
+    @Override @Deprecated public @NotNull Optional<T> asOptional() { return Optional.empty(); }
 
-    @Override public @NotNull Stream<T> asStream() { return Stream.empty(); }
+    @Override @Deprecated public @NotNull Stream<T> asStream() { return Stream.empty(); }
 
     @Override public @NotNull T orThrow() throws E { throw exception; }
 
@@ -441,15 +530,13 @@ final class FailureResult<T, E extends Throwable> implements IResult<T, E>
 
     @Override public @NotNull T orElseGet(@NotNull Supplier<? extends T> defaultValue) { return defaultValue.get(); }
 
-    @Override public @Nullable T conditionalGet(@NotNull Predicate<? super T> condition) { return null; }
+    @Override public @NotNull T conditionalGet(@NotNull Predicate<? super T> condition) { throw new NoSuchElementException("No value present!"); }
 
     @Override public @NotNull T orElseMapException(@NotNull Function<? super E, ? extends T> mapper) { return mapper.apply(exception); }
 
-    @Override public @NotNull <U> U fold(@NotNull Function<? super T, ? extends U> success, @NotNull Function<? super E, ? extends U> fail)
-        { return fail.apply(exception); }
+    @Override public @NotNull <U> U fold(@NotNull Function<? super T, ? extends U> success, @NotNull Function<? super E, ? extends U> fail) { return fail.apply(exception); }
 
-    @Override public boolean equals(@Nullable Object obj)
-        { return this == obj || obj instanceof FailureResult<?, ?> that && Objects.equals(this.exception, that.exception); }
+    @Override public boolean equals(@Nullable Object obj) { return this == obj || obj instanceof FailureResult<?, ?> that && Objects.equals(this.exception, that.exception); }
 
     @Override public int hashCode() { return Objects.hash(exception); }
 
@@ -464,6 +551,10 @@ final class SuccessResult<T, E extends Throwable> implements IResult<T, E>
     SuccessResult(@NotNull T value)
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
+        
+        if(value instanceof IResult<?, ?> || value instanceof Optional<?>)
+            throw new IllegalArgumentException("Wrapping IResult or Optional is not allowed!");
+        
         this.value = value;
     }
 
@@ -474,25 +565,25 @@ final class SuccessResult<T, E extends Throwable> implements IResult<T, E>
     @Override public @NotNull <U> IResult<U, E> map(@NotNull Function<? super T, ? extends U> mapper) { return new SuccessResult<>(mapper.apply(value)); }
 
     @SuppressWarnings("unchecked")//! Valid casting since exception does not exist.
-    @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper)
-        { return (IResult<T, X>) this; }
+    @Override public @NotNull <X extends Throwable> IResult<T, X> mapException(@NotNull Function<? super Throwable, ? extends X> mapper) { return (IResult<T, X>) this; }
     
     @SuppressWarnings("unchecked")//! Valid casting since exception does not exist.
-    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull String type) { return (IResult<T, StructuredException>) this; }
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull String tag) { return (IResult<T, StructuredException>) this; }
     
     @SuppressWarnings("unchecked")//! Valid casting since exception does not exist.
-    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> typeGenerator) { return (IResult<T, StructuredException>) this; }
+    @Override public @NotNull IResult<T, StructuredException> structuredException(@NotNull Function<E, String> tagGenerator)
+        { return (IResult<T, StructuredException>) this; }
     
-    @Override public @NotNull <U, X extends Throwable> IResult<U, X> dualMap(
+    @Override public @NotNull <U, X extends Throwable> IResult<U, X> biMap(
         @NotNull Function<? super T, ? extends U> mapper,
         @NotNull Function<? super Throwable, ? extends X> exceptionMapper
     ) { return new SuccessResult<>(mapper.apply(value)); }
 
     @Override public @NotNull <U> IResult<U, E> flatMap(@NotNull Function<? super T, ? extends IResult<U, E>> mapper) { return mapper.apply(value); }
 
-    @Override public @NotNull Optional<T> asOptional() { return Optional.of(value); }
+    @Override @Deprecated public @NotNull Optional<T> asOptional() { return Optional.of(value); }
 
-    @Override public @NotNull Stream<T> asStream() { return Stream.of(value); }
+    @Override @Deprecated public @NotNull Stream<T> asStream() { return Stream.of(value); }
 
     @Override public @NotNull T orThrow() { return value; }
 
@@ -500,12 +591,17 @@ final class SuccessResult<T, E extends Throwable> implements IResult<T, E>
 
     @Override public @NotNull T orElseGet(@NotNull Supplier<? extends T> defaultValue) { return value; }
 
-    @Override public @Nullable T conditionalGet(@NotNull Predicate<? super T> condition) { return condition.test(value) ? value : null; }
+    @Override public @NotNull T conditionalGet(@NotNull Predicate<? super T> condition)
+    {
+        if(condition.test(value))
+            return value;
+        
+        throw new IllegalStateException("The value doesn't meet the condition!");
+    }
 
     @Override public @NotNull T orElseMapException(@NotNull Function<? super E, ? extends T> mapper) { return value; }
 
-    @Override public @NotNull <U> U fold(@NotNull Function<? super T, ? extends U> success, @NotNull Function<? super E, ? extends U> fail)
-        { return success.apply(value); }
+    @Override public @NotNull <U> U fold(@NotNull Function<? super T, ? extends U> success, @NotNull Function<? super E, ? extends U> fail) { return success.apply(value); }
 
     @Override public boolean equals(@Nullable Object obj) { return this == obj || obj instanceof SuccessResult<?, ?> that && Objects.equals(value, that.value); }
 

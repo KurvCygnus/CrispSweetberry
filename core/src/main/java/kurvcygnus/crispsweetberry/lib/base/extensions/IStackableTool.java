@@ -162,7 +162,7 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
     {
         final float maxDurability = getMaxDurability();
         final float baseHue = Math.max(
-            0.0F,
+            0F,
             (float) Objects.requireNonNullElse(stack.get(this::getDataComponent), getMaxDurability()) / maxDurability
         );
         return Mth.hsvToRgb(baseHue / 3.0F, 1.0F, 1.0F);

@@ -9,8 +9,8 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRangeMap;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.RangeMap;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import kurvcygnus.crispsweetberry.utils.constants.ComponentConstants;
@@ -59,18 +59,18 @@ public final class CarryCrateConstants
         DefinitionUtils.namespacedDotId(ComponentConstants.UI, ComponentConstants.CARRY_CRATE, "high_durability_description")
     );
     
-    private static final CrispRanger LOW_DURABILITY_RANGE = CrispRanger.closedOpen(0, CARRY_CRATE_MAX_DURABILITY / 3);
-    private static final CrispRanger MEDIUM_DURABILITY_RANGE = CrispRanger.closedOpen(CARRY_CRATE_MAX_DURABILITY / 3, CARRY_CRATE_MAX_DURABILITY * 2 / 3);
-    private static final CrispRanger HIGH_DURABILITY_RANGE = CrispRanger.closed(CARRY_CRATE_MAX_DURABILITY * 2 / 3, CARRY_CRATE_MAX_DURABILITY);
+    private static final Ranger LOW_DURABILITY_RANGE = Ranger.closedOpen(0, CARRY_CRATE_MAX_DURABILITY / 3);
+    private static final Ranger MEDIUM_DURABILITY_RANGE = Ranger.closedOpen(CARRY_CRATE_MAX_DURABILITY / 3, CARRY_CRATE_MAX_DURABILITY * 2 / 3);
+    private static final Ranger HIGH_DURABILITY_RANGE = Ranger.closed(CARRY_CRATE_MAX_DURABILITY * 2 / 3, CARRY_CRATE_MAX_DURABILITY);
     
-    public static final CrispRangeMap<Component> DESCRIPTION_DISPATCHER = CrispRangeMap.create(
+    public static final RangeMap<Component> DESCRIPTION_DISPATCHER = RangeMap.create(
         map ->
         {
             map.put(LOW_DURABILITY_RANGE, UI__CARRY_CRATE__LOW_DURABILITY_DESCRIPTION);
             map.put(MEDIUM_DURABILITY_RANGE, UI__CARRY_CRATE__MEDIUM_DURABILITY_DESCRIPTION);
             map.put(HIGH_DURABILITY_RANGE, UI__CARRY_CRATE__HIGH_DURABILITY_DESCRIPTION);
         },
-        CrispRangeMap.THROW
+        RangeMap.THROW
     );
     
     //* Using [[Supplier]] instead of [[MutableComponent]] directly to avoid footgun.

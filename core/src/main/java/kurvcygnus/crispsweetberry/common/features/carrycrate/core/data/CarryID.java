@@ -74,13 +74,7 @@ public final class CarryID extends BaseNestedPrinter<CarryID>
             CarryID::new,
             Optional.empty(),
             ($, __) ->
-            {
-                if(__.isEmpty())
-                    return false;
-                
-                final var ___ = __.get();
-                return ___ instanceof ServerStartedEvent || ___ instanceof ScreenEvent.MouseButtonPressed.Pre;
-            },
+                __.map(___ -> ___ instanceof ServerStartedEvent || ___ instanceof ScreenEvent.MouseButtonPressed.Pre).orElse(false),
             CarryEngine.class,
             CarryCrateCopyProcessor.class
         );

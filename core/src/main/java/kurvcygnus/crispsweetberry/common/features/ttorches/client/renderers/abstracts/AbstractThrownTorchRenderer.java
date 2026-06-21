@@ -14,8 +14,8 @@ import com.mojang.math.Axis;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.events.ThrowableTorchesRendererRegisterEvent;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.ThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRangeMap;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.RangeMap;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -48,19 +48,19 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
 {
     private static final int HORIZONTAL_SIDE_DIRECTION_INDEX = -1;
     
-    private static final CrispRanger FRONT_GROUP_1 = CrispRanger.closed(0, 45);
-    private static final CrispRanger FRONT_GROUP_2 = CrispRanger.openClosed(315, 360);
-    private static final CrispRanger FLIPPED_FRONT_GROUP = CrispRanger.openClosed(135, 225);
+    private static final Ranger FRONT_GROUP_1 = Ranger.closed(0, 45);
+    private static final Ranger FRONT_GROUP_2 = Ranger.openClosed(315, 360);
+    private static final Ranger FLIPPED_FRONT_GROUP = Ranger.openClosed(135, 225);
     
-    private static final List<CrispRanger> HORIZONTAL_FRONT_RANGERS = List.of(FRONT_GROUP_1, FRONT_GROUP_2, FLIPPED_FRONT_GROUP);
+    private static final List<Ranger> HORIZONTAL_FRONT_RANGERS = List.of(FRONT_GROUP_1, FRONT_GROUP_2, FLIPPED_FRONT_GROUP);
     
-    private static final CrispRanger VERTICAL_BOTTOM_RANGE = CrispRanger.closedOpen(-90, -45);
-    private static final CrispRanger VERTICAL_DOWNER_TILT_RANGE = CrispRanger.closedOpen(-45, -15);
-    private static final CrispRanger VERTICAL_DIRECT_RANGE = CrispRanger.closedOpen(-15, 15);
-    private static final CrispRanger VERTICAL_UPPER_TILT_RANGE = CrispRanger.closedOpen(15, 45);
-    private static final CrispRanger VERTICAL_TOP_RANGE = CrispRanger.closed(45, 90);
+    private static final Ranger VERTICAL_BOTTOM_RANGE = Ranger.closedOpen(-90, -45);
+    private static final Ranger VERTICAL_DOWNER_TILT_RANGE = Ranger.closedOpen(-45, -15);
+    private static final Ranger VERTICAL_DIRECT_RANGE = Ranger.closedOpen(-15, 15);
+    private static final Ranger VERTICAL_UPPER_TILT_RANGE = Ranger.closedOpen(15, 45);
+    private static final Ranger VERTICAL_TOP_RANGE = Ranger.closed(45, 90);
     
-    private static final CrispRangeMap<VerticalFacing> VERTICAL_DEGREE_MATCHER = CrispRangeMap.create(
+    private static final RangeMap<VerticalFacing> VERTICAL_DEGREE_MATCHER = RangeMap.create(
         map ->
         {
             map.put(VERTICAL_TOP_RANGE, VerticalFacing.TOP);
@@ -69,7 +69,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
             map.put(VERTICAL_DOWNER_TILT_RANGE, VerticalFacing.TILT);
             map.put(VERTICAL_DIRECT_RANGE, VerticalFacing.DIRECT);
         },
-        CrispRangeMap.THROW
+        RangeMap.THROW
     );
     
     public AbstractThrownTorchRenderer(@NotNull EntityRendererProvider.Context context) { super(context); }
@@ -116,7 +116,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         final HorizontalFacing horizontalFacing;
         final boolean flipHorizontal;
         
-        if(CrispRanger.inRangers(relativeYaw, HORIZONTAL_FRONT_RANGERS) != HORIZONTAL_SIDE_DIRECTION_INDEX)
+        if(Ranger.inRangers(relativeYaw, HORIZONTAL_FRONT_RANGERS) != HORIZONTAL_SIDE_DIRECTION_INDEX)
         {
             horizontalFacing = HorizontalFacing.FRONT;
             flipHorizontal = false;

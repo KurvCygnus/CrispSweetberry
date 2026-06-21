@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.config.gui;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -45,21 +45,28 @@ public final class CrispConfigScreen extends Screen
         this.lastScreen = lastScreen;
     }
     
+    //* Lifecycle of [[Screen#minecraft]]:
+    //* Only [[Nullable]] at [[Screen]]'s constructor.
+    //* In [[Screen#init]], [[Screen#render]] and [[Screen#onClose]],
+    //* they are always non-null.
+    
     @Override protected void init()
     {
+        AssertUtils.nonNullCheckOnDev(minecraft, "minecraft");
+        
         final int buttonWidth = 200;
         final int x = this.width / 2 - buttonWidth / 2;
         final int y = 40;
         
         this.addRenderableWidget(
-            CycleButton.onOffBuilder(CrispConfig.KILN_BE_DEBUG.get()).
-                create(
+            CycleButton.onOffBuilder(
+                CrispConfig.KILN_BE_DEBUG.get()).create(
                     x,
                     y,
                     buttonWidth,
                     20,
                     KILN_BE_DEBUG_TEXT,
-                    (button, value) -> CrispConfig.KILN_BE_DEBUG.set(value)
+                    (__, value) -> CrispConfig.KILN_BE_DEBUG.set(value)
                 )
         );
         
@@ -68,8 +75,8 @@ public final class CrispConfigScreen extends Screen
                 CommonComponents.GUI_DONE,
                 button ->
                 {
-                    CrispConfig.SPEC.save();
-                    FunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
+                    CrispConfig.INST.getSpec().save();
+                    minecraft.setScreen(lastScreen);
                 }
             ).
                 bounds(x, this.height - 28, buttonWidth, 20).
@@ -86,7 +93,7 @@ public final class CrispConfigScreen extends Screen
     
     @Override public void onClose()
     {
-        CrispConfig.SPEC.save();
-        FunctionalUtils.doIfNonNull(this.minecraft, mc -> mc.setScreen(lastScreen));
+        CrispConfig.INST.getSpec().save();
+        AssertUtils.nonNullCheckOnDev(minecraft, "minecraft").setScreen(lastScreen);
     }
 }

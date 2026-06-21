@@ -27,17 +27,17 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.Internal public enum CarryType implements StringRepresentable
 {
-    BLOCK_ENTITY(CarryData.CarryBlockEntityDataHolder.CODEC, CarryData.CarryBlockEntityDataHolder.STREAM_CODEC, BlockEntityType.class),
-    BLOCK(CarryData.CarryBlockDataHolder.CODEC,              CarryData.CarryBlockDataHolder.STREAM_CODEC,       Block.class),
-    ENTITY(CarryData.CarryEntityDataHolder.CODEC,            CarryData.CarryEntityDataHolder.STREAM_CODEC,      EntityType.class);
+    BLOCK_ENTITY(CarryData.OfBlockEntityUniqueData.CODEC, CarryData.OfBlockEntityUniqueData.STREAM_CODEC, BlockEntityType.class),
+    BLOCK(CarryData.OfBlockUniqueData.CODEC,              CarryData.OfBlockUniqueData.STREAM_CODEC,       Block.class),
+    ENTITY(CarryData.OfEntityUniqueData.CODEC,            CarryData.OfEntityUniqueData.STREAM_CODEC,      EntityType.class);
     
-    final MapCodec<? extends CarryData.CarryDataBaseHolder> codec;
-    final StreamCodec<ByteBuf, ? extends CarryData.CarryDataBaseHolder> streamCodec;
+    final MapCodec<? extends CarryData.OfUniqueDataBase> codec;
+    final StreamCodec<ByteBuf, ? extends CarryData.OfUniqueDataBase> streamCodec;
     public final Class<?> boundClass;
     
     CarryType(
-        @NotNull MapCodec<? extends CarryData.CarryDataBaseHolder> codec,
-        @NotNull StreamCodec<ByteBuf, ? extends CarryData.CarryDataBaseHolder> streamCodec,
+        @NotNull MapCodec<? extends CarryData.OfUniqueDataBase> codec,
+        @NotNull StreamCodec<ByteBuf, ? extends CarryData.OfUniqueDataBase> streamCodec,
         @NotNull Class<?> boundClass
     )
     {

@@ -8,8 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
+import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -77,12 +76,7 @@ public abstract class AbstractTemporaryTorchBehavior
         
         if(!isStateLengthLegal)
         {
-            //noinspection NonStrictComparisonCanBeEquality
-            FunctionalUtils.throwIf(
-                stateLength <= 0,//! Defensive check.
-                DefinitionUtils.quickFormat("The attachTag length of tempo torches should be a positive integer! Current length: {}", stateLength),
-                IllegalArgumentException::new
-            );
+            AssertUtils.positiveOnly(stateLength, "stateLength");
             isStateLengthLegal = true;
         }
         

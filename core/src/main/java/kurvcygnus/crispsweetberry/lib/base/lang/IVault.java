@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
+import kurvcygnus.crispsweetberry.lib.base.extensions.StackDebugger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -289,13 +290,11 @@ public sealed interface IVault<TValue, TToken> extends Function<TToken, Optional
     
     boolean isMutable();
     
-    default @Override @NotNull Optional<TValue> apply(@NotNull TToken token) { return trySafeGet(token); }
+    @Override default @NotNull Optional<TValue> apply(@NotNull TToken token) { return trySafeGet(token); }
 }
 
 abstract sealed class BaseVault<TValue, TToken> implements IVault<TValue, TToken>
 {
-    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
-    
     protected final @Nullable TToken token;
     protected final @NotNull Predicate<? super TToken> matcher;
     protected final @Nullable Set<Class<?>> friends;
@@ -327,10 +326,10 @@ abstract sealed class BaseVault<TValue, TToken> implements IVault<TValue, TToken
         {
             if(friends != null)
             {
-                final var caller = getTrueCallerClass(STACK_WALKER.getCallerClass());
+                final var caller = getTrueCallerClass(StackDebugger.getCallerClass());
                 
                 if(!friends.contains(caller))
-                    throw new IllegalArgumentException("Invalid caller: " + STACK_WALKER.getCallerClass().getSimpleName());
+                    throw new IllegalArgumentException("Invalid caller: " + StackDebugger.getFullCallerInfo());
             }
             
             return value();
@@ -345,7 +344,7 @@ abstract sealed class BaseVault<TValue, TToken> implements IVault<TValue, TToken
         {
             if(friends != null)
             {
-                final var caller = getTrueCallerClass(STACK_WALKER.getCallerClass());
+                final var caller = getTrueCallerClass(StackDebugger.getCallerClass());
                 
                 if(!friends.contains(caller))
                     return Optional.empty();
@@ -363,7 +362,7 @@ abstract sealed class BaseVault<TValue, TToken> implements IVault<TValue, TToken
         
         if(friends != null)
         {
-            final var caller = getTrueCallerClass(STACK_WALKER.getCallerClass());
+            final var caller = getTrueCallerClass(StackDebugger.getCallerClass());
             if(!friends.contains(caller))
                 return null;
         }
@@ -375,12 +374,13 @@ abstract sealed class BaseVault<TValue, TToken> implements IVault<TValue, TToken
     {
         if(clazz.isSynthetic())
             throw new IllegalArgumentException(
-                MessageFormatter.format("Class {} is synthetic, finding its enclosing class is currently not supported!", clazz.getSimpleName()).getMessage()
+                MessageFormatter.format(
+                    "Class {} is synthetic, finding its enclosing class is not supported!",
+                    clazz.getSimpleName()
+                ).getMessage()
             );
         
-        if(clazz.isAnonymousClass())
-            return getTrueCallerClass(clazz.getEnclosingClass());
-        return clazz;
+        return clazz.isAnonymousClass() ? getTrueCallerClass(clazz.getEnclosingClass()) : clazz;
     }
     
     protected abstract @NotNull TValue value();
@@ -403,9 +403,13 @@ final class MutableVault<TValue, TToken> extends BaseVault<TValue, TToken>
     
     @Override protected @Nullable TValue trySetSequence(@NotNull TValue value)
     {
-        final var previous = this.value.get();
-        this.value.set(value);
-        return previous;
+        while(true)
+        {
+            final var current = this.value.get();
+            
+            if(this.value.compareAndSet(current, value))
+                return current;
+        }
     }
     
     @Override public boolean isMutable() { return true; }
@@ -429,6 +433,9 @@ final class ImmutableVault<TValue, TToken> extends BaseVault<TValue, TToken>
     @Override public boolean isMutable() { return false; }
 }
 
+/**
+ * A simple <u>{@link FunctionalInterface Functional Interface}</u> for <u>{@link IVault}</u>'s internal {@code static} factory method's type delegation.
+ */
 @FunctionalInterface interface IVaultFactory<TValue, TToken>
 {
     @NotNull IVault<TValue, TToken> construct(

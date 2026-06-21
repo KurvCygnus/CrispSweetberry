@@ -13,15 +13,17 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInte
 import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransactionalThrowable;
 import kurvcygnus.crispsweetberry.lib.base.exceptions.StructuredException;
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
+import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.world.InteractionResult;
 import net.neoforged.neoforge.common.util.TriState;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+
+import static kurvcygnus.crispsweetberry.utils.AssertUtils.nonNullCheckOnDev;
 
 /**
  * A simple exception for <u>{@link CarryEngine CarryEngine}</u>'s core logic error handling,
@@ -33,9 +35,9 @@ import java.util.function.Function;
  * @since 1.0 Release
  */
 @ApiStatus.Internal final class CarryInteractHandleException extends StructuredException
-    implements ITransactionalThrowable<CarryInteractHandleException, CarryInteractContext, InteractionResult>
+implements ITransactionalThrowable<CarryInteractHandleException, CarryInteractContext, InteractionResult>
 {
-    private static final BinaryOperator<String> TYPE_TEMPLATE = (s1, s2) -> MessageFormatter.format("{}_{}", s1, s2).getMessage();
+    private static final BinaryOperator<String> TYPE_TEMPLATE = (s1, s2) -> DefinitionUtils.quickFormat("{}_{}", s1, s2);
     
     private final CarryInteractContext causeData;
     
@@ -46,7 +48,7 @@ import java.util.function.Function;
         this.causeData = causeData;
     }
     
-    public static <T> @NotNull IResult<T, CarryInteractHandleException> miscFailed(
+    static <T> @NotNull IResult<T, CarryInteractHandleException> miscFailed(
         @NotNull CarryInteractContext causeData,
         @NotNull String message,
         @NotNull Function<String, Throwable> exceptionFactory,
@@ -58,7 +60,7 @@ import java.util.function.Function;
         return IResult.ofFailed(new CarryInteractHandleException(exceptionFactory.apply(message), type, causeData));
     }
     
-    public static <T> @NotNull IResult<T, CarryInteractHandleException> boxInFailed(
+    static <T> @NotNull IResult<T, CarryInteractHandleException> boxInFailed(
         @NotNull CarryInteractContext causeData,
         @NotNull String message,
         @NotNull Function<String, Throwable> exceptionFactory,
@@ -74,7 +76,7 @@ import java.util.function.Function;
         );
     }
     
-    public static <T> @NotNull IResult<T, CarryInteractHandleException> unboxFailed(
+    @SuppressWarnings("SameParameterValue") static <T> @NotNull IResult<T, CarryInteractHandleException> unboxFailed(
         @NotNull CarryInteractContext causeData,
         @NotNull String message,
         @NotNull Function<String, Throwable> exceptionFactory,
@@ -90,14 +92,14 @@ import java.util.function.Function;
         );
     }
     
-    public static <T> @NotNull IResult<T, CarryInteractHandleException> listener(
+    static <T> @NotNull IResult<T, CarryInteractHandleException> listener(
         @NotNull CarryInteractContext causeData,
         @NotNull String message,
         @NotNull Function<String, Throwable> exception,
         @NotNull TriState state
     )
     {
-        assert state != null : "Param \"state\" must not be null!";
+        nonNullCheckOnDev(state, "state");
         
         return IResult.ofFailed(
             new CarryInteractHandleException(
@@ -116,7 +118,7 @@ import java.util.function.Function;
         );
     }
     
-    public static <T> @NotNull IResult<T, CarryInteractHandleException> target(
+    static <T> @NotNull IResult<T, CarryInteractHandleException> target(
         @NotNull CarryInteractContext causeData,
         @NotNull String message,
         @NotNull Function<String, Throwable> exception,
@@ -124,8 +126,8 @@ import java.util.function.Function;
         @NotNull TriState state
     )
     {
-        assert type != null : "Param \"type\" must not be null!";
-        assert state != null : "Param \"state\" must not be null!";
+        nonNullCheckOnDev(type, "type");
+        nonNullCheckOnDev(state, "state");
         
         return IResult.ofFailed(
             new CarryInteractHandleException(

@@ -22,7 +22,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
+import static kurvcygnus.crispsweetberry.utils.AssertUtils.positiveOnly;
+import static kurvcygnus.crispsweetberry.utils.AssertUtils.throwIf;
 
 /**
  * This is a basic implementation of coin series' essential <u>{@link ICoinType contract}</u>,
@@ -65,9 +66,9 @@ public abstract class BaseCoinType<C extends ICoinType<C>> extends BaseNestedPri
         requireNonNull(stackSupplier, "Param \"stackSupplier\" must not be null!");
         requireNonNull(coinSupplier, "Param \"coinSupplier\" must not be null!");
         requireNonNull(nuggetSupplier, "Param \"nuggetSupplier\" must not be null!");
-        throwIf(experience <= 0, "Param \"experience\" must be a positive integer!", IllegalArgumentException::new);
+        positiveOnly(experience, "experience");
         throwIf(penaltyRate <= 0F || penaltyRate > 1F, "Param \"penaltyRate\" must be in range of (0F, 1F]!", IllegalArgumentException::new);
-        throwIf(strength <= 0F, "Param \"strength\" must be a positive float!", IllegalArgumentException::new);
+        positiveOnly(strength, "strength");
         requireNonNull(initEnableCondition(), "Param \"enableCondition\" must not be null!");
         
         this.namespace = initNamespace();

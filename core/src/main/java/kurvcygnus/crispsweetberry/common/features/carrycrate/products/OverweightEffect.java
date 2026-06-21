@@ -12,8 +12,8 @@ import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
+import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.FunctionalUtils;
 import kurvcygnus.crispsweetberry.utils.MathUtils;
 import kurvcygnus.crispsweetberry.utils.constants.FunctionalDummies;
 import net.minecraft.resources.ResourceLocation;
@@ -69,7 +69,7 @@ public final class OverweightEffect extends MobEffect
             deferredRegister,
             "This static constructor is only used for registration, provide DeferredRegister<MobEffect>!"
         );
-        FunctionalUtils.throwIf(
+        AssertUtils.throwIf(
             !Objects.equals(deferredRegister.getNamespace(), CrispSweetberry.NAMESPACE),
             "External usage is not allowed!",
             IllegalArgumentException::new
@@ -92,7 +92,7 @@ public final class OverweightEffect extends MobEffect
         Objects.requireNonNull(state, "Param \"state\" must not be null!");
         Objects.requireNonNull(unacceptableCallback, "Param \"unacceptableCallback\" must not be null!");
         
-        FunctionalUtils.throwIf(
+        AssertUtils.throwIf(
             !state.equals(TriState.DEFAULT) && data == null,
             "Illegal Composition: non-DEFAULT means side effect will be invoked, param \"data\" must not be null!",
             IllegalArgumentException::new
@@ -100,7 +100,7 @@ public final class OverweightEffect extends MobEffect
         
         final float layerFactor = switch(data)
         {
-            case CarryData that when that.unionData() instanceof CarryData.CarryBlockDataHolder holder ->
+            case CarryData that when that.matchUnique() instanceof CarryData.OfBlockUniqueData holder ->
                 1.00F / holder.maxCarryCount;//* 1.00F avoids the `(float)` casting, and also, it represents that this expression is a percentage calculation.
             case null, default -> MAX_LAYER;      //* Thus, no necessary to constantize 1.00F.
         };

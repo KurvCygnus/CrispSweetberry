@@ -15,6 +15,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryT
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
+import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -36,7 +37,7 @@ import java.util.List;
  * A specialized synchronization engine designed to deferred-load BlockEntity NBT data.<br>
  * @implNote
  * During unboxing operations inside <b>{@code CarryOperationExecutor#blocklikeTargetRelease}</b>, placing a block
- * with a <u>{@link BlockEntity}</u> directly onto the world triggers structural execution pipelines within Minecraft
+ * with a <u>{@link BlockEntity}</u> directly onto the world triggers structural execution chains within Minecraft
  * (e.g. <u>{@link net.neoforged.neoforge.common.CommonHooks#onPlaceItemIntoWorld CommonHooks#onPlaceItemIntoWorld}</u>
  * and <u>{@link net.minecraft.world.level.Level#capturedBlockSnapshots Level#capturedBlockSnapshots}</u>).
  * If a BlockEntity's NBT payload is deserialized prematurely during these capture or placement phases, Minecraft's underlying chunk
@@ -72,21 +73,24 @@ import java.util.List;
      */
     @SubscribeEvent @DoNotCall static void completeTask(@NotNull ServerTickEvent.Pre event)
     {
+        final var tasks = CarryBlockEntitySyncer.INST.tasks;
+        
+        if(tasks.isEmpty())
+            return;
+        
         final var level = event.getServer().overworld();
-        for(final var task: CarryBlockEntitySyncer.INST.tasks)
+        for(final var task: tasks)
         {
             final var pos = task.pos();
             final var blockState = level.getBlockState(pos);
             
             if(!(blockState.getBlock() instanceof EntityBlock))
             {
-                DefinitionUtils.throwOnDevOrLogError(
+                AssertUtils.throwOnDevOrLogError(
                     IllegalStateException::new,
                     LOGGER,
-                    "Assertion failed: the data sync task at position <{}, {}, {}>'s block \"{}\" is not even a EntityBlock.",
-                    pos.getX(),
-                    pos.getY(),
-                    pos.getZ(),
+                    "Assertion failed: the data sync task at position {}'s block \"{}\" is not even a EntityBlock.",
+                    DefinitionUtils.formatPos(pos),
                     blockState.getBlock().getDescriptionId()
                 );
                 continue;
@@ -97,16 +101,14 @@ import java.util.List;
             
             if(msgFlag || blockState != blockEntity.getBlockState())
             {
-                DefinitionUtils.throwOnDevOrLogError(
+                AssertUtils.throwOnDevOrLogError(
                     IllegalStateException::new,
                     LOGGER,
                     "Assertion failed: {}",
                     msgFlag ?
                         DefinitionUtils.quickFormat(
-                            "Position <{}, {}, {}> doesn't exist any blockEntity.",
-                            pos.getX(),
-                            pos.getY(),
-                            pos.getZ()
+                            "Position {} doesn't exist any blockEntity.",
+                            DefinitionUtils.formatPos(pos)
                         ) :
                         DefinitionUtils.quickFormat("Inconsistent corresponding block for blockState \"{}\" and blockEntity \"{}\".", blockState, blockEntity)
                 );
@@ -114,7 +116,6 @@ import java.util.List;
             }
             
             blockEntity.loadCustomOnly(task.tag(), level.registryAccess());
-            LOGGER.debug("Task at <{}, {}, {}> has consumed.", pos.getX(), pos.getY(), pos.getZ());
         }
         
         CarryBlockEntitySyncer.INST.tasks.clear();
@@ -125,10 +126,8 @@ import java.util.List;
         if(!data.carryType.equals(CarryType.BLOCK_ENTITY))
             throw new IllegalArgumentException("You just write the CarryOperationExecutor's implementation in a wrong way, stupid! FIX IT RN!!!");
         
-        final CarryData.CarryBlockEntityDataHolder holder = data.unionData();
-        final var task = new SyncTask(pos, holder.tagData);
+        final var task = new SyncTask(pos, data.<CarryData.OfBlockEntityUniqueData>matchUnique().tagData);
         this.tasks.add(task);
-        LOGGER.debug("Task at pos <{}, {}, {}> pushed.", pos.getX(), pos.getY(), pos.getZ());
     }
 }
 

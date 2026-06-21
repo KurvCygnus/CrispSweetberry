@@ -37,7 +37,7 @@ import java.util.Objects;
  * @since 1.0 Release
  */
 public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity>
-extends AbstractCarryAdapter<CarryData.CarryBlockEntityDataHolder> implements CarriableBlockEntityExtensions.OfAll<E>
+extends AbstractCarryAdapter<CarryData.OfBlockEntityUniqueData> implements CarriableBlockEntityExtensions.OfAll<E>
 {
     //region Core Logics
     /**

@@ -21,7 +21,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryT
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarryRegistryView;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
+import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
+import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import net.minecraft.Util;
@@ -34,7 +36,6 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
@@ -49,7 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
+import static kurvcygnus.crispsweetberry.utils.AssertUtils.*;
 
 /**
  * This is a enum based manager class, which holds the adapter source map,
@@ -66,45 +67,44 @@ public enum CarryRegistryManager implements ICarryRegistryView
     
     //region Fields & Constants
     private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("CARRY_REGISTRY");
-    private static final String ILLEGAL_REGISTER_INFO = "Attempting registration after registry frozen is not allowed!";
     
     /**
      * The flag that freezes the mutation access to registry maps.<br>
      * It will grantee the safety of all registry maps after the <u>{@link CarryRegistryManager#register(FMLLoadCompleteEvent) registration}</u> completed.
      */
-    private static final ISealableBox<Boolean> FROZEN = ISealableBox.assignable(false);
+    private static final ISealableBox<Boolean> FROZEN = ISealableBox.assignableAtomic(Boolean.FALSE);
     
-    private static final HashMap<BlockEntityType<?>, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_REGISTRY = new HashMap<>();
-    
-    /**
-     * @implNote This map is mainly used for game's <u>{@link net.minecraft.world.level.saveddata.SavedData SavedData}</u>'s
-     * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
-     */
-    private static final HashMap<ResourceLocation, ICarryBlockEntityAdapterFactory<?, ?>> RECOVERY_BLOCK_ENTITY_REGISTRY = new HashMap<>();
-    
-    private static final HashMap<Block, ICarryBlockAdapterFactory<?, ?>> BLOCK_REGISTRY = new HashMap<>();
+    private static final Map<BlockEntityType<?>, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_REGISTRY = new HashMap<>();
     
     /**
      * @implNote This map is mainly used for game's <u>{@link net.minecraft.world.level.saveddata.SavedData SavedData}</u>'s
      * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
      */
-    private static final HashMap<ResourceLocation, ICarryBlockAdapterFactory<?, ?>> RECOVERY_BLOCK_REGISTRY = new HashMap<>();
+    private static final Map<ResourceLocation, ICarryBlockEntityAdapterFactory<?, ?>> RECOVERY_BLOCK_ENTITY_REGISTRY = new HashMap<>();
     
-    private static final HashMap<EntityType<?>, ICarryEntityAdapterFactory<?, ?>> ENTITY_REGISTRY = new HashMap<>();
+    private static final Map<Block, ICarryBlockAdapterFactory<?, ?>> BLOCK_REGISTRY = new HashMap<>();
     
     /**
      * @implNote This map is mainly used for game's <u>{@link net.minecraft.world.level.saveddata.SavedData SavedData}</u>'s
      * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
      */
-    private static final HashMap<ResourceLocation, ICarryEntityAdapterFactory<?, ?>> RECOVERY_ENTITY_REGISTRY = new HashMap<>();
+    private static final Map<ResourceLocation, ICarryBlockAdapterFactory<?, ?>> RECOVERY_BLOCK_REGISTRY = new HashMap<>();
+    
+    private static final Map<EntityType<?>, ICarryEntityAdapterFactory<?, ?>> ENTITY_REGISTRY = new HashMap<>();
+    
+    /**
+     * @implNote This map is mainly used for game's <u>{@link net.minecraft.world.level.saveddata.SavedData SavedData}</u>'s
+     * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
+     */
+    private static final Map<ResourceLocation, ICarryEntityAdapterFactory<?, ?>> RECOVERY_ENTITY_REGISTRY = new HashMap<>();
     
     /**
      * @implNote This map is mainly used for <u>{@link CarryCrateItem Carry Crate}</u>'s content display,
      * it caches the translation key of the content, so its content is depended on current language.
      */
-    private static final HashMap<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();
+    private static final Map<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();
     
-    private static final Map<CarryType, HashMap<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_LOOKUP =
+    private static final Map<CarryType, Map<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_LOOKUP =
         DefinitionUtils.createImmutableEnumMapWithCheck(
             CarryType.class,
             map ->
@@ -115,7 +115,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
             }
         );
     
-    private static final Map<CarryType, HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>>> RECOVER_LOOKUP =
+    private static final Map<CarryType, Map<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>>> RECOVER_LOOKUP =
         DefinitionUtils.createImmutableEnumMapWithCheck(
             CarryType.class,
             map ->
@@ -125,10 +125,44 @@ public enum CarryRegistryManager implements ICarryRegistryView
                 map.put(CarryType.BLOCK, RECOVERY_BLOCK_REGISTRY);
             }
         );
+    
+    private static final IChecker.OfNoArg<IllegalStateException> FROZEN_CHECKER =
+        AssertUtils.produceChecker(FROZEN, "Attempting registration after registry frozen is not allowed!", IllegalStateException::new, true);
+    
+    private static final IChecker.OfOneArg<Object, IllegalStateException> BOUND_CHECKER = AssertUtils.produceChecker(
+        target ->
+        {
+            final boolean condition;
+            final String prefix;
+            
+            switch(target)
+            {
+                case BlockEntityType<?> bet ->
+                {
+                    condition = BLOCK_ENTITY_REGISTRY.containsKey(bet);
+                    prefix = "BlockEntity";
+                }
+                case Block block ->
+                {
+                    condition = BLOCK_REGISTRY.containsKey(block);
+                    prefix = "Block";
+                }
+                case EntityType<?> et ->
+                {
+                    condition = ENTITY_REGISTRY.containsKey(et);
+                    prefix = "Entity";
+                }
+                default -> throw AssertUtils.impossibleBranch();
+            }
+            
+            return Pair.of(condition, DefinitionUtils.quickFormat("{} \"{}\" has already been bounded with an adapter!", prefix, target.toString()));
+        },
+        IllegalStateException::new,
+        true
+    );
     //endregion
     
     //region Event Lifecycles & Auto Bind Logics
-    
     /**
      * This method posts the <u>{@link CarryAdapterRegisterEvent Registration Event}</u>, and also processes
      * <u>{@link net.minecraft.world.entity.Entity Entity}</u>'s <u>{@link #autoEntityBind() auto registration}</u>.<br>
@@ -156,7 +190,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         MobCategory.WATER_AMBIENT
     );
     
-    @SuppressWarnings("unchecked")//! Unsafe casting, with try-catch ;)
+    @SuppressWarnings("unchecked")//! Unsafe casting. But [[ClassCastException]] is avoided by [[Stream#filter]].
     private static void autoEntityBind()
     {
         BuiltInRegistries.ENTITY_TYPE.stream().
@@ -166,7 +200,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
                 {
                     LOGGER.debug("Captured entity \"{}\" as friendly entity.", entityType.getDescriptionId());
                     
-                    final AABB aabb = entityType.getSpawnAABB(0D, 0D, 0D);
+                    final var aabb = entityType.getSpawnAABB(0D, 0D, 0D);
                     final double entityVolume = aabb.getXsize() * aabb.getYsize() * aabb.getZsize();
                     final boolean isAcceptable = entityVolume <= AdaptiveAnimalCarryAdapter.MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME;
                     
@@ -212,7 +246,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
-        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        FROZEN_CHECKER.check();
         
         requireNonNull(blockEntityType, "Param \"blockEntityType\" must not be null!");
         requireNonNull(BlockEntityType.getKey(blockEntityType), "Param \"blockEntityType\"'s ResourceLocation must not be null!");
@@ -226,7 +260,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         @NotNull ICarryRegistryView.ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory
     )
     {
-        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        FROZEN_CHECKER.check();
         
         requireNonNull(blockEntityTypes, "Param \"blockEntityTypes\" must not be null!");
         requireNonNull(carryAdapterBlockEntityFactory, "Param \"carryAdapterFactory\" must not be null!");
@@ -243,7 +277,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <B extends Block, A extends AbstractBlockCarryAdapter<B>>
     void register(@NotNull B block, @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory)
     {
-        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        FROZEN_CHECKER.check();
         
         requireNonNull(block, "Param \"block\" must not be null!");
         requireNonNull(BuiltInRegistries.BLOCK.getKey(block), "Param \"block\"'s ResourceLocation must not be null!");
@@ -255,7 +289,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <B extends Block, A extends AbstractBlockCarryAdapter<? extends B>>
     void registerUniversal(@NotNull Set<? extends B> blocks, @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory)
     {
-        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        FROZEN_CHECKER.check();
         
         requireNonNull(blocks, "Param \"blocks\" must not be null!");
         requireNonNull(carryAdapterBlockAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");
@@ -272,7 +306,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<E>>
     void register(@NotNull EntityType<E> entityType, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
     {
-        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        FROZEN_CHECKER.check();
         
         requireNonNull(entityType, "Param \"entityType\" must not be null!");
         requireNonNull(EntityType.getKey(entityType), "Param \"entityType\"'s ResourceLocation must not be null!");
@@ -284,7 +318,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<? extends E>>
     void registerUniversal(@NotNull Set<? extends EntityType<? extends E>> entityTypes, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
     {
-        throwIf(FROZEN.orThrow(), ILLEGAL_REGISTER_INFO, IllegalStateException::new);
+        FROZEN_CHECKER.check();
         
         requireNonNull(entityTypes, "Param \"entityTypes\" must not be null!");
         requireNonNull(carryEntityAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");
@@ -304,9 +338,9 @@ public enum CarryRegistryManager implements ICarryRegistryView
         @NotNull ICarryEntityAdapterFactory<? extends LivingEntity, ? extends AbstractEntityCarryAdapter<?>> carryEntityAdapterFactory
     )
     {
-        assert entityType != null : "Param \"entityType\" must not be null!";
-        assert EntityType.getKey(entityType) != null : "Thee key of Param \"entityType\" must not be null!";
-        assert carryEntityAdapterFactory != null : "Param \"carryEntityAdapterFactory\" must not be null!";
+        nonNullCheckOnDev(entityType, "entityType");
+        nonNullCheckOnDev(EntityType.getKey(entityType), "entityTypeKey");
+        nonNullCheckOnDev(carryEntityAdapterFactory, "carryEntityAdapterFactory");
         
         if(ENTITY_REGISTRY.containsKey(entityType))
         {
@@ -332,14 +366,9 @@ public enum CarryRegistryManager implements ICarryRegistryView
     void registerBlockEntity(@NotNull BlockEntityType<? extends E> blockEntityType, @NotNull ICarryBlockEntityAdapterFactory<E, A> carryAdapterBlockEntityFactory)
     {
         validateAdapterData(blockEntityType, carryAdapterBlockEntityFactory);
+        BOUND_CHECKER.check(blockEntityType);
         
-        throwIf(
-            BLOCK_ENTITY_REGISTRY.containsKey(blockEntityType),
-            DefinitionUtils.quickFormat("BlockEntity \"{}\" has already been bounded with an adapter!", blockEntityType.toString()),
-            IllegalStateException::new
-        );
-        
-        final ResourceLocation resourceLocation = BlockEntityType.getKey(blockEntityType);
+        final var resourceLocation = BlockEntityType.getKey(blockEntityType);
         
         BLOCK_ENTITY_REGISTRY.put(blockEntityType, carryAdapterBlockEntityFactory);
         RECOVERY_BLOCK_ENTITY_REGISTRY.put(resourceLocation, carryAdapterBlockEntityFactory);
@@ -352,16 +381,11 @@ public enum CarryRegistryManager implements ICarryRegistryView
     void registerBlock(@NotNull B block, @NotNull ICarryBlockAdapterFactory<B, A> carryAdapterBlockAdapterFactory)
     {
         validateAdapterData(block, carryAdapterBlockAdapterFactory);
+        BOUND_CHECKER.check(block);
         
-        final String translationID = block.getDescriptionId();
+        final var translationID = block.getDescriptionId();
         
-        throwIf(
-            BLOCK_REGISTRY.containsKey(block),
-            DefinitionUtils.quickFormat("Block \"{}\" has already been bounded with an adapter!", translationID),
-            IllegalStateException::new
-        );
-        
-        final ResourceLocation resourceLocation = BuiltInRegistries.BLOCK.getKey(block);
+        final var resourceLocation = BuiltInRegistries.BLOCK.getKey(block);
         
         BLOCK_REGISTRY.put(block, carryAdapterBlockAdapterFactory);
         RECOVERY_BLOCK_REGISTRY.put(resourceLocation, carryAdapterBlockAdapterFactory);
@@ -373,16 +397,11 @@ public enum CarryRegistryManager implements ICarryRegistryView
     void registerEntity(@NotNull EntityType<? extends E> entityType, @NotNull ICarryEntityAdapterFactory<E, A> carryEntityAdapterFactory)
     {
         validateAdapterData(entityType, carryEntityAdapterFactory);
+        BOUND_CHECKER.check(entityType);
         
-        final String translationID = entityType.getDescriptionId();
+        final var translationID = entityType.getDescriptionId();
         
-        throwIf(
-            ENTITY_REGISTRY.containsKey(entityType),
-            DefinitionUtils.quickFormat("Entity \"{}\" has already been bounded with an adapter!", translationID),
-            IllegalStateException::new
-        );
-        
-        final ResourceLocation resourceLocation = EntityType.getKey(entityType);
+        final var resourceLocation = EntityType.getKey(entityType);
         
         ENTITY_REGISTRY.put(entityType, carryEntityAdapterFactory);
         RECOVERY_ENTITY_REGISTRY.put(resourceLocation, carryEntityAdapterFactory);
@@ -395,11 +414,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     {
         final AbstractCarryAdapter<?> adapter = baseCarryAdapterFactory.create(null);
         
-        throwIf(
-            adapter.getPenaltyRate() < 0,
-            DefinitionUtils.quickFormat("The penaltyRate of \"{}\"'s adapter should be non-negative! Current is: {}", obj.toString(), adapter.getPenaltyRate()),
-            IllegalStateException::new
-        );
+        unsignedRequired(adapter.getPenaltyRate(), "penaltyRate");
         
         if(obj instanceof Block block && adapter instanceof AbstractBlockCarryAdapter<?> blockCarryAdapter)
             throwIf(
@@ -418,10 +433,10 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @SuppressWarnings("unchecked")//! Danger, but relatively safe as long as the param is matched, mismatch only happens when caller did it by design.
     <F extends IBaseCarryAdapterFactory<?, ?>, K> @NotNull Optional<F> searchFactory(@NotNull CarryType carryType, @NotNull K key)
     {
-        assert carryType != null : "Param \"carryType\" must not be null!";
-        assert key != null : "Param \"key\" must not be null!";
+        nonNullCheckOnDev(carryType, "carryType");
+        nonNullCheckOnDev(key, "key");
         
-        final Class<?> keyType = carryType.boundClass;
+        final var keyType = carryType.boundClass;
         
         if(!keyType.isAssignableFrom(key.getClass()))
             throw new IllegalArgumentException(DefinitionUtils.quickFormat("Invalid factory creation type! Expected: {}, got: {}", keyType, key.getClass()));
@@ -432,8 +447,8 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @SuppressWarnings("unchecked")//! Safe casting.
     <F extends IBaseCarryAdapterFactory<?, ?>> @Nullable F searchFactory(@NotNull ResourceLocation resourceLocation)
     {
-        assert resourceLocation != null : "Param \"resourceLocation\" must not be null!";
-        for(final HashMap<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>> map: RECOVER_LOOKUP.values())
+        nonNullCheckOnDev(resourceLocation, "resourceLocation");
+        for(final var map: RECOVER_LOOKUP.values())
             if(map.containsKey(resourceLocation))
                 return (F) map.get(resourceLocation);
         

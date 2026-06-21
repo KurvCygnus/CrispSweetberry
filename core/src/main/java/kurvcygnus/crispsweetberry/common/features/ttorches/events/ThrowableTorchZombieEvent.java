@@ -11,8 +11,8 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.events;
 import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRangeMap;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.RangeMap;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.monster.Zombie;
@@ -34,18 +34,18 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstr
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 final class ThrowableTorchZombieEvent
 {
-    private static final CrispRanger DEEPEST_RANGE = CrispRanger.closed(-64, -24);
-    private static final CrispRanger DEEP_RANGE = CrispRanger.closed(-23, 16);
-    private static final CrispRanger NORMAL_RANGE = CrispRanger.closed(17, 320);
+    private static final Ranger DEEPEST_RANGE = Ranger.closed(-64, -24);
+    private static final Ranger DEEP_RANGE = Ranger.closed(-23, 16);
+    private static final Ranger NORMAL_RANGE = Ranger.closed(17, 320);
     
-    private static final CrispRangeMap<Integer> DEPTH_RANDOM_MAPPER = CrispRangeMap.create(
+    private static final RangeMap<Integer> DEPTH_RANDOM_MAPPER = RangeMap.create(
         map ->
         {
             map.put(DEEPEST_RANGE, 7);
             map.put(DEEP_RANGE, 5);
             map.put(NORMAL_RANGE, 3);
         },
-        CrispRangeMap.THROW
+        RangeMap.THROW
     );
     
     @SubscribeEvent @DoNotCall static void onNewZombieSpawn(@NotNull EntityJoinLevelEvent event)

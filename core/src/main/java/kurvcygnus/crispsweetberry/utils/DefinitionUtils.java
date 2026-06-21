@@ -10,12 +10,12 @@ package kurvcygnus.crispsweetberry.utils;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
@@ -50,6 +49,15 @@ public final class DefinitionUtils
     {
         requireNonNull(format, "Param \"format\" must not be null!");
         return MessageFormatter.arrayFormat(format, args).getMessage();
+    }
+    
+    /**
+     * Generates, and returns a <u>{@link String}</u> that formatted as {@code "<{pos.x}, {pos.y}, {pos.z}>"}.
+     */
+    public static @NotNull String formatPos(@NotNull BlockPos pos)
+    {
+        requireNonNull(pos, "Param \"pos\" must not be null!");
+        return quickFormat("<{}, {}, {}>", pos.getX(), pos.getY(), pos.getZ());
     }
     
     /**
@@ -119,7 +127,8 @@ public final class DefinitionUtils
     }
     
     /**
-     * Creates an immutable, <u>{@link Enum}</u> specified map collection.
+     * Creates an immutable, <u>{@link Enum}</u> specified map collection. It checks whether the built map is as exhaustive as the <u>{@link Enum}</u>
+     * this method uses.
      * @see EnumMap
      */
     public static <E extends Enum<E>, V> @Unmodifiable @NotNull Map<E, V> createImmutableEnumMapWithCheck(
@@ -184,24 +193,5 @@ public final class DefinitionUtils
         action.accept(tag);
         
         return tag;
-    }
-    
-    public static <E extends Throwable> void throwOnDevOrLogError(
-        @NotNull Function<String, E> function,
-        @NotNull Logger logger,
-        @NotNull String message,
-        @Nullable Object @Nullable ... args
-    ) throws E
-    {
-        requireNonNull(function, "Param \"function\" must not be null!");
-        requireNonNull(logger, "Param \"logger\" must not be null!");
-        requireNonNull(message, "Param \"message\" must not be null!");
-        
-        final var fullMessage = quickFormat(message, args);
-        
-        if(!FMLEnvironment.production)
-            throw function.apply(fullMessage);
-        
-        logger.error(fullMessage);
     }
 }

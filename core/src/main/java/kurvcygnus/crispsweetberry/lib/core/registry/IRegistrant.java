@@ -13,6 +13,9 @@ import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.config.IConfigSpec;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.*;
 import org.slf4j.helpers.MessageFormatter;
@@ -30,22 +33,49 @@ import java.util.regex.Pattern;
  * it makes automatic registration works correctly, and help others understand automatic registration quickly.
  * @implSpec
  * A simple example of usage:
- * <pre>{@code
- *  public enum FooRegistry implements IRegistrant<FooRegistry>
- *  {
- *      INST;
+ * <ul>
+ *     <li>
+ *         <h3>Registry:</h3>
+ *         <pre>{@code
+ *          public enum FooRegistry implements IRegistrant<FooRegistry>
+ *          {
+ *              INST;
  *
- *      @Override public void register(@NotNull IEventBus bus) { BLOCK_DEFERRED_REGISTER.register(bus); }
+ *              @Override public void register(@NotNull IEventBus bus) { BLOCK_DEFERRED_REGISTER.register(bus); }
  *
- *      @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.BASE, 1); }
+ *              @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.BASE, 1); }
  *
- *      private static final DeferredRegister<Block> BLOCK_DEFERRED_REGISTER = DeferredRegister.createBlocks("yourmodid");
+ *              private static final DeferredRegister<Block> BLOCK_DEFERRED_REGISTER = DeferredRegister.createBlocks("yourmodid");
  *
- *      public static final Holder<Block> FOO_BLOCK = BLOCK_DEFERRED_REGISTER.register(
- *          "foo", resourceLocation -> new ScaffoldingBlock(BlockBehaviour.Properties.of())
- *      );
- *  }
- * }</pre>
+ *              public static final Holder<Block> FOO_BLOCK = BLOCK_DEFERRED_REGISTER.register(
+ *                  "foo", () -> new ScaffoldingBlock(BlockBehaviour.Properties.of())
+ *              );
+ *          }
+ *         }</pre>
+ *     </li>
+ *     <li>
+ *         <h3>Config:</h3>
+ *         <pre>{@code
+ *          public enum FooConfig implements IRegistrant.OfSimpleConfigSupport<FooConfig>
+ *          {
+ *              INST;
+ *
+ *              private static final Builder BUILDER = new Builder();
+ *
+ *              public static final BooleanValue FOO = BUILDER.
+ *                  comment("FOO").
+ *                  translation("yourmodid.config.foo").
+ *                  define("Foo", false);
+ *
+ *              public static final ModConfigSpec SPEC = BUILDER.build();
+ *
+ *              @Override public @NotNull ModConfigSpec getSpec() { return SPEC; }
+ *
+ *              @Override public @NotNull ModConfig.Type getType() { return ModConfig.Type.CLIENT; }
+ *          }
+ *         }</pre>
+ *     </li>
+ * </ul>
  * Don't forget to register your <u>{@link net.neoforged.fml.ModContainer ModContainer}</u> on <u>{@link CrispRegistrationManager}</u>:
  * <pre>{@code
  *  // At YourModEntryClass.<init>:
@@ -78,6 +108,7 @@ import java.util.regex.Pattern;
  * @see net.neoforged.neoforge.registries.DeferredRegister DeferredRegister
  * @see IEventBus Event Bus API
  * @see CrispRegistrationManager Auto Registration Implementation
+ * @see OfConfigSupport Config Support
  * @see ISortable Priority Definitions
  * @see IDefinitions Methods Definitions
  */
@@ -142,6 +173,36 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
             deferredRegister.register(bus);
         }
     }
+    
+    /**
+     * This interface supports the auto registration of <u>{@link net.neoforged.neoforge.common.ModConfigSpec mod configs}</u>.
+     * @apiNote Since <u>{@link IConfigSpec}</u> supports customized implementation, and there do exists obvious ability difference between
+     * <u>{@link IConfigSpec basic contract}</u> and some implementations
+     * (e.g. <u>{@link ModConfigSpec}</u> supports <u>{@link ModConfigSpec#save()}</u>, which <u>{@link IConfigSpec}</u> can't),
+     * this basic interface supports specifying the detailed <u>{@link IConfigSpec}</u> type.<br><br>
+     * <i>If the type of config is <u>{@link ModConfigSpec}</u>, <u>{@link OfSimpleConfigSupport}</u> is recommended.</i>
+     * @author Kurv Cygnus
+     * @since 1.0 Release
+     */
+    interface OfConfigSupport<T extends Enum<T> & OfConfigSupport<T, C>, C extends IConfigSpec>
+    {
+        @NotNull C getSpec();
+        
+        @NotNull ModConfig.Type getType();
+        
+        /**
+         * @implNote This is useless, literally. It is existed to suppress "unused" warnings,
+         * since generic arg {@code T} is <b>only</b> used to restrict implementer's type, making sure that the implementer must be an <u>{@link Enum}</u>.
+         */
+        @SuppressWarnings("unused") @DoNotCall @Deprecated(forRemoval = true) private @Nullable T dummy() { return null; }
+    }
+    
+    /**
+     * This interface supports simple auto registration of <u>{@link net.neoforged.neoforge.common.ModConfigSpec mod configs}</u>.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     */
+    interface OfSimpleConfigSupport<T extends Enum<T> & OfSimpleConfigSupport<T>> extends OfConfigSupport<T, ModConfigSpec> {}
 }
 
 /**
@@ -175,11 +236,10 @@ sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
     
     private @NotNull String modifyNameAsJob()
     {
-        final String name = this.getClass().getSimpleName();
         //* Convert Result Example: FooBarBoxRegistry -> Foo Bar Box
         return regexReplace(
             CrispRegistrant.SPLIT_REGEX,
-            regexReplace(CrispRegistrant.REGISTRY_REGEX, name, ""),
+            regexReplace(CrispRegistrant.REGISTRY_REGEX, this.getClass().getSimpleName(), ""),
             " "
         ).trim();
     }
@@ -193,7 +253,7 @@ sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
     
     /**
      * @implNote This is useless, literally. It is existed to suppress "unused" warnings,
-     * since generic arg {@code T} is <b>only</b> used to restrict implementer's type.
+     * since generic arg {@code T} is <b>only</b> used to restrict implementer's type, making sure that the implementer must be an <u>{@link Enum}</u>.
      */
     @SuppressWarnings("unused") @DoNotCall @Deprecated(forRemoval = true) private @Nullable T dummy() { return null; }
 }
@@ -204,7 +264,7 @@ sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
  */
 final class CrispRegistrant
 {
-    private CrispRegistrant() { throw new AssertionError(); }
+    private CrispRegistrant() { throw new IllegalAccessError("Class \"CrispRegistrant\" is not meant to be instantized!"); }
     
     static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
     static final Pattern REGISTRY_REGEX = Pattern.compile("Registr(y|ies)");

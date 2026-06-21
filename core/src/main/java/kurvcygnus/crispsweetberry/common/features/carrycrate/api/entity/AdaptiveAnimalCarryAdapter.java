@@ -9,7 +9,6 @@
 package kurvcygnus.crispsweetberry.common.features.carrycrate.api.entity;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection;
-import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.phys.AABB;
@@ -37,8 +36,6 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
      * <i>{@code 0.9D} is its width and length, and {@code 1.4D} is its height</i>.
      */
     public static final double MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME = Math.pow(0.9D, 2) * 1.4D;
-   
-    private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("ANIMAL_CARRY");
     
     private final int penaltyRate;
     
@@ -53,7 +50,7 @@ public final class AdaptiveAnimalCarryAdapter<E extends Animal> extends Abstract
             
             if(volume > MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME)
                 throw new IllegalArgumentException(
-                    MessageFormatter.format(
+                    MessageFormatter.arrayFormat(
                         "Entity \"%s\" is too big to be boxed into Carry Crate! Volume: %f, Expected: Smaller than %f",
                         new Object[] { entity.getName().getString(), volume, MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME }
                     ).getMessage()

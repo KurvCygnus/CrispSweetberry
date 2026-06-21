@@ -29,7 +29,7 @@ import java.util.Objects;
  * @see AdaptiveAnimalCarryAdapter Utility Adapter
  * @since 1.0 Release
  */
-public abstract class AbstractEntityCarryAdapter<E extends LivingEntity> extends AbstractCarryAdapter<CarryData.CarryEntityDataHolder>
+public abstract class AbstractEntityCarryAdapter<E extends LivingEntity> extends AbstractCarryAdapter<CarryData.OfEntityUniqueData>
 {
     /**
      * @apiNote During <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter

@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger.ProcessOptions.*;
+import static kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger.ProcessOptions.*;
 
 /**
  * A simple range class for making range checks more readable.<br>
@@ -32,12 +32,12 @@ import static kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger.Proc
  *
  * @author Kurv Cygnus
  * @apiNote It is recommended to <b>use this as a constant</b>, constantly creating instances like this only brings performance penalty.<br>
- * Also, <u>{@link CrispRanger}</u> is always immutable, and we recommend reduce the usage of <u>{@link CrispRanger}</u>'s {@code forEach}
+ * Also, <u>{@link Ranger}</u> is always immutable, and we recommend reduce the usage of <u>{@link Ranger}</u>'s {@code forEach}
  * in performance-sensitive cases, as it brings unboxing performance penalty.
- * @see CrispRangeMap
+ * @see RangeMap
  * @since 1.0 Release
  */
-public final class CrispRanger implements Iterable<Integer>
+public final class Ranger implements Iterable<Integer>
 {
     //region Constants & Fields
     public static final int BACKPACK_SLOT_START_INDEX = 3;
@@ -45,9 +45,9 @@ public final class CrispRanger implements Iterable<Integer>
     public static final int HOTBAR_SLOT_START_INDEX = 30;
     public static final int HOTBAR_SLOT_END_INDEX = 38;
     
-    public static final CrispRanger BACKPACK_SLOTS_RANGE = closed(BACKPACK_SLOT_START_INDEX, BACKPACK_SLOT_END_INDEX);
-    public static final CrispRanger HOTBAR_SLOTS_RANGE = closed(HOTBAR_SLOT_START_INDEX, HOTBAR_SLOT_END_INDEX);
-    public static final CrispRanger INVENTORY_SLOTS_RANGE = closed(BACKPACK_SLOTS_RANGE.min(), HOTBAR_SLOTS_RANGE.max());
+    public static final Ranger BACKPACK_SLOTS_RANGE = closed(BACKPACK_SLOT_START_INDEX, BACKPACK_SLOT_END_INDEX);
+    public static final Ranger HOTBAR_SLOTS_RANGE = closed(HOTBAR_SLOT_START_INDEX, HOTBAR_SLOT_END_INDEX);
+    public static final Ranger INVENTORY_SLOTS_RANGE = closed(BACKPACK_SLOTS_RANGE.min(), HOTBAR_SLOTS_RANGE.max());
     
     public static final int START_AT_LEFT = DIRECTION.shiftTrue();
     public static final int START_AT_RIGHT = DIRECTION.shiftFalse();
@@ -62,7 +62,7 @@ public final class CrispRanger implements Iterable<Integer>
     //endregion
     
     //region Constructors
-    private CrispRanger(int min, int max, boolean minClosed, boolean maxClosed)
+    private Ranger(int min, int max, boolean minClosed, boolean maxClosed)
     {
         if(min == max && (!minClosed || !maxClosed))
             throw new IllegalArgumentException("This is an empty, and illegal range!");
@@ -79,7 +79,7 @@ public final class CrispRanger implements Iterable<Integer>
      *
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min}.
      */
-    @Contract("_, _ -> new") public static @NotNull CrispRanger closed(int min, int max) { return new CrispRanger(min, max, true, true); }
+    @Contract("_, _ -> new") public static @NotNull Ranger closed(int min, int max) { return new Ranger(min, max, true, true); }
     
     /**
      * Creates a {@code (min, max)} range.
@@ -87,7 +87,7 @@ public final class CrispRanger implements Iterable<Integer>
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min},
      * and throws <u>{@link IllegalArgumentException}</u> when {@code min} equals {@code max}.
      */
-    @Contract("_, _ -> new") public static @NotNull CrispRanger open(int min, int max) { return new CrispRanger(min, max, false, false); }
+    @Contract("_, _ -> new") public static @NotNull Ranger open(int min, int max) { return new Ranger(min, max, false, false); }
     
     /**
      * Creates a {@code (min, max]} range.
@@ -95,7 +95,7 @@ public final class CrispRanger implements Iterable<Integer>
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min},
      * and throws <u>{@link IllegalArgumentException}</u> when {@code min} equals {@code max}.
      */
-    @Contract("_, _ -> new") public static @NotNull CrispRanger openClosed(int min, int max) { return new CrispRanger(min, max, false, true); }
+    @Contract("_, _ -> new") public static @NotNull Ranger openClosed(int min, int max) { return new Ranger(min, max, false, true); }
     
     /**
      * Creates a {@code [min, max)} range.
@@ -103,7 +103,7 @@ public final class CrispRanger implements Iterable<Integer>
      * @apiNote Exchanges the value and warn if {@code max} are smaller than {@code min},
      * and throws <u>{@link IllegalArgumentException}</u> when {@code min} equals {@code max}.
      */
-    @Contract("_, _ -> new") public static @NotNull CrispRanger closedOpen(int min, int max) { return new CrispRanger(min, max, true, false); }
+    @Contract("_, _ -> new") public static @NotNull Ranger closedOpen(int min, int max) { return new Ranger(min, max, true, false); }
     //endregion
     
     //region Public APIs
@@ -144,13 +144,13 @@ public final class CrispRanger implements Iterable<Integer>
      *
      * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, List)}</u>, but has unboxing penalty</i></b>.
      */
-    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, @NotNull List<CrispRanger> rangers)
+    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, @NotNull List<Ranger> rangers)
     {
         requireNonNull(value, "Param \"value\" must not be null!");
         
         for(int index = 0; index < rangers.size(); index++)
         {
-            final CrispRanger ranger = rangers.get(index);
+            final Ranger ranger = rangers.get(index);
             
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
@@ -166,11 +166,11 @@ public final class CrispRanger implements Iterable<Integer>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
-    @CheckReturnValue public static int inRangers(int value, @NotNull List<CrispRanger> rangers)
+    @CheckReturnValue public static int inRangers(int value, @NotNull List<Ranger> rangers)
     {
         for(int index = 0; index < rangers.size(); index++)
         {
-            final CrispRanger ranger = rangers.get(index);
+            final Ranger ranger = rangers.get(index);
             
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
@@ -186,15 +186,15 @@ public final class CrispRanger implements Iterable<Integer>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      *
-     * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, CrispRanger...)}</u>, but has unboxing penalty</i></b>.
+     * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, Ranger...)}</u>, but has unboxing penalty</i></b>.
      */
-    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, CrispRanger @NotNull ... rangers)
+    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, Ranger @NotNull ... rangers)
     {
         requireNonNull(value, "Param \"value\" must not be null!");
         
         for(int index = 0; index < rangers.length; index++)
         {
-            final CrispRanger ranger = rangers[index];
+            final Ranger ranger = rangers[index];
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
             if(ranger.inRange(value))
@@ -209,11 +209,11 @@ public final class CrispRanger implements Iterable<Integer>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
-    @CheckReturnValue public static int inRangers(int value, CrispRanger @NotNull ... rangers)
+    @CheckReturnValue public static int inRangers(int value, Ranger @NotNull ... rangers)
     {
         for(int index = 0; index < rangers.length; index++)
         {
-            final CrispRanger ranger = rangers[index];
+            final Ranger ranger = rangers[index];
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
             if(ranger.inRange(value))
@@ -284,7 +284,7 @@ public final class CrispRanger implements Iterable<Integer>
     /**
      * Checks whether the param {@code that}'s range is included in <b>this {@code CrispRanger}</b>.
      */
-    public @CheckReturnValue boolean overlaps(@Nullable CrispRanger that)
+    public @CheckReturnValue boolean overlaps(@Nullable Ranger that)
     {
         if(that == null)
             return false;
@@ -294,9 +294,9 @@ public final class CrispRanger implements Iterable<Integer>
     /**
      * Merges two rangers(as instantiated method, the first that is {@code this}) together.
      * @return Merge result. Once two rangers have no common range, this method will return <u>{@link Optional#empty()}</u>.
-     * @see CrispRanger#union(CrispRanger, CrispRanger) Static method
+     * @see Ranger#union(Ranger, Ranger) Static method
      */
-    public @CheckReturnValue @NotNull Optional<CrispRanger> union(@NotNull CrispRanger that)
+    public @CheckReturnValue @NotNull Optional<Ranger> union(@NotNull Ranger that)
     {
         requireNonNull(that, "Param \"that\" must not be null!");
         
@@ -312,15 +312,15 @@ public final class CrispRanger implements Iterable<Integer>
     /**
      * Merges two rangers together.
      * @return Merge result. Once two rangers have no common range, this method will return <u>{@link Optional#empty()}</u>.
-     * @see CrispRanger#union(CrispRanger) Instantiated method
+     * @see Ranger#union(Ranger) Instantiated method
      */
-    public static @CheckReturnValue @NotNull Optional<CrispRanger> union(@NotNull CrispRanger first, @NotNull CrispRanger second)
+    public static @CheckReturnValue @NotNull Optional<Ranger> union(@NotNull Ranger first, @NotNull Ranger second)
     {
         requireNonNull(first, "Param \"first\" must not be null!");
         return first.union(second);
     }
     
-    public @CheckReturnValue @NotNull Optional<CrispRanger> intersect(@NotNull CrispRanger that)
+    public @CheckReturnValue @NotNull Optional<Ranger> intersect(@NotNull Ranger that)
     {
         if(!this.overlaps(that))
             return Optional.empty();
@@ -333,7 +333,7 @@ public final class CrispRanger implements Iterable<Integer>
         return Optional.of(closed(newMin, newMax));
     }
     
-    public static @CheckReturnValue @NotNull Optional<CrispRanger> intersect(@NotNull CrispRanger first, @NotNull CrispRanger second)
+    public static @CheckReturnValue @NotNull Optional<Ranger> intersect(@NotNull Ranger first, @NotNull Ranger second)
     {
         requireNonNull(first, "Param \"first\" must not be null!");
         requireNonNull(second, "Param \"second\" must not be null!");
@@ -345,7 +345,7 @@ public final class CrispRanger implements Iterable<Integer>
      * Chop this {@code CrispRanger}'s intersection between this and another Ranger,
      * returns this {@code CrispRanger}'s uncommon range only.
      */
-    public @CheckReturnValue @NotNull Optional<CrispRanger> setDifference(@NotNull CrispRanger that)
+    public @CheckReturnValue @NotNull Optional<Ranger> setDifference(@NotNull Ranger that)
     {
         if(!this.overlaps(that))
             return Optional.of(this);
@@ -362,21 +362,21 @@ public final class CrispRanger implements Iterable<Integer>
      * Slice this {@code CrispRanger} by param {@code value}, and returns sliced, new {@code CrispRanger}.
      * @apiNote You should fill param {@code flags} with these flags:
      * <b>
-     *     <u>{@link CrispRanger#START_AT_LEFT}</u>,
-     *     <u>{@link CrispRanger#START_AT_RIGHT}</u>,
-     *     <u>{@link CrispRanger#INCLUSIVE}</u>,
-     *     <u>{@link CrispRanger#EXCLUSIVE}</u>,
+     *     <u>{@link Ranger#START_AT_LEFT}</u>,
+     *     <u>{@link Ranger#START_AT_RIGHT}</u>,
+     *     <u>{@link Ranger#INCLUSIVE}</u>,
+     *     <u>{@link Ranger#EXCLUSIVE}</u>,
      *     Combine them with {@code |}.
      * </b>
      * <hr>
      * <i>
-     *     When range closure is not defined, <u>{@link CrispRanger#INCLUSIVE}</u> will be taken as default,
+     *     When range closure is not defined, <u>{@link Ranger#INCLUSIVE}</u> will be taken as default,
      *     however, once slice direction is not defined, <span style="color: f84b4b">this method will return <u>{@link Optional#empty()}</u> as result.</span>
      * </i>
      */
-    public @CheckReturnValue @NotNull Optional<CrispRanger> slice(
+    public @CheckReturnValue @NotNull Optional<Ranger> slice(
         int value,
-        @MagicConstant(flagsFromClass = CrispRanger.class) int flags
+        @MagicConstant(flagsFromClass = Ranger.class) int flags
     )
     {
         if(!this.inRange(value) || DIRECTION.computeRaw(flags) == DEFAULT)
@@ -391,7 +391,7 @@ public final class CrispRanger implements Iterable<Integer>
         final boolean closed = OPENNESS.computeBooleanOrDefault(flags, false);
         
         return Optional.of(
-            new CrispRanger(
+            new Ranger(
                 direction ?
                     value :
                     this.min,
@@ -410,8 +410,8 @@ public final class CrispRanger implements Iterable<Integer>
      *
      * @apiNote You should fill param {@code flags} with one of these directional flags:
      * <b>
-     * <u>{@link CrispRanger#START_AT_LEFT}</u> (Returns range from {@link Integer#MIN_VALUE} to min),
-     * <u>{@link CrispRanger#START_AT_RIGHT}</u> (Returns range from max to {@link Integer#MAX_VALUE}).
+     * <u>{@link Ranger#START_AT_LEFT}</u> (Returns range from {@link Integer#MIN_VALUE} to min),
+     * <u>{@link Ranger#START_AT_RIGHT}</u> (Returns range from max to {@link Integer#MAX_VALUE}).
      * </b>
      * <hr>
      * <i>
@@ -420,8 +420,8 @@ public final class CrispRanger implements Iterable<Integer>
      * is already at the integer boundary or if the direction flag is missing.</span>
      * </i>
      */
-    public @CheckReturnValue @NotNull Optional<CrispRanger> complement(
-        @MagicConstant(flagsFromClass = CrispRanger.class) int flags
+    public @CheckReturnValue @NotNull Optional<Ranger> complement(
+        @MagicConstant(flagsFromClass = Ranger.class) int flags
     )
     {
         if(DIRECTION.isDefault(flags) || !OPENNESS.isDefault(flags))
@@ -432,11 +432,11 @@ public final class CrispRanger implements Iterable<Integer>
         if(direction)
             return this.min == Integer.MIN_VALUE ?
                 Optional.empty() :
-                Optional.of(CrispRanger.closedOpen(Integer.MIN_VALUE, this.min));
+                Optional.of(Ranger.closedOpen(Integer.MIN_VALUE, this.min));
         
         return this.max == Integer.MAX_VALUE ?
             Optional.empty() :
-            Optional.of(CrispRanger.openClosed(this.max, Integer.MAX_VALUE));
+            Optional.of(Ranger.openClosed(this.max, Integer.MAX_VALUE));
     }
     
     /**
@@ -444,7 +444,7 @@ public final class CrispRanger implements Iterable<Integer>
      * @apiNote If both {@code min} and {@code max}'s value are overflowed, this method will return <u>{@link Optional#empty()}</u>
      * as the result, since in that case, the new ranger will be meaningless, and useless.
      */
-    @Contract("_ -> new") public @CheckReturnValue @NotNull Optional<CrispRanger> offset(int offset)
+    @Contract("_ -> new") public @CheckReturnValue @NotNull Optional<Ranger> offset(int offset)
     {
         final int newMin = evaluate(this.min, offset);
         final int newMax = evaluate(this.max, offset);
@@ -477,7 +477,7 @@ public final class CrispRanger implements Iterable<Integer>
      * @deprecated
      * One most important usage of iterator is removing element while iteration, which can't be done by enhanced for-loop.<br>
      * However, {@code CrispRanger} doesn't have elements, and to be honest, using iterator to iterate is primitive and bloat.<br>
-     * <span style="color: 95cc6d">So, please use enhanced for-loop, <u>{@link CrispRanger#forEachInt(IntConsumer)}</u>, or <u>{@link CrispRanger#forEach(Consumer)}</u> instead.</span>
+     * <span style="color: 95cc6d">So, please use enhanced for-loop, <u>{@link Ranger#forEachInt(IntConsumer)}</u>, or <u>{@link Ranger#forEach(Consumer)}</u> instead.</span>
      */
     @Deprecated @Override @Contract(" -> new") public @CheckReturnValue @NotNull Iterator<Integer> iterator() { return new RangerIterator(); }
     
@@ -493,7 +493,7 @@ public final class CrispRanger implements Iterable<Integer>
         );
     }
     
-    @Override public boolean equals(@Nullable Object obj) { return obj instanceof CrispRanger that && min == that.min && max == that.max; }
+    @Override public boolean equals(@Nullable Object obj) { return obj instanceof Ranger that && min == that.min && max == that.max; }
     
     @Override public int hashCode() { return Objects.hash(min, max); }
     

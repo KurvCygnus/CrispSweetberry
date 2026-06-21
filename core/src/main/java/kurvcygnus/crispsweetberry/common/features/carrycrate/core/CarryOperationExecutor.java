@@ -22,6 +22,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.products.Overweight
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import kurvcygnus.crispsweetberry.lib.base.lang.TriVariant;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
+import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
@@ -50,9 +51,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * A <b>stateless</b> singleton class that handles the actual interaction of <u>{@link CarryEngine#interact}</u>.
+ * @since 1.0 Release
+ * @author Kurv Cygnus
+ * @see CarryBlockEntitySyncer
+ */
 @ApiStatus.Internal
 enum CarryOperationExecutor
 {
@@ -91,6 +101,8 @@ enum CarryOperationExecutor
         );
     
     private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("CARRY_LOGIC");
+    
+    private static final String DATA_CORRUPTION_CASE = "Only happens on data corruption: item has CarryData and no CarryID.";
     //endregion
     
     //region Main Pipeline
@@ -125,7 +137,7 @@ enum CarryOperationExecutor
                         """,
                         ex.tag(),
                         ex.getMessage(),
-                        ex.causeData().toString(),
+                        ex.causeData(),
                         MetainfoConstants.FEEDBACK_MESSAGE,
                         ex.cause()
                     );
@@ -137,16 +149,23 @@ enum CarryOperationExecutor
     //endregion
     
     //region Interact Process Pipelines
+    /**
+     * @implNote The pre procession that ensures the existence of <u>{@link CarryID}</u>.<br>
+     * Since there exists multiple possibilities(<i>e.g. Box in attempt, no <u>{@link CarryID}</u>; Release attempt, has <u>{@link CarryID}</u>;
+     * For edgy cases like data corruption, <u>{@link CarryID}</u>'s status is even unknown</i>), and the following pipelines requires <u>{@link CarryID}</u>,
+     * this has be done.
+     */
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> carryIDProcess(@NotNull CarryInteractContext context)
     {
-        final var actionType = context.actionType;
+        final var carryIDBox = context.carryID;
         
         //* If item has [[CarryData]], but no [[CarryID]], that's counted as a persistent issue.
         //* However, we can't take that as an error, because data still exists, which is still processable, having no [[CarryID]] mainly affects the handle of
         //* [[CarryOperationExecutor#blockEntityUnbox]]'s partial logic.
-        if(context.carryID.isAssignable() && !context.carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
+        if(carryIDBox.isAssignable() && !context.carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
         {
-            final @Nullable var carryID = generateCarryID(actionType, context.targets);
+            @Nullable("`null` happens when interact target's ResourceLocation is invalid.")
+            final var carryID = generateCarryID(context.actionType, context.targets);
             
             if(carryID == null)
                 return CarryInteractHandleException.miscFailed(
@@ -156,22 +175,27 @@ enum CarryOperationExecutor
                     "CARRY_ID_PRE_PROCESSING"
                 );
             
-            context.carryID.bound(carryID);
+            carryIDBox.bound(carryID);
         }
         
         return IResult.of(context);
     }
     
+    //*:=== Phase 1 procession
+    //* These pipelines are using [[CarryInteractContext]] that is in init phase, which means some fields of context is not initialized.
+    //* The phase 2 context is transformed by calling [[CarryInteractContext#boxIn]] or [[CarryInteractContext#unbox]].
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> blockEntityBoxIn(@NotNull CarryInteractContext context)
     {
         final var targetState = context.targets.left();
         final var targetPos = context.interactPos;
         final var blockEntity = context.targets.right();
         final var level = context.level;
-        final @Nullable var carryID = context.carryID.value();
+        @Nullable(DATA_CORRUPTION_CASE)
+        final var carryID = context.carryID.value();
         
-        final Optional<AbstractBlockEntityCarryAdapter<? extends BlockEntity>> optionalAdapter = CarryRegistryManager.INST.
-            getBlockEntityAdapter(blockEntity.getType()).map(
+        final var optionalAdapter = CarryRegistryManager.INST.
+            getBlockEntityAdapter(blockEntity.getType()).
+            <AbstractBlockEntityCarryAdapter<? extends BlockEntity>>map(
                 adapterFactory ->
                     createBlockEntityAdapter(
                         adapterFactory,
@@ -189,7 +213,19 @@ enum CarryOperationExecutor
         
         final var adapter = optionalAdapter.get();
         
-        final CompoundTag tagData = new CompoundTag();
+        if(!adapter.isSupported(blockEntity))
+            return CarryInteractHandleException.boxInFailed(
+                context.fail(),
+                DefinitionUtils.quickFormat(
+                    "Cannot do further procession because blockEntity {} cannot be handled by adapter, it supports {}!",
+                    blockEntity.getClass().getSimpleName(),
+                    adapter.getSupportedType().getSimpleName()
+                ),
+                IllegalStateException::new,
+                CarryType.BLOCK_ENTITY
+            );
+        
+        final var tagData = new CompoundTag();
         adapter.onCarriedSequence(
             new CarriableBlockEntityExtensions.IAtomicCarriable.CarriedContext(
                 level,
@@ -201,7 +237,7 @@ enum CarryOperationExecutor
         //* [[IAtomicCarriable#onCarriedSequence()]] may have side effects on BE's data, we should save data after it.
         adapter.saveCarryTag(tagData, level.registryAccess());
         
-        final CarryData insertData = CarryData.createBlockEntity(
+        final var insertData = CarryData.createBlockEntity(
             targetState,
             tagData,
             blockEntity.getType(),
@@ -218,8 +254,9 @@ enum CarryOperationExecutor
         final var targetState = context.targets.left();
         final var targetBlock = targetState.getBlock();
         
-        final Optional<AbstractBlockCarryAdapter<? extends Block>> optionalAdapter = CarryRegistryManager.INST.
-            getBlockAdapter(targetBlock).map(factory -> createBlockAdapter(factory, targetBlock));
+        final var optionalAdapter = CarryRegistryManager.INST.
+            getBlockAdapter(targetBlock).
+            <AbstractBlockCarryAdapter<? extends Block>>map(factory -> createBlockAdapter(factory, targetBlock));
         
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
@@ -229,10 +266,26 @@ enum CarryOperationExecutor
                 CarryType.BLOCK
             );
         
-        final AbstractBlockCarryAdapter<?> adapter = optionalAdapter.get();
+        final var adapter = optionalAdapter.get();
+        
+        if(!adapter.isSupported(targetBlock))
+            return CarryInteractHandleException.boxInFailed(
+                context.fail(),
+                DefinitionUtils.quickFormat(
+                    "Cannot do further procession because block {} cannot be handled by adapter, it supports {}!",
+                    targetBlock.getClass().getSimpleName(),
+                    adapter.getSupportedType().getSimpleName()
+                ),
+                IllegalStateException::new,
+                CarryType.BLOCK
+            );
+        
+        //! Tip: Do not refactor this to [[Objects#requireNonNullElse]]. [[StateHolder#getValue]] checks the existence of target property,
+        //! it will directly throw [[IllegalArgumentException]] if property is not present.
+        //! TBH, I don't think add a hook returning [[Optional]] is something hard for Mojang Devs.
         final int carryCount = targetState.hasProperty(BlockStateProperties.LAYERS) ? targetState.getValue(BlockStateProperties.LAYERS) : 1;
         
-        final CarryData insertData = CarryData.createBlock(
+        final var insertData = CarryData.createBlock(
             targetState,
             adapter.getPenaltyRate(),
             carryCount,
@@ -257,8 +310,9 @@ enum CarryOperationExecutor
                 CarryType.ENTITY
             );
         
-        final Optional<AbstractEntityCarryAdapter<?>> optionalAdapter = CarryRegistryManager.INST.
-            getEntityAdapter(targetEntity.getType()).map(factory -> createEntityAdapter(factory, targetEntity));
+        final var optionalAdapter = CarryRegistryManager.INST.
+            getEntityAdapter(targetEntity.getType()).
+            <AbstractEntityCarryAdapter<?>>map(factory -> createEntityAdapter(factory, targetEntity));
         
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
@@ -270,11 +324,22 @@ enum CarryOperationExecutor
         
         final var adapter = optionalAdapter.get();
         
-        final CarryData insertData = CarryData.createEntity(
-            adapter.getPenaltyRate(),
+        if(!adapter.isSupported(targetEntity.getType()))
+            return CarryInteractHandleException.boxInFailed(
+                context.fail(),
+                DefinitionUtils.quickFormat(
+                    "Cannot do further procession because entity {} cannot be handled by adapter, it supports {}!",
+                    targetEntity.getClass().getSimpleName(),
+                    adapter.getSupportedType().getSimpleName()
+                ),
+                IllegalStateException::new,
+                CarryType.ENTITY
+            );
+        
+        final var insertData = CarryData.createEntity(
+            adapter,
             targetEntity.getType(),
             tagData,
-            adapter.causesOverweight(),
             context.level.getGameTime()
         );
         
@@ -287,16 +352,18 @@ enum CarryOperationExecutor
         final var targetPos = context.interactPos;
         final var level = context.level;
         final var carryCrate = context.carryCrate;
-        final var data = carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        final @Nullable var carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
-        assert data != null;
+        final var data = AssertUtils.nonNullCheckOnDev(carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()), "data");
         
-        final CarryData.CarryBlockEntityDataHolder blockEntityDataHolder = data.unionData();
-        final var blockEntityType = blockEntityDataHolder.type;
+        @Nullable(DATA_CORRUPTION_CASE)
+        final var carryID = carryCrate.get(CarryCrateRegistries.CARRY_ID.get());
+        
+        final var blockEntityUniqueData = data.<CarryData.OfBlockEntityUniqueData>matchUnique();
+        final var blockEntityType = blockEntityUniqueData.type;
         final var targetBlockEntity = context.targets.right();
         
-        final Optional<AbstractBlockEntityCarryAdapter<? extends BlockEntity>> optionalAdapter = CarryRegistryManager.INST.
-            getBlockEntityAdapter(blockEntityType).map(
+        final var optionalAdapter = CarryRegistryManager.INST.
+            getBlockEntityAdapter(blockEntityType).
+            <AbstractBlockEntityCarryAdapter<? extends BlockEntity>>map(
                 adapterFactory ->
                     createBlockEntityAdapter(
                         adapterFactory,
@@ -314,8 +381,9 @@ enum CarryOperationExecutor
         
         final var adapter = optionalAdapter.get();
         
-        final var tagData = blockEntityDataHolder.tagData;
-        adapter.loadCarryTag(tagData, level.registryAccess());//* #onPlacedProcess() may have side effects on BE's data, we should load data before it.
+        final var tagData = blockEntityUniqueData.tagData;
+        //* [[AbstractBlockEntityCarryAdapter#onPlacedProcess]] may have side effects on BE's data, we should load data before it.
+        adapter.loadCarryTag(tagData, level.registryAccess());
         
         adapter.onPlacedProcess(
             level,
@@ -334,7 +402,7 @@ enum CarryOperationExecutor
                     targetState,
                     //* Stores the correctly emulated tagData for [[CarryOperationExecutor#blocklikeTargetRelease]].
                     DefinitionUtils.createTag(tag -> adapter.saveCarryTag(tag, level.registryAccess())),
-                    blockEntityDataHolder.type,
+                    blockEntityUniqueData.type,
                     adapter.getPenaltyRate(),
                     data.causesOverweight,
                     level.getGameTime()
@@ -345,18 +413,17 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> blockUnbox(@NotNull CarryInteractContext context)
     {
-        final var carryData = context.carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        assert carryData != null;
+        final var carryData = AssertUtils.nonNullCheckOnDev(context.carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()), "carryData");
         final var targetState = context.targets.left();
-        final CarryData.CarryBlockDataHolder blockDataHolder = carryData.unionData();
+        final var blockUniqueData = carryData.<CarryData.OfBlockUniqueData>matchUnique();
         
-        if(targetState.is(blockDataHolder.state.getBlock()) && blockDataHolder.carryCount < blockDataHolder.maxCarryCount)
+        if(targetState.is(blockUniqueData.state.getBlock()) && blockUniqueData.carryCount < blockUniqueData.maxCarryCount)
         {
-            final CarryData insertData = CarryData.createBlock(
+            final var insertData = CarryData.createBlock(
                 targetState,
-                blockDataHolder.penaltyRate,
-                blockDataHolder.carryCount + 1,
-                blockDataHolder.maxCarryCount,
+                carryData.penaltyRate,
+                blockUniqueData.carryCount + 1,
+                blockUniqueData.maxCarryCount,
                 carryData.causesOverweight,
                 context.level.getGameTime()
             );
@@ -364,14 +431,14 @@ enum CarryOperationExecutor
             return IResult.of(context.success().boxIn(insertData, true));
         }
         
-        if(blockDataHolder.carryCount > 1)
+        if(blockUniqueData.carryCount > 1)
             return IResult.of(
                 context.unbox(
                     CarryData.createBlock(
-                        blockDataHolder.state,
-                        blockDataHolder.penaltyRate,
-                        blockDataHolder.carryCount - 1,
-                        blockDataHolder.maxCarryCount,
+                        blockUniqueData.state,
+                        carryData.penaltyRate,
+                        blockUniqueData.carryCount - 1,
+                        blockUniqueData.maxCarryCount,
                         carryData.causesOverweight,
                         carryData.startTime
                     ),
@@ -384,14 +451,16 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> entityUnbox(@NotNull CarryInteractContext context)
     {
-        final var carryData = context.carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get());
-        assert carryData != null;
+        final var carryData = AssertUtils.nonNullCheckOnDev(context.carryCrate.get(CarryCrateRegistries.CARRY_CRATE_DATA.get()), "carryData");
         return IResult.of(context.unbox(carryData));
     }
     //endregion
     
     //region Post-Process pipelines
-    //*:=== Listener
+    //*:=== Phase 2 procession
+    //* This phase uses fully initialized [[CarryInteractContext]].
+    
+    //*:== Listener
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> listenerProcess(@NotNull CarryInteractContext context)
     {
         final @Nullable var carryID = context.carryID.value();
@@ -418,7 +487,7 @@ enum CarryOperationExecutor
                         TriState.TRUE
                     );
                 
-                final Object creationData = carryData.unionData().getCreationData();
+                final Object creationData = carryData.matchUnique().getCreationData();
                 final var factory = CarryRegistryManager.INST.searchFactory(context.actionType, creationData);
                 
                 if(factory.isEmpty())
@@ -449,14 +518,14 @@ enum CarryOperationExecutor
         return IResult.of(context.success());
     }
     
-    //*:=== Component
+    //*:== Component
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> componentProcess(@NotNull CarryInteractContext context)
     {
         final var carryID = context.carryID.orThrow();
         final var carryData = context.data.orThrow();
         final TriState component = context.component();
         
-        final ItemStack crate = context.carryCrate;
+        final var crate = context.carryCrate;
         
         switch(component)
         {
@@ -491,7 +560,7 @@ enum CarryOperationExecutor
         return IResult.of(context.success());
     }
     
-    //*:=== Target
+    //*:== Target
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> targetProcess(@NotNull CarryInteractContext context)
     {
         final TriState target = context.target();
@@ -534,10 +603,8 @@ enum CarryOperationExecutor
             return CarryInteractHandleException.target(
                 context.pass(),
                 DefinitionUtils.quickFormat(
-                    "Unable to change position <{}, {}, {}>'s blockstate! Original Blockstate: {}",
-                    pos.getX(),
-                    pos.getY(),
-                    pos.getZ(),
+                    "Unable to change position {}'s blockstate! Original Blockstate: {}",
+                    DefinitionUtils.formatPos(pos),
                     level.getBlockState(pos).toString()
                 ),
                 IllegalAccessError::new,
@@ -578,10 +645,10 @@ enum CarryOperationExecutor
         final var stateToPlace = switch(type)
         {
             case CarryType that when that.equals(CarryType.BLOCK) &&
-                carryData.unionData() instanceof CarryData.CarryBlockDataHolder holder -> holder.state;
-            case CarryType that when that.equals(CarryType.BLOCK_ENTITY) && carryData.unionData()
-                instanceof CarryData.CarryBlockEntityDataHolder holder -> holder.state;
-            default -> throw new IllegalArgumentException("Assertion failed: CarryType and CarryData's type doesn't match!");
+                carryData.matchUnique() instanceof CarryData.OfBlockUniqueData uniqueData -> uniqueData.state;
+            case CarryType that when that.equals(CarryType.BLOCK_ENTITY) && carryData.matchUnique()
+                instanceof CarryData.OfBlockEntityUniqueData uniqueData -> uniqueData.state;
+            default -> throw AssertUtils.impossibleBranch(context);
         };
         
         final var placeContext = contextFunction.apply(stateToPlace);
@@ -642,8 +709,7 @@ enum CarryOperationExecutor
             );
         
         final var level = context.level;
-        final CarryData.CarryEntityDataHolder holder = carryData.unionData();
-        final var entityToSpawn = EntityType.create(holder.tagData, level);
+        final var entityToSpawn = EntityType.create(carryData.<CarryData.OfEntityUniqueData>matchUnique().tagData, level);
         
         if(entityToSpawn.isEmpty())
             return CarryInteractHandleException.target(
@@ -674,8 +740,8 @@ enum CarryOperationExecutor
     //region Private Helpers
     private static @Nullable CarryID generateCarryID(@NotNull CarryType type, @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets)
     {
-        assert type != null : "Param \"type\" must not be null!";
-        assert targets != null : "Param \"targets\" must not be null!";
+        AssertUtils.nonNullCheckOnDev(type, "type");
+        AssertUtils.nonNullCheckOnDev(targets, "targets");
         
         final @Nullable var resourceID = targets.fold(
             l -> checkThenGet(type, l.getBlock(), BuiltInRegistries.BLOCK::getKey),
@@ -692,8 +758,8 @@ enum CarryOperationExecutor
     
     private static <T> @Nullable ResourceLocation checkThenGet(@NotNull CarryType type, @NotNull T key, @NotNull Function<T, ResourceLocation> resourceGetter)
     {
-        assert key != null : "Param \"key\" must not be null!";
-        assert resourceGetter != null : "Param \"resourceGetter\" must not be null!";
+        AssertUtils.nonNullCheckOnDev(key, "key");
+        AssertUtils.nonNullCheckOnDev(resourceGetter, "resourceGetter");
         
         if(!type.boundClass.isInstance(key))
             return null;
@@ -721,7 +787,7 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> unboxCheck(@NotNull CarryInteractContext context)
     {
-        final ItemStack carryCrate = context.carryCrate;
+        final var carryCrate = context.carryCrate;
         if(!carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
             return CarryInteractHandleException.miscFailed(
                 context.fallback(),
@@ -746,7 +812,7 @@ enum CarryOperationExecutor
     
     private static @NotNull ItemStack copyCrate(@NotNull ItemStack crate)
     {
-        final ItemStack newCrate = new ItemStack(CarryCrateRegistries.CARRY_CRATE_ITEM.value());
+        final var newCrate = new ItemStack(CarryCrateRegistries.CARRY_CRATE_ITEM.value());
         
         if(crate.has(CarryCrateRegistries.CARRY_CRATE_DURABILITY.get()))
             newCrate.set(CarryCrateRegistries.CARRY_CRATE_DURABILITY.get(), crate.get(CarryCrateRegistries.CARRY_CRATE_DURABILITY.get()));

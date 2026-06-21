@@ -61,54 +61,26 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
      * @apiNote This is faster, <b>but not thread-safe</b>, <u>{@link #ofAtomic(Object) this method}</u> is safe.
      */
     static <T> @NotNull ISealableBox<T> of(@NotNull T value)
-    {
-        Objects.requireNonNull(value, "Param \"value\" must not be null!");
-        
-        if(value instanceof ISealableBox<?>)
-            throw new IllegalArgumentException("Self wrapping is not allowed!");
-        
-        return new SealableBox<>(value, Privates.BOUND);
-    }
+        { return new SealableBox<>(Objects.requireNonNull(value, "Param \"value\" must not be null!"), Privates.BOUND); }
     
     /**
      * Creates a thread-safe <u>{@link ISealableBox}</u> instance that is <b>already bound</b> to the provided value.
      */
     static <T> @NotNull ISealableBox<T> ofAtomic(@NotNull T value)
-    {
-        Objects.requireNonNull(value, "Param \"value\" must not be null!");
-        
-        if(value instanceof ISealableBox<?>)
-            throw new IllegalArgumentException("Self wrapping is not allowed!");
-        
-        return new AtomicSealableBox<>(value, Privates.BOUND);
-    }
+        { return new AtomicSealableBox<>(Objects.requireNonNull(value, "Param \"value\" must not be null!"), Privates.BOUND); }
     
     /**
      * Creates a <u>{@link ISealableBox}</u> instance that is <b>assignable</b>, initialized with the provided value.
      * @apiNote This is faster, <b>but not thread-safe</b>, <u>{@link #assignableAtomic(Object) this method}</u> is safe.
      */
     static <T> @NotNull ISealableBox<T> assignable(@NotNull T value)
-    {
-        Objects.requireNonNull(value, "Param \"value\" must not be null!");
-        
-        if(value instanceof ISealableBox<?>)
-            throw new IllegalArgumentException("Self wrapping is not allowed!");
-        
-        return new SealableBox<>(value, Privates.ASSIGNABLE);
-    }
+        { return new SealableBox<>(Objects.requireNonNull(value, "Param \"value\" must not be null!"), Privates.ASSIGNABLE); }
     
     /**
      * Creates a thread-safe <u>{@link ISealableBox}</u> instance that is <b>assignable</b>, initialized with the provided value.
      */
     static <T> @NotNull ISealableBox<T> assignableAtomic(@NotNull T value)
-    {
-        Objects.requireNonNull(value, "Param \"value\" must not be null!");
-        
-        if(value instanceof ISealableBox<?>)
-            throw new IllegalArgumentException("Self wrapping is not allowed!");
-        
-        return new AtomicSealableBox<>(value, Privates.ASSIGNABLE);
-    }
+        { return new AtomicSealableBox<>(Objects.requireNonNull(value, "Param \"value\" must not be null!"), Privates.ASSIGNABLE); }
     
     /**
      * Creates an <b>empty</b> <u>{@link ISealableBox}</u> instance with an <b>unbound</b> state.<br>
@@ -170,11 +142,11 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @CheckReturnValue boolean isSealed();
     
-    @CheckReturnValue int hashCode();
+    int hashCode();
     
-    @CheckReturnValue boolean equals(@Nullable Object o);
+    boolean equals(@Nullable Object o);
     
-    @CheckReturnValue @NotNull String toString();
+    @NotNull String toString();
     
     @Override @NotNull T orThrow();
     
@@ -191,6 +163,9 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     SealableBox(@Nullable T value, @MagicConstant(valuesFromClass = Privates.class) byte state)
     {
         assert state >= Privates.UNBOUND && state <= Privates.SEALED : "Param \"state\"'s value is illegal: " + state;
+        
+        if(value instanceof ISealableBox<?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
         
         this.value = value;
         this.state = state;
@@ -297,6 +272,10 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     AtomicSealableBox(@Nullable T value, @MagicConstant(valuesFromClass = Privates.class) byte state)
     {
         assert state >= Privates.UNBOUND && state <= Privates.SEALED : "Param \"state\"'s value is illegal: " + state;
+        
+        if(value instanceof ISealableBox<?>)
+            throw new IllegalArgumentException("Self wrapping is not allowed!");
+        
         this.pair = new AtomicReference<>(new AtomicPair<>(value, state));
     }
     
@@ -306,12 +285,12 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
         
         while(true)
         {
-            final AtomicPair<T> current = pair.get();
+            final var current = current();
             if(current.state == Privates.BOUND || current.state == Privates.SEALED)
                 return false;
             
             final byte nextState = (current.state == Privates.UNBOUND) ? Privates.ASSIGNABLE : current.state;
-            final AtomicPair<T> next = new AtomicPair<>(value, nextState);
+            final var next = new AtomicPair<>(value, nextState);
             
             if(pair.compareAndSet(current, next))
                 return true;
@@ -324,11 +303,11 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
         
         while(true)
         {
-            final AtomicPair<T> current = pair.get();
+            final var current = current();
             if(current.state != Privates.UNBOUND && current.state != Privates.ASSIGNABLE)
                 return false;
             
-            final AtomicPair<T> next = new AtomicPair<>(value, Privates.BOUND);
+            final var next = new AtomicPair<>(value, Privates.BOUND);
             if(pair.compareAndSet(current, next))
                 return true;
         }
@@ -338,14 +317,14 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     {
         while(true)
         {
-            final AtomicPair<T> current = pair.get();
+            final var current = current();
             
             if(current.state == Privates.UNBOUND)
                 throw new IllegalStateException("This container doesn't have a presentable value, it can't be sealed!");
             if(current.state == Privates.SEALED)
                 return false;
             
-            final AtomicPair<T> next = new AtomicPair<>(null, Privates.SEALED);
+            final var next = new AtomicPair<T>(null, Privates.SEALED);
             if(pair.compareAndSet(current, next))
                 return true;
         }

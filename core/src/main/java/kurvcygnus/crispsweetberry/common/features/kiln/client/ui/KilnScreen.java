@@ -25,7 +25,7 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.*;
-import static kurvcygnus.crispsweetberry.utils.FunctionalUtils.throwIf;
+import static kurvcygnus.crispsweetberry.utils.AssertUtils.unsignedRequired;
 import static kurvcygnus.crispsweetberry.utils.constants.UIConstants.NO_OFFSET;
 
 /**
@@ -166,10 +166,10 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         public KilnInfoWidget(int x, int y, int width, int height)
         {
             super(x, y, width, height, Component.literal("?"));
-            throwIf(x < 0, "Param \"x\" should be a positive integer!", IllegalArgumentException::new);
-            throwIf(y < 0, "Param \"y\" should be a positive integer!", IllegalArgumentException::new);
-            throwIf(width < 0, "Param \"width\" should be a positive integer!", IllegalArgumentException::new);
-            throwIf(height < 0, "Param \"height\" should be a positive integer!", IllegalArgumentException::new);
+            unsignedRequired(x, "x");
+            unsignedRequired(y, "y");
+            unsignedRequired(width, "width");
+            unsignedRequired(height, "height");
             this.setTooltip(EMPTY_TIP);
         }
         

@@ -28,7 +28,9 @@ import org.jetbrains.annotations.Range;
 @ApiStatus.Internal
 public final class CarriableExtensions
 {
-    public interface OfAll<T extends CarryData.CarryDataBaseHolder> extends ICarriableLifecycle<T>, ICarryTickable, ICarryVerifiable {}
+    private CarriableExtensions() { throw new IllegalAccessError("Class \"CarriableExtensions\" is not meant to be instantized!"); }
+    
+    public interface OfAll<T extends CarryData.OfUniqueDataBase> extends ICarriableLifecycle<T>, ICarryTickable, ICarryVerifiable {}
     
     /**
      * This represents the lifecycle part of carry crate system.
@@ -45,7 +47,7 @@ public final class CarriableExtensions
      * @see CarriableSimpleLogicCollection.OfSimpleBlockEntityPenalty Container Item Based Penalty Logic Implementation
      * @author Kurv Cygnus
      */
-    public interface ICarriableLifecycle<T extends CarryData.CarryDataBaseHolder>
+    public interface ICarriableLifecycle<T extends CarryData.OfUniqueDataBase>
     {
         int DEFAULT_PENALTY_RATE = 20;
         
@@ -63,7 +65,7 @@ public final class CarriableExtensions
          */
         default boolean causesOverweight() { return true; }
         
-        void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull T dataHolder, long elapsedTime);
+        void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull T uniqueData, long elapsedTime);
     }
     
     /**
@@ -96,7 +98,17 @@ public final class CarriableExtensions
          * <u>{@link net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity AbstractFurnaceBlockEntity.class}</u>)
          */
         @NotNull Class<?> getSupportedType();
+        
+        @ApiStatus.NonExtendable default boolean isSupported(@NotNull Object object)
+            { return getSupportedType().isAssignableFrom(object instanceof Class<?> clazz ? clazz : object.getClass()); }
     }
     
-    public record TickingContext(@NotNull ItemStack carryCrate, @NotNull Level level, @NotNull Entity entity, @NotNull CarryData data, @NotNull String uuid, int slotId) {}
+    public record TickingContext(
+        @NotNull ItemStack carryCrate,
+        @NotNull Level level,
+        @NotNull Entity crateOwner,
+        @NotNull CarryData data,
+        @NotNull String uuid,
+        int slotId
+    ) {}
 }

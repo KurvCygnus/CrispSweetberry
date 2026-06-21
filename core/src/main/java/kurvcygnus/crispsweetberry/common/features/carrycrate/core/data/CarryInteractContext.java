@@ -16,6 +16,7 @@ import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.TriVariant;
+import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,11 +45,11 @@ import java.util.function.Function;
  * @implNote <h4><b>Some simple Q&A:</b></h4>
  * <ul>
  *     <li>
- *         Isn't this data class <b>too bloat</b>? It has 17 fields, that's not just a few!
+ *         Isn't this data class <b>too bloat</b>? It has 16 fields, that's not just a few!
  *         <hr>
  *         It's not, because all of these fields are essential in interact logics. <b>Choping these fields into
  *         smaller fields only makes the post-process's context passing more troublesome. Also, field {@code listenerInsert},
- *         {@code listenerRemove} and {@code placeContext} has already got more decoupling effort than directly passing those raw types.</b>
+ *         {@code listenerRemove} and {@code placeContentGetter} has already got more decoupling effort than directly passing those raw types.</b>
  *     </li>
  *     <li>
  *         Why not using <b><u>{@link Record}</u></b>, or at least <b>immutable data class</b>?
@@ -88,11 +89,12 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
     public final @NotNull ServerPlayer player;
     public final @NotNull BlockPos interactPos;
     public final @NotNull ItemStack carryCrate;
-    private final @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
-    private final @NotNull Consumer<CarryID> listenerRemove;
     public final @Nullable Function<@Nullable BlockState, @NotNull StatedBlockPlaceContext> placeContentGetter;
     public final @NotNull TriVariant<BlockState, LivingEntity, BlockEntity> targets;
     public final @NotNull ISealableBox<CarryID> carryID;
+    
+    private final @NotNull BiConsumer<CarryID, ICarryRegistryView.IBaseCarryAdapterFactory<?, ?>> listenerInsert;
+    private final @NotNull Consumer<CarryID> listenerRemove;
     private @Nullable InteractionResult result = null;
     
     //*:=== Execute Extra Fields
@@ -117,13 +119,14 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
         @Nullable CarryID carryID
     )
     {
-        assert actionType != null : "Param \"actionType\" must not be null!";
-        assert level != null : "Param \"level\" must not be null!";
-        assert player != null : "Param \"player\" must not be null!";
-        assert carryCrate != null : "Param \"carryCrate\" must not be null!";
-        assert interactPos != null : "Param \"interactPos\" must not be null!";
-        assert listenerInsert != null : "Param \"listenerInsert\" must not be null!";
-        assert listenerRemove != null : "Param \"listenerRemove\" must not be null!";
+        AssertUtils.nonNullCheckOnDev(actionType, "actionType");
+        AssertUtils.nonNullCheckOnDev(level, "level");
+        AssertUtils.nonNullCheckOnDev(player, "player");
+        AssertUtils.nonNullCheckOnDev(carryCrate, "carryCrate");
+        AssertUtils.nonNullCheckOnDev(interactPos, "interactPos");
+        AssertUtils.nonNullCheckOnDev(listenerInsert, "listenerInsert");
+        AssertUtils.nonNullCheckOnDev(listenerRemove, "listenerRemove");
+        
         this.actionType = actionType;
         this.level = level;
         this.player = player;
@@ -183,6 +186,11 @@ public final class CarryInteractContext extends BaseNestedPrinter<CarryInteractC
         @NotNull CarryData data
     )
     {
+        AssertUtils.nonNullCheckOnDev(listener, "listener");
+        AssertUtils.nonNullCheckOnDev(component, "component");
+        AssertUtils.nonNullCheckOnDev(target, "target");
+        AssertUtils.nonNullCheckOnDev(data, "data");
+        
         this.listener.assign(listener);
         this.component.assign(component);
         this.target.assign(target);

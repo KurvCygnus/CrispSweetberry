@@ -53,7 +53,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         @NotNull Player player,
         @NotNull LivingEntity interactionTarget,
         @NotNull InteractionHand hand
-    ) { return CarryEngine.interact(CarryInteractContextCollection.ICarryInteractContext.ofEntity(stack, player, interactionTarget)); }
+    ) { return CarryEngine.INST.interact(CarryInteractContextCollection.ICarryInteractContext.ofEntity(stack, player, interactionTarget)); }
     
     @Override public @NotNull InteractionResult useOn(@NotNull UseOnContext context)
     {
@@ -71,7 +71,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
         }
         
         return Objects.requireNonNullElseGet(
-            CarryEngine.interact(CarryInteractContextCollection.ICarryInteractContext.ofBlocklike(context)),
+            CarryEngine.INST.interact(CarryInteractContextCollection.ICarryInteractContext.ofBlocklike(context)),
             () -> super.useOn(context)
         );
     }
@@ -84,7 +84,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
             !stack.has(CarryCrateRegistries.CARRY_CRATE_DATA.get())
         ) return;//! Due to C/S sync, and also the competitive state between this method and [[CarryEngine]], early return at here can prevent potential NPE.
         
-        CarryEngine.carryingTick(this, stack, level, entity, slotId);
+        CarryEngine.INST.carryingTick(this, stack, level, entity, slotId);
     }
     
     @Override public void appendHoverText(
@@ -122,7 +122,7 @@ public final class CarryCrateItem extends StackableToolBlockItem<CarryCrateItem>
                 if(!data.carryType.equals(CarryType.BLOCK))
                     return;
                 
-                final CarryData.CarryBlockDataHolder blockDataHolder = data.unionData();
+                final var blockDataHolder = data.<CarryData.OfBlockUniqueData>matchUnique();
                 
                 if(blockDataHolder.maxCarryCount <= 1)
                     return;

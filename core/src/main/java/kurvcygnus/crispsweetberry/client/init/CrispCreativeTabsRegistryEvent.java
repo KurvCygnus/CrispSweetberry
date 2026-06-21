@@ -12,8 +12,6 @@ import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
-import kurvcygnus.crispsweetberry.utils.core.TabEntry;
-import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -37,14 +35,11 @@ public final class CrispCreativeTabsRegistryEvent
         final @Nullable var entries = CrispSweetberry.TAB_LOOKUP.tryGet(event).get(event.getTabKey());
         
         if(entries == null)
-        {
-            LOGGER.warn("Registry entry is null. Skipped.");
             return;
-        }
         
-        for(final TabEntry entry: entries)
+        for(final var entry: entries)
         {
-            final Item item = entry.itemSupplier().get();
+            final var item = entry.itemSupplier().get();
             
             //* Yes, using `==` to compare is legal.
             //* Firstly, [[ResourceKey]] didn't implement [[Object#equals]](which is terrible, this also happens on [[EntityType]]).

@@ -41,6 +41,8 @@ import java.io.Serializable;
 @ApiStatus.Internal
 public final class CarriableBlockEntityExtensions
 {
+    private CarriableBlockEntityExtensions() { throw new IllegalAccessError("Class \"CarriableBlockEntityExtensions\" is not meant to be instantized!"); }
+    
     public interface OfAll<E extends BlockEntity> extends IAtomicCarriable, IBlockEntityCarryLifecycle<E>, ICarrySerializable {}
     
     /**
@@ -93,7 +95,7 @@ public final class CarriableBlockEntityExtensions
      * Also, interface methods are used by internal implementation, which doesn't have blockEntity instance at all the time, 
      * with adapter itself has blockEntity field, we shouldn't add blockEntity as method args.
      */
-    public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends ICarriableLifecycle<CarryData.CarryBlockEntityDataHolder>
+    public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends ICarriableLifecycle<CarryData.OfBlockEntityUniqueData>
     {
         String INVALID_CALL_FAIL_MESSAGE = DefinitionUtils.quickFormat(
             """

@@ -38,6 +38,7 @@ import java.util.function.Function;
  *              },
  *              2// The quantity of this class's printable fields, optional param.
  *               // Specifying with correct quantity will make initialization slightly faster.
+ *               // Also, this param is optional.
  *          );
  *
  *          // Using this is also valid:
@@ -60,15 +61,14 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     /**
      * A simple specified readonly <u>{@link Map}</u> that <u>{@link INestedPrintable}</u> requires,
      * which makes writing the type of constant map quicker and easier and understand.
-     * <br><br>
-     * <i>Original verbose type: <u>{@link Map}</u><b>{@code <String, Function<T, ?>>}</b></i>, and <b>{@code wildcard} type is <u>{@link Nullable}</u></b>.
      * @implNote Using {@code ?}(<i>wildcard</i>) instead of <u>{@link Object}</u> is for special cases, which you put constants <u>{@link Function}</u>
      * (Serving multi functional libraries's definitions at most cases),
      * like {@code private static final Function<Foo, String> ID_GETTER = f -> f.id;}, such <u>{@link Function}</u> are illegal in helper methods,
      * since comparing to {@code ?}, <u>{@link Object}</u> requires the generic type must be exactly same. For non-constants case, the type is deduced,
      * so it works.<hr>
-     * Also, you may ask about implementing this with <b>{@code type alias}</b> for simplicity.
-     * However, <span style="color: f84b4b">that'll 100% explode on Runtime,</span>
+     * Also, you may ask about implementing this with <b>{@code type alias}</b> for simplicity
+     * (directly {@code extends} <u>{@link SequencedMap}</u>{@code <String, Function<T, ?>>}, do casting at use instead of implementing the interface itself).
+     * However, <span style="color: f84b4b">that'll 100% explode on Runtime with <u>{@link ClassCastException}</u>,</span>
      * <span style="color: 95cc6d">because Java is a Nominal Type Language, not a Structural Type Language.</span>
      * @since 1.0 Release
      * @author Kurv Cygnus
@@ -76,7 +76,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * @see NestedFieldMap Implementation
      * @param <T> A class that has implemented <u>{@link INestedPrintable}</u>.
      */
-    sealed interface INestedFieldMap<T extends INestedPrintable<T>> extends SequencedMap<String, Function<T, ?>> {}
+    sealed interface INestedFieldMap<T> extends SequencedMap<String, Function<T, ?>> {}
     
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
@@ -147,12 +147,12 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         
         if(map.size() != allocSize)
             System.err.println(
-                MessageFormatter.format(
+                MessageFormatter.arrayFormat(
                     "The actual size of field map is {}, not {}(allocSize).\n This flaw happens at {}.",
                     new Object[] {
                         map.size(),
                         allocSize,
-                        Cacher.STACK_WALKER.getCallerClass().getSimpleName()
+                        StackDebugger.getCallerClass().getSimpleName()
                     }
                 ).getMessage()
             );
@@ -227,7 +227,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     {
         final var fields = Objects.requireNonNullElseGet(Cacher.CACHE.get(clazz), this::getFields);
         if(!Cacher.CACHE.containsKey(clazz))
-            Cacher.CACHE.put(clazz, (SequencedMap<String, Function<Object, Object>>) fields);
+            Cacher.CACHE.put(clazz, (INestedFieldMap<Object>) fields);
         return (INestedFieldMap<T>) fields;
     }
     
@@ -320,7 +320,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
                 
                 stringBuilder.append(prefix);
                 nested.buildNestedString(stringBuilder, currentIndent, visited);
-                stringBuilder.append("\n");
+                stringBuilder.append('\n');
             }
             case Iterable<?> iterable ->
             {
@@ -332,9 +332,9 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
                 }
                 stringBuilder.append(prefix).append("\n[\n");
                 final int nextIndent = currentIndent + getIndent();
-                final String nextIndentStr = " ".repeat(nextIndent);
+                final var nextIndentStr = " ".repeat(nextIndent);
                 
-                for(final Object item: iterable)
+                for(final var item: iterable)
                     analyseAndAppend(stringBuilder, nextIndent, nextIndentStr, visited, "", item);
                 stringBuilder.append(indent).append("]\n");
             }
@@ -348,7 +348,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
                 }
                 stringBuilder.append(prefix).append("\n[\n");
                 final int nextIndent = currentIndent + getIndent();
-                final String nextIndentStr = " ".repeat(nextIndent);
+                final var nextIndentStr = " ".repeat(nextIndent);
                 
                 for(final Map.Entry<?, ?> entry: map.entrySet())
                 {
@@ -617,7 +617,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     
     private static @NotNull String circularReferenceTemplate(@NotNull Class<?> clazz, boolean isDataStructure)
     {
-        return MessageFormatter.format(
+        return MessageFormatter.arrayFormat(
             "{}...(Circular Reference {}){}",
             new Object[] { isDataStructure ? '[' : "", clazz.getSimpleName(), isDataStructure ? ']' : "" }
         ).getMessage();
@@ -639,13 +639,9 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
  * {@code public} constants, so we use {@code package-private} <u>{@link Enum}</u> to store cache instead,
  * which can deny unexpected access(both directly, and on reflect aspect).
  */
-@ApiStatus.Internal enum Cacher
-{;
-    static final Map<Class<?>, SequencedMap<String, Function<Object, @Nullable Object>>> CACHE = new ConcurrentHashMap<>();
-    static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
-}
+@ApiStatus.Internal enum Cacher {; static final Map<Class<?>, INestedPrintable.INestedFieldMap<Object>> CACHE = new ConcurrentHashMap<>(); }
 
-final class NestedFieldMap<T extends INestedPrintable<T>> implements INestedPrintable.INestedFieldMap<T>
+final class NestedFieldMap<T> implements INestedPrintable.INestedFieldMap<T>
 {
     private final SequencedMap<String, Function<T, ?>> map;
     
@@ -659,23 +655,25 @@ final class NestedFieldMap<T extends INestedPrintable<T>> implements INestedPrin
         this.map = map;
     }
     
+    //* Most methods are forbidden - supports size getting and iterating only.
+    
     @Override public int size() { return map.size(); }
     
-    @Override public boolean isEmpty() { return map.isEmpty(); }
+    @Override @DoNotCall public boolean isEmpty() { throw new UnsupportedOperationException(); }
     
-    @Override public boolean containsKey(Object key) { return map.containsKey(key); }
+    @Override @DoNotCall public boolean containsKey(Object key) { throw new UnsupportedOperationException(); }
     
-    @Override public boolean containsValue(Object value) { return map.containsValue(value); }
+    @Override @DoNotCall public boolean containsValue(Object value) { throw new UnsupportedOperationException(); }
     
-    @Override public Function<T, ?> get(Object key) { return map.get(key); }
+    @Override @DoNotCall public Function<T, ?> get(Object key) { throw new UnsupportedOperationException(); }
     
-    @Override @DoNotCall public @Nullable Function<T, ?> put(String key, Function<T, ?> value) { throw new UnsupportedOperationException("awa"); }
+    @Override @DoNotCall public @Nullable Function<T, ?> put(String key, Function<T, ?> value) { throw new UnsupportedOperationException(); }
     
-    @Override @DoNotCall public Function<T, ?> remove(Object key) { throw new UnsupportedOperationException("uwu"); }
+    @Override @DoNotCall public Function<T, ?> remove(Object key) { throw new UnsupportedOperationException(); }
     
-    @Override @DoNotCall public void putAll(@NotNull Map<? extends String, ? extends Function<T, ?>> m) { throw new UnsupportedOperationException("xwx"); }
+    @Override @DoNotCall public void putAll(@NotNull Map<? extends String, ? extends Function<T, ?>> m) { throw new UnsupportedOperationException(); }
     
-    @Override @DoNotCall public void clear() { throw new UnsupportedOperationException("fuk u"); }
+    @Override @DoNotCall public void clear() { throw new UnsupportedOperationException(); }
     
     @Override public @NotNull @Unmodifiable Set<String> keySet() { return Collections.unmodifiableSet(map.keySet()); }
     
@@ -683,5 +681,5 @@ final class NestedFieldMap<T extends INestedPrintable<T>> implements INestedPrin
     
     @Override public @NotNull @Unmodifiable Set<Entry<String, Function<T, ?>>> entrySet() { return Collections.unmodifiableSet(map.entrySet()); }
     
-    @Override public @NotNull @Unmodifiable SequencedMap<String, Function<T, ?>> reversed() { return new NestedFieldMap<>(map.reversed()); }
+    @Override public @DoNotCall @NotNull @Unmodifiable SequencedMap<String, Function<T, ?>> reversed() { throw new UnsupportedOperationException(); }
 }

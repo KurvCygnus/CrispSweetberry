@@ -10,7 +10,6 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.api;
 
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.BaseVanillaBrewingStandAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
-import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
@@ -18,10 +17,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -37,7 +34,6 @@ import org.slf4j.helpers.MessageFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -48,6 +44,8 @@ import java.util.stream.IntStream;
  */
 public final class CarriableSimpleLogicCollection
 {
+    private CarriableSimpleLogicCollection() { throw new IllegalAccessError("Class \"CarriableSimpleLogicCollection\" is not meant to be instantized!"); }
+    
     //region Block
     /**
      * A default implementation of block's break logic.<br>
@@ -57,36 +55,22 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface OfSimpleBlockBreak extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryBlockDataHolder>
+    public interface OfSimpleBlockBreak extends CarriableExtensions.ICarriableLifecycle<CarryData.OfBlockUniqueData>
     {
         /**
          * Get the <u>{@link Item}</u> that should be dropped by its <u>{@link net.minecraft.world.level.block.Block Block}</u>.
          */
         default @Nullable Item getDropItem() { return null; }
         
-        @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryBlockDataHolder dataHolder, long elapsedTime)
+        @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.OfBlockUniqueData uniqueData, long elapsedTime)
         {
-            final Item itemToDrop = Objects.requireNonNullElse(getDropItem(), dataHolder.state.getBlock().asItem());
+            final var itemToDrop = Objects.requireNonNullElse(getDropItem(), uniqueData.state.getBlock().asItem());
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(itemToDrop));
         }
     }
     //endregion
     
     //region BlockEntity
-    /**
-     * TODO
-     */
-    public interface OfSimplePersistent<E extends BlockEntity> extends CarriableBlockEntityExtensions.ICarrySerializable
-    {
-        void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries);
-        
-        void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries);
-        
-        @Override default void loadCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.loadAdditional(tag, registries); }
-        
-        @Override default void saveCarryTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.saveAdditional(tag, registries); }
-    }
-    
     /**
      * This interface provides a simple yet universal <u>{@link #getPenaltyRate(E) penaltyRate formula}</u> for blockEntity adapters.
      * @param <E> The blockEntity this adapter takes responsibility of.
@@ -139,11 +123,17 @@ public final class CarriableSimpleLogicCollection
             Objects.requireNonNull(items, "Param \"items\" must not be null!");
             Objects.requireNonNull(levelRegistry, "Param \"levelRegistry\" must not be null!");
             
-            final ListTag listtag = tag.getList(getItemsTagID(), 10);
+            final var itemTagID = getItemsTagID();
+            
+            Objects.requireNonNull(itemTagID, "Param \"itemTagID\" must not be null!");
+            if(itemTagID.isBlank())
+                throw new IllegalArgumentException("Param \"itemTagID\" must not be empty!");
+            
+            final var listtag = tag.getList(itemTagID, 10);
             
             for(int index = 0; index < listtag.size(); index++)
             {
-                final CompoundTag compoundtag = listtag.getCompound(index);
+                final var compoundtag = listtag.getCompound(index);
                 final int slotIndex = compoundtag.getByte("Slot") & 255;//! Magic Number from Vanilla.
                 
                 //noinspection ConstantValue
@@ -165,18 +155,18 @@ public final class CarriableSimpleLogicCollection
     {
         @Override default @NotNull CarryData onPenaltyDrop(CarriableExtensions.@NotNull TickingContext context)
         {
-            final CarryData data = context.data();
-            final CarryData.CarryBlockEntityDataHolder unionData = data.unionData();
-            final CompoundTag tag = unionData.tagData;
-            final NonNullList<ItemStack> items = NonNullList.create();
-            final Level level = context.level();
-            final BlockPos dropPos = context.entity().getOnPos();
+            final var data = context.data();
+            final var blockEntityUniqueData = data.<CarryData.OfBlockEntityUniqueData>matchUnique();
+            final var tag = blockEntityUniqueData.tagData;
+            final var items = NonNullList.<ItemStack>create();
+            final var level = context.level();
+            final var dropPos = context.crateOwner().getOnPos();
             
             loadAllItems(tag, items, level.registryAccess());
-            final ItemStack carryCrate = context.carryCrate();
+            final var carryCrate = context.carryCrate();
             float penaltyChance = (float) carryCrate.getDamageValue() / carryCrate.getMaxDamage();
             
-            final ArrayList<Integer> indexList = IntStream.range(0, items.size()).boxed().collect(Collectors.toCollection(ArrayList::new));
+            final var indexList = IntStream.range(0, items.size()).boxed().collect(Collectors.toCollection(ArrayList::new));
             Collections.shuffle(indexList);
             
             int dropTime = 0;
@@ -201,13 +191,13 @@ public final class CarriableSimpleLogicCollection
                 penaltyChance = penaltyChance / dropTime;
             }
             
-            final CompoundTag completedTag = ContainerHelper.saveAllItems(tag, items, level.registryAccess());
+            final var completedTag = ContainerHelper.saveAllItems(tag, items, level.registryAccess());
             
             return CarryData.createBlockEntity(
-                unionData.state,
+                blockEntityUniqueData.state,
                 completedTag,
-                unionData.type,
-                unionData.penaltyRate,
+                blockEntityUniqueData.type,
+                data.penaltyRate,
                 data.causesOverweight,
                 data.startTime
             );
@@ -224,10 +214,10 @@ public final class CarriableSimpleLogicCollection
      */
     public non-sealed interface OfSimpleBlockEntityBreak<E extends BlockEntity> extends IBlockEntityCarryLifecycle<E>, ILoadableTagItems
     {
-        @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryBlockEntityDataHolder dataHolder, long elapsedTime)
+        @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.OfBlockEntityUniqueData uniqueData, long elapsedTime)
         {
-            final CompoundTag dataTag = dataHolder.tagData;
-            final NonNullList<ItemStack> items = NonNullList.create();
+            final var dataTag = uniqueData.tagData;
+            final var items = NonNullList.<ItemStack>create();
             
             loadAllItems(dataTag, items, level.registryAccess());
             
@@ -242,16 +232,16 @@ public final class CarriableSimpleLogicCollection
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface OfSimpleEntityBreak extends CarriableExtensions.ICarriableLifecycle<CarryData.CarryEntityDataHolder>
+    public interface OfSimpleEntityBreak extends CarriableExtensions.ICarriableLifecycle<CarryData.OfEntityUniqueData>
     {
-        @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.CarryEntityDataHolder dataHolder, long elapsedTime)
+        @Override default void onBreak(@NotNull Level level, @NotNull BlockPos pos, @NotNull CarryData.OfEntityUniqueData uniqueData, long elapsedTime)
         {
-            final CompoundTag dataTag = dataHolder.tagData;
-            final Optional<Entity> optionalEntity = EntityType.create(dataTag, level);
+            final var dataTag = uniqueData.tagData;
+            final var optionalEntity = EntityType.create(dataTag, level);
             
             if(optionalEntity.isPresent())
             {
-                final Entity entity = optionalEntity.get();
+                final var entity = optionalEntity.get();
                 entity.moveTo(pos.getX(), pos.getY(), pos.getZ());
                 
                 level.addFreshEntity(entity);

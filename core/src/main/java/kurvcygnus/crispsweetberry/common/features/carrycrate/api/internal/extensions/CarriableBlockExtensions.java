@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Range;
 @ApiStatus.Internal
 public final class CarriableBlockExtensions
 {
+    private CarriableBlockExtensions() { throw new IllegalAccessError("Class \"CarriableBlockExtensions\" is not meant to be instantized!"); }
+    
     public interface OfAll extends ICarryBlockStackable {}
     
     /**

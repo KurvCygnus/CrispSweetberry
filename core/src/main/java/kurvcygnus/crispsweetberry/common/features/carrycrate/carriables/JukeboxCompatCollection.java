@@ -75,7 +75,7 @@ public final class JukeboxCompatCollection
         }
         
         @Override public void carryingTick(@NotNull CarriableExtensions.TickingContext context)
-            { CrispMusicGroover.INST.playMusic(context.level(), context.entity().getOnPos(), context.uuid()); }
+            { CrispMusicGroover.INST.playMusic(context.level(), context.crateOwner().getOnPos(), context.uuid()); }
         
         @Override protected void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull JukeboxBlockEntity blockEntity)
         {

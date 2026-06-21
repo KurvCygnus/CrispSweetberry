@@ -43,6 +43,5 @@ public interface ICoinType<C extends ICoinType<C>>
      * @apiNote Mainly used for <u>{@link VanillaCoinType#COPPER copper}</u> and
      * <u>{@link VanillaCoinType#DIAMOND diamond}</u> coins' in-game accessibility.
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! We should follow intuitive naming style.
     default boolean shouldAppear() { return true; }
 }

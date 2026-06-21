@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.lib.core.registry;
 
 import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
+import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -23,9 +24,9 @@ import org.objectweb.asm.Type;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 
 /**
  * This is the class that processes all <u>{@link IRegistrant}</u> implementers.
@@ -38,14 +39,60 @@ import java.util.function.BiConsumer;
  */
 @EventBusSubscriber(modid = "crispsweetberry") public final class CrispRegistrationManager
 {
-    private static final ISealableBox<Boolean> ACCESS = ISealableBox.assignable(Boolean.TRUE);
+    private static final ISealableBox<Boolean> ACCESS = ISealableBox.assignableAtomic(Boolean.TRUE);
     
     private static @Nullable CrispRegistrationManager INSTANCE = new CrispRegistrationManager();
     
-    private final IMarkLogger logger = IMarkLogger.withMarkerSuffixes("REGISTRY_MANAGER");
+    private final IMarkLogger logger = IMarkLogger.marklessLogger();
     private final Set<ModContainer> visited = Collections.newSetFromMap(new IdentityHashMap<>());
     
     private CrispRegistrationManager() { if(!ACCESS.orThrow()) throw new AssertionError("No, you can't create a new instance of this!"); }
+    
+    private static <A extends Annotation> void delegate(
+        @NotNull ModContainer modContainer,
+        @NotNull IEventBus eventBus,
+        @Nullable Class<A> service,
+        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence
+    )
+    {
+        Objects.requireNonNull(modContainer, "Param \"modContainer\" must not be null!");
+        Objects.requireNonNull(eventBus, "Param \"eventBus\" must not be null!");
+        
+        if(INSTANCE == null)
+            throw new IllegalStateException("Registration phase is already over!");
+        
+        try(final var ignored = INSTANCE.logger.pushMarker(modContainer.getModId().toUpperCase()))
+            { INSTANCE.register(modContainer, eventBus, service, foundSequence); }
+    }
+    
+    /**
+     * This method starts the automatic registration of a mod.<br>
+     * You should call this method in your mod's entry class's {@code <init>} method(<i>a.k.a Constructor</i>).
+     * <hr>
+     * <b>This class has a strict lifecycle, any improper, or invalid call will get exception.</b>
+     *
+     * @see #registerWithAnnotationDelegate(ModContainer, IEventBus, Class, BiConsumer) Advanced Usage
+     */
+    public static void register(@NotNull ModContainer modContainer, @NotNull IEventBus eventBus) { delegate(modContainer, eventBus, null, null); }
+    
+    /**
+     * Start the registration of all <u>{@link IRegistrant}</u>'s implementers, and after the registration is completed,
+     * the <u>{@link Annotation}</u> your passed will be processed, once both annotated target and <u>{@link Annotation}</u> itself are presented,
+     * the callback will be triggered.
+     *
+     * @apiNote Param {@code service}'s users are better in a <u>{@link Enum}</u> class, <span style="color: f84b4b">otherwise stability and safety are not granted.</span>
+     */
+    public static <A extends Annotation> void registerWithAnnotationDelegate(
+        @NotNull ModContainer modContainer,
+        @NotNull IEventBus eventBus,
+        @NotNull Class<A> service,
+        @NotNull BiConsumer<@NotNull A, @NotNull Object> foundSequence
+    )
+    {
+        Objects.requireNonNull(service, "Param \"service\" must not be null!");
+        Objects.requireNonNull(foundSequence, "Param \"foundSequence\" must not be null!");
+        delegate(modContainer, eventBus, service, foundSequence);
+    }
     
     @SubscribeEvent @DoNotCall static void destroyInstance(@NotNull FMLLoadCompleteEvent event)
     {
@@ -65,120 +112,133 @@ import java.util.function.BiConsumer;
         if(!visited.add(modContainer))
             return;
         
-        logger.info("Searching registries for mod: {}...", modContainer.getModId());
+        final var scanData = modContainer.getModInfo().getOwningFile().getFile().getScanResult();
         
-        final ModFileScanData scanData = modContainer.getModInfo().getOwningFile().getFile().getScanResult();
+        logger.info("Searching and registering config...");
         
-        scanData.getClasses().stream().
-            filter(data -> data.interfaces().contains(Type.getType(IRegistrant.class))).
-            map(
-                data ->
+        final var configs = new ArrayList<IRegistrant.OfConfigSupport<?, ?>>();
+        final var registries = new ArrayList<IRegistrant<?>>();
+        final var delegates = new ArrayList<Pair<A, @Nullable Object>>();
+        
+        final var classIterator = scanData.getClasses().iterator();
+        final var annotationIterator = scanData.getAnnotations().iterator();
+        
+        final BooleanSupplier shouldDoDelegate = () -> service != null && foundSequence != null && annotationIterator.hasNext();
+        
+        while(classIterator.hasNext() || shouldDoDelegate.getAsBoolean())
+        {
+            final @Nullable var classData = classIterator.hasNext() ? classIterator.next() : null;
+            final @Nullable var annotationData = shouldDoDelegate.getAsBoolean() ? annotationIterator.next() : null;
+            
+            tryAnalyseTarget(IRegistrant.OfConfigSupport.class, classData, configs, "ConfigHolder");
+            //! A shame that ASM only recognizes the direct inheritors, the indirect are not supported QAQ
+            tryAnalyseTarget(IRegistrant.OfSimpleConfigSupport.class, classData, configs, "ConfigHolder");
+            tryAnalyseTarget(IRegistrant.class, classData, registries, "Registry");
+            
+            //noinspection DataFlowIssue
+            if(annotationData != null && annotationData.annotationType().getClassName().equals(service.getName()))//! See `shouldDoDelegate`'s definition.
+            {
+                final var hostFQCN = annotationData.clazz().getClassName();
+                
+                try
                 {
-                    try
+                    final var ownerName = annotationData.memberName();
+                    
+                    final var host = Class.forName(hostFQCN);
+                    final var owner = host.getDeclaredField(ownerName);
+                    owner.setAccessible(true);
+                    
+                    final @Nullable A instance = owner.getAnnotation(service);
+                    final @Nullable Object value = owner.get(null);
+                    
+                    if(instance != null && value != null)
                     {
-                        final Class<?> registry = Class.forName(data.clazz().getClassName());
-                        if(registry.isEnum() && registry.getEnumConstants().length == 1)
-                        {
-                            logger.debug("Captured the singleton of registry \"{}\".", registry.getSimpleName());
-                            return (IRegistrant<?>) registry.getEnumConstants()[0];
-                        }
+                        logger.debug(
+                            "Found a delegate pair for annotation \"{}\", in \"{}\".",
+                            host.getSimpleName(),
+                            service.getSimpleName()
+                        );
+                        delegates.add(new Pair<>(instance, value));
                     }
-                    catch(Exception e)
-                    {
-                        logger.error("Failed to instantiate registry: {}", data.clazz().getClassName(), e);
-                        return null;
-                    }
-                    throw new IllegalStateException(
-                        MessageFormatter.format("Class \"{}\" has violated the contract: It is not a singleton enum.", data.clazz().getClassName()).getMessage()
-                    );
                 }
-            ).
-            filter(Objects::nonNull).
-            sorted(Comparator.comparingInt(r -> r.getPriority().fullPriority())).
-            forEach(
-                registrant ->
-                {
-                    registrant.register(eventBus);
-                    logger.info(
-                        "[{}] Registering {}{}...",
-                        modContainer.getModId(),
-                        registrant.isFeature() ? "Feature: " : "",
-                        registrant.getJob()
-                    );
-                }
-            );
+                catch(Exception e) { logger.error("Failed to access ConfigHolder class \"{}\", details: ", hostFQCN, e); }
+            }
+        }
         
-        if(service == null || foundSequence == null)
+        registries.sort(Comparator.comparingInt(r -> r.getPriority().fullPriority()));
+        
+        logger.info("All registrants founded and sorted. Starting instantiating.");
+        
+        if(!configs.isEmpty())
+        {
+            logger.info("Invoking configs...");
+            for(final var configHolder: configs)
+            {
+                final var type = configHolder.getType();
+                modContainer.registerConfig(type, configHolder.getSpec());
+                logger.info("Registered {} config {}.", type.extension(), configHolder.getClass().getSimpleName());
+            }
+        }
+        
+        if(!registries.isEmpty())
+        {
+            logger.info("Invoking registries...");
+            for(final var registry: registries)
+            {
+                registry.register(eventBus);
+                logger.info(
+                    "Registering {}{}...",
+                    registry.isFeature() ? "Feature: " : "",
+                    registry.getJob()
+                );
+            }
+        }
+        
+        if(!delegates.isEmpty())
+        {
+            logger.info("Invoking delegations...");
+            for(final var delegate: delegates)
+            {
+                assert foundSequence != null;
+                foundSequence.accept(delegate.left(), delegate.right());
+            }
+        }
+        
+        logger.info("Mod loaded!");
+    }
+    
+    @SuppressWarnings("unchecked")//! Internal Usage, relatively safe.
+    private <E> void tryAnalyseTarget(
+        @NotNull Class<?> clazz,//! Can't use `? extends E` to restrict, because Javac is stupid, and doesn't think that `Foo` and `Foo<?>` are the same thing.
+        @Nullable ModFileScanData.ClassData classData,
+        @NotNull List<E> list,
+        @NotNull String type
+    )
+    {
+        if(classData == null || !classData.interfaces().contains(Type.getType(clazz)))
             return;
         
-        logger.info("[{}] Registry initialized. Start process Annotation \"{}\"'s delegation.", modContainer.getModId(), service.getSimpleName());
+        final var targetFQCN = classData.clazz().getClassName();
         
-        scanData.getAnnotations().stream().
-            filter(data -> data.annotationType().getClassName().equals(service.getName())).
-            forEach(
-                data ->
-                {
-                    try
-                    {
-                        final Class<?> host = Class.forName(data.clazz().getClassName());
-                        final Field owner = host.getDeclaredField(data.memberName());
-                        owner.setAccessible(true);
-                        
-                        final @Nullable A instance = owner.getAnnotation(service);
-                        final @Nullable Object target = owner.get(null);
-                        
-                        if(target == null || instance == null)
-                        {
-                            logger.debug("Invalid entry: Member: {}, Annotation: {}, skipped.", target, instance);
-                            return;
-                        }
-                        
-                        foundSequence.accept(instance, target);
-                    }
-                    catch(Exception e) { logger.error("Failed to access class \"{}\", details: ", data.clazz().getClassName(), e); }
-                }
-            );
-    }
-    
-    private static <A extends Annotation> void delegate(
-        @NotNull ModContainer modContainer,
-        @NotNull IEventBus eventBus,
-        @Nullable Class<A> service,
-        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence
-    )
-    {
-        Objects.requireNonNull(modContainer, "Param \"modContainer\" must not be null!");
-        Objects.requireNonNull(eventBus, "Param \"eventBus\" must not be null!");
-        
-        if(INSTANCE == null)
-            throw new IllegalStateException("Registration phase is already over!");
-        
-        INSTANCE.register(modContainer, eventBus, service, foundSequence);
-    }
-    
-    /**
-     * This method starts the automatic registration of a mod.<br>
-     * You should call this method in your mod's entry class's {@code <init>} method(<i>a.k.a Constructor</i>).
-     * <hr>
-     * <b>This class has a strict lifecycle, any improper, or invalid call will get exception.</b>
-     * @see #registerWithAnnotationDelegate(ModContainer, IEventBus, Class, BiConsumer) Advanced Usage
-     */
-    public static void register(@NotNull ModContainer modContainer, @NotNull IEventBus eventBus) { delegate(modContainer, eventBus, null, null); }
-    
-    /**
-     * Start the registration of all <u>{@link IRegistrant}</u>'s implementers, and after the registration is completed,
-     * the <u>{@link Annotation}</u> your passed will be processed, once both annotated target and <u>{@link Annotation}</u> itself are presented,
-     * the callback will be triggered.
-     */
-    public static <A extends Annotation> void registerWithAnnotationDelegate(
-        @NotNull ModContainer modContainer,
-        @NotNull IEventBus eventBus,
-        @NotNull Class<A> service,
-        @NotNull BiConsumer<@NotNull A, @NotNull Object> foundSequence
-    )
-    {
-        Objects.requireNonNull(service, "Param \"service\" must not be null!");
-        Objects.requireNonNull(foundSequence, "Param \"foundSequence\" must not be null!");
-        delegate(modContainer, eventBus, service, foundSequence);
+        try
+        {
+            final var target = Class.forName(targetFQCN);
+            
+            if(target.isInterface())//! Appears to be uninstantiable, and probably be original target's variant.
+                return;
+            
+            if(!target.isEnum() || target.getEnumConstants().length != 1)
+                throw new IllegalStateException(
+                    MessageFormatter.format(
+                        "Class \"{}\" has violated the contract of {}: It is not a singleton enum.",
+                        targetFQCN,
+                        type
+                    ).getMessage()
+                );
+            
+            logger.debug("Captured the singleton of {} \"{}\".", type, target.getSimpleName());
+            list.add((E) target.getEnumConstants()[0]);
+        }
+        catch(Exception e) { logger.error("Failed to instantiate {} class \"{}\".", type, targetFQCN, e); }
     }
 }

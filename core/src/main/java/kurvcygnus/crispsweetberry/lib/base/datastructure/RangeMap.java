@@ -21,29 +21,29 @@ import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 /**
- * This is a specialized <u>{@link Map}</u> implementation for non-discrete data structures like <u>{@link CrispRanger}</u>,
+ * This is a specialized <u>{@link Map}</u> implementation for non-discrete data structures like <u>{@link Ranger}</u>,
  * focusing on range value mapping.
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @param <V> The corresponded value type for this {@code CrispRangeMap}.
- * @see CrispRanger Ranger
+ * @see Ranger Ranger
  * @implNote Since this is a lite implementation, it uses <u>{@link LinkedHashMap}</u> as internal indexing map.
  */
-public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
+public final class RangeMap<V> extends AbstractMap<Ranger, V>
 {
     //region Pre-defined Conflict Handlers
-    private static final BiPredicate<CrispRanger, CrispRanger> CONTAINS = (first, second) ->
+    private static final BiPredicate<Ranger, Ranger> CONTAINS = (first, second) ->
         first.inRange(second.min()) || first.inRange(second.max());
     
-    private static final BiPredicate<CrispRanger, CrispRanger> CONFLICTED = CONTAINS.or((first, second) -> second.overlaps(first));
+    private static final BiPredicate<Ranger, Ranger> CONFLICTED = CONTAINS.or((first, second) -> second.overlaps(first));
     
     /**
-     * One of the pre-defined conflict <u>{@link CrispRanger}</u>'s handle logic.<br>
+     * One of the pre-defined conflict <u>{@link Ranger}</u>'s handle logic.<br>
      * Once there exists confliction, <b><u>{@link IllegalStateException}</u> will be thrown</b>.
      */
     public static final ConflictHandler<Object> THROW = (map, range, value) ->
     {
-        for(CrispRanger existing: map.keySet())
+        for(Ranger existing: map.keySet())
             if(CONFLICTED.test(range, existing))
                 throw new IllegalStateException(MessageFormatter.format("Range conflict detected: {} overlaps with {}", range, existing).getMessage());
         
@@ -51,7 +51,7 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     };
     
     /**
-     * One of the pre-defined conflict <u>{@link CrispRanger}</u>'s handle logic.<br>
+     * One of the pre-defined conflict <u>{@link Ranger}</u>'s handle logic.<br>
      * Once there exists confliction, <b>the original one will be replaced</b>.
      */
     public static final ConflictHandler<Object> OVERWRITE = (map, range, value) ->
@@ -61,12 +61,12 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     };
     
     /**
-     * One of the pre-defined conflict <u>{@link CrispRanger}</u>'s handle logic.<br>
+     * One of the pre-defined conflict <u>{@link Ranger}</u>'s handle logic.<br>
      * Once there exists confliction, <b>the new one will be ignored</b>.
      */
     public static final ConflictHandler<Object> IGNORE = (map, range, value) ->
     {
-        for(CrispRanger existing: map.keySet())
+        for(Ranger existing: map.keySet())
             if(CONTAINS.test(range, existing))
                 return ConflictHandleResult.noReplace();
         
@@ -74,20 +74,20 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     };
     
     /**
-     * One of the pre-defined conflict <u>{@link CrispRanger}</u>'s handle logic.<br>
-     * Once there exists confliction, <b>the two will be merged into one <u>{@link CrispRanger}</u></b>.
+     * One of the pre-defined conflict <u>{@link Ranger}</u>'s handle logic.<br>
+     * Once there exists confliction, <b>the two will be merged into one <u>{@link Ranger}</u></b>.
      */
     public static final ConflictHandler<Object> UNION = (map, range, value) ->
     {
-        final Iterator<Map.Entry<CrispRanger, Object>> it = map.entrySet().iterator();
-        CrispRanger finalRange = range;
+        final Iterator<Map.Entry<Ranger, Object>> it = map.entrySet().iterator();
+        Ranger finalRange = range;
         
         while(it.hasNext())
         {
-            final Map.Entry<CrispRanger, Object> entry = it.next();
+            final Map.Entry<Ranger, Object> entry = it.next();
             if(Objects.equals(entry.getValue(), value))
             {
-                final Optional<CrispRanger> merged = entry.getKey().union(finalRange);
+                final Optional<Ranger> merged = entry.getKey().union(finalRange);
                 
                 if(merged.isPresent())
                 {
@@ -101,15 +101,15 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     };
     
     /**
-     * One of the pre-defined conflict <u>{@link CrispRanger}</u>'s handle logic.<br>
+     * One of the pre-defined conflict <u>{@link Ranger}</u>'s handle logic.<br>
      * Once there exists confliction, <b>the two will be splits into two independent {@code CrispRanger}, and the result is depended on param {@code flags} you provided</b>.
      */
     public static final IntFunction<ConflictHandler<Object>> DIFFERENCE =
         flags -> (map, range, value) -> difference(map, range, value, flags);
     
     private static @NotNull ConflictHandleResult<Object> difference(
-        @NotNull Map<CrispRanger, Object> existingMap,
-        @NotNull CrispRanger newRange,
+        @NotNull Map<Ranger, Object> existingMap,
+        @NotNull Ranger newRange,
         @NotNull Object newValue,
         @MagicConstant int flags
     )
@@ -120,23 +120,23 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     //endregion
     
     //region Fields & Constructors
-    private final Map<CrispRanger, V> internalMap;
+    private final Map<Ranger, V> internalMap;
     
-    private CrispRangeMap() { this.internalMap = new LinkedHashMap<>(); }
+    private RangeMap() { this.internalMap = new LinkedHashMap<>(); }
     
-    public static <V> @NotNull CrispRangeMap<V> create(@NotNull Consumer<Map<CrispRanger, V>> insertAction, @NotNull ConflictHandler<? super V> conflictHandler)
+    public static <V> @NotNull RangeMap<V> create(@NotNull Consumer<Map<Ranger, V>> insertAction, @NotNull ConflictHandler<? super V> conflictHandler)
     {
         Objects.requireNonNull(insertAction, "Param \"insertAction\" must not be null!");
         Objects.requireNonNull(conflictHandler, "Param \"conflictHandler\" must not be null!");
         
-        final CrispRangeMap<V> resultMap = new CrispRangeMap<>();
+        final RangeMap<V> resultMap = new RangeMap<>();
         
-        final Map<CrispRanger, V> inputData = new LinkedHashMap<>();
+        final Map<Ranger, V> inputData = new LinkedHashMap<>();
         insertAction.accept(inputData);
         
-        for(final Entry<CrispRanger, V> entry: inputData.entrySet())
+        for(final Entry<Ranger, V> entry: inputData.entrySet())
         {
-            final CrispRanger range = entry.getKey();
+            final Ranger range = entry.getKey();
             final V value = entry.getValue();
             
             @SuppressWarnings("unchecked")//! Safe generic manipulation.
@@ -145,7 +145,7 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
             final var rangerToReturn = result.rangerToReturn();
             final var newRanger = result.newRanger();
             
-            final Consumer<Entry<CrispRanger, V>> put = e -> resultMap.internalMap.put(e.getKey(), e.getValue());
+            final Consumer<Entry<Ranger, V>> put = e -> resultMap.internalMap.put(e.getKey(), e.getValue());
             
             rangerToReturn.ifPresent(put);
             newRanger.ifPresent(put);
@@ -159,7 +159,7 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     public @Nullable V getValue(int value)
     {
         //? TODO: Opti this.
-        for(final Map.Entry<CrispRanger, V> entry: this.internalMap.entrySet())
+        for(final Map.Entry<Ranger, V> entry: this.internalMap.entrySet())
             if(entry.getKey().inRange(value))
                 return entry.getValue();
         
@@ -190,19 +190,19 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     
     @Override public V get(Object key) { return this.internalMap.get(key); }
     
-    @Override public @NotNull Set<CrispRanger> keySet() { return this.internalMap.keySet(); }
+    @Override public @NotNull Set<Ranger> keySet() { return this.internalMap.keySet(); }
     
     @Override public @NotNull Collection<V> values() { return this.internalMap.values(); }
     
-    @Override public @NotNull Set<Entry<CrispRanger, V>> entrySet() { return this.internalMap.entrySet(); }
+    @Override public @NotNull Set<Entry<Ranger, V>> entrySet() { return this.internalMap.entrySet(); }
     //endregion
     
     //region Conflict Handler Definition
     @FunctionalInterface public interface ConflictHandler<V>
     {
         @NotNull ConflictHandleResult<V> handle(
-            @NotNull Map<CrispRanger, V> existingMap,
-            @NotNull CrispRanger newRange,
+            @NotNull Map<Ranger, V> existingMap,
+            @NotNull Ranger newRange,
             @NotNull V newValue
         );
     }
@@ -211,19 +211,19 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
     {
         private static final ConflictHandleResult<Object> NO_REPLACE = new ConflictHandleResult<>(null, null);
         
-        private final @Nullable Entry<CrispRanger, V> rangerToReturn;
-        private final @Nullable Entry<CrispRanger, V> newRanger;
+        private final @Nullable Entry<Ranger, V> rangerToReturn;
+        private final @Nullable Entry<Ranger, V> newRanger;
         
         private ConflictHandleResult(
-            @Nullable Entry<CrispRanger, V> rangerToReturn,
-            @Nullable Entry<CrispRanger, V> newRanger
+            @Nullable Entry<Ranger, V> rangerToReturn,
+            @Nullable Entry<Ranger, V> newRanger
         )
         {
             this.rangerToReturn = rangerToReturn;
             this.newRanger = newRanger;
         }
         
-        public static @NotNull <V> ConflictHandleResult<V> singleRanger(@NotNull CrispRanger ranger, @NotNull V value)
+        public static @NotNull <V> ConflictHandleResult<V> singleRanger(@NotNull Ranger ranger, @NotNull V value)
         {
             Objects.requireNonNull(ranger, "Param \"ranger\" must not be null!");
             Objects.requireNonNull(value, "Param \"value\" must not be null!");
@@ -235,9 +235,9 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
         public static @NotNull <V> ConflictHandleResult<V> noReplace() { return (ConflictHandleResult<V>) NO_REPLACE; }
         
         public static @NotNull <V> ConflictHandleResult<V> withExtraRanger(
-            @NotNull CrispRanger ranger,
+            @NotNull Ranger ranger,
             @NotNull V value,
-            @NotNull CrispRanger newRanger,
+            @NotNull Ranger newRanger,
             @NotNull V newValue
         )
         {
@@ -249,9 +249,9 @@ public final class CrispRangeMap<V> extends AbstractMap<CrispRanger, V>
             return new ConflictHandleResult<>(Pair.of(ranger, value), Pair.of(newRanger, newValue));
         }
         
-        public @NotNull Optional<@NotNull Entry<CrispRanger, V>> rangerToReturn() { return Optional.ofNullable(rangerToReturn); }
+        public @NotNull Optional<@NotNull Entry<Ranger, V>> rangerToReturn() { return Optional.ofNullable(rangerToReturn); }
         
-        public @NotNull Optional<@NotNull Entry<CrispRanger, V>> newRanger() { return Optional.ofNullable(newRanger); }
+        public @NotNull Optional<@NotNull Entry<Ranger, V>> newRanger() { return Optional.ofNullable(newRanger); }
         
         @Override public boolean equals(@Nullable Object obj)
         {

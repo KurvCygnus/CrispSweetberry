@@ -43,7 +43,7 @@ import java.util.Set;
  */
 public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>> extends ICRTPCaster<IBitmaskedEnum<E>, E>
 {
-    //region Mask Constants & Lookups
+    //region Mask Constants
     int MASK    = 0x3;
     int DEFAULT = 0x0;
     int TRUE    = 0x1;
@@ -77,7 +77,7 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>> extends I
     //endregion
     
     //region Public APIs
-    default int handleExtra() { throw new IllegalStateException("Invalid input: Parse result is 3(EXTRA), which shouldn't undefined currently. Please review your code."); }
+    default int handleExtra() { throw new IllegalStateException("Invalid input: Parse result is 3(EXTRA), which shouldn't be undefined currently. Please review your code."); }
     
     @ApiStatus.NonExtendable default int computeRaw(int flags)
     {

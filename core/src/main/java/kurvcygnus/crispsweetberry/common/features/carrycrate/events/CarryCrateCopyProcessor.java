@@ -71,7 +71,7 @@ public final class CarryCrateCopyProcessor
         LOGGER.debug("New CarryID generated: {}\nTrying to add it to listener lookup with CarryType {}.", newID, type);
         
         clonedStack.set(CarryCrateRegistries.CARRY_ID.get(), newID);
-        CarryEngine.INSERT_ACCESS.tryGet(Optional.empty()).accept(type, carryID, newID);
+        CarryEngine.INST.insertAccess.tryGet(Optional.empty()).accept(type, carryID, newID);
         
         //! This event will only be fired during gaming, which means [[Minecraft#gameMode]] always exists.
         assert mc.gameMode != null;

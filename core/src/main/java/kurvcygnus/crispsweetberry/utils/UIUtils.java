@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.utils;
 
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import kurvcygnus.crispsweetberry.utils.functions.IQuadMoveStackPredicate;
 import kurvcygnus.crispsweetberry.utils.functions.IQuadSlotSupplier;
@@ -29,7 +29,7 @@ import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.SL
 /**
  * A collection of some simple helpers for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu UI stuff}</u>.
  * @apiNote Being tortured by {@code AbstractMenu#moveItemStackTo()}?<br>
- * <u>{@link CrispRanger#inRangers CrispRanger#inRangers()}</u> may help you out.
+ * <u>{@link Ranger#inRangers CrispRanger#inRangers()}</u> may help you out.
  * @since 1.0 Release
  */
 public final class UIUtils
@@ -69,11 +69,8 @@ public final class UIUtils
         requireNonNull(slotFactory, "Param \"slotFactory\" cannot be null!(7th param)");
         requireNonNull(consumer, "Param \"consumer\" cannot be null!(8th param)");
         
-        FunctionalUtils.throwIf(
-            rows <= 0 || cols <= 0,
-            DefinitionUtils.quickFormat("Variable \"rows\" and \"cols\" must both be a positive integer! Current value: rows: {}, cols: {}", rows, cols),
-            IllegalArgumentException::new
-        );
+        AssertUtils.positiveOnly(rows, "rows");
+        AssertUtils.positiveOnly(cols, "cols");
         
         for(int row = 0; row < rows; row++)
             for(int col = 0; col < cols; col++)
@@ -94,11 +91,11 @@ public final class UIUtils
      *  moveStackByRanger(stack, ranger, flag, this::moveItemStackTo);
      * }</pre>
      * @see ExampleSlotConstants Furnace Layout Index Reference
-     * @see CrispRanger Ranger
+     * @see Ranger Ranger
      */
     public static boolean moveStackByRanger(
         @NotNull ItemStack interactStack,
-        @NotNull CrispRanger ranger,
+        @NotNull Ranger ranger,
         boolean reverseDirection,
         @NotNull IQuadMoveStackPredicate predicate
     )

@@ -13,7 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import net.minecraft.world.entity.player.Inventory;
@@ -55,7 +55,7 @@ public final class KilnMenu extends AbstractContainerMenu
     private static final int KILN_SLOTS_LOWER_Y_POS = 43;
     private static final int KILN_SLOTS_X_GAP = 18;
     
-    private static final List<CrispRanger> SLOT_RANGERS = List.of(
+    private static final List<Ranger> SLOT_RANGERS = List.of(
         KILN_INPUT_SLOTS_RANGE,
         KILN_OUTPUT_SLOTS_RANGE,
         KILN_BACKPACK_SLOTS_RANGE,
@@ -90,21 +90,24 @@ public final class KilnMenu extends AbstractContainerMenu
             new KilnInputSlot(
                 container,
                 KILN_INPUT_SLOTS_RANGE.min(),
-                INPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
+                INPUT_SLOT_TOP_X_POS,
+                KILN_SLOTS_TOP_Y_POS
             )
         );
         this.addSlot(
             new KilnInputSlot(
                 container,
                 KILN_INPUT_SLOTS_RANGE.min() + 1,
-                INPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
+                INPUT_SLOT_START_X_POS,
+                KILN_SLOTS_LOWER_Y_POS
             )
         );
         this.addSlot(
             new KilnInputSlot(
                 container,
                 KILN_INPUT_SLOTS_RANGE.max(),
-                INPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
+                INPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP,
+                KILN_SLOTS_LOWER_Y_POS
             )
         );
         
@@ -112,21 +115,24 @@ public final class KilnMenu extends AbstractContainerMenu
             new KilnOutputSlot(
                 container,
                 KILN_OUTPUT_SLOTS_RANGE.min(),
-                OUTPUT_SLOT_TOP_X_POS, KILN_SLOTS_TOP_Y_POS
+                OUTPUT_SLOT_TOP_X_POS,
+                KILN_SLOTS_TOP_Y_POS
             )
         );
         this.addSlot(
             new KilnOutputSlot(
                 container,
                 KILN_OUTPUT_SLOTS_RANGE.min() + 1,
-                OUTPUT_SLOT_START_X_POS, KILN_SLOTS_LOWER_Y_POS
+                OUTPUT_SLOT_START_X_POS,
+                KILN_SLOTS_LOWER_Y_POS
             )
         );
         this.addSlot(
             new KilnOutputSlot(
                 container,
                 KILN_OUTPUT_SLOTS_RANGE.max(),
-                OUTPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP, KILN_SLOTS_LOWER_Y_POS
+                OUTPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP,
+                KILN_SLOTS_LOWER_Y_POS
             )
         );
         
@@ -177,30 +183,31 @@ public final class KilnMenu extends AbstractContainerMenu
     @Override public void removed(@NotNull Player player)
     {
         super.removed(player);
-        if(!player.level().isClientSide)
-            container.stopOpen(player);
+        if(player.level().isClientSide)
+            return;
+        container.stopOpen(player);
     }
     //endregion
     
     //region Interact Logics
     @Override public @NotNull ItemStack quickMoveStack(@NotNull Player player, int index)
     {
-        final Slot slot = this.slots.get(index);
+        final var slot = this.slots.get(index);
         
         if(!slot.hasItem())
             return ItemStack.EMPTY;
         
-        final ItemStack interactStack = slot.getItem();
-        final ItemStack temporaryStack = interactStack.copy();
+        final var interactStack = slot.getItem();
+        final var temporaryStack = interactStack.copy();
         
-        final int rangeIndex = CrispRanger.inRangers(index, SLOT_RANGERS);
+        final int rangeIndex = Ranger.inRangers(index, SLOT_RANGERS);
         final boolean hasMoved;
         
-        //? This can be refactored by [[CrispRangeMap]], but we refused to do this,
+        //? This can be refactored by [[RangeMap]], but we refused to do this,
         //? since it has to use Functional Interfaces, like [[BiFunction]]<[[ItemStack]], [[IQuadMoveStackPredicate]], Boolean>, which is a nightmare for readers.
         switch(rangeIndex)
         {
-            case CrispRanger.ERROR -> throw new IllegalStateException("Unexpected range index: " + rangeIndex);
+            case Ranger.ERROR -> throw new IllegalStateException("Unexpected range index: " + rangeIndex);
             case INPUT_RANGE, OUTPUT_RANGE ->
             {
                 final boolean isInputRange = (rangeIndex == INPUT_RANGE);
@@ -208,7 +215,7 @@ public final class KilnMenu extends AbstractContainerMenu
                 
                 if(!hasMoved)
                     return ItemStack.EMPTY;
-                //* No onQuickCraft method here. We have already processed it in "KilnOutputSlot.java".
+                //* No [[Slot#onQuickCraft]] here. We have already processed it in [[KilnOutputSlot]].
             }
             case BACKPACK_RANGE ->
             {
@@ -248,7 +255,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * @apiNote The problem of vanilla closedOpen range has been fixed here.
      * @see ExampleSlotConstants More details about these constants
      */
-    private boolean moveToSlotRange(ItemStack interactStack, CrispRanger ranger, boolean reverseDirection)
+    private boolean moveToSlotRange(@NotNull ItemStack interactStack, @NotNull Ranger ranger, boolean reverseDirection)
         { return UIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
     
     /**
@@ -259,8 +266,6 @@ public final class KilnMenu extends AbstractContainerMenu
      * @apiNote Don't forget flag {@code reverseDirection} is false in this overloaded method.
      * @see ExampleSlotConstants More details about these constants
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted") //! Inverted usage is at least better than "failedToMoveSlotRange", that will lead to confusion.
-    private boolean moveToSlotRange(ItemStack interactStack, CrispRanger ranger)
-        { return moveToSlotRange(interactStack, ranger, false); }
+    private boolean moveToSlotRange(@NotNull ItemStack interactStack, @NotNull Ranger ranger) { return moveToSlotRange(interactStack, ranger, false); }
     //endregion
 }

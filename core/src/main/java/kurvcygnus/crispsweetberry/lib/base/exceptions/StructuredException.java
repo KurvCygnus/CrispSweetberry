@@ -64,7 +64,7 @@ public class StructuredException extends RuntimeException implements IStructured
     public StructuredException(@NotNull Throwable wrappedException, @NotNull String tag)
     {
         super(
-            MessageFormatter.format(
+            MessageFormatter.arrayFormat(
                 "<{}:{}> {}",
                 new Object[] {
                     checkEx(wrappedException).getClass().getSimpleName(),

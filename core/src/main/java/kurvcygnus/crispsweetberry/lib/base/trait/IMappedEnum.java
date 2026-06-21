@@ -59,6 +59,7 @@ public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends M
         Objects.requireNonNull(self, "Param \"self\" must not be null!");
         final E[] values = self.getEnumConstants();
         
+        //! values.length % 2 makes sure that capacity will never be an odd number, which is not preferred by [[HashMap]].
         final int capacity = values.length + values.length % 2;
         
         final var map = new HashMap<T, E>(capacity, 1F);
@@ -66,7 +67,7 @@ public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends M
         {
             if(map.containsKey(e.getKey()))
                 throw new IllegalArgumentException(
-                    MessageFormatter.format(
+                    MessageFormatter.arrayFormat(
                         "This interface doesn't work on duplicated cases! Key \"{}\" has these enums conflicted: {}, {}.",
                         new Object[] { e.getKey(), e, map.get(e.getKey()) }
                     ).getMessage()

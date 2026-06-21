@@ -455,9 +455,7 @@ public final class I18nProcessor extends AbstractProcessor
             replace("\t", "\\t");
     }
     
-    @Contract(value = "null -> false", pure = true)
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")//! Inverting name will make meaning of this method confusing.
-    private static boolean hasContent(@Nullable String string) { return string != null && !string.isBlank(); }
+    @Contract(value = "null -> false", pure = true) private static boolean hasContent(@Nullable String string) { return string != null && !string.isBlank(); }
     
     @Contract(value = "null -> false", pure = true)
     private static boolean hasContent(@Nullable String @Nullable [] strings)

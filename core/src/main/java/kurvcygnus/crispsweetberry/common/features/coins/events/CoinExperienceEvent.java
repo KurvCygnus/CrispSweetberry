@@ -12,7 +12,7 @@ import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
-import kurvcygnus.crispsweetberry.lib.base.datastructure.CrispRanger;
+import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
@@ -46,8 +46,8 @@ public final class CoinExperienceEvent
     private static final int CRAFTING_TABLE_INPUT_SLOT_END_INDEX = 9;
     public static final int UNIVERSAL_RESULT_SLOT_INDEX = 0;
     
-    private static final CrispRanger INVENTORY_INPUT_SLOTS_RANGE = CrispRanger.closed(INVENTORY_INPUT_SLOT_START_INDEX, INVENTORY_INPUT_SLOT_END_INDEX);
-    private static final CrispRanger CRAFTING_TABLE_INPUT_SLOTS_RANGE = CrispRanger.closed(CRAFTING_TABLE_INPUT_SLOT_START_INDEX, CRAFTING_TABLE_INPUT_SLOT_END_INDEX);
+    private static final Ranger INVENTORY_INPUT_SLOTS_RANGE = Ranger.closed(INVENTORY_INPUT_SLOT_START_INDEX, INVENTORY_INPUT_SLOT_END_INDEX);
+    private static final Ranger CRAFTING_TABLE_INPUT_SLOTS_RANGE = Ranger.closed(CRAFTING_TABLE_INPUT_SLOT_START_INDEX, CRAFTING_TABLE_INPUT_SLOT_END_INDEX);
     
     @SubscribeEvent @DoNotCall static void craftPreCheck(@NotNull PlayerContainerEvent event)
     {
@@ -86,7 +86,7 @@ public final class CoinExperienceEvent
         }
     }
     
-    private static void checkSlotsAndDispenseExp(@NotNull PlayerEvent.ItemCraftedEvent event, @NotNull CrispRanger ranger)
+    private static void checkSlotsAndDispenseExp(@NotNull PlayerEvent.ItemCraftedEvent event, @NotNull Ranger ranger)
     {
         final ItemStack result = event.getInventory().getItem(UNIVERSAL_RESULT_SLOT_INDEX);
         int coinCount = 0;

@@ -9,9 +9,12 @@
 package kurvcygnus.crispsweetberry.common.config;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
+import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.network.chat.Component;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.jetbrains.annotations.NotNull;
 
 import static net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import static net.neoforged.neoforge.common.ModConfigSpec.Builder;
@@ -24,15 +27,11 @@ import static net.neoforged.neoforge.common.ModConfigSpec.Builder;
  * @since Release 1.0
  * @author Kurv Cygnus
  */
-public final class CrispConfig
+public enum CrispConfig implements IRegistrant.OfSimpleConfigSupport<CrispConfig>
 {
-    private CrispConfig() { throw new IllegalAccessError(); }
+    INST;
     
     private static final Builder BUILDER = new Builder();
-    
-    public static final BooleanValue KILN_BE_DEBUG;
-    public static final BooleanValue KILN_BE_CAL_DEBUG;
-    public static final BooleanValue KILN_EVENT_DEBUG;
     
     private static final String CONFIG_DEBUG_KILN_BE = "crispsweetberry.config.debug.kiln_be";
     private static final String CONFIG_DEBUG_KILN_CAL = "crispsweetberry.config.debug.kiln_cal";
@@ -42,7 +41,7 @@ public final class CrispConfig
         "en_us = [DEBUG ONLY] Kiln: BlockEntity Debug Log",
         "lol_us = [DAVZ] WARM BOZ: BlarkAntity Tezt Stuff",
         "zh_cn = [调试] 窑炉: BlockEntity 调试日志"
-        },
+    },
         key = CONFIG_DEBUG_KILN_BE
     )
     public static final Component KILN_BE_DEBUG_TEXT = Component.translatable(CONFIG_DEBUG_KILN_BE);
@@ -51,7 +50,7 @@ public final class CrispConfig
         "en_us = [DEBUG ONLY] Kiln: Calculator Debug Log",
         "lol_us = [DAVZ] WARM BOZ: Kaqlaytor Tezt Stuff",
         "zh_cn = [调试] 窑炉: Calculator 调试日志"
-        },
+    },
         key = CONFIG_DEBUG_KILN_CAL
     )
     public static final Component KILN_BE_CAL_DEBUG_TEXT = Component.translatable(CONFIG_DEBUG_KILN_CAL);
@@ -60,28 +59,29 @@ public final class CrispConfig
         "en_us = [DEBUG ONLY] Kiln: Cache Event Debug Log",
         "lol_us = [DAVZ] WARM BOZ: EVENT BUZ GOGOGO OwO",
         "zh_cn = [调试] 窑炉: 缓存事件调试日志"
-        },
+    },
         key = CONFIG_DEBUG_KILN_EVENT
     )
     public static final Component KILN_EVENT_DEBUG_TEXT = Component.translatable(CONFIG_DEBUG_KILN_EVENT);
     
-    static
-    {
-        KILN_BE_DEBUG = BUILDER.
-            comment("Kiln: BlockEntity Debug Log Display Toggle").
-            translation(DefinitionUtils.unwrapTextKey(KILN_BE_DEBUG_TEXT)).
-            define("kilnBEDebug", false);
-        
-        KILN_BE_CAL_DEBUG = BUILDER.
-            comment("Kiln: Calculator Debug Log Display Toggle").
-            translation(DefinitionUtils.unwrapTextKey(KILN_BE_CAL_DEBUG_TEXT)).
-            define("kilnBECalDebug", false);
-        
-        KILN_EVENT_DEBUG = BUILDER.
-            comment("Kiln: Event Debug Log Display Toggle").
-            translation(CONFIG_DEBUG_KILN_EVENT).
-            define("kilnEventDebug", false);
-    }
+    public static final BooleanValue KILN_BE_DEBUG = BUILDER.
+        comment("Kiln: BlockEntity Debug Log Display Toggle").
+        translation(DefinitionUtils.unwrapTextKey(KILN_BE_DEBUG_TEXT)).
+        define("kilnBEDebug", false);
     
-    public static final ModConfigSpec SPEC = BUILDER.build();
+    public static final BooleanValue KILN_BE_CAL_DEBUG = BUILDER.
+        comment("Kiln: Calculator Debug Log Display Toggle").
+        translation(DefinitionUtils.unwrapTextKey(KILN_BE_CAL_DEBUG_TEXT)).
+        define("kilnBECalDebug", false);
+        
+    public static final BooleanValue KILN_EVENT_DEBUG = BUILDER.
+        comment("Kiln: Event Debug Log Display Toggle").
+        translation(CONFIG_DEBUG_KILN_EVENT).
+        define("kilnEventDebug", false);
+    
+    private static final ModConfigSpec SPEC = BUILDER.build();
+    
+    @Override public @NotNull ModConfigSpec getSpec() { return SPEC; }
+    
+    @Override public @NotNull ModConfig.Type getType() { return ModConfig.Type.CLIENT; }
 }
