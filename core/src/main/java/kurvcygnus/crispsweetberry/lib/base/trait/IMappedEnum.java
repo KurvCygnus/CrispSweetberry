@@ -9,11 +9,11 @@
 package kurvcygnus.crispsweetberry.lib.base.trait;
 
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,10 +67,12 @@ public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends M
         {
             if(map.containsKey(e.getKey()))
                 throw new IllegalArgumentException(
-                    MessageFormatter.arrayFormat(
+                    TextUtils.format(
                         "This interface doesn't work on duplicated cases! Key \"{}\" has these enums conflicted: {}, {}.",
-                        new Object[] { e.getKey(), e, map.get(e.getKey()) }
-                    ).getMessage()
+                        e.getKey(),
+                        e,
+                        map.get(e.getKey())
+                    )
                 );
             
             map.put(e.getKey(), e);

@@ -24,7 +24,7 @@ import static net.neoforged.neoforge.common.ModConfigSpec.Builder;
 /**
  * This defines the option for Crisp Sweetberry.
  * @see kurvcygnus.crispsweetberry.common.config.gui.CrispConfigScreen Screen
- * @since Release 1.0
+ * @since 1.0 Release
  * @author Kurv Cygnus
  */
 public enum CrispConfig implements IRegistrant.OfSimpleConfigSupport<CrispConfig>

@@ -132,7 +132,7 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
         if(livingEntity instanceof Player player)
         {
             debug.accept("Stack is held by player. Try play sound.", null);
-            level.playSound(null, player.getOnPos(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1.0F, 1.0F);
+            level.playSound(null, player.getOnPos(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1F, 1F);
         }
             
         itemStack.shrink(1);
@@ -155,7 +155,7 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
         //  noinspection DataFlowIssue
         final int durability = stack.get(this::getDataComponent);
         
-        return Math.round(13.0F - (float) (getMaxDurability() - durability) * 13.0F / (float) getMaxDurability());
+        return Math.round(13F - (float) (getMaxDurability() - durability) * 13F / (float) getMaxDurability());
     }
     
     default int getBarColor(@NotNull ItemStack stack)
@@ -165,7 +165,7 @@ public interface IStackableTool<I extends Item & IStackableTool<I>>
             0F,
             (float) Objects.requireNonNullElse(stack.get(this::getDataComponent), getMaxDurability()) / maxDurability
         );
-        return Mth.hsvToRgb(baseHue / 3.0F, 1.0F, 1.0F);
+        return Mth.hsvToRgb(baseHue / 3F, 1F, 1F);
     }
     
     @NotNull DataComponentType<Integer> getDataComponent();

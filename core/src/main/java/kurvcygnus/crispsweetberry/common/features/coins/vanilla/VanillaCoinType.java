@@ -79,8 +79,8 @@ public final class VanillaCoinType extends BaseCoinType<VanillaCoinType>
         COPPER_COIN,
         NuggetItemCheckEvent.copperNuggetSupplier,
         1,
-        0.7F,
-        0.5F,
+        .7F,
+        .5F,
         true
     );
     
@@ -91,8 +91,8 @@ public final class VanillaCoinType extends BaseCoinType<VanillaCoinType>
         IRON_COIN,
         IRON_NUGGET::asItem,
         3,
-        0.8F,
-        1.0F
+        .8F,
+        1F
     );
     
     public static final VanillaCoinType GOLD = new VanillaCoinType(
@@ -102,8 +102,8 @@ public final class VanillaCoinType extends BaseCoinType<VanillaCoinType>
         GOLD_COIN,
         GOLD_NUGGET::asItem,
         7,
-        0.85F,
-        0.8F
+        .85F,
+        .8F
     );
     
     public static final VanillaCoinType DIAMOND = new VanillaCoinType(
@@ -113,7 +113,7 @@ public final class VanillaCoinType extends BaseCoinType<VanillaCoinType>
         DIAMOND_COIN,
         NuggetItemCheckEvent.diamondNuggetSupplier,
         10,
-        0.9F,
+        .9F,
         1.5F
     );
     

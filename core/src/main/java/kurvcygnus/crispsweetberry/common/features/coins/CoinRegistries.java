@@ -24,13 +24,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
-import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType.*;
@@ -43,7 +43,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { registerByList(REGISTRIES, bus); }
+    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerByList(REGISTRIES, registerLogic); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 3); }
     

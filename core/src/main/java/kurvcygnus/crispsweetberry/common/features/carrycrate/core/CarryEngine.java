@@ -29,15 +29,15 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.products.Overweight
 import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.FunctionalDummies;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -200,16 +200,15 @@ public enum CarryEngine
                 final var entryList = new ListTag();
                 
                 for(final var lookup: CarryEngine.INST.listenerLookup.values())
-                    lookup.forEach(
-                        (id, $) ->
-                        {
-                            final var entry = new CompoundTag();
-                            entry.putString(ID, id.id);
-                            entry.putString(UUID, id.uuid);
-                            entryList.add(entry);
-                            LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid, id.id);
-                        }
-                    );
+                    for(final var map: lookup.entrySet())
+                    {
+                        final var id = map.getKey();
+                        final var entry = new CompoundTag();
+                        entry.putString(ID, id.id);
+                        entry.putString(UUID, id.uuid);
+                        entryList.add(entry);
+                        LOGGER.debug("Added UUID \"{}\", corresponded Adapter Object ID: \"{}\"", id.uuid, id.id);
+                    }
                 
                 tag.put(ENTRIES, entryList);
             }
@@ -218,9 +217,9 @@ public enum CarryEngine
         
         static @NotNull CarryListenerSaveData get(@NotNull MinecraftServer server)
         {
-            //! Explanation: Minecraft saves most world data by dimension.
-            //! [[CarryEngine#listenerLookup]] is expected to be cross-dimensional,
-            //! and in such a case, we choose to use [[Level#OVERWORLD]] as standard.
+            //* Explanation: Minecraft saves most world data by dimension.
+            //* [[CarryEngine#listenerLookup]] is expected to be cross-dimensional,
+            //* and in such a case, we choose to use [[Level#OVERWORLD]] as standard.
             return server.overworld().getDataStorage().computeIfAbsent(PERSISTENT_IO_PAIR, DATA);
         }
         
@@ -246,40 +245,41 @@ public enum CarryEngine
         
         //! DO NOT MOVE THIS INTO LAMBDA. See [[IVault#ofAccessLimited]], it is related to [[StackWalker]].
         final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.tryGet(Optional.of(event));
-        CarryListenerSaveData.get(event.getServer()).getEntries().ifPresent(
-            listTag ->
+        
+        final @Nullable var listTag = CarryListenerSaveData.get(event.getServer()).entries;
+        
+        if(listTag == null)
+            return;
+        
+        try(final var handle = LOGGER.pushMarker("CARRY_DATA_RECOVER"))
+        {
+            LOGGER.debug("SavedData acquired. Continue to recover listeners.");
+            for(final var tag: listTag)
             {
-                try(final var handle = LOGGER.pushMarker("CARRY_DATA_RECOVER"))
+                if(tag instanceof CompoundTag entryTag)
                 {
-                    LOGGER.debug("SavedData acquired. Continue to recover listeners.");
-                    for(final Tag tag: listTag)
+                    final var id = entryTag.getString(CarryListenerSaveData.ID);
+                    final var uuid = entryTag.getString(CarryListenerSaveData.UUID);
+                    final var fullID = internalRestore.apply(id, uuid);
+                    LOGGER.debug("Restored CarryID: \n{}", fullID);
+                    
+                    final @Nullable var adapter = CarryRegistryManager.INST.searchFactory(ResourceLocation.parse(id));
+                    
+                    if(adapter == null)
                     {
-                        if(tag instanceof CompoundTag entryTag)
-                        {
-                            final var id = entryTag.getString(CarryListenerSaveData.ID);
-                            final var uuid = entryTag.getString(CarryListenerSaveData.UUID);
-                            final var fullID = internalRestore.apply(id, uuid);
-                            LOGGER.debug("Restored CarryID: \n{}", fullID);
-                            
-                            final @Nullable var adapter = CarryRegistryManager.INST.searchFactory(ResourceLocation.parse(id));
-                            
-                            if(adapter == null)
-                            {
-                                LOGGER.error("Entry with CarryID \"{}\" doesn't have a corresponded factory!", fullID);
-                                continue;
-                            }
-                            
-                            ((Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) lookup.get(adapter.getType())).put(fullID, adapter);
-                            
-                            LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType().name(), fullID);
-                        }
+                        LOGGER.error("Entry with CarryID \"{}\" doesn't have a corresponded factory!", fullID);
+                        continue;
                     }
                     
-                    handle.changeMarker("CARRY_ENGINE_STARTED");
-                    LOGGER.debug("Listeners recovered. Carry engine, start!");
+                    ((Map<CarryID, IBaseCarryAdapterFactory<?, ?>>) lookup.get(adapter.getType())).put(fullID, adapter);
+                    
+                    LOGGER.debug("Recovered a {} listener with ID: {}.", adapter.getType().name(), fullID);
                 }
             }
-        );
+            
+            handle.changeMarker("CARRY_ENGINE_STARTED");
+            LOGGER.debug("Listeners recovered. Carry engine, start!");
+        }
     }
     //endregion
     
@@ -303,13 +303,13 @@ public enum CarryEngine
         assert carryID != null;//! [[DataComponentHolder#has()]] has granted the safety.
         assert data != null;//! `assert` doesn't work in non-debugging environment, it won't bring any extra performance penalty comparing to [[Objects#requireNonNull]].
         
-        final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid, slotId);
-        
         final int penaltyRate = data.penaltyRate;
         final @Nullable var adapter = getCarryAdapter(listenerLookup.get(data.carryType), carryID);
         
         if(adapter == null)//! Due to C/S sync, and also the competitive state between carry operation and map, returning at here can prevent potential NPE.
             return;
+        
+        final var context = new CarriableExtensions.TickingContext(carryCrate, level, entity, data, carryID.uuid, slotId);
         
         adapter.carryingTick(context);
         
@@ -317,7 +317,7 @@ public enum CarryEngine
         if(!(entity instanceof ServerPlayer player) || penaltyRate == 0)
             return;
         
-        final int currentCounter = Objects.requireNonNullElse(carryCrate.get(CarryCrateRegistries.CARRY_TICK_COUNTER.get()), 0);
+        final int currentCounter = carryCrate.getOrDefault(CarryCrateRegistries.CARRY_TICK_COUNTER.get(), 0);
         
         if(currentCounter + 1 >= penaltyRate && !player.gameMode.isCreative())
         {
@@ -443,7 +443,7 @@ public enum CarryEngine
                                     //* after this tick ended, this blockEntity will be marked as illegal and get removed.
                                     targetBlockEntity = Objects.requireNonNull(
                                         type.create(interactPos, targetBlockState),
-                                        DefinitionUtils.quickFormat(
+                                        TextUtils.format(
                                             """
                                             Fatal:
                                             Failed to create blockEntity "{}"'s adapter.

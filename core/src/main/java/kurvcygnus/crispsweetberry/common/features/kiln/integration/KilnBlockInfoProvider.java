@@ -54,7 +54,7 @@ public enum KilnBlockInfoProvider implements IBlockComponentProvider, IServerDat
         {
             final CompoundTag tag = content.getCompound(index);
             final ItemStack currentStack = ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag);
-            final IElement itemIcon = elementHelper.item(currentStack, 0.5F);
+            final IElement itemIcon = elementHelper.item(currentStack, .5F);
             itemIcon.message(null);
             
             tooltip.add(itemIcon);

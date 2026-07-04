@@ -8,9 +8,9 @@
 
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ import java.util.Objects;
  * that called the code which directly invoked this utility. This indirect
  * resolution makes the class useful for logging, diagnostics, and assertions
  * where the intermediate helper is irrelevant.
- *
+ * @apiNote <span style="color: f84b4b">Any method of this class shouldn't be wrapped. They are all Caller Sensitive.</span>
  * @author Kurv Cygnus
  * @since 1.0
  */
@@ -29,7 +29,7 @@ public final class StackDebugger
 {
     private StackDebugger() { throw new IllegalAccessError("Class \"StackDebugger\" is not meant to be instantized!"); }
 
-    private static final StackWalker STACK_WALKER = StackWalker.getInstance();
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     
     /**
      * Walks the stack and returns the {@link StackWalker.StackFrame} of the
@@ -55,7 +55,7 @@ public final class StackDebugger
      *     <li><i>Unknown. From here, count layers by yourself.</i></li>
      * </ol>
      */
-    public static @NotNull StackWalker.StackFrame getCallerFrame(@Range(from = 1, to = Integer.MAX_VALUE) int layer)
+    public static @NotNull StackWalker.StackFrame getCallerFrame(@Range(from = 1, to = Byte.MAX_VALUE) int layer)
     {
         if(layer < 1 || layer > Integer.MAX_VALUE)
             throw new IllegalArgumentException("Param \"layer\"'s value must be between 1 and `Integer.MAX_VALUE`!");
@@ -102,18 +102,18 @@ public final class StackDebugger
      * @apiNote <i>Fun fact — this method's return value supports <u><a href="https://www.jetbrains.com/idea/">IDEA</a></u>'s reference navigation.</i>
      * @throws java.util.NoSuchElementException if the stack is too shallow
      */
-    public static @NotNull String getFullCallerInfo()
+    public static @NotNull String getFullCallerInfo() { return toFullCallerInfo(getCallerFrame()); }
+    
+    public static @NotNull String toFullCallerInfo(@NotNull StackWalker.StackFrame frame)
     {
-        final var frame = getCallerFrame();
-        return MessageFormatter.arrayFormat(
+        Objects.requireNonNull(frame, "Param \"frame\" must not be null!");
+        return TextUtils.format(
             "{}#{}({}:{})",
-            new Object[] {
-                frame.getClassName(),
-                frame.getMethodName(),
-                frame.getFileName() != null ? frame.getFileName() : "UnknownSource",
-                frame.getLineNumber()
-            }
-        ).getMessage();
+            frame.getClassName(),
+            frame.getMethodName(),
+            frame.getFileName() != null ? frame.getFileName() : "UnknownSource",
+            frame.getLineNumber()
+        );
     }
 
     /**

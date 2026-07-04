@@ -12,7 +12,7 @@ import it.unimi.dsi.fastutil.objects.Object2ByteFunction;
 import it.unimi.dsi.fastutil.objects.Object2CharFunction;
 import it.unimi.dsi.fastutil.objects.Object2FloatFunction;
 import it.unimi.dsi.fastutil.objects.Object2ShortFunction;
-import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.extensions.IAutoNestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.functions.ToByteBiFunction;
 import kurvcygnus.crispsweetberry.lib.base.functions.ToCharBiFunction;
 import kurvcygnus.crispsweetberry.lib.base.functions.ToFloatBiFunction;
@@ -33,7 +33,7 @@ import java.util.function.*;
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, INestedPrintable<Pair<L, R>>
+public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry<L, R>, IAutoNestedPrintable.OfRecordHandle<Pair<L, R>>
 {
     public Pair
     {
@@ -240,14 +240,10 @@ public record Pair<L, R>(@NotNull L left, @NotNull R right) implements Map.Entry
     
     public @NotNull Pair<R, L> swap() { return new Pair<>(right, left); }
     
-    public @NotNull Map.Entry<L, R> asEntry() { return this; }
-    
     public @NotNull @Unmodifiable Map<L, R> asMap() { return Collections.singletonMap(this.left, this.right); }
     
     @Contract(value = "_ -> fail", pure = true) @Override public R setValue(@Nullable R value)
         { throw new UnsupportedOperationException("This is an immutable Class. Value mutation is not allowed!"); }
-    
-    @Override public @NotNull @Unmodifiable INestedFieldMap<Pair<L, R>> getFields() { return INestedPrintable.buildFieldMap(Pair.of("left", Pair::left), Pair.of("right", Pair::right)); }
     
     @Override public @NotNull String toString() { return toNestedString(); }
 }

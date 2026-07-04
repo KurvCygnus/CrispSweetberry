@@ -48,7 +48,7 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
         this.mapCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Ingredient.CODEC.fieldOf("ingredient").forGetter(KilnRecipe::ingredient),
             ItemStack.CODEC.fieldOf("result").forGetter(KilnRecipe::result),
-            Codec.DOUBLE.fieldOf("cookTickRateMultiFactor").orElse(1D).forGetter(KilnRecipe::processFactor),
+            Codec.DOUBLE.fieldOf("cookTickRateMultiFactor").orElse(1.).forGetter(KilnRecipe::processFactor),
             Codec.FLOAT.fieldOf("experience").orElse(0F).forGetter(KilnRecipe::experience),
             Codec.BOOL.fieldOf("isBanned").orElse(true).forGetter(KilnRecipe::isBanned)
             ).apply(instance, KilnRecipe::new)

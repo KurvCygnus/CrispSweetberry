@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.config.gui;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
-import kurvcygnus.crispsweetberry.utils.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;

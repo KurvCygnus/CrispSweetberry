@@ -12,10 +12,10 @@ import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryType;
-import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
-import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.extensions.IAutoNestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -28,7 +28,6 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,11 +105,11 @@ import java.util.List;
                     LOGGER,
                     "Assertion failed: {}",
                     msgFlag ?
-                        DefinitionUtils.quickFormat(
+                        TextUtils.format(
                             "Position {} doesn't exist any blockEntity.",
                             DefinitionUtils.formatPos(pos)
                         ) :
-                        DefinitionUtils.quickFormat("Inconsistent corresponding block for blockState \"{}\" and blockEntity \"{}\".", blockState, blockEntity)
+                        TextUtils.format("Inconsistent corresponding block for blockState \"{}\" and blockEntity \"{}\".", blockState, blockEntity)
                 );
                 continue;
             }
@@ -131,14 +130,5 @@ import java.util.List;
     }
 }
 
-@ApiStatus.Internal record SyncTask(@NotNull BlockPos pos, @NotNull CompoundTag tag) implements INestedPrintable<SyncTask>
-{
-    private static final INestedFieldMap<SyncTask> FIELD_MAP = INestedPrintable.buildFieldMap(
-        new Pair<>("position", SyncTask::pos),
-        new Pair<>("blockEntityTag", SyncTask::tag)
-    );
-    
-    @Override public @NotNull @Unmodifiable INestedFieldMap<SyncTask> getFields() { return FIELD_MAP; }
-    
-    @Override public @NotNull String toString() { return toNestedString(); }
-}
+@ApiStatus.Internal record SyncTask(@NotNull BlockPos pos, @NotNull CompoundTag tag) implements IAutoNestedPrintable.OfRecordHandle<SyncTask>
+    { @Override public @NotNull String toString() { return toNestedString(); } }

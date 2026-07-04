@@ -25,7 +25,7 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.*;
-import static kurvcygnus.crispsweetberry.utils.AssertUtils.unsignedRequired;
+import static kurvcygnus.crispsweetberry.lib.base.util.AssertUtils.unsignedRequired;
 import static kurvcygnus.crispsweetberry.utils.constants.UIConstants.NO_OFFSET;
 
 /**

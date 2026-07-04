@@ -81,7 +81,7 @@ public final class KilnBlock extends BaseEntityBlock
 {
     //region Constants & Fields
     //*:=== Constants
-    private static final double SOUND_HORIZONTICAL_OFFSET = 0.5D;
+    private static final double SOUND_HORIZONTICAL_OFFSET = .5D;
     
     public static final String LIT_PROPERTY = "lit";
     

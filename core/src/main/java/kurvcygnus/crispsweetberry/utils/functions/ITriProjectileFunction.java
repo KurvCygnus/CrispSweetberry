@@ -12,15 +12,10 @@ import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * A functional interface that produces a projectile that is spawned by item.
  *
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-@FunctionalInterface public interface ITriProjectileFunction<E extends ThrowableItemProjectile> extends Serializable
-{
-    @NotNull E apply(double x, double y, double z, Level level);
-}
+@FunctionalInterface public interface ITriProjectileFunction<E extends ThrowableItemProjectile> { @NotNull E apply(double x, double y, double z, Level level); }

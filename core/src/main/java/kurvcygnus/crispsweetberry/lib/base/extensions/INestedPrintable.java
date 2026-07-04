@@ -8,13 +8,12 @@
 
 package kurvcygnus.crispsweetberry.lib.base.extensions;
 
-import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import kurvcygnus.crispsweetberry.lib.base.trait.ICRTPCaster;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.*;
-import org.slf4j.helpers.MessageFormatter;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -46,6 +45,7 @@ import java.util.function.Function;
  *      }
  *  }
  * }</pre>
+ * <i>Tip: this is actually verbose, using <u>{@link IAutoNestedPrintable.OfRecordHandle}</u></i> is more recommended.
  * @author Kurv Cygnus
  * @apiNote Due to Java's {@code interface} limitation, you have to overwrite <u>{@link Object#toString()}</u> with calling <u>{@link #toNestedString()}</u> by your own.
  * <b>Or, if your class is a regular class and haven't inherit something, you can {@code extends} <u>{@link BaseNestedPrinter}</u>.</b>
@@ -56,8 +56,9 @@ import java.util.function.Function;
  * <span style="color: f84b4b">MUST SEE:<br> </span><u>{@link #buildFieldMap(Consumer)}</u>, <u>{@link #buildFieldMap(Consumer, int)}</u>, <u>{@link #buildFieldMap(Pair[])}</u>
  * @since 1.0 Release
  */
-public interface INestedPrintable<T extends INestedPrintable<T>> extends Serializable, ICRTPCaster<INestedPrintable<T>, T>
+public interface INestedPrintable<T extends INestedPrintable<T>> extends ICRTPCaster<INestedPrintable<T>, T>
 {
+    //region Field Map Definitions & Utils
     /**
      * A simple specified readonly <u>{@link Map}</u> that <u>{@link INestedPrintable}</u> requires,
      * which makes writing the type of constant map quicker and easier and understand.
@@ -74,9 +75,16 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
      * @author Kurv Cygnus
      * @see INestedPrintable
      * @see NestedFieldMap Implementation
-     * @param <T> A class that has implemented <u>{@link INestedPrintable}</u>.
+     * @param <T> A class that has implemented <u>{@link INestedPrintable}</u>, restriction is set in {@code static} utils, since <u>{@link Cacher}</u> needs to store
+     *           all field maps.
      */
-    sealed interface INestedFieldMap<T> extends SequencedMap<String, Function<T, ?>> {}
+    sealed interface INestedFieldMap<T>
+    {
+        int size();
+        
+        //* Note: `T` is [[NotNull]], while `?` is [[Nullable]](and wildcard itself doesn't support being annotated).
+        @NotNull @Unmodifiable Set<Map.Entry<String, Function<@NotNull T, ? extends @Nullable Object>>> iterateSet();
+    }
     
     /**
      * A simple method for building a immutable map, for <u>{@link #getFields()}</u>.
@@ -105,7 +113,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     static <T extends INestedPrintable<T>> @NotNull @Unmodifiable INestedFieldMap<T> buildFieldMap(@NotNull Consumer<Map<String, Function<T, ?>>> consumer)
     {
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
-        final var map = new LinkedHashMap<String, Function<T, ?>>();
+        final var map = new LinkedHashMap<String, Function<@NotNull T, ? extends @Nullable Object>>();
         consumer.accept(map);
         
         return new NestedFieldMap<>(map);
@@ -142,19 +150,17 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     )
     {
         Objects.requireNonNull(consumer, "Param \"consumer\" must not be null!");
-        final var map = new LinkedHashMap<String, Function<T, ?>>(allocSize, 1F);
+        final var map = new LinkedHashMap<String, Function<@NotNull T, ? extends @Nullable Object>>(allocSize, 1F);
         consumer.accept(map);
         
         if(map.size() != allocSize)
             System.err.println(
-                MessageFormatter.arrayFormat(
+                TextUtils.format(
                     "The actual size of field map is {}, not {}(allocSize).\n This flaw happens at {}.",
-                    new Object[] {
-                        map.size(),
-                        allocSize,
-                        StackDebugger.getCallerClass().getSimpleName()
-                    }
-                ).getMessage()
+                    map.size(),
+                    allocSize,
+                    StackDebugger.getCallerClass().getSimpleName()
+                )
             );
         
         return new NestedFieldMap<>(map);
@@ -178,17 +184,19 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         
         final int length = pairs.length;
         
-        final var map = new LinkedHashMap<String, Function<T, ?>>(length + length % 2, 1F);
+        final var map = new LinkedHashMap<String, Function<@NotNull T, ? extends @Nullable Object>>(length + length % 2, 1F);
         
-        for(final var pair: pairs)
-        {
-            Objects.requireNonNull(pair, "Param \"pair\" must not be null!");
-            map.put(pair.getKey(), pair.getValue());
-        }
+        AssertUtils.nonNullCheckIteration(
+            "pairs",
+            pairs,
+            pair -> map.put(pair.getKey(), pair.getValue())
+        );
         
         return new NestedFieldMap<>(map);
     }
+    //endregion
     
+    //region Implementer Configurations
     /**
      * Decides whether the {@code null} value should be printed.<hr>
      * If the value is {@code false}, {@code null} value will be replace with {@code "N/A"}.<br>
@@ -214,7 +222,9 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     default boolean startsAtNewLine() { return true; }
     
     default @Range(from = 10, to = 100) int getDefaultCapacityForEachField() { return 20; }
+    //endregion
     
+    //region Core Logics
     /**
      * Gets this class's field map.
      * @apiNote The return result should <b>NOT</b> be dynamic. Only the first get result will count, the laters will be ignored.
@@ -225,7 +235,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     @SuppressWarnings("unchecked")//! Safe casting. It relies on [[Class]].
     private @NotNull @Unmodifiable INestedFieldMap<T> getFields(@NotNull Class<?> clazz)
     {
-        final var fields = Objects.requireNonNullElseGet(Cacher.CACHE.get(clazz), this::getFields);
+        final var fields = Objects.requireNonNullElseGet(Cacher.CACHE.get(this.getClass()), this::getFields);
         if(!Cacher.CACHE.containsKey(clazz))
             Cacher.CACHE.put(clazz, (INestedFieldMap<Object>) fields);
         return (INestedFieldMap<T>) fields;
@@ -270,18 +280,18 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         final int nextIndent = currentIndent + getIndent();
         final var fieldIndent = " ".repeat(nextIndent);
         
-        for(final var entry: getFields(this.getClass()).entrySet())
+        for(final var entry: getFields(this.getClass()).iterateSet())
         {
             final var name = entry.getKey();
             final Object object = entry.getValue().apply(getSelf());
             
             if(name.isBlank())
                 throw new IllegalArgumentException(
-                    MessageFormatter.format(
+                    TextUtils.format(
                         "The field of Class \"{}\" has a unpresentable name! Value: {}",
                         this.getClass().getSimpleName(),
                         object
-                    ).getMessage()
+                    )
                 );
             
             analyseAndAppend(stringBuilder, nextIndent, fieldIndent, visited, name, object);
@@ -306,7 +316,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             return;
         }
         
-        final var prefix = name.isEmpty() ? indent : MessageFormatter.format("{}{}: ", indent, name).getMessage();
+        final var prefix = name.isEmpty() ? indent : TextUtils.format("{}{}: ", indent, name);
         
         switch(obj)
         {
@@ -372,6 +382,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
             default -> stringBuilder.append(prefix).append(obj).append('\n');
         }
     }
+    //endregion
     
     //region Primitive Arrays' Boilerplate Codes
     /**
@@ -615,12 +626,13 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
     }
     //endregion
     
+    //region Private String Templates
     private static @NotNull String circularReferenceTemplate(@NotNull Class<?> clazz, boolean isDataStructure)
     {
-        return MessageFormatter.arrayFormat(
+        return TextUtils.format(
             "{}...(Circular Reference {}){}",
-            new Object[] { isDataStructure ? '[' : "", clazz.getSimpleName(), isDataStructure ? ']' : "" }
-        ).getMessage();
+            isDataStructure ? '[' : "", clazz.getSimpleName(), isDataStructure ? ']' : ""
+        );
     }
     
     private static void appendEntryTemplate(
@@ -629,6 +641,7 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
         @NotNull String name,
         @NotNull String value
     ) { stringBuilder.append(indent).append(name).append(": ").append(value).append('\n'); }
+    //endregion
 }
 
 /**
@@ -643,9 +656,9 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends Seriali
 
 final class NestedFieldMap<T> implements INestedPrintable.INestedFieldMap<T>
 {
-    private final SequencedMap<String, Function<T, ?>> map;
+    private final SequencedMap<String, Function<@NotNull T, ? extends @Nullable Object>> map;
     
-    NestedFieldMap(@NotNull SequencedMap<String, Function<T, ?>> map)
+    NestedFieldMap(@NotNull SequencedMap<String, Function<@NotNull T, ? extends @Nullable Object>> map)
     {
         Objects.requireNonNull(map, "Param \"map\" must not be null!");
         
@@ -655,31 +668,8 @@ final class NestedFieldMap<T> implements INestedPrintable.INestedFieldMap<T>
         this.map = map;
     }
     
-    //* Most methods are forbidden - supports size getting and iterating only.
-    
     @Override public int size() { return map.size(); }
     
-    @Override @DoNotCall public boolean isEmpty() { throw new UnsupportedOperationException(); }
-    
-    @Override @DoNotCall public boolean containsKey(Object key) { throw new UnsupportedOperationException(); }
-    
-    @Override @DoNotCall public boolean containsValue(Object value) { throw new UnsupportedOperationException(); }
-    
-    @Override @DoNotCall public Function<T, ?> get(Object key) { throw new UnsupportedOperationException(); }
-    
-    @Override @DoNotCall public @Nullable Function<T, ?> put(String key, Function<T, ?> value) { throw new UnsupportedOperationException(); }
-    
-    @Override @DoNotCall public Function<T, ?> remove(Object key) { throw new UnsupportedOperationException(); }
-    
-    @Override @DoNotCall public void putAll(@NotNull Map<? extends String, ? extends Function<T, ?>> m) { throw new UnsupportedOperationException(); }
-    
-    @Override @DoNotCall public void clear() { throw new UnsupportedOperationException(); }
-    
-    @Override public @NotNull @Unmodifiable Set<String> keySet() { return Collections.unmodifiableSet(map.keySet()); }
-    
-    @Override public @NotNull @Unmodifiable Collection<Function<T, ?>> values() { return Collections.unmodifiableCollection(map.values()); }
-    
-    @Override public @NotNull @Unmodifiable Set<Entry<String, Function<T, ?>>> entrySet() { return Collections.unmodifiableSet(map.entrySet()); }
-    
-    @Override public @DoNotCall @NotNull @Unmodifiable SequencedMap<String, Function<T, ?>> reversed() { throw new UnsupportedOperationException(); }
+    @Override public @NotNull @Unmodifiable Set<Map.Entry<String, Function<T, ? extends @Nullable Object>>> iterateSet()
+        { return Collections.unmodifiableSet(map.entrySet()); }
 }

@@ -22,8 +22,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.utils.AssertUtils.positiveOnly;
-import static kurvcygnus.crispsweetberry.utils.AssertUtils.throwIf;
+import static kurvcygnus.crispsweetberry.lib.base.util.AssertUtils.positiveOnly;
+import static kurvcygnus.crispsweetberry.lib.base.util.AssertUtils.throwIf;
 
 /**
  * This is a basic implementation of coin series' essential <u>{@link ICoinType contract}</u>,
@@ -48,7 +48,6 @@ public abstract class BaseCoinType<C extends ICoinType<C>> extends BaseNestedPri
     protected final float strength;
     protected final @NotNull Predicate<Supplier<? extends Item>> enableCondition;
     
-    @SuppressWarnings("NonStrictComparisonCanBeEquality")//! Defensive check.
     protected BaseCoinType(
         @NotNull String id,
         @NotNull Supplier<? extends AbstractCoinStackBlock<C>> blockSupplier,

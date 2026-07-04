@@ -143,14 +143,14 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     private static void createVertex(@NotNull VertexConsumer consumer, @NotNull Matrix4f pose, @NotNull PoseStack.Pose lastPose,
         int lightmapUV, int x, int y, int u, int v, boolean flip)
             {
-                final float correctedU = flip ? (1.0F - (float) u) : (float) u;
+                final float correctedU = flip ? (1F - (float) u) : (float) u;
                 
-                consumer.addVertex(pose, x - 0.5F, (float) y - 0.25F, 0.0F).
+                consumer.addVertex(pose, x - .5F, (float) y - .25F, 0F).
                     setColor(255, 255, 255, 255).
                     setUv(correctedU, (float) v).
                     setOverlay(OverlayTexture.NO_OVERLAY).
                     setLight(lightmapUV).
-                    setNormal(lastPose, 0.0F, 1.0F, 0.0F);
+                    setNormal(lastPose, 0F, 1F, 0F);
             }
     
     /**

@@ -9,8 +9,8 @@
 package kurvcygnus.crispsweetberry.lib.base.exceptions;
 
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -64,14 +64,12 @@ public class StructuredException extends RuntimeException implements IStructured
     public StructuredException(@NotNull Throwable wrappedException, @NotNull String tag)
     {
         super(
-            MessageFormatter.arrayFormat(
+            TextUtils.format(
                 "<{}:{}> {}",
-                new Object[] {
-                    checkEx(wrappedException).getClass().getSimpleName(),
-                    checkType(tag),
-                    wrappedException.getMessage()
-                }
-            ).getMessage(),
+                checkEx(wrappedException).getClass().getSimpleName(),
+                checkType(tag),
+                wrappedException.getMessage()
+            ),
             wrappedException
         );
 

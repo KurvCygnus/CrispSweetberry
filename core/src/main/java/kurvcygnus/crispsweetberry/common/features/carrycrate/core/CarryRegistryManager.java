@@ -22,8 +22,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import net.minecraft.Util;
@@ -50,7 +51,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.utils.AssertUtils.*;
+import static kurvcygnus.crispsweetberry.lib.base.util.AssertUtils.*;
 
 /**
  * This is a enum based manager class, which holds the adapter source map,
@@ -155,7 +156,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
                 default -> throw AssertUtils.impossibleBranch();
             }
             
-            return Pair.of(condition, DefinitionUtils.quickFormat("{} \"{}\" has already been bounded with an adapter!", prefix, target.toString()));
+            return Pair.of(condition, TextUtils.format("{} \"{}\" has already been bounded with an adapter!", prefix, target.toString()));
         },
         IllegalStateException::new,
         true
@@ -419,7 +420,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         if(obj instanceof Block block && adapter instanceof AbstractBlockCarryAdapter<?> blockCarryAdapter)
             throwIf(
                 blockCarryAdapter.getAcceptableCount() <= 0,
-                DefinitionUtils.quickFormat(
+                TextUtils.format(
                     "The acceptableCount of \"{}\"'s adapter should be positive! Current is: {}",
                     block.getDescriptionId(),
                     blockCarryAdapter.getAcceptableCount()
@@ -439,7 +440,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         final var keyType = carryType.boundClass;
         
         if(!keyType.isAssignableFrom(key.getClass()))
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Invalid factory creation type! Expected: {}, got: {}", keyType, key.getClass()));
+            throw new IllegalArgumentException(TextUtils.format("Invalid factory creation type! Expected: {}, got: {}", keyType, key.getClass()));
         
         return Optional.ofNullable((F) REGISTRY_LOOKUP.get(carryType).get(keyType.cast(key)));
     }

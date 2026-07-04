@@ -17,8 +17,8 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.Abst
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.basic.TemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abstracts.AbstractThrownTorchRenderer;
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -93,7 +93,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     private static final int LEVEL_BLOCK_DESTROY_EVENT_ID = 2001;
     private static final int ENTITY_DESTROY_EVENT_ID = 3;
     
-    private static final double OFFSET_CALCULATE_CONSTANT = 0.5;
+    private static final double OFFSET_CALCULATE_CONSTANT = .5;
     
     /**
      * The list used for tick participle display.<br>
@@ -451,7 +451,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     private @NotNull Map<Byte, ParticleOptions> processLongerParticleStateList(ParticleOptions @NotNull ... states)
     {
         if(states.length != 1 && states.length != 3)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Invalid length of states: {}, it should be 1, or 3.", states.length));
+            throw new IllegalArgumentException(TextUtils.format("Invalid length of states: {}, it should be 1, or 3.", states.length));
         
         final boolean duplicate = !shouldCheckLiquids();
         

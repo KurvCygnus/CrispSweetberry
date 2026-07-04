@@ -8,8 +8,11 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
-import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
-import org.jetbrains.annotations.*;
+import kurvcygnus.crispsweetberry.lib.base.extensions.IAutoNestedPrintable;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 /**
  * A simple value object for <u>{@link KilnProgressCalculator}</u>.
@@ -22,19 +25,8 @@ public record CalculationResult(
     @Range(from = 0, to = 1) double currentVisualProgress, 
     @NotNull KilnEnumCollections.LogicalResult logicalResult,
     @NotNull KilnEnumCollections.VisualTrend trend
-) implements INestedPrintable<CalculationResult>
+) implements IAutoNestedPrintable.OfRecordHandle<CalculationResult>
 {
-    private static final @NotNull @Unmodifiable INestedFieldMap<CalculationResult> FIELD_MAP = INestedPrintable.buildFieldMap(
-        map ->
-        {
-            map.put("realProgress", CalculationResult::currentRealProgress);
-            map.put("visualProgress", CalculationResult::currentVisualProgress);
-            map.put("logicalResult", c -> c.logicalResult.name());
-            map.put("trend", c -> c.trend.name());
-        },
-        4
-    );
-    
     @Contract("_, _ -> new")
     public static @NotNull CalculationResult unexpectedResult(@Range(from = 0, to = 1) double currentRealProgress, @Range(from = 0, to = 1) double currentVisualProgress)
     {
@@ -46,5 +38,5 @@ public record CalculationResult(
         );
     }
     
-    @Override public @NotNull @Unmodifiable INestedFieldMap<CalculationResult> getFields() { return FIELD_MAP; }
+    @Override public @NotNull String toString() { return toNestedString(); }
 }

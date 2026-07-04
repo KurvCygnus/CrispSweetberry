@@ -11,8 +11,6 @@ package kurvcygnus.crispsweetberry.utils.functions;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
 import net.minecraft.world.item.ItemStack;
 
-import java.io.Serializable;
-
 /**
  * A simple functional interface which is mainly used for {@code AbstractMenu#quickMoveStack()} method.
  *
@@ -22,7 +20,7 @@ import java.io.Serializable;
  * @see UIUtils#moveStackByRanger Usage
  * @since 1.0 Release
  */
-@FunctionalInterface public interface IQuadMoveStackPredicate extends Serializable
+@FunctionalInterface public interface IQuadMoveStackPredicate
 {
     boolean test(ItemStack interactStack, int minIndex, int maxIndex, boolean reverseDirection);
 }

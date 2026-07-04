@@ -13,7 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInte
 import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransactionalThrowable;
 import kurvcygnus.crispsweetberry.lib.base.exceptions.StructuredException;
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import net.minecraft.world.InteractionResult;
 import net.neoforged.neoforge.common.util.TriState;
 import org.jetbrains.annotations.ApiStatus;
@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
-import static kurvcygnus.crispsweetberry.utils.AssertUtils.nonNullCheckOnDev;
+import static kurvcygnus.crispsweetberry.lib.base.util.AssertUtils.nonNullCheckOnDev;
 
 /**
  * A simple exception for <u>{@link CarryEngine CarryEngine}</u>'s core logic error handling,
@@ -37,7 +37,7 @@ import static kurvcygnus.crispsweetberry.utils.AssertUtils.nonNullCheckOnDev;
 @ApiStatus.Internal final class CarryInteractHandleException extends StructuredException
 implements ITransactionalThrowable<CarryInteractHandleException, CarryInteractContext, InteractionResult>
 {
-    private static final BinaryOperator<String> TYPE_TEMPLATE = (s1, s2) -> DefinitionUtils.quickFormat("{}_{}", s1, s2);
+    private static final BinaryOperator<String> TYPE_TEMPLATE = (s1, s2) -> TextUtils.format("{}_{}", s1, s2);
     
     private final CarryInteractContext causeData;
     

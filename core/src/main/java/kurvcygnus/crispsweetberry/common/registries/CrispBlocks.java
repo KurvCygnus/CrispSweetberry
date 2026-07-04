@@ -11,20 +11,23 @@ package kurvcygnus.crispsweetberry.common.registries;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public enum CrispBlocks implements IRegistrant<CrispBlocks>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) 
-    {
-        //CRISP_BLOCK_REGISTER.registerUniversal(bus);
-    }
+    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(CRISP_BLOCK_REGISTER); }
     
     @Override public boolean isFeature() { return false; }
+    
+    @Override public @NotNull Predicate<ModContainer> isActivated() { return BANNED; }
+    
     
     @Override public @NotNull String getJob() { return "Misc Blocks"; }
     

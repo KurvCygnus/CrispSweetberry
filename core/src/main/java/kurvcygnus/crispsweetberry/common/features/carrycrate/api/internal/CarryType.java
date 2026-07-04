@@ -28,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Internal public enum CarryType implements StringRepresentable
 {
     BLOCK_ENTITY(CarryData.OfBlockEntityUniqueData.CODEC, CarryData.OfBlockEntityUniqueData.STREAM_CODEC, BlockEntityType.class),
-    BLOCK(CarryData.OfBlockUniqueData.CODEC,              CarryData.OfBlockUniqueData.STREAM_CODEC,       Block.class),
-    ENTITY(CarryData.OfEntityUniqueData.CODEC,            CarryData.OfEntityUniqueData.STREAM_CODEC,      EntityType.class);
+    BLOCK(       CarryData.OfBlockUniqueData.CODEC,       CarryData.OfBlockUniqueData.STREAM_CODEC,       Block.class),
+    ENTITY(      CarryData.OfEntityUniqueData.CODEC,      CarryData.OfEntityUniqueData.STREAM_CODEC,      EntityType.class);
     
     final MapCodec<? extends CarryData.OfUniqueDataBase> codec;
     final StreamCodec<ByteBuf, ? extends CarryData.OfUniqueDataBase> streamCodec;

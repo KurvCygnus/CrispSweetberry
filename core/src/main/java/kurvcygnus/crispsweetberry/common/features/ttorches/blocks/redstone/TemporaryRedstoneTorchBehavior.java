@@ -162,7 +162,7 @@ public final class TemporaryRedstoneTorchBehavior extends AbstractTemporaryTorch
         
         final TRedstoneTorchExtensions.OxidizeState oxidizeState = state.getValue(OXIDIZE_STATE);
         
-        level.playSound(null, pos, waxed ? SoundEvents.AXE_WAX_OFF : SoundEvents.HONEYCOMB_WAX_ON, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, pos, waxed ? SoundEvents.AXE_WAX_OFF : SoundEvents.HONEYCOMB_WAX_ON, SoundSource.BLOCKS, 1F, 1F);
         
         if(!level.isClientSide)
         {

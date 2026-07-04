@@ -6,8 +6,9 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils;
+package kurvcygnus.crispsweetberry.lib.base.util;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import kurvcygnus.crispsweetberry.lib.base.extensions.StackDebugger;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -17,12 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -40,7 +37,7 @@ public final class AssertUtils
         requireNonNull(contexts, "Param \"contexts\" must not be null!");
         
         return new AssertionError(
-            DefinitionUtils.quickFormat(
+            TextUtils.format(
                 "An impossible branch has been reached by \"{}\"!{}",
                 StackDebugger.getFullCallerInfo(),
                 contexts.length != 0 ?
@@ -48,6 +45,67 @@ public final class AssertUtils
                     ""
             )
         );
+    }
+    
+    @SuppressWarnings("DuplicatedCode")//! Stupid IDEA: Dealing the duplicated code have to use functional interfaces and even more complex generics,
+    @CanIgnoreReturnValue              //! javac can't handle that, ending up have to specify the generic at call, or get Object as lambda param.
+    public static <I extends Iterable<T>, T> @NotNull I nonNullCheckIteration(
+        @Nullable I iterable,
+        @NotNull Consumer<? super T> action,
+        @NotNull String varName
+    )
+    {
+        requireNonNull(iterable, "Param \"iterable\" must not be null!");
+        requireNonNull(action, "Param \"action\" must not be null!");
+        requireNonNull(varName, "Param \"varName\" must not be null!");
+        if(varName.isBlank())
+            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        
+        int index = 0;
+        
+        for(final T element: iterable)
+        {
+            requireNonNull(element, TextUtils.format("Param \"{}\" has null element at index {}", varName, index));
+            action.accept(element);
+            index++;
+        }
+        
+        return iterable;
+    }
+    
+    @SuppressWarnings({"NullableProblems", "DuplicatedCode"})//! Why IDEA is so stupid...
+    @CanIgnoreReturnValue
+    public static <T> @NotNull T @NotNull [] nonNullCheckIteration(
+        @NotNull String varName,
+        @Nullable T @Nullable [] array,
+        @NotNull Consumer<? super T> action
+    )
+    {
+        requireNonNull(array, "Param \"array\" must not be null!");
+        requireNonNull(action, "Param \"action\" must not be null!");
+        requireNonNull(varName, "Param \"varName\" must not be null!");
+        if(varName.isBlank())
+            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        
+        for(int index = 0; index < array.length; index++)
+        {
+            final T element = requireNonNull(array[index], TextUtils.format("Param \"{}\" has null element at index {}", varName, index));
+            action.accept(element);
+        }
+        
+        return array;
+    }
+    
+    public static <M extends Map<K, V>, K, V> @NotNull M nonEmptyMap(@Nullable M map, @NotNull String varName) throws NullPointerException, IllegalArgumentException
+    {
+        requireNonNull(varName, "Param \"varName\" must not be null!");
+        if(varName.isBlank())
+            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        
+        if(map == null || map.isEmpty())
+            throw new IllegalArgumentException(TextUtils.format("Map \"{}\" must not be null or empty!", varName));
+        
+        return map;
     }
     
     /**
@@ -66,7 +124,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(value == null)
-            throw new NullPointerException(DefinitionUtils.quickFormat("Param \"{}\" must not be null!", varName));
+            throw new NullPointerException(TextUtils.format("Param \"{}\" must not be null!", varName));
         
         return value;
     }
@@ -85,12 +143,12 @@ public final class AssertUtils
         requireNonNull(logger, "Param \"logger\" must not be null!");
         requireNonNull(message, "Param \"message\" must not be null!");
 
-        final var fullMessage = DefinitionUtils.quickFormat(message, args);
+        final var fullMessage = TextUtils.format(message, args);
 
         if(IS_DEVELOPMENT_ENVIRONMENT)
             throw function.apply(fullMessage);
 
-        logger.error(DefinitionUtils.quickFormat("{}\nThis error is caused by {}.", fullMessage, StackDebugger.getFullCallerInfo()));
+        logger.error(TextUtils.format("{}\nThis error is caused by {}.", fullMessage, StackDebugger.getFullCallerInfo()));
     }
 
     public static <E extends Throwable> void throwIf(boolean condition, @NotNull String message, @NotNull Function<String, E> function) throws E
@@ -123,7 +181,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable < 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
         
         return variable;
     }
@@ -135,7 +193,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable < 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
         
         return variable;
     }
@@ -147,7 +205,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable < 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
         
         return variable;
     }
@@ -159,7 +217,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable < 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
         
         return variable;
     }
@@ -171,7 +229,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable <= 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
         
         return variable;
     }
@@ -183,7 +241,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable <= 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
         
         return variable;
     }
@@ -195,7 +253,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable <= 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
         
         return variable;
     }
@@ -207,7 +265,7 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(variable <= 0)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Param \"{}\" should be an unsigned number!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
         
         return variable;
     }
@@ -222,41 +280,13 @@ public final class AssertUtils
             throw new IllegalArgumentException("Param \"varName\" must not be empty!");
         
         if(iterable == null)
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Iterable \"{}\" must not be null!", varName));
+            throw new IllegalArgumentException(TextUtils.format("Iterable \"{}\" must not be null!", varName));
         
         for(final E element : iterable)
             if(element == null)
-                throw new IllegalArgumentException(DefinitionUtils.quickFormat("Iterable \"{}\"'s elements must not be null!", varName));
+                throw new IllegalArgumentException(TextUtils.format("Iterable \"{}\"'s elements must not be null!", varName));
         
         return iterable;
-    }
-
-    public static <C extends Collection<E>, E> @NotNull C nonEmptyCollection(@Nullable C collection, @NotNull String varName) throws NullPointerException, IllegalArgumentException
-    {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
-        
-        if(collection == null || collection.isEmpty())
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Collection \"{}\" must not be null or empty!", varName));
-        
-        for(final E element: collection)
-            if(element == null)
-                throw new IllegalArgumentException("Collection \"{}\"'s elements must not be null!");
-        
-        return collection;
-    }
-
-    public static <M extends Map<K, V>, K, V> @NotNull M nonEmptyMap(@Nullable M map, @NotNull String varName) throws NullPointerException, IllegalArgumentException
-    {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
-
-        if(map == null || map.isEmpty())
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Map \"{}\" must not be null or empty!", varName));
-        
-        return map;
     }
     
     public static <E extends Throwable> @NotNull IChecker.OfNoArg<E> produceChecker(

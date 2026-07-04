@@ -15,8 +15,6 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.SimpleContainerBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions.ICarriableLifecycle;
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -27,8 +25,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
-
-import java.io.Serializable;
 
 /**
  * A collection class holds the all unique abilities of 
@@ -97,16 +93,6 @@ public final class CarriableBlockEntityExtensions
      */
     public interface IBlockEntityCarryLifecycle<E extends BlockEntity> extends ICarriableLifecycle<CarryData.OfBlockEntityUniqueData>
     {
-        String INVALID_CALL_FAIL_MESSAGE = DefinitionUtils.quickFormat(
-            """
-            Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
-            method is called at improper time, with improper param.
-            
-            {}
-            """,
-            MetainfoConstants.FEEDBACK_MESSAGE
-        );
-        
         /**
          * A fallback penalty Rate getter for registration validation, and edge case fallback.
          */
@@ -144,7 +130,7 @@ public final class CarriableBlockEntityExtensions
      * @since 1.0 Release
      * @author Kurv Cygnus
      */
-    public interface ICarrySerializable extends Serializable
+    public interface ICarrySerializable
     {
         /**
          * Load <u>{@link BlockEntity}</u>'s serialized data.<br><br>

@@ -10,11 +10,7 @@ package kurvcygnus.crispsweetberry.annotation.processor;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
-import java.util.List;
 import java.util.function.Function;
 
 final class I18nParser
@@ -26,21 +22,21 @@ final class I18nParser
     
     static @NotNull String recursiveParse(@NotNull ParseContext context, @NotNull Function<ParseContext, String> recurse)
     {
-        final Element element = context.element();
-        final TypeMirror elementType = context.elementType();
+        final var element = context.element();
+        final var elementType = context.elementType();
         final var printError = context.printError();
-        final Types typeUtils = context.typeUtils();
+        final var typeUtils = context.typeUtils();
         
         if(elementType instanceof DeclaredType declaredType)
         {
-            final List<? extends TypeMirror> args = declaredType.getTypeArguments();
+            final var args = declaredType.getTypeArguments();
             
             if(args.isEmpty())
                 printError.accept("Can't get the generic arg of %s.".formatted(element.getSimpleName().toString()));
             
-            final TypeMirror rawArg = args.getFirst();
+            final var rawArg = args.getFirst();
             
-            for(final TypeMirror typeMirror: context.typeMirrors())
+            for(final var typeMirror: context.typeMirrors())
                 if(typeUtils.isAssignable(typeUtils.erasure(rawArg), typeMirror))
                     return recurse.apply(context.recursed(rawArg));
             
@@ -60,8 +56,8 @@ final class I18nParser
     
     static @NotNull String polymorphismParse(@NotNull ParseContext context)
     {
-        final String key = context.key();
-        final String namespace = context.namespace();
+        final var key = context.key();
+        final var namespace = context.namespace();
         
         if(key.contains("%s.".formatted(namespace)))
             return key;

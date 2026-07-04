@@ -45,7 +45,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
 {
     //  region
     //*:=== Constants, Fields & Constructors
-    private static final float ALWAYS_ACCURATE = 1.0F;
+    private static final float ALWAYS_ACCURATE = 1F;
     private static final float DEFAULT_TORCH_THROW_VELOCITY = 1.5F;
     
     private static final int DEFAULT_THROW_COOLDOWN = 12;
@@ -79,7 +79,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
     @Override public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand)
     {
         final ItemStack itemstack = player.getItemInHand(hand);
-        final float throwSoundPitch = 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F);
+        final float throwSoundPitch = .4F / (level.getRandom().nextFloat() * .4F + .8F);
         
         player.startUsingItem(hand);
         player.swing(hand, true);//! Flag "updateSelf" forces animation to play when the last one hasn't ended, which makes sure anim plays normally.

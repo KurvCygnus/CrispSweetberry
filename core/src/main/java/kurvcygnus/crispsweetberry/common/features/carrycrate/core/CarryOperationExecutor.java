@@ -21,8 +21,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInte
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
 import kurvcygnus.crispsweetberry.lib.base.lang.TriVariant;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.BlockPos;
@@ -190,8 +191,7 @@ enum CarryOperationExecutor
         final var targetPos = context.interactPos;
         final var blockEntity = context.targets.right();
         final var level = context.level;
-        @Nullable(DATA_CORRUPTION_CASE)
-        final var carryID = context.carryID.value();
+        final @Nullable(DATA_CORRUPTION_CASE) var carryID = context.carryID.value();
         
         final var optionalAdapter = CarryRegistryManager.INST.
             getBlockEntityAdapter(blockEntity.getType()).
@@ -206,7 +206,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
                 context.pass(),
-                DefinitionUtils.quickFormat("Cannot find blockEntity \"{}\"'s adapter!", blockEntity),
+                TextUtils.format("Cannot find blockEntity \"{}\"'s adapter!", blockEntity),
                 NoSuchElementException::new,
                 CarryType.BLOCK_ENTITY
             );
@@ -216,7 +216,7 @@ enum CarryOperationExecutor
         if(!adapter.isSupported(blockEntity))
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
-                DefinitionUtils.quickFormat(
+                TextUtils.format(
                     "Cannot do further procession because blockEntity {} cannot be handled by adapter, it supports {}!",
                     blockEntity.getClass().getSimpleName(),
                     adapter.getSupportedType().getSimpleName()
@@ -261,7 +261,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
                 context.fallback(),
-                DefinitionUtils.quickFormat("Cannot find block \"{}\"'s adapter!", targetBlock.getDescriptionId()),
+                TextUtils.format("Cannot find block \"{}\"'s adapter!", targetBlock.getDescriptionId()),
                 NoSuchElementException::new,
                 CarryType.BLOCK
             );
@@ -271,7 +271,7 @@ enum CarryOperationExecutor
         if(!adapter.isSupported(targetBlock))
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
-                DefinitionUtils.quickFormat(
+                TextUtils.format(
                     "Cannot do further procession because block {} cannot be handled by adapter, it supports {}!",
                     targetBlock.getClass().getSimpleName(),
                     adapter.getSupportedType().getSimpleName()
@@ -305,7 +305,7 @@ enum CarryOperationExecutor
         if(!targetEntity.saveAsPassenger(tagData))
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
-                DefinitionUtils.quickFormat("Can not get, or use entity \"{}\"'s data, interaction failed.", targetEntity),
+                TextUtils.format("Can not get, or use entity \"{}\"'s data, interaction failed.", targetEntity),
                 IOException::new,
                 CarryType.ENTITY
             );
@@ -317,7 +317,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
-                DefinitionUtils.quickFormat("Cannot find entity \"{}\"'s adapter!", targetEntity.toString()),
+                TextUtils.format("Cannot find entity \"{}\"'s adapter!", targetEntity.toString()),
                 NoSuchElementException::new,
                 CarryType.ENTITY
             );
@@ -327,7 +327,7 @@ enum CarryOperationExecutor
         if(!adapter.isSupported(targetEntity.getType()))
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
-                DefinitionUtils.quickFormat(
+                TextUtils.format(
                     "Cannot do further procession because entity {} cannot be handled by adapter, it supports {}!",
                     targetEntity.getClass().getSimpleName(),
                     adapter.getSupportedType().getSimpleName()
@@ -374,7 +374,7 @@ enum CarryOperationExecutor
         if(optionalAdapter.isEmpty())
             return CarryInteractHandleException.unboxFailed(
                 context.fail(),
-                DefinitionUtils.quickFormat("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntityType),
+                TextUtils.format("Cannot find blockEntity \"{}\"'s adapter! Mark this interaction as failed.", blockEntityType),
                 NoSuchElementException::new,
                 CarryType.BLOCK_ENTITY
             );
@@ -493,7 +493,7 @@ enum CarryOperationExecutor
                 if(factory.isEmpty())
                     return CarryInteractHandleException.listener(
                         context.pass(),
-                        DefinitionUtils.quickFormat("Cannot find {}'s Carry Factory!", creationData),
+                        TextUtils.format("Cannot find {}'s Carry Factory!", creationData),
                         NoSuchElementException::new,
                         TriState.TRUE
                     );
@@ -602,7 +602,7 @@ enum CarryOperationExecutor
         if(!level.setBlockAndUpdate(pos, Blocks.VOID_AIR.defaultBlockState()))
             return CarryInteractHandleException.target(
                 context.pass(),
-                DefinitionUtils.quickFormat(
+                TextUtils.format(
                     "Unable to change position {}'s blockstate! Original Blockstate: {}",
                     DefinitionUtils.formatPos(pos),
                     level.getBlockState(pos).toString()
@@ -657,10 +657,10 @@ enum CarryOperationExecutor
         if(placeResult.equals(InteractionResult.FAIL))
             return this.listenerProcess(context.rollback()).flatMap(CarryOperationExecutor.INST::componentProcess).
                 map(
-                    c ->
+                    interactContext ->
                     {
-                        c.level.removeBlockEntity(c.interactPos);
-                        return c.fail();
+                        interactContext.level.removeBlockEntity(interactContext.interactPos);
+                        return interactContext.fail();
                     }
                 );
         
@@ -791,7 +791,7 @@ enum CarryOperationExecutor
         if(!carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
             return CarryInteractHandleException.miscFailed(
                 context.fallback(),
-                DefinitionUtils.quickFormat("ItemStack \"{}\" has no CarryData, can't release content.", carryCrate),
+                TextUtils.format("ItemStack \"{}\" has no CarryData, can't release content.", carryCrate),
                 IllegalArgumentException::new,
                 "UNBOX_DATA_PRECHECK"
             );

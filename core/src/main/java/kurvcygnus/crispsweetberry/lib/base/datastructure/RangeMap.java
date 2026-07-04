@@ -10,10 +10,10 @@ package kurvcygnus.crispsweetberry.lib.base.datastructure;
 
 import kurvcygnus.crispsweetberry.lib.base.exceptions.NotImplementedYetException;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -45,7 +45,7 @@ public final class RangeMap<V> extends AbstractMap<Ranger, V>
     {
         for(Ranger existing: map.keySet())
             if(CONFLICTED.test(range, existing))
-                throw new IllegalStateException(MessageFormatter.format("Range conflict detected: {} overlaps with {}", range, existing).getMessage());
+                throw new IllegalStateException(TextUtils.format("Range conflict detected: {} overlaps with {}", range, existing));
         
         return ConflictHandleResult.singleRanger(range, value);
     };

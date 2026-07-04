@@ -9,11 +9,11 @@
 package kurvcygnus.crispsweetberry.lib.base.datastructure;
 
 import kurvcygnus.crispsweetberry.lib.base.trait.IBitmaskedEnum;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.*;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -68,7 +68,7 @@ public final class Ranger implements Iterable<Integer>
             throw new IllegalArgumentException("This is an empty, and illegal range!");
         
         if(min >= max)
-            throw new IllegalArgumentException(MessageFormatter.format("Min({}) is not smaller than max({}), this is an illegal range!", min, max).getMessage());
+            throw new IllegalArgumentException(TextUtils.format("Min({}) is not smaller than max({}), this is an illegal range!", min, max));
         
         this.min = minClosed ? min : ++min;
         this.max = maxClosed ? max : --max;
@@ -107,7 +107,6 @@ public final class Ranger implements Iterable<Integer>
     //endregion
     
     //region Public APIs
-    
     /**
      * Transforms a float percentage into corresponded value in this {@code CrispRanger}.
      */
@@ -497,7 +496,7 @@ public final class Ranger implements Iterable<Integer>
     
     @Override public int hashCode() { return Objects.hash(min, max); }
     
-    public @CheckReturnValue @NotNull String toString() { return MessageFormatter.format("[{}, {}]", this.min, this.max).getMessage(); }
+    public @CheckReturnValue @NotNull String toString() { return TextUtils.format("[{}, {}]", this.min, this.max); }
     //endregion
     
     //region Inner Helpers

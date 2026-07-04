@@ -26,12 +26,8 @@ import javax.tools.StandardLocation;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BinaryOperator;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static kurvcygnus.crispsweetberry.annotations.AutoI18n.Lang;
@@ -105,8 +101,8 @@ public final class I18nProcessor extends AbstractProcessor
      */
     private List<TypeMirror> types;
     
-    private final HashMap<String, HashMap<Lang, String>> groups = new HashMap<>();
-    private final HashMap<String, HashMap<Lang, String>> translationLookup = new HashMap<>();
+    private final Map<String, Map<Lang, String>> groups = new HashMap<>();
+    private final Map<String, Map<Lang, String>> translationLookup = new HashMap<>();
     
     private @Nullable String outputPath;
     private boolean generated = false;
@@ -198,7 +194,7 @@ public final class I18nProcessor extends AbstractProcessor
         if(annotations.isEmpty())
             return false;
         
-        for(final Element element: roundEnv.getElementsAnnotatedWith(AutoI18n.class))
+        for(final var element: roundEnv.getElementsAnnotatedWith(AutoI18n.class))
         {
             if(element.getKind() != ElementKind.FIELD)
                 printError(
@@ -219,14 +215,14 @@ public final class I18nProcessor extends AbstractProcessor
                 continue;
             }
             
-            final String group = autoI18n.group();
-            final String overrides = autoI18n.overrides();
-            final String[] translations = autoI18n.value();
-            final String key = autoI18n.key().isBlank() ?
+            final var group = autoI18n.group();
+            final var overrides = autoI18n.overrides();
+            final var translations = autoI18n.value();
+            final var key = autoI18n.key().isBlank() ?
                 element.getSimpleName().toString().toLowerCase().replace("__", ".") :
                 autoI18n.key();
             
-            final String fullKeyScope = parseKeyScope(new ParseContext(namespace.get(), key, element, element.asType(), this::printError, typeUtil.get(), types));
+            final var fullKeyScope = parseKeyScope(new ParseContext(namespace.get(), key, element, element.asType(), this::printError, typeUtil.get(), types));
             
             if(!hasContent(translations) && !hasContent(group) && !hasContent(overrides))
                 printError(
@@ -250,7 +246,13 @@ public final class I18nProcessor extends AbstractProcessor
     private @NotNull String parseKeyScope(@NotNull ParseContext context)
         { return ProcessableType.getType(inTypes(context.elementType())).parse(context, this::parseKeyScope); }
     
-    private void parseTranslations(@NotNull Element element, @Nullable String @Nullable [] translations, @NotNull String key, @Nullable String group, @Nullable String overrides)
+    private void parseTranslations(
+        @NotNull Element element,
+        @Nullable String @Nullable [] translations,
+        @NotNull String key,
+        @Nullable String group,
+        @Nullable String overrides
+    )
     {
         final var currentDefinedContents = parseTranslationContents(element, translations, overrides);
         final var finalContents = new HashMap<Lang, String>();
@@ -298,7 +300,7 @@ public final class I18nProcessor extends AbstractProcessor
         translationLookup.put(key, finalContents);
     }
     
-    private @NotNull HashMap<Lang, String> parseTranslationContents(@NotNull Element element, @Nullable String @Nullable [] translations, @Nullable String overrides)
+    private @NotNull Map<Lang, String> parseTranslationContents(@NotNull Element element, @Nullable String @Nullable [] translations, @Nullable String overrides)
     {
         if(translations == null || translations.length == 0)
             return new HashMap<>();
@@ -312,7 +314,7 @@ public final class I18nProcessor extends AbstractProcessor
             if(entry == null || entry.isEmpty())
                 return new HashMap<>();
             
-            final Matcher matcher = TRANSLATION_PATTERN.matcher(entry);
+            final var matcher = TRANSLATION_PATTERN.matcher(entry);
             
             if(!matcher.matches())
                 printError(
@@ -320,8 +322,8 @@ public final class I18nProcessor extends AbstractProcessor
                     element
                 );
             
-            final String lang = matcher.group(1);
-            final String content = matcher.group(2).replace(WHITESPACE, " ");
+            final var lang = matcher.group(1);
+            final var content = matcher.group(2).replace(WHITESPACE, " ");
             
             if(!hasContent(lang))
                 printError(
@@ -341,7 +343,7 @@ public final class I18nProcessor extends AbstractProcessor
                     element
                 );
             
-            final Lang language = Lang.parse(lang);
+            final var language = Lang.parse(lang);
             
             if(language != null)
                 translationContents.put(language, content);
@@ -352,9 +354,9 @@ public final class I18nProcessor extends AbstractProcessor
         return translationContents;
     }
     
-    private @NotNull HashMap<Lang, HashMap<String, String>> composeTranslationTable()
+    private @NotNull Map<Lang, Map<String, String>> composeTranslationTable()
     {
-        final HashMap<Lang, HashMap<String, String>> translationTable = new HashMap<>();
+        final var translationTable = new HashMap<Lang, Map<String, String>>();
         for(final var set: translationLookup.entrySet())
         {
             final var key = set.getKey();
@@ -376,32 +378,32 @@ public final class I18nProcessor extends AbstractProcessor
         return translationTable;
     }
     
-    private void generateJSON(@NotNull HashMap<Lang, HashMap<String, String>> translationTable)
+    private void generateJSON(@NotNull Map<Lang, Map<String, String>> translationTable)
     {
         translationTable.forEach(
             (lang, translationMap) ->
             {
                 try(final var writer = getWriter(lang))
                 {
-                    final String generatedHeader = lang.equals(Lang.LOL_US) ? UWU_HADR : STANDARD_GENERATE_HEADER;
+                    final var generatedHeader = lang.equals(Lang.LOL_US) ? UWU_HADR : STANDARD_GENERATE_HEADER;
                     
                     writer.write(generatedHeader);
-                    final List<String> keys = new ArrayList<>(translationMap.keySet());
+                    final var keys = new ArrayList<>(translationMap.keySet());
                     keys.sort(String::compareTo);
                     
                     for(int index = 0; index < keys.size(); index++)
                     {
-                        final String key = keys.get(index);
-                        final String content = translationMap.get(key);
-                        final String entry = ENTRY_TEMPLATE.apply(key, content);
+                        final var key = keys.get(index);
+                        final var content = translationMap.get(key);
+                        final var entry = ENTRY_TEMPLATE.apply(key, content);
                         writer.write(entry);
                         
                         if(index < keys.size() - 1)
-                            writer.write(",");
-                        writer.write("\n");
+                            writer.write(',');
+                        writer.write('\n');
                     }
                     
-                    writer.write("}");
+                    writer.write('}');
                     messager.get().printMessage(
                         Diagnostic.Kind.NOTE,
                         "Generated %s.json.".

@@ -8,7 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
-import kurvcygnus.crispsweetberry.utils.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -108,7 +108,7 @@ public abstract class AbstractTemporaryTorchBehavior
             return ItemInteractionResult.FAIL;
         
         final boolean isDamageable = stack.isDamageableItem();
-        final float damageableItemPitch = level.getRandom().nextFloat() * 0.4F + 0.8F;
+        final float damageableItemPitch = level.getRandom().nextFloat() * .4F + .8F;
         
         level.playSound(
             null,
@@ -132,7 +132,7 @@ public abstract class AbstractTemporaryTorchBehavior
     
     public void tick(@NotNull BlockState oldState, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
-        final double verticalParticleSpeed = (random.nextDouble() * 2.0D - 1.0D) * 0.03D;
+        final double verticalParticleSpeed = (random.nextDouble() * 2D - 1D) * .03D;
         
         final LightState oldLightState = oldState.getValue(LIGHT_PROPERTY);
         final BlockState newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());

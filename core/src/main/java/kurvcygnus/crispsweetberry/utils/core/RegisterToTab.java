@@ -8,12 +8,10 @@
 
 package kurvcygnus.crispsweetberry.utils.core;
 
-import kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent;
 import kurvcygnus.crispsweetberry.client.registries.CrispCreativeTabs;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
@@ -29,8 +27,6 @@ import java.lang.annotation.Target;
  *  public static final Holder<Item> Foo = ...
  * }</pre>
  * <i><b>We strongly recommend using {@code public static final} to avoid potential problems</b></i>.
- * @see CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent) Annotation Processor
- * @see kurvcygnus.crispsweetberry.CrispSweetberry#TAB_LOOKUP Info Source
  * @since 1.0 Release
  * @author Kurv Cygnus
  */

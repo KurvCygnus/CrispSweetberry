@@ -84,7 +84,7 @@ import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_S
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
 public final class SpyglassQuickZoomEvent
 {
-    private static final float SPYGLASS_MOVEMENT_FACTOR = 0.2F;
+    private static final float SPYGLASS_MOVEMENT_FACTOR = .2F;
     private static ZoomState zoomState = ZoomState.IDLE;
     private static boolean hasSpyglass = false;
     private static boolean hotkeyPressed = false;

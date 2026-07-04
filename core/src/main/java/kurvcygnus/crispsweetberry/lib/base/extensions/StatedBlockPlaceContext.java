@@ -88,8 +88,8 @@ public final class StatedBlockPlaceContext extends BlockPlaceContext implements 
             pos,
             soundType.getPlaceSound(),
             SoundSource.BLOCKS,
-            (soundType.getVolume() + 1.0F) / 2.0F,
-            soundType.getPitch() * 0.8F
+            (soundType.getVolume() + 1F) / 2F,
+            soundType.getPitch() * .8F
         );
         
         level.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(player, currentState));

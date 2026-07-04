@@ -58,10 +58,10 @@ public final class TRedstoneTorchExtensions
         private final int signalStrength;
         private final float explosionChance;
         
-        OxidizeState() 
+        OxidizeState()
         {
             this.signalStrength = 15 - (this.ordinal() * 3);
-            this.explosionChance = 0.25F + this.ordinal() * 0.1F;
+            this.explosionChance = .25F + this.ordinal() * .1F;
         }
         
         @Override public @NotNull String getSerializedName() { return this.name().toLowerCase(); }

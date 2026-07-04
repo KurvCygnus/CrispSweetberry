@@ -9,10 +9,10 @@
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
 import kurvcygnus.crispsweetberry.lib.base.extensions.StackDebugger;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -374,10 +374,10 @@ abstract sealed class BaseVault<TValue, TToken> implements IVault<TValue, TToken
     {
         if(clazz.isSynthetic())
             throw new IllegalArgumentException(
-                MessageFormatter.format(
+                TextUtils.format(
                     "Class {} is synthetic, finding its enclosing class is not supported!",
                     clazz.getSimpleName()
-                ).getMessage()
+                )
             );
         
         return clazz.isAnonymousClass() ? getTrueCallerClass(clazz.getEnclosingClass()) : clazz;

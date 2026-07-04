@@ -13,8 +13,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * A functional interface to make creating slot for container menu more simple.
  *
@@ -26,7 +24,4 @@ import java.io.Serializable;
  * @see UIUtils#addGridSlots Usage
  * @since 1.0 Release
  */
-@FunctionalInterface public interface IQuadSlotSupplier<C extends Container, S extends Slot> extends Serializable
-{
-    @NotNull S create(C container, int index, int x, int y);
-}
+@FunctionalInterface public interface IQuadSlotSupplier<C extends Container, S extends Slot> { @NotNull S create(C container, int index, int x, int y); }

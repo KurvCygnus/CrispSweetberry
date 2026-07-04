@@ -22,6 +22,7 @@ import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
 
 import java.util.ArrayDeque;
+import java.util.Objects;
 import java.util.function.*;
 
 import static java.util.Objects.requireNonNull;
@@ -40,7 +41,6 @@ public sealed interface IMarkLogger extends Logger
 {
     /**
      * Produces a standard logger with no default marker.
-     * @throws NullPointerException When {@code logger} is {@code null}
      * @implSpec <pre>{@code
      *  private static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
      * }</pre>
@@ -49,7 +49,7 @@ public sealed interface IMarkLogger extends Logger
     
     /**
      * Produces a standard logger, which automatically deals marker.
-     * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
+     * @throws NullPointerException When {@code marker} is {@code null}
      * @implSpec <pre>{@code
      *  private static final IMarkLogger LOGGER = IMarkLogger.markedLogger(
      *      MarkerFactory.getMarker("Foo")
@@ -60,7 +60,7 @@ public sealed interface IMarkLogger extends Logger
     
     /**
      * Produces a standard logger, which automatically deals marker.
-     * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
+     * @throws NullPointerException When {@code mark} is {@code null}
      * @implSpec <pre>{@code
      *  private static final IMarkLogger LOGGER = IMarkLogger.markedLogger("Foo");
      * }</pre>
@@ -71,7 +71,7 @@ public sealed interface IMarkLogger extends Logger
      * Produces a special logger, whose have two extra unique markers with {@code _ERR} and {@code _WARN} suffixes to override
      * {@code defaultMarker} in corresponded log level functions.
      *
-     * @throws NullPointerException When {@code logger} or {@code marker} is {@code null}
+     * @throws NullPointerException When {@code marker} is {@code null}
      * @implSpec <pre>{@code
      *  private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes(
      *      MarkerFactory.getMarker("Bar")
@@ -91,7 +91,7 @@ public sealed interface IMarkLogger extends Logger
      * Produces a special logger, whose have two extra unique markers with {@code _ERR} and {@code _WARN} suffixes to override
      * {@code defaultMarker} in corresponded log level functions.
      *
-     * @throws NullPointerException When {@code logger} or {@code mark} is {@code null}
+     * @throws NullPointerException When {@code mark} is {@code null}
      * @implSpec <pre>{@code
      *  private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("Bar");
      * }</pre><hr>
@@ -752,7 +752,7 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
             map.put("defaultMarkerName", ml -> ml.getNameSafely(ml.getMarker()));
             map.put("warnMarkerName", ml -> ml.getNameSafely(ml.getWarnMarker()));
             map.put("errorMarkerName", ml -> ml.getNameSafely(ml.getErrorMarker()));
-            map.put("markerStacks", ml -> ml.mutableMarker.get() != null ? ml.mutableMarker.get().toString() : "N/A");
+            map.put("markerStacks", ml -> Objects.toString(ml.mutableMarker.get(), "N/A"));
             map.put("traceAccess", ml -> ml.condition.test(TRACE));
             map.put("debugAccess", ml -> ml.condition.test(DEBUG));
             map.put("infoAccess", ml -> ml.condition.test(INFO));

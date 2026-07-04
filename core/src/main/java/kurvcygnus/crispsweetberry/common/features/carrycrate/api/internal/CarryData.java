@@ -48,7 +48,7 @@ public final class CarryData
         DataComponentType.<CarryData>builder().persistent(CarryDataCodec.INST).networkSynchronized(CarryDataStreamCodec.INST)::build;
     
     public final @NotNull CarryType carryType;
-    private final @NotNull OfUniqueDataBase uniqueData;
+    private final @NotNull CarryData.OfUniqueDataBase uniqueData;
     public final boolean causesOverweight;
     public final @Range(from = 0, to = Long.MAX_VALUE) long startTime;
     public final @Range(from = CarriableExtensions.ICarriableLifecycle.NO_PENALTY, to = Integer.MAX_VALUE) int penaltyRate;
@@ -348,7 +348,7 @@ public final class CarryData
         
         @Override public @NotNull String toString()
         {
-            return MessageFormatter.format(
+            return MessageFormatter.arrayFormat(
                 """
                 CarryBlockEntityData
                 {
@@ -364,7 +364,6 @@ public final class CarryData
     //endregion
     
     //region Network Codec I/O Serialization
-    @ApiStatus.Obsolete//! Not recommend to analyze this.
     private enum CarryDataCodec implements Codec<CarryData>
     {
         INST;
@@ -379,17 +378,17 @@ public final class CarryData
         private static final int PENALTY_RATE_FALLBACK_VALUE = 0;
         private static final boolean CAUSE_FLAG_FALLBACK_VALUE = true;
         
-        //* |=================================================================================================|
-        //* | Notes that, generic `TargetType` stands for the file type that the data will be transformed to, |
-        //* | or unwrapped from, it could be NBT from Minecraft, TOML, YAML, JSON, etc.                       |
-        //* |=================================================================================================|
+        //* |==================================================================================================|
+        //* | Notes that, generic `TTargetType` stands for the file type that the data will be transformed to, |
+        //* | or unwrapped from, it could be NBT from Minecraft, TOML, YAML, JSON, etc.                        |
+        //* |==================================================================================================|
         
-        @Override public <TargetType> DataResult<Pair<CarryData, TargetType>> decode(@NotNull DynamicOps<TargetType> ops, @NotNull TargetType input)
+        @Override public <TTargetType> DataResult<Pair<CarryData, TTargetType>> decode(@NotNull DynamicOps<TTargetType> ops, @NotNull TTargetType input)
         {
             return ops.getMap(input).flatMap(
                 map ->
                 {
-                    final @Nullable TargetType typeElement = map.get(CARRY_TYPE);
+                    final @Nullable TTargetType typeElement = map.get(CARRY_TYPE);
                     if(typeElement == null)
                         return DataResult.error(() -> "Missing \"%s\" field".formatted(CARRY_TYPE));
                     
@@ -398,7 +397,7 @@ public final class CarryData
                         {
                             final var type = typePair.getFirst();
                             
-                            final TargetType dataElement = map.get(DATA);
+                            final TTargetType dataElement = map.get(DATA);
                             
                             if(dataElement == null)
                                 return DataResult.error(() -> "Missing \"%s\" field".formatted(DATA));
@@ -414,9 +413,9 @@ public final class CarryData
                                 data ->
                                 {
                                     //? Yes, [[DataResult]] doesn't even have a fucking method like `getOrDefault`, this is an annoying monad implementation.
-                                    final long time = timeResult.isSuccess() ? timeResult.getOrThrow() : TIME_FALLBACK_VALUE;
-                                    final boolean causes = causesResult.isSuccess() ? causesResult.getOrThrow() : CAUSE_FLAG_FALLBACK_VALUE;
-                                    final int penaltyRate = penaltyRateResult.isSuccess() ? penaltyRateResult.getOrThrow() : PENALTY_RATE_FALLBACK_VALUE;
+                                    final long time = unwrapResult(timeResult, TIME_FALLBACK_VALUE);
+                                    final boolean causes = unwrapResult(causesResult, CAUSE_FLAG_FALLBACK_VALUE);
+                                    final int penaltyRate = unwrapResult(penaltyRateResult, PENALTY_RATE_FALLBACK_VALUE);
                                     
                                     return DataResult.success(Pair.of(new CarryData(type, data, causes, time, penaltyRate), ops.empty()));
                                 }
@@ -441,6 +440,8 @@ public final class CarryData
                 DataResult.success(fallback);
         }
         
+        private static <T> @NotNull T unwrapResult(@NotNull DataResult<T> result, @NotNull T fallback) { return result.isSuccess() ? result.getOrThrow() : fallback; }
+        
         @SuppressWarnings("unchecked")//! Safe Casting.
         @Override public <TargetType> @NotNull DataResult<TargetType> encode(@NotNull CarryData input, @NotNull DynamicOps<TargetType> ops, @NotNull TargetType prefix)
         {
@@ -457,7 +458,6 @@ public final class CarryData
     }
     
     @SuppressWarnings("unchecked")//! All safe castings.
-    @ApiStatus.Obsolete//! Not recommend to analyze this.
     private enum CarryDataStreamCodec implements StreamCodec<ByteBuf, CarryData>
     {
         INST;

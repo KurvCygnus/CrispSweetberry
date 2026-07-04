@@ -13,15 +13,16 @@ import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import net.minecraft.core.Holder;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
-import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
 
 public enum CrispItems implements IRegistrant<CrispItems>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { CRISP_ITEM_REGISTER.register(bus); }
+    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(CRISP_ITEM_REGISTER); }
     
     @Override public boolean isFeature() { return false; }
     

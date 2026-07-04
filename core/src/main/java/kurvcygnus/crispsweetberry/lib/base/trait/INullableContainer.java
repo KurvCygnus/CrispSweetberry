@@ -12,7 +12,7 @@ import it.unimi.dsi.fastutil.objects.Object2ByteFunction;
 import it.unimi.dsi.fastutil.objects.Object2CharFunction;
 import it.unimi.dsi.fastutil.objects.Object2FloatFunction;
 import it.unimi.dsi.fastutil.objects.Object2ShortFunction;
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +120,7 @@ public interface INullableContainer<T> extends Supplier<T>
         
         final T value = orThrow();
         if(!condition.test(value))
-            throw new IllegalArgumentException(DefinitionUtils.quickFormat("Condition not met! Value: {}", value));
+            throw new IllegalArgumentException(TextUtils.format("Condition not met! Value: {}", value));
         return value;
     }
     

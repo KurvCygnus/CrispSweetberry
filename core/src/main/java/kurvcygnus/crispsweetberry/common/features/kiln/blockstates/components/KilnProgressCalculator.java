@@ -11,8 +11,8 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.NonNullList;
 import org.intellij.lang.annotations.MagicConstant;
@@ -36,7 +36,7 @@ import static kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnCa
 public final class KilnProgressCalculator implements ICalculatorBridge
 {
     //region Constants, Fields & Constructor
-    private static final double NORMAL_PROGRESS_RATE = 0.005D;
+    private static final double NORMAL_PROGRESS_RATE = .005D;
     private static final double STANDARD_PROCESS_FACTOR = 1D;
     private static final int BALANCE_STATE_STANDARD_TICKS = 40;
     
@@ -66,7 +66,11 @@ public final class KilnProgressCalculator implements ICalculatorBridge
     private boolean hasWarnedAbnormalFactor = false;
     
     private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
-        IMarkLogger.allowWhen(Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_CAL_DEBUG)
+        IMarkLogger.allowWhen(
+            Level.DEBUG,
+            IMarkLogger.ConditionSituation.EQUAL,
+            CrispConfig.KILN_BE_CAL_DEBUG
+        )
     );
     
     public KilnProgressCalculator(@NotNull KilnBlockEntity blockEntity) { Objects.requireNonNull(blockEntity, "Param \"blockEntity\" must not be null!"); }
@@ -146,13 +150,16 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 this.balanceTick = 0;
                 this.balanceRate = 0D;
                 
-                //* Defensive measures are taken at [[KilnProgressModel#synchronize()]].
+                //* Defensive measures are taken at [[KilnProgressModel#synchronize]].
                 final double decreasedRealProgress = currentRealProgress - NORMAL_PROGRESS_RATE;
                 final double decreasedVisualProgress = currentVisualProgress - NORMAL_PROGRESS_RATE;
                 
                 handle.changeMarker("CAL_END");
-                LOGGER.debug("Current logicalResult \"{}\" doesn't need any further calculation. Progress value: R: {}, V: {}",
-                    nonWorkingLogicalResult.name(), decreasedRealProgress, decreasedVisualProgress
+                LOGGER.debug(
+                    "Current logicalResult \"{}\" doesn't need any further calculation. Progress value: R: {}, V: {}",
+                    nonWorkingLogicalResult.name(),
+                    decreasedRealProgress,
+                    decreasedVisualProgress
                 );
                 
                 return new CalculationResult(
@@ -172,7 +179,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 this.lastProcessFactor,
                 processState.name(),
                 this.balanceTick > 0 ?
-                    DefinitionUtils.quickFormat(
+                    TextUtils.format(
                         ", {} balance tick{} remain{}",
                         remainingTicks,
                         remainingTicks == 1 ?
@@ -203,7 +210,8 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                 handle.changeMarker("CAL_ERROR");
                 if(!hasWarnedAbnormalFactor || CrispConfig.KILN_BE_CAL_DEBUG.get())
                 {
-                    LOGGER.warn("""
+                    LOGGER.warn(
+                        """
                         Calculation error!
                         Returning the value of args as result. Reason: Variable "currentProgressFactor" happens to be a non-positive double number,
                         which will cause calculation result abnormal.
@@ -293,7 +301,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             final double newRealProgress = currentRealProgress + realChangeRate;
             final double newVisualProgress = currentVisualProgress + visualChangeRate;
             
-            if(Math.abs(newRealProgress - newVisualProgress) > 0.02D)
+            if(Math.abs(newRealProgress - newVisualProgress) > .02D)
             {
                 handle.changeMarker("CAL_NORMAL_ERROR");
                 LOGGER.error(
@@ -304,7 +312,8 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             }
             
             handle.changeMarker("CAL_NORMAL");
-            LOGGER.debug("Rate: {}, progressPairValue: R: {}, V: {}",
+            LOGGER.debug(
+                "Rate: {}, progressPairValue: R: {}, V: {}",
                 realChangeRate,
                 newRealProgress,
                 newVisualProgress
@@ -366,7 +375,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
         return new AtomicCalculationResult(
             (int) realProgress,
             new CalculationResult(
-                realProgress,//! No need to clear progress. It'll be used and reset in KilnProgressModel.
+                realProgress,//! No need to clear progress. It'll be used and reset in [[KilnProgressModel]].
                 visualProgress,
                 LogicalResult.CONTINUE,
                 VisualTrend.NORMAL
@@ -388,7 +397,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
             {
                 if(!hasWarnedRecipeLengthMismatch || CrispConfig.KILN_BE_CAL_DEBUG.get())
                 {
-                    LOGGER.warn("Kiln recipes' length do NOT fold, go check codes!");
+                    LOGGER.warn("Kiln recipes' length do NOT match, go check codes!");
                     hasWarnedRecipeLengthMismatch = true;
                 }
                 return;

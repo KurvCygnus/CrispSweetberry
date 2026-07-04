@@ -8,18 +8,19 @@
 
 package kurvcygnus.crispsweetberry;
 
-import kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent;
+import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
-import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
+import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.lib.core.registry.CrispRegistrationManager;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import kurvcygnus.crispsweetberry.utils.core.TabEntry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -48,19 +49,9 @@ public final class CrispSweetberry
     public static final ISealableBox<IEventBus> CRISP_BUS = ISealableBox.of(
         Objects.requireNonNull(
             ModLoadingContext.get().getActiveContainer().getEventBus(),
-            DefinitionUtils.quickFormat("Fatal: ModBus seems to be null! \n{}", MetainfoConstants.FEEDBACK_MESSAGE)
+            TextUtils.format("Fatal: ModBus seems to be null! \n{}", MetainfoConstants.FEEDBACK_MESSAGE)
         )
     );
-    
-    private static final Map<ResourceKey<CreativeModeTab>, SequencedSet<TabEntry>> TAB_ENTRIES = new HashMap<>();
-    
-    /**
-     * @implNote This cannot be optimized with <u>{@link ISealableBox}</u>, because <b><u>{@link BuildCreativeModeTabContentsEvent}</u> is
-     * multi-rounded and asynchronous, also, as player exited the world, entering the new one, creative tabs will be reloaded</b>, so
-     * we can only use <u>{@link IVault}</u>.
-     */
-    public static final IVault<Map<ResourceKey<CreativeModeTab>, SequencedSet<TabEntry>>, BuildCreativeModeTabContentsEvent> TAB_LOOKUP =
-        IVault.ofAccessLimited(TAB_ENTRIES, CrispCreativeTabsRegistryEvent.class);
     
     @SuppressWarnings("unchecked")
     public CrispSweetberry(@NotNull IEventBus eventBus, @NotNull ModContainer modContainer)
@@ -83,11 +74,50 @@ public final class CrispSweetberry
                 if(supplier == null)
                     return;
                 
-                TAB_ENTRIES.computeIfAbsent(annotation.value().toCreativeTab(), __ -> new LinkedHashSet<>()).
+                CrispCreativeTabsRegistryEvent.TAB_ENTRIES.computeIfAbsent(annotation.value().toCreativeTab(), __ -> new LinkedHashSet<>()).
                     add(new TabEntry(supplier, annotation.value().toCreativeTab()));
             }
         );
     }
     
-    @SubscribeEvent(priority = EventPriority.LOWEST) static void sealModBus(@NotNull FMLLoadCompleteEvent event) { CRISP_BUS.seal(); }
+    @SubscribeEvent(priority = EventPriority.LOWEST) static void destroyModBus(@NotNull FMLLoadCompleteEvent event) { CRISP_BUS.seal(); }
+}
+
+/**
+ * The executor of annotation <b><u>{@link RegisterToTab @RegisterToTab}</u></b>.<br>
+ * <b>It automatically registers every entry that presents {@link RegisterToTab @RegisterToTab} to designated tabs.</b>
+ * @implNote This class should be {@code package-private}, since making <u>{@link CrispCreativeTabsRegistryEvent#TAB_ENTRIES}</u> {@code public} will cause access issues.
+ * @author Kurv Cygnus
+ * @since 1.0 Release
+ */
+@EventBusSubscriber(modid = CrispSweetberry.NAMESPACE, value = Dist.CLIENT)
+final class CrispCreativeTabsRegistryEvent
+{
+    private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("TAB_REGISTRY");
+    
+    static final Map<ResourceKey<CreativeModeTab>, SequencedSet<TabEntry>> TAB_ENTRIES = new HashMap<>();
+    
+    @SubscribeEvent @DoNotCall static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
+    {
+        final @Nullable var entries = TAB_ENTRIES.get(event.getTabKey());
+        
+        if(entries == null)
+            return;
+        
+        for(final var entry: entries)
+        {
+            final var item = entry.itemSupplier().get();
+            final var tabKey = entry.tab();
+            
+            //* Yes, using `==` to compare is legal.
+            //* Firstly, [[ResourceKey]] didn't implement [[Object#equals]](which is terrible, this also happens on [[EntityType]]).
+            //* Secondly, don't forget that most value holders in Minecraft are CONSTANTS,
+            //* whose does have a fixed hashcode, thus can be compared with `==`, because `==` is a CPU command, it is slightly faster.
+            if(tabKey == event.getTabKey())
+            {
+                event.accept(item);
+                LOGGER.debug("Registered item \"{}\" to tab \"{}\".", item.getDefaultInstance().getDisplayName().getString(), tabKey);
+            }
+        }
+    }
 }

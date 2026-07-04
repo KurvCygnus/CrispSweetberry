@@ -9,24 +9,27 @@
 package kurvcygnus.crispsweetberry.lib.core.registry;
 
 import com.google.errorprone.annotations.DoNotCall;
+import kurvcygnus.crispsweetberry.lib.base.extensions.StackDebugger;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 /**
  * This is the class that processes all <u>{@link IRegistrant}</u> implementers.
@@ -45,6 +48,7 @@ import java.util.function.BooleanSupplier;
     
     private final IMarkLogger logger = IMarkLogger.marklessLogger();
     private final Set<ModContainer> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final List<String> reports = new ArrayList<>();
     
     private CrispRegistrationManager() { if(!ACCESS.orThrow()) throw new AssertionError("No, you can't create a new instance of this!"); }
     
@@ -52,34 +56,91 @@ import java.util.function.BooleanSupplier;
         @NotNull ModContainer modContainer,
         @NotNull IEventBus eventBus,
         @Nullable Class<A> service,
-        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence
+        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence,
+        boolean doReport
     )
     {
         Objects.requireNonNull(modContainer, "Param \"modContainer\" must not be null!");
         Objects.requireNonNull(eventBus, "Param \"eventBus\" must not be null!");
         
+        final var modID = modContainer.getModId();
+        
+        //* 3 frames:
+        //* 0. [[StackDebugger#getCallerFrame(int)]]
+        //* 1. this method
+        //* 2. [[CrispRegistrationManager#register]], or [[CrispRegistrationManager#registerWithAnnotationDelegate]]
+        //* 3. Mod Entry Class's constructor method("<init>")
+        final var callerInfo = StackDebugger.getCallerFrame(3);
+        
+        Objects.requireNonNull(
+            callerInfo.getDeclaringClass().getAnnotation(Mod.class),
+            TextUtils.format(
+                "Error: Mod \"{}\"'s registration is not activated by its entry class! Called by: {}",
+                modID,
+                StackDebugger.toFullCallerInfo(callerInfo)
+            )
+        );
+        
+        if(!callerInfo.getMethodName().equals("<init>"))
+            throw new IllegalArgumentException(
+                TextUtils.format(
+                    "Error: Mod \"{}\"'s registration is not activated by its entry class's constructor! Called by: {}",
+                    modID,
+                    StackDebugger.toFullCallerInfo(callerInfo)
+                )
+            );
+        
+        
         if(INSTANCE == null)
             throw new IllegalStateException("Registration phase is already over!");
         
-        try(final var ignored = INSTANCE.logger.pushMarker(modContainer.getModId().toUpperCase()))
-            { INSTANCE.register(modContainer, eventBus, service, foundSequence); }
+        try(final var ignored = INSTANCE.logger.pushMarker(modID.toUpperCase()))
+            { INSTANCE.register(modContainer, eventBus, service, foundSequence, doReport); }
     }
     
     /**
      * This method starts the automatic registration of a mod.<br>
      * You should call this method in your mod's entry class's {@code <init>} method(<i>a.k.a Constructor</i>).
      * <hr>
-     * <b>This class has a strict lifecycle, any improper, or invalid call will get exception.</b>
-     *
+     * <span style="color: f84b4b">This class has a strict lifecycle, any improper, or invalid call will get exception.</span>
      * @see #registerWithAnnotationDelegate(ModContainer, IEventBus, Class, BiConsumer) Advanced Usage
      */
-    public static void register(@NotNull ModContainer modContainer, @NotNull IEventBus eventBus) { delegate(modContainer, eventBus, null, null); }
+    public static void register(@NotNull ModContainer modContainer, @NotNull IEventBus eventBus, boolean doReport)
+        { delegate(modContainer, eventBus, null, null, doReport); }
+    
+    /**
+     * This method starts the automatic registration of a mod.<br>
+     * You should call this method in your mod's entry class's {@code <init>} method(<i>a.k.a Constructor</i>).
+     * <hr>
+     * <span style="color: f84b4b">This class has a strict lifecycle, any improper, or invalid call will get exception.</span>
+     * @see #registerWithAnnotationDelegate(ModContainer, IEventBus, Class, BiConsumer) Advanced Usage
+     */
+    public static void register(@NotNull ModContainer modContainer, @NotNull IEventBus eventBus)
+        { delegate(modContainer, eventBus, null, null, false); }
     
     /**
      * Start the registration of all <u>{@link IRegistrant}</u>'s implementers, and after the registration is completed,
      * the <u>{@link Annotation}</u> your passed will be processed, once both annotated target and <u>{@link Annotation}</u> itself are presented,
      * the callback will be triggered.
-     *
+     * @apiNote Param {@code service}'s users are better in a <u>{@link Enum}</u> class, <span style="color: f84b4b">otherwise stability and safety are not granted.</span>
+     */
+    public static <A extends Annotation> void registerWithAnnotationDelegate(
+        @NotNull ModContainer modContainer,
+        @NotNull IEventBus eventBus,
+        @NotNull Class<A> service,
+        @NotNull BiConsumer<@NotNull A, @NotNull Object> foundSequence,
+        boolean doReport
+    )
+    {
+        Objects.requireNonNull(service, "Param \"service\" must not be null!");
+        Objects.requireNonNull(foundSequence, "Param \"foundSequence\" must not be null!");
+        delegate(modContainer, eventBus, service, foundSequence, doReport);
+    }
+    
+    /**
+     * Start the registration of all <u>{@link IRegistrant}</u>'s implementers, and after the registration is completed,
+     * the <u>{@link Annotation}</u> your passed will be processed, once both annotated target and <u>{@link Annotation}</u> itself are presented,
+     * the callback will be triggered.
      * @apiNote Param {@code service}'s users are better in a <u>{@link Enum}</u> class, <span style="color: f84b4b">otherwise stability and safety are not granted.</span>
      */
     public static <A extends Annotation> void registerWithAnnotationDelegate(
@@ -91,7 +152,7 @@ import java.util.function.BooleanSupplier;
     {
         Objects.requireNonNull(service, "Param \"service\" must not be null!");
         Objects.requireNonNull(foundSequence, "Param \"foundSequence\" must not be null!");
-        delegate(modContainer, eventBus, service, foundSequence);
+        delegate(modContainer, eventBus, service, foundSequence, false);
     }
     
     @SubscribeEvent @DoNotCall static void destroyInstance(@NotNull FMLLoadCompleteEvent event)
@@ -106,7 +167,8 @@ import java.util.function.BooleanSupplier;
         @NotNull ModContainer modContainer,
         @NotNull IEventBus eventBus,
         @Nullable Class<A> service,
-        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence
+        @Nullable BiConsumer<@NotNull A, @NotNull Object> foundSequence,
+        boolean doReport
     ) throws IllegalArgumentException
     {
         if(!visited.add(modContainer))
@@ -118,10 +180,11 @@ import java.util.function.BooleanSupplier;
         
         final var configs = new ArrayList<IRegistrant.OfConfigSupport<?, ?>>();
         final var registries = new ArrayList<IRegistrant<?>>();
-        final var delegates = new ArrayList<Pair<A, @Nullable Object>>();
+        final var delegates = new ArrayList<Pair<A, Object>>();
         
         final var classIterator = scanData.getClasses().iterator();
         final var annotationIterator = scanData.getAnnotations().iterator();
+        final var delegateReports = new HashMap<Object, String>();
         
         final BooleanSupplier shouldDoDelegate = () -> service != null && foundSequence != null && annotationIterator.hasNext();
         
@@ -135,6 +198,7 @@ import java.util.function.BooleanSupplier;
             tryAnalyseTarget(IRegistrant.OfSimpleConfigSupport.class, classData, configs, "ConfigHolder");
             tryAnalyseTarget(IRegistrant.class, classData, registries, "Registry");
             
+            //? Nah, I won't extract these logic as an independent method, that just makes logic less centralized, and no too much help on understanding code.
             //noinspection DataFlowIssue
             if(annotationData != null && annotationData.annotationType().getClassName().equals(service.getName()))//! See `shouldDoDelegate`'s definition.
             {
@@ -146,19 +210,32 @@ import java.util.function.BooleanSupplier;
                     
                     final var host = Class.forName(hostFQCN);
                     final var owner = host.getDeclaredField(ownerName);
-                    owner.setAccessible(true);
+                    
+                    //! Take Module, or other edgy cases into consideration.
+                    if(!owner.trySetAccessible())
+                        throw new IllegalArgumentException(
+                            TextUtils.format(
+                                "Cannot access {}#{} to collect registration info. This usually shouldn't happen, please check whether access is limited.",
+                                hostFQCN,
+                                ownerName
+                            )
+                        );
                     
                     final @Nullable A instance = owner.getAnnotation(service);
                     final @Nullable Object value = owner.get(null);
                     
                     if(instance != null && value != null)
                     {
-                        logger.debug(
-                            "Found a delegate pair for annotation \"{}\", in \"{}\".",
-                            host.getSimpleName(),
-                            service.getSimpleName()
-                        );
                         delegates.add(new Pair<>(instance, value));
+                        delegateReports.put(
+                            value,
+                            TextUtils.format(
+                                "{}#{} -> {}",
+                                hostFQCN,
+                                ownerName,
+                                value.toString()
+                            )
+                        );
                     }
                 }
                 catch(Exception e) { logger.error("Failed to access ConfigHolder class \"{}\", details: ", hostFQCN, e); }
@@ -169,46 +246,81 @@ import java.util.function.BooleanSupplier;
         
         logger.info("All registrants founded and sorted. Starting instantiating.");
         
-        if(!configs.isEmpty())
-        {
-            logger.info("Invoking configs...");
-            for(final var configHolder: configs)
+        invokeInstantiation(
+            configs,
+            configHolder ->
             {
                 final var type = configHolder.getType();
                 modContainer.registerConfig(type, configHolder.getSpec());
                 logger.info("Registered {} config {}.", type.extension(), configHolder.getClass().getSimpleName());
-            }
-        }
-        
-        if(!registries.isEmpty())
-        {
-            logger.info("Invoking registries...");
-            for(final var registry: registries)
-            {
-                registry.register(eventBus);
-                logger.info(
-                    "Registering {}{}...",
-                    registry.isFeature() ? "Feature: " : "",
-                    registry.getJob()
+                
+                return TextUtils.format(
+                    "[{}] {}",
+                    type.name(),
+                    configHolder.getClass().getName()
                 );
-            }
-        }
+            },
+            "Configs",
+            doReport
+        );
         
-        if(!delegates.isEmpty())
-        {
-            logger.info("Invoking delegations...");
-            for(final var delegate: delegates)
+        invokeInstantiation(
+            registries,
+            registry ->
             {
-                assert foundSequence != null;
-                foundSequence.accept(delegate.left(), delegate.right());
-            }
-        }
+                final boolean activated = registry.isActivated().test(modContainer);
+                
+                if(activated)
+                {
+                    registry.register(target -> target.register(eventBus));
+                    logger.info(
+                        "Registering {}{}...",
+                        registry.isFeature() ? "Feature: " : "",
+                        registry.getJob()
+                    );
+                }
+                
+                return activated ?
+                    TextUtils.format(
+                        "[{}] {}",
+                        registry.getJob(),
+                        registry.getClass().getName()
+                    ) :
+                    null;
+            },
+            "Registries",
+            doReport
+        );
         
-        logger.info("Mod loaded!");
+        invokeInstantiation(
+            delegates,
+            delegate ->
+            {
+                assert foundSequence != null;//! See assertion above.
+                final var value = delegate.right();
+                foundSequence.accept(delegate.left(), value);
+                return delegateReports.get(value);
+            },
+            "Delegations",
+            doReport
+        );
+        
+        logger.info(
+            "Mod loaded!{}",
+            doReport ?//* Print this independently will print the metainfo header again, which is not good for reporting.
+                TextUtils.format(
+                    "\nHere's the full, ordered scan and instantiation target report list of mod \"{}\":{}",
+                    modContainer.getModId(),
+                    listToPrettyString(reports)
+                ) :
+                ""
+        );
+        
+        reports.clear();
     }
     
     @SuppressWarnings("unchecked")//! Internal Usage, relatively safe.
-    private <E> void tryAnalyseTarget(
+    private static <E> void tryAnalyseTarget(
         @NotNull Class<?> clazz,//! Can't use `? extends E` to restrict, because Javac is stupid, and doesn't think that `Foo` and `Foo<?>` are the same thing.
         @Nullable ModFileScanData.ClassData classData,
         @NotNull List<E> list,
@@ -217,6 +329,9 @@ import java.util.function.BooleanSupplier;
     {
         if(classData == null || !classData.interfaces().contains(Type.getType(clazz)))
             return;
+        
+        assert INSTANCE != null;
+        final var logger = INSTANCE.logger;
         
         final var targetFQCN = classData.clazz().getClassName();
         
@@ -229,16 +344,63 @@ import java.util.function.BooleanSupplier;
             
             if(!target.isEnum() || target.getEnumConstants().length != 1)
                 throw new IllegalStateException(
-                    MessageFormatter.format(
+                    TextUtils.format(
                         "Class \"{}\" has violated the contract of {}: It is not a singleton enum.",
                         targetFQCN,
                         type
-                    ).getMessage()
+                    )
                 );
             
             logger.debug("Captured the singleton of {} \"{}\".", type, target.getSimpleName());
             list.add((E) target.getEnumConstants()[0]);
         }
         catch(Exception e) { logger.error("Failed to instantiate {} class \"{}\".", type, targetFQCN, e); }
+    }
+    
+    private <E> void invokeInstantiation(
+        @NotNull Collection<E> targets,
+        //! This [[Function]] holds side effects. Notes that.
+        @NotNull Function<E, @Nullable String> instAction,
+        @NotNull String type,
+        boolean doReport
+    )
+    {
+        if(targets.isEmpty())
+            return;
+        
+        logger.info("Invoking {}...", type);
+        
+        if(doReport)
+            reports.add(
+                TextUtils.format(
+                    """
+                    |============================================================================================================================================|
+                    |                                                            {}{}|
+                    |============================================================================================================================================|
+                    """,
+                    type.toUpperCase(),
+                    //? Yes. Hard-Coded, because I don't think it is worth to be extracted as a constant.
+                    " ".repeat(80 - type.length())
+                )
+            );
+        
+        for(final var target: targets)
+        {
+            //! Side effect triggered.
+            final @Nullable var reportMessage = instAction.apply(target);
+            if(doReport && reportMessage != null)//! If report is not required, `reportMessage` will be discarded.
+                reports.add(reportMessage);
+        }
+        
+        if(doReport)
+            reports.add("\n*============================================================================================================================================*\n");
+    }
+    
+    private static <E> @NotNull String listToPrettyString(@NotNull List<E> reports)
+    {
+        final var stringBuilder = new StringBuilder();
+        for(final var line: reports)
+            stringBuilder.append('\n').append(line);
+        return stringBuilder.toString();
     }
 }

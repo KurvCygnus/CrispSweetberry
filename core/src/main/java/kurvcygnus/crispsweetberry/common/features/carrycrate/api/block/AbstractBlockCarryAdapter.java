@@ -29,7 +29,8 @@ import java.util.Objects;
  * @see SimpleBlockCarryAdapter Utility Adapter
  * @since 1.0 Release
  */
-public abstract class AbstractBlockCarryAdapter<B extends Block> extends AbstractCarryAdapter<CarryData.OfBlockUniqueData>
+public abstract class AbstractBlockCarryAdapter<B extends Block>
+extends AbstractCarryAdapter<CarryData.OfBlockUniqueData>
 implements CarriableBlockExtensions.OfAll
 {
      /**
@@ -42,7 +43,7 @@ implements CarriableBlockExtensions.OfAll
     private final @Nullable B block;
     
     @SuppressWarnings("unchecked")//! Due to the limitation of javac's generic deduction, we have to choose runtime check.
-    public AbstractBlockCarryAdapter(@Nullable Block block) 
+    public AbstractBlockCarryAdapter(@Nullable Block block)
     {
         if(block == null)
         {
@@ -77,7 +78,7 @@ implements CarriableBlockExtensions.OfAll
      * In a nutshell, <b>using {@code #getBlock()} during <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>
      * will throw <u>{@link NullPointerException}</u>, and you shouldn't use this at most cases.</b>
      */
-    protected final @NotNull B getBlock() 
+    protected final @NotNull B getBlock()
     {
         Objects.requireNonNull(
             block,
@@ -93,5 +94,5 @@ implements CarriableBlockExtensions.OfAll
         return block;
     }
     
-    @Override public @NotNull String toString() { return block != null ? block.toString() : "N/A"; }
+    @Override public @NotNull String toString() { return Objects.toString(block, "N/A"); }
 }

@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.utils;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -18,10 +19,8 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -41,23 +40,12 @@ public final class DefinitionUtils
     private static final Logger LOGGER = LogUtils.getLogger();
     
     /**
-     * Generates a formated <u>{@link String}</u>, with {@code {}} as placeholder.
-     * @apiNote It is mainly used for <u>{@link Throwable}</u>'s message initialization, and it is obviously faster than <u>{@link String#formatted(Object...)}</u>.
-     * @implNote The overload of this method doesn't exist, since <u>{@link MessageFormatter#arrayFormat(String, Object[])}</u>'s overload also creates object array.
-     */
-    public static @NotNull String quickFormat(@NotNull String format, @Nullable Object @Nullable ... args)
-    {
-        requireNonNull(format, "Param \"format\" must not be null!");
-        return MessageFormatter.arrayFormat(format, args).getMessage();
-    }
-    
-    /**
      * Generates, and returns a <u>{@link String}</u> that formatted as {@code "<{pos.x}, {pos.y}, {pos.z}>"}.
      */
     public static @NotNull String formatPos(@NotNull BlockPos pos)
     {
         requireNonNull(pos, "Param \"pos\" must not be null!");
-        return quickFormat("<{}, {}, {}>", pos.getX(), pos.getY(), pos.getZ());
+        return TextUtils.format("<{}, {}, {}>", pos.getX(), pos.getY(), pos.getZ());
     }
     
     /**
@@ -72,7 +60,7 @@ public final class DefinitionUtils
     public static @NotNull String namespacedDotId(@NotNull String suffix)
     {
         requireNonNull(suffix, "Param \"suffix\" must not be null!");
-        return quickFormat("{}.{}", CrispSweetberry.NAMESPACE, suffix);
+        return TextUtils.format("{}.{}", CrispSweetberry.NAMESPACE, suffix);
     }
     
     public static @NotNull String namespacedDotId(@NotNull String... suffixes)
@@ -88,7 +76,7 @@ public final class DefinitionUtils
     public static @NotNull String namespacedUnderscoreId(@NotNull String suffix)
     {
         requireNonNull(suffix, "Param \"suffix\" must not be null!");
-        return quickFormat("{}_{}", CrispSweetberry.NAMESPACE, suffix);
+        return TextUtils.format("{}_{}", CrispSweetberry.NAMESPACE, suffix);
     }
     
     public static @NotNull String namespacedUnderscoreId(@NotNull String... suffixes)
@@ -108,7 +96,7 @@ public final class DefinitionUtils
     public static @NotNull String createPersistentTag(@NotNull String tagName)
     {
         requireNonNull(tagName, "Param \"tagName\" must not be null!");
-        return quickFormat("{}.{}", namespacedDotId("persistent_tags"), tagName);
+        return TextUtils.format("{}.{}", namespacedDotId("persistent_tags"), tagName);
     }
     
     /**
@@ -144,7 +132,7 @@ public final class DefinitionUtils
         
         for(final E enumConstant: enumClass.getEnumConstants())
             if(!enumMap.containsKey(enumConstant))
-                throw new IllegalStateException(quickFormat("Enum constant \"{}\" does not own a corresponded value!", enumConstant));
+                throw new IllegalStateException(TextUtils.format("Enum constant \"{}\" does not own a corresponded value!", enumConstant));
         
         return Collections.unmodifiableMap(enumMap);
     }

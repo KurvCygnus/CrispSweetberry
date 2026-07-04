@@ -11,7 +11,6 @@ package kurvcygnus.crispsweetberry.annotation.processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
@@ -108,7 +107,7 @@ enum ProcessableType
     
     static @NotNull ProcessableType getType(int index)
     {
-        for(final ProcessableType type: ProcessableType.values())
+        for(final var type: ProcessableType.values())
             if(index == type.index)
                 return type;
         
@@ -117,9 +116,9 @@ enum ProcessableType
     
     static @NotNull @Unmodifiable List<TypeMirror> initializeTypes(@NotNull Elements elementUtil, @NotNull TypeMirror fallback)
     {
-        final List<TypeMirror> types = new ArrayList<>();
+        final var types = new ArrayList<TypeMirror>();
         
-        for(final ProcessableType type: ProcessableType.values())
+        for(final var type: ProcessableType.values())
             if(!type.equals(UNSUPPORTED))
                 types.add(type.getSafeTypeMirror(elementUtil, fallback));
         
@@ -128,7 +127,7 @@ enum ProcessableType
     
     @NotNull TypeMirror getSafeTypeMirror(@NotNull Elements elementUtil, @NotNull TypeMirror fallback)
     {
-        final TypeElement typeElement = elementUtil.getTypeElement(this.fqcn);
+        final var typeElement = elementUtil.getTypeElement(this.fqcn);
         return typeElement != null ? typeElement.asType() : fallback;
     }
 }

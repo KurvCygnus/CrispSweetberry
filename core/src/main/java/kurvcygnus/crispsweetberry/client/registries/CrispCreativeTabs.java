@@ -19,20 +19,19 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Items;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 /**
- * @see kurvcygnus.crispsweetberry.client.init.CrispCreativeTabsRegistryEvent#tabRegistryEvent(BuildCreativeModeTabContentsEvent) Content addition implementation
  * @since 1.0 Release
  */
 public enum CrispCreativeTabs implements IRegistrant<CrispCreativeTabs>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { CRISP_TAB_REGISTER.register(bus); }
+    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(CRISP_TAB_REGISTER); }
     
     @Override public boolean isFeature() { return false; }
     

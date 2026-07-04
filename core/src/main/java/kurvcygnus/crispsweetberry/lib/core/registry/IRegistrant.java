@@ -11,26 +11,31 @@ package kurvcygnus.crispsweetberry.lib.core.registry;
 import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.*;
-import org.slf4j.helpers.MessageFormatter;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
  * A facade interface, which makes the implementer capable of registering entries automatically.
  * @apiNote Make sure the <b>registry class is an enum, and has only one enumeration</b> named {@code INSTANCE}(<i>or {@code INST}, this is actually unlimited,
  * but we recommend to follow this, it makes your classes consistent</i>),
- * it makes automatic registration works correctly, and help others understand automatic registration quickly.
+ * it makes automatic registration works correctly, and help others understand automatic registration quickly.<br><br>
+ * Also, <span style="color: f84b4b">do NOT write any sub interfaces of {@code IRegistrant}, <u>{@link OfConfigSupport}</u> or <u>{@link OfSimpleConfigSupport}</u>,
+ * ASM can't handle complex inheritance trees, doing this may make your implementers unrecognizable.</span>
  * @implSpec
  * A simple example of usage:
  * <ul>
@@ -41,7 +46,7 @@ import java.util.regex.Pattern;
  *          {
  *              INST;
  *
- *              @Override public void register(@NotNull IEventBus bus) { BLOCK_DEFERRED_REGISTER.register(bus); }
+ *              @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(BLOCK_DEFERRED_REGISTER); }
  *
  *              @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.BASE, 1); }
  *
@@ -124,12 +129,12 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
      * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.registerByList(...)}.
      * @apiNote This method will filter out the duplicated elements, with a warn printed.
      */
-    @ApiStatus.NonExtendable default void registerByList(@NotNull List<@NotNull DeferredRegister<?>> registries, @NotNull IEventBus bus)
+    @ApiStatus.NonExtendable default void registerByList(@NotNull List<@NotNull DeferredRegister<?>> registries, @NotNull Consumer<DeferredRegister<?>> registerLogic)
     {
         Objects.requireNonNull(registries, "Param \"registries\" must not be null!");
-        Objects.requireNonNull(bus, "Param \"bus\" must not be null!");
+        Objects.requireNonNull(registerLogic, "Param \"registerLogic\" must not be null!");
         
-        registerLoop(bus, registries::get, registries.size());
+        registerLoop(registerLogic, registries::get, registries.size());
     }
     
     /**
@@ -137,15 +142,15 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
      * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.registerByVarargs(...)}.
      * @apiNote This method will filter out the duplicated elements, with a warn printed.
      */
-    @ApiStatus.NonExtendable default void registerByVarargs(@NotNull IEventBus bus, @NotNull DeferredRegister<?> @NotNull ... registries)
+    @ApiStatus.NonExtendable default void registerByVarargs(Consumer<DeferredRegister<?>> registerLogic, @NotNull DeferredRegister<?> @NotNull ... registries)
     {
-        Objects.requireNonNull(bus, "Param \"bus\" must not be null!");
+        Objects.requireNonNull(registerLogic, "Param \"registerLogic\" must not be null!");
         Objects.requireNonNull(registries, "Param \"registries\" must not be null!");
         
-        registerLoop(bus, i -> registries[i], registries.length);
+        registerLoop(registerLogic, i -> registries[i], registries.length);
     }
     
-    private void registerLoop(@NotNull IEventBus bus, @NotNull IntFunction<DeferredRegister<?>> getter, int size)
+    private void registerLoop(@NotNull Consumer<DeferredRegister<?>> registerLogic, @NotNull IntFunction<DeferredRegister<?>> getter, int size)
     {
         if(size == 0)
             throw new IllegalArgumentException("Param \"registries\" must have at least one element!");
@@ -157,11 +162,11 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
             final var deferredRegister = getter.apply(index);
             Objects.requireNonNull(
                 deferredRegister,
-                MessageFormatter.format(
+                TextUtils.format(
                     "The element in array's index {} is null! Content: {}",
                     index,
                     deferredRegister
-                ).getMessage()
+                )
             );
             
             if(!mem.add(deferredRegister))
@@ -170,7 +175,7 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
                 continue;
             }
             
-            deferredRegister.register(bus);
+            registerLogic.accept(deferredRegister);
         }
     }
     
@@ -214,19 +219,30 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
  */
 sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
 {
+    Predicate<ModContainer> ACTIVATED = ignored -> true;
+    Predicate<ModContainer> BANNED = ignored -> false;
+    
     /**
      * The method which will be called in auto registration phase.<br>
      * You should write your <u>{@link DeferredRegister}</u>'s register logic at here.
-     * @see IRegistrant#registerByList(List, IEventBus)
-     * @see IRegistrant#registerByVarargs(IEventBus, DeferredRegister[])
+     * @see IRegistrant#registerByList(List, Consumer)
+     * @see IRegistrant#registerByVarargs(Consumer, DeferredRegister[])
      */
-    void register(@NotNull IEventBus bus);
+    void register(@NotNull Consumer<DeferredRegister<?>> registerLogic);
     
     /**
      * Decides the print output of this registry entry, when this is {@code true},
      * the info will be {@code "Registering Feature: #getJob()..."}.
      */
     default boolean isFeature() { return true; }
+    
+    /**
+     * Decides whether this registry will be actually registered.<br>
+     * With <u>{@link Predicate}</u>, you can decide it dynamically(with config file reading, or environment analyzing) or statically.
+     * @see #ACTIVATED
+     * @see #BANNED
+     */
+    default @NotNull Predicate<ModContainer> isActivated() { return ACTIVATED; }
     
     /**
      * Gets the job of this entry.

@@ -33,12 +33,12 @@ public abstract class BaseNestedPrinter<T extends BaseNestedPrinter<T>> implemen
      * Thus, the implementer doesn't need to implement any extra methods.
      * @since 1.0 Release
      * @author Kurv Cygnus
-     * @see IAutoNestedPrintable
+     * @see IAutoNestedPrintable.OfReflection
      * @see #getBlacklistedFields()
-     * @see #gonnaBeCruel()
+     * @see #strictOnFail()
      */
-    public static abstract class OfAuto<T extends OfAuto<T>> extends BaseNestedPrinter<T> implements IAutoNestedPrintable<T>
+    public static abstract class OfAuto<T extends OfAuto<T>> extends BaseNestedPrinter<T> implements IAutoNestedPrintable.OfReflection<T>
     {
-        @Override public final @NotNull @Unmodifiable INestedFieldMap<T> getFields() { return IAutoNestedPrintable.super.getFields(); }
+        @Override public final @NotNull @Unmodifiable INestedFieldMap<T> getFields() { return IAutoNestedPrintable.OfReflection.super.getFields(); }
     }
 }

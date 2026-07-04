@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.kiln;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
-import kurvcygnus.crispsweetberry.utils.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import net.minecraft.world.inventory.ContainerData;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +69,7 @@ public final class KilnContainerData implements ContainerData
         
         switch(index)
         {
-            case VISUAL_PROGRESS_INDEX -> model.setVisualProgress((double) value / 10000);
+            case VISUAL_PROGRESS_INDEX -> model.setVisualProgress(toStandardProgress(value));
             case PROGRESS_TREND_INDEX -> model.setProgressTrend(KilnEnumCollections.VisualTrend.values()[value]);
             case IGNITION_STATE_INDEX -> model.setIgnitionState(value);
             default -> throw AssertUtils.impossibleBranch(index);
@@ -81,7 +81,7 @@ public final class KilnContainerData implements ContainerData
      */
     @Override public int getCount() { return 3; }
     
-    public static double toStandardProgress(int progress) { return (double) progress / 10000; }
+    public static double toStandardProgress(int progress) { return progress / 10000.; }
     
     public static boolean toStandardIgnitionState(int ignitionState)
         { return ignitionState == TRUE; }

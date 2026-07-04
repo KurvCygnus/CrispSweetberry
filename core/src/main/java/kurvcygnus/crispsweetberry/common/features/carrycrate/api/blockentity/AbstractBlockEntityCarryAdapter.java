@@ -12,6 +12,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.Abstra
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
+import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -37,8 +38,19 @@ import java.util.Objects;
  * @since 1.0 Release
  */
 public abstract class AbstractBlockEntityCarryAdapter<E extends BlockEntity>
-extends AbstractCarryAdapter<CarryData.OfBlockEntityUniqueData> implements CarriableBlockEntityExtensions.OfAll<E>
+extends AbstractCarryAdapter<CarryData.OfBlockEntityUniqueData>
+implements CarriableBlockEntityExtensions.OfAll<E>
 {
+    private static final String INVALID_CALL_FAIL_MESSAGE = MessageFormatter.format(
+        """
+        Assertion failed: Field "blockEntity" happens to be null, this shouldn't be happen, which usually means
+        method is called at improper time, with improper param.
+        
+        {}
+        """,
+        MetainfoConstants.FEEDBACK_MESSAGE
+    ).getMessage();
+    
     //region Core Logics
     /**
      * @apiNote During <u>{@link #carryingTick(CarriableExtensions.TickingContext) #carryingTick(TickingContext)}</u>, the implementation will create an adapter
@@ -127,7 +139,6 @@ extends AbstractCarryAdapter<CarryData.OfBlockEntityUniqueData> implements Carri
     //endregion
     
     //region Bridge methods
-    
     /**
      * {@inheritDoc}
      */

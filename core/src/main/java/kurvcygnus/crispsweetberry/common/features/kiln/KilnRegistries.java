@@ -36,7 +36,6 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -47,6 +46,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.CrispSweetberry.NAMESPACE;
@@ -61,7 +61,7 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull IEventBus bus) { registerByList(REGISTRIES, bus); }
+    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerByList(REGISTRIES, registerLogic); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 1); }
     
@@ -102,9 +102,9 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
                     final CustomData data = stack.get(DataComponents.CUSTOM_DATA);
                     
                     if(data != null && data.contains(LIT_PROPERTY))
-                        return data.copyTag().getBoolean(LIT_PROPERTY) ? 1.0F : 0.0F;
+                        return data.copyTag().getBoolean(LIT_PROPERTY) ? 1F : 0F;
                     
-                    return 1.0F;
+                    return 1F;
                 }
             )
         );
