@@ -21,10 +21,10 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.*;
 
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  *          {
  *              INST;
  *
- *              @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(BLOCK_DEFERRED_REGISTER); }
+ *              @Override public void register(@NotNull IRegisterAction registerLogic) { registerLogic.register(BLOCK_DEFERRED_REGISTER); }
  *
  *              @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.BASE, 1); }
  *
@@ -84,9 +84,14 @@ import java.util.regex.Pattern;
  * Don't forget to register your <u>{@link net.neoforged.fml.ModContainer ModContainer}</u> on <u>{@link CrispRegistrationManager}</u>:
  * <pre>{@code
  *  // At YourModEntryClass.<init>:
- *  CrispRegistrationManager.register(modContainer, eventBus);
+ *  CrispRegistrationManager.register(
+ *      modContainer,
+ *      eventBus,
+ *      // true
+ *  );//  ↑ Optional Param: doReport, if used and assgined as `true`, after registration completed, a report will be printed at log.
  * }</pre>
- * @implNote <h2>Some Q&A which will probably happen:</h2>
+ * @implNote <h2>Some Q&
+A which will probably happen:</h2>
  * <ul>
  *     <li>
  *         Q: Is automatic registration with reflection dangerous, or unstable?<br>
@@ -126,10 +131,10 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
     
     /**
      * A simple util for registering listed <u>{@link DeferredRegister}</u>.
-     * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.registerByList(...)}.
+     * @implNote Yes, this could be <b>{@code static}</b>, but non-static guarantees the better UX, instead of {@code IRegistrant.registerByList(...)}.
      * @apiNote This method will filter out the duplicated elements, with a warn printed.
      */
-    @ApiStatus.NonExtendable default void registerByList(@NotNull List<@NotNull DeferredRegister<?>> registries, @NotNull Consumer<DeferredRegister<?>> registerLogic)
+    @ApiStatus.NonExtendable default void registerByList(@NotNull List<@NotNull DeferredRegister<?>> registries, @NotNull IRegisterAction registerLogic)
     {
         Objects.requireNonNull(registries, "Param \"registries\" must not be null!");
         Objects.requireNonNull(registerLogic, "Param \"registerLogic\" must not be null!");
@@ -139,10 +144,10 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
     
     /**
      * A simple util for registering a group of <u>{@link DeferredRegister}</u>.
-     * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.registerByVarargs(...)}.
+     * @implNote Yes, this could be <b>{@code static}</b>, but non-static guarantees the better UX, instead of {@code IRegistrant.registerByVarargs(...)}.
      * @apiNote This method will filter out the duplicated elements, with a warn printed.
      */
-    @ApiStatus.NonExtendable default void registerByVarargs(Consumer<DeferredRegister<?>> registerLogic, @NotNull DeferredRegister<?> @NotNull ... registries)
+    @ApiStatus.NonExtendable default void registerByVarargs(@NotNull IRegisterAction registerLogic, @NotNull DeferredRegister<?> @NotNull ... registries)
     {
         Objects.requireNonNull(registerLogic, "Param \"registerLogic\" must not be null!");
         Objects.requireNonNull(registries, "Param \"registries\" must not be null!");
@@ -150,12 +155,12 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
         registerLoop(registerLogic, i -> registries[i], registries.length);
     }
     
-    private void registerLoop(@NotNull Consumer<DeferredRegister<?>> registerLogic, @NotNull IntFunction<DeferredRegister<?>> getter, int size)
+    private static void registerLoop(@NotNull IRegisterAction registerLogic, @NotNull IntFunction<DeferredRegister<?>> getter, int size)
     {
         if(size == 0)
             throw new IllegalArgumentException("Param \"registries\" must have at least one element!");
         
-        final var mem = new HashSet<DeferredRegister<?>>(size, 1F);
+        final var mem = Collections.<DeferredRegister<?>>newSetFromMap(new IdentityHashMap<>());
         
         for(int index = 0; index < size; index++)
         {
@@ -175,7 +180,7 @@ public non-sealed interface IRegistrant<T extends Enum<T> & IRegistrant<T>> exte
                 continue;
             }
             
-            registerLogic.accept(deferredRegister);
+            registerLogic.register(deferredRegister);
         }
     }
     
@@ -225,10 +230,11 @@ sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
     /**
      * The method which will be called in auto registration phase.<br>
      * You should write your <u>{@link DeferredRegister}</u>'s register logic at here.
-     * @see IRegistrant#registerByList(List, Consumer)
-     * @see IRegistrant#registerByVarargs(Consumer, DeferredRegister[])
+     * @see IRegistrant#registerByList(List, IRegisterAction)
+     * @see IRegistrant#registerByVarargs(IRegisterAction, DeferredRegister[])
+     * @see IRegisterAction
      */
-    void register(@NotNull Consumer<DeferredRegister<?>> registerLogic);
+    void register(@NotNull IRegisterAction registerLogic);
     
     /**
      * Decides the print output of this registry entry, when this is {@code true},
@@ -272,6 +278,17 @@ sealed interface IDefinitions<T extends Enum<T> & IDefinitions<T>>
      * since generic arg {@code T} is <b>only</b> used to restrict implementer's type, making sure that the implementer must be an <u>{@link Enum}</u>.
      */
     @SuppressWarnings("unused") @DoNotCall @Deprecated(forRemoval = true) private @Nullable T dummy() { return null; }
+    
+    /**
+     * A simple functional interface which invokes register logic(<u>{@link DeferredRegister#register(IEventBus)}</u>).<br>
+     * It is essentially equals to <u>{@link java.util.function.Consumer Consumer}</u>, however, using <u>{@link java.util.function.Consumer Consumer}</u>
+     * may be cause invalid usage(e.g. if <u>{@link IRegistrant#registerByVarargs(IRegisterAction, DeferredRegister[])}</u> and <u>{@link IRegistrant#registerByList(List, IRegisterAction)}</u>)
+     * accepts <u>{@link java.util.function.Consumer Consumer}</u> instead of {@code IRegisterAction}, user can pass a lot of illegal method reference into it. So we
+     * decide to use this independent interface to do it.
+     * @since 1.0 Release
+     * @author Kurv Cygnus
+     */
+    @FunctionalInterface interface IRegisterAction { void register(@NotNull DeferredRegister<?> deferredRegister); }
 }
 
 /**
@@ -302,7 +319,7 @@ sealed interface ISortable
      * Produces a priority for auto registration's sorting.
      * @see IRegistrant.PriorityPair
      * @see IRegistrant.PriorityRange
-     * @implNote Yes, this could be <b>{@code static}</b>, but non-static grantees the better UX, instead of {@code IRegistrant.ofPriority(...)}.
+     * @implNote Yes, this could be <b>{@code static}</b>, but non-static guarantees the better UX, instead of {@code IRegistrant.ofPriority(...)}.
      */
     @ApiStatus.NonExtendable default @NotNull PriorityPair ofPriority(@NotNull PriorityRange mainRange, @Range(from = 1, to = 999) int subRange)
         { return new PriorityPair(mainRange, subRange); }

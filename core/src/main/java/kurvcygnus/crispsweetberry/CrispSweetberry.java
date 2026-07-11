@@ -10,13 +10,13 @@ package kurvcygnus.crispsweetberry;
 
 import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
+import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.lib.core.registry.CrispRegistrationManager;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
-import kurvcygnus.crispsweetberry.utils.core.TabEntry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -53,7 +53,6 @@ public final class CrispSweetberry
         )
     );
     
-    @SuppressWarnings("unchecked")
     public CrispSweetberry(@NotNull IEventBus eventBus, @NotNull ModContainer modContainer)
     {
         CrispRegistrationManager.registerWithAnnotationDelegate(
@@ -62,11 +61,12 @@ public final class CrispSweetberry
             RegisterToTab.class,
             (annotation, annotationTarget) ->
             {
-                final @Nullable Supplier<? extends Item> supplier = switch(annotationTarget)
+                final @Nullable Supplier<?> supplier = switch(annotationTarget)
                 {
                     //! Valid. [[RegisterToTab]] should only be used on [[Supplier]], [[net.minecraft.core.Holder]] and
                     //! [[DeferredHolder]], and the creative tab registry is also only for [[Item]].
-                    case Supplier<?> getter -> (Supplier<? extends Item>) getter;
+                    //! Also, using [[Supplier#get]] at here to validate the contract is dangerous, since most constants remains uninitialized.
+                    case Supplier<?> getter -> getter;
                     case Item item -> () -> item;
                     default -> null;
                 };
@@ -75,8 +75,9 @@ public final class CrispSweetberry
                     return;
                 
                 CrispCreativeTabsRegistryEvent.TAB_ENTRIES.computeIfAbsent(annotation.value().toCreativeTab(), __ -> new LinkedHashSet<>()).
-                    add(new TabEntry(supplier, annotation.value().toCreativeTab()));
-            }
+                    add(new Pair<>(supplier, annotation.value().toCreativeTab()));
+            },
+            true
         );
     }
     
@@ -95,7 +96,7 @@ final class CrispCreativeTabsRegistryEvent
 {
     private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("TAB_REGISTRY");
     
-    static final Map<ResourceKey<CreativeModeTab>, SequencedSet<TabEntry>> TAB_ENTRIES = new HashMap<>();
+    static final Map<ResourceKey<CreativeModeTab>, SequencedSet<Pair<Supplier<?>, ResourceKey<CreativeModeTab>>>> TAB_ENTRIES = new HashMap<>();
     
     @SubscribeEvent @DoNotCall static void tabRegistryEvent(final @NotNull BuildCreativeModeTabContentsEvent event)
     {
@@ -106,13 +107,22 @@ final class CrispCreativeTabsRegistryEvent
         
         for(final var entry: entries)
         {
-            final var item = entry.itemSupplier().get();
-            final var tabKey = entry.tab();
+            final var value = entry.left().get();
+            
+            if(!(value instanceof Item item))
+                throw new IllegalArgumentException(
+                    TextUtils.format(
+                        "Tab Registry failed, because contract is violated: {} is annotated with @RegisterToTab.",
+                        value.getClass().getSimpleName()
+                    )
+                );
+            
+            final var tabKey = entry.right();
             
             //* Yes, using `==` to compare is legal.
             //* Firstly, [[ResourceKey]] didn't implement [[Object#equals]](which is terrible, this also happens on [[EntityType]]).
             //* Secondly, don't forget that most value holders in Minecraft are CONSTANTS,
-            //* whose does have a fixed hashcode, thus can be compared with `==`, because `==` is a CPU command, it is slightly faster.
+            //* whose does have a fixed hashcode, thus can be compared with `==`, and because `==` is a CPU command, so it is slightly faster.
             if(tabKey == event.getTabKey())
             {
                 event.accept(item);

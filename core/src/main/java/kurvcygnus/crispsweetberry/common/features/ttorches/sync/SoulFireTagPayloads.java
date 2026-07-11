@@ -14,7 +14,6 @@ import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,7 +59,7 @@ public final class SoulFireTagPayloads
         {
             context.enqueueWork(() ->
                 {
-                    final Entity target = context.player().level().getEntity(packet.targetId());
+                    final var target = context.player().level().getEntity(packet.targetId());
                     
                     if(target == null)
                         return;

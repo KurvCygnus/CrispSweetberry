@@ -36,12 +36,9 @@ public final class ThrownTorchEntity extends AbstractThrownTorchEntity
     
     public ThrownTorchEntity(@NotNull LivingEntity shooter, @NotNull Level level) { super(TTorchRegistries.THROWN_TORCH.get(), shooter, level); }
     
-    @Override
-    protected @NotNull Item getDefaultItem() { return TTorchRegistries.THROWABLE_TORCH.value(); }
+    @Override protected @NotNull Item getDefaultItem() { return TTorchRegistries.THROWABLE_TORCH.value(); }
     
-    @Override
-    protected @NotNull AbstractTemporaryTorchBlock<?> getFloorTorchBlock() { return TTorchRegistries.TEMPORARY_TORCH.value(); }
+    @Override protected @NotNull AbstractTemporaryTorchBlock<?> getFloorTorchBlock() { return TTorchRegistries.TEMPORARY_TORCH.value(); }
     
-    @Override
-    protected @NotNull AbstractTemporaryWallTorchBlock<?> getWallTorchBlock() { return TTorchRegistries.TEMPORARY_WALL_TORCH.value(); }
+    @Override protected @NotNull AbstractTemporaryWallTorchBlock<?> getWallTorchBlock() { return TTorchRegistries.TEMPORARY_WALL_TORCH.value(); }
 }

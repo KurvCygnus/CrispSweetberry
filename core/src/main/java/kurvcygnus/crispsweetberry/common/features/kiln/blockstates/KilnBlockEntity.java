@@ -9,10 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.kiln.blockstates;
 
 import kurvcygnus.crispsweetberry.common.config.CrispConfig;
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
+import kurvcygnus.crispsweetberry.common.features.kiln.*;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.CalculationResult;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressModel;
@@ -80,17 +77,23 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
      */
     public static final KilnBlockEntity CLIENT_DUMMY_INSTANCE = new KilnBlockEntity(BlockPos.ZERO, KilnRegistries.KILN_BLOCK.value().defaultBlockState());
     
-    private static final int[] INPUT_SLOTS = {
-        KILN_INPUT_SLOTS_RANGE.min(),
-        KILN_INPUT_SLOTS_RANGE.min() + 1,
-        KILN_INPUT_SLOTS_RANGE.max()
-    };
+    private static final int[] INPUT_SLOTS;
     
-    private static final int[] OUTPUT_SLOTS = {
-        KILN_OUTPUT_SLOTS_RANGE.min(),
-        KILN_OUTPUT_SLOTS_RANGE.min() + 1,
-        KILN_OUTPUT_SLOTS_RANGE.max()
-    };
+    private static final int[] OUTPUT_SLOTS;
+    
+    static
+    {
+        INPUT_SLOTS = new int[]{
+            KilnConstants.KILN_INPUT_SLOTS_RANGE.min,
+            KilnConstants.KILN_INPUT_SLOTS_RANGE.min + 1,
+            KilnConstants.KILN_INPUT_SLOTS_RANGE.max
+        };
+        OUTPUT_SLOTS = new int[]{
+            KilnConstants.KILN_OUTPUT_SLOTS_RANGE.min,
+            KilnConstants.KILN_OUTPUT_SLOTS_RANGE.min + 1,
+            KilnConstants.KILN_OUTPUT_SLOTS_RANGE.max
+        };
+    }
     
     private static final String NBT_TAG_VISUAL_PROGRESS = "visualProgress";
     private static final String NBT_TAG_REAL_PROGRESS = "realProgress";
@@ -182,12 +185,17 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
      */
     @Override public void setItem(int index, @NotNull ItemStack stack)
     {
-        final ItemStack oldItemStack = containerItems.get(index);
+        final var oldItemStack = containerItems.get(index);
         
         try(final var handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
-            LOGGER.debug("Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
-                index, oldItemStack.getDisplayName(), oldItemStack.getCount(), stack.getDisplayName(), stack.getCount()
+            LOGGER.debug(
+                "Before size limitation -> index: {}, old: [name: {}, quantity: {}], new: [name: {}, quantity: {}]",
+                index,
+                oldItemStack.getDisplayName(),
+                oldItemStack.getCount(),
+                stack.getDisplayName(),
+                stack.getCount()
             );
             
             stack.limitSize(this.getMaxStackSize(stack));
@@ -223,10 +231,10 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         
         try(final var handle = LOGGER.pushMarker("INPUT_CHECK"))
         {
-            for(int slotIndex = KILN_INPUT_SLOTS_RANGE.min(); KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
+            for(int slotIndex = KilnConstants.KILN_INPUT_SLOTS_RANGE.min; KILN_INPUT_SLOTS_RANGE.inRange(slotIndex); slotIndex++)
             {
-                final int cacheIndex = slotIndex - KILN_INPUT_SLOTS_RANGE.min();
-                final ItemStack stackInSlot = containerItems.get(slotIndex);
+                final int cacheIndex = slotIndex - KilnConstants.KILN_INPUT_SLOTS_RANGE.min;
+                final var stackInSlot = containerItems.get(slotIndex);
                 
                 LOGGER.debug(
                     "slotIndex: {}, cacheIndex: {}, content: {}",
@@ -251,7 +259,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                     }
                     
                     inputState = InputState.VALID;
-                    final Optional<KilnRecipe> optionalKilnRecipe = getKilnRecipe(stackInSlot);
+                    final var optionalKilnRecipe = getKilnRecipe(stackInSlot);
                     
                     if(optionalKilnRecipe.isPresent())
                     {
@@ -285,7 +293,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                     break;
                 }
                 
-                final KilnRecipe cache = recipeCache.get(cacheIndex);
+                final var cache = recipeCache.get(cacheIndex);
                 
                 handle.changeMarker("CACHE_CONFIRM");
                 LOGGER.debug(
@@ -327,9 +335,9 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     public static void serverTick(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull KilnBlockEntity blockEntity)
     {
         final boolean isIgnited = state.getValue(KilnBlock.LIT);
-        final ProcessionState currentState = blockEntity.deduceProcessState(isIgnited);
+        final var currentState = blockEntity.deduceProcessState(isIgnited);
         
-        final CalculationResult result = blockEntity.calculator.calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
+        final var result = blockEntity.calculator.calculateRates(blockEntity.model.getRealProgress(), blockEntity.model.getVisualProgress(), currentState);
         
         final boolean worldDirty = internalTick(level, pos, blockEntity, result, isIgnited);
         
@@ -409,15 +417,15 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     
     private static @NotNull EmulateResult processInputItems(@NotNull KilnBlockEntity blockEntity, @NotNull Level level)
     {
-        final ItemStack[] resultStacks = new ItemStack[KILN_OUTPUT_SLOTS_RANGE.size()];
+        final var resultStacks = new ItemStack[KILN_OUTPUT_SLOTS_RANGE.size()];
         
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
             resultStacks[index] = blockEntity.recipeCache.get(index).getResultItem(level.registryAccess());
         
         //* Since the procession is complex, using emulation-then-apply strategy can sufficiently decrease the quantity of boundary cases.
-        final NonNullList<ItemStack> emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
+        final var emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
         
-        final EmulateResult insertResult = insertItemsToSlots(blockEntity, resultStacks, emulatedOutputSlots);
+        final var insertResult = insertItemsToSlots(blockEntity, resultStacks, emulatedOutputSlots);
         
         if(!insertResult.canProcess)
             return EmulateResult.FAILED;
@@ -425,7 +433,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         //* Emulation succeed, then apply emulated results.
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
         {
-            final int outputIndex = index + KILN_OUTPUT_SLOTS_RANGE.min();
+            final int outputIndex = index + KilnConstants.KILN_OUTPUT_SLOTS_RANGE.min;
             blockEntity.containerItems.set(outputIndex, emulatedOutputSlots.get(index).copy());
         }
         
@@ -449,11 +457,11 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         {
             int invalidAttempts = 0;//! Both result mismatch with slot content and unable to stack to output slots are counted as invalid attempts.
             Integer emptyStackIndex = null;
-            final ItemStack resultStack = resultStacks[slotIndex];
+            final var resultStack = resultStacks[slotIndex];
             
             for(int attemptSlotIndex = 0; attemptSlotIndex < 3; attemptSlotIndex++)
             {
-                final ItemStack emulatedOutputStack = emulatedOutputSlots.get(attemptSlotIndex);
+                final var emulatedOutputStack = emulatedOutputSlots.get(attemptSlotIndex);
                 
                 if(!canMerge(resultStack, emulatedOutputStack))
                 {
@@ -486,7 +494,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     
     private static @NotNull NonNullList<ItemStack> copyOutputSlots(NonNullList<ItemStack> outputStacks)
     {
-        final NonNullList<ItemStack> copy = NonNullList.withSize(KILN_SLOT_COUNT_FOR_EACH_TYPE, ItemStack.EMPTY);
+        final var copy = NonNullList.withSize(KILN_SLOT_COUNT_FOR_EACH_TYPE, ItemStack.EMPTY);
         
         for(int index = KILN_SLOT_COUNT_FOR_EACH_TYPE; index < KILN_DEFAULT_SIZE; index++)
         {
@@ -510,10 +518,9 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         if(level == null || level.isClientSide)
             return false;
         
-        for(int index = KILN_INPUT_SLOTS_RANGE.min(); KILN_INPUT_SLOTS_RANGE.inRange(index); index++)
+        for(int index = KilnConstants.KILN_INPUT_SLOTS_RANGE.min; KILN_INPUT_SLOTS_RANGE.inRange(index); index++)
         {
-            final ItemStack stack = blockEntity.containerItems.get(index);
-            final ItemStack remainingStack;
+            final var stack = blockEntity.containerItems.get(index);
             
             if(stack.isEmpty())
                 continue;
@@ -524,7 +531,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                 continue;
             }
             
-            remainingStack = stack.getCraftingRemainingItem().copy();
+            final var remainingStack = stack.getCraftingRemainingItem().copy();
             
             if(stack.getCount() == 1)
                 blockEntity.containerItems.set(index, remainingStack);
@@ -591,13 +598,15 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     
     @Override public void onPlacedProcess(@NotNull ServerLevel level, long carryingTime, @NotNull KilnBlockEntityContext context, @NotNull BlockPos pos)
     {
-        final AtomicCalculationResult result = this.calculator.statelessCalculate(new CalculationContext(
-            carryingTime,
-            this.model.getRealProgress(),
-            this.model.getVisualProgress(),
-            context.realRate(),
-            context.isLit() ? ProcessionState.WORKING : ProcessionState.COOLDOWN
-        ));
+        final var result = this.calculator.statelessCalculate(
+            new CalculationContext(
+                carryingTime,
+                this.model.getRealProgress(),
+                this.model.getVisualProgress(),
+                context.realRate(),
+                context.isLit() ? ProcessionState.WORKING : ProcessionState.COOLDOWN
+            )
+        );
         
         internalTick(level, pos, this, result.calculationResult(), context.isLit(), result.theoreticalProcessRound(), true);
     }
@@ -609,8 +618,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
      */
     private boolean canSmelt(@NotNull ItemStack itemstack) 
     {
-        final Optional<KilnRecipe> recipe = getKilnRecipe(itemstack);
-        
+        final var recipe = getKilnRecipe(itemstack);
         return recipe.isPresent() && !recipe.get().isBanned();
     }
     

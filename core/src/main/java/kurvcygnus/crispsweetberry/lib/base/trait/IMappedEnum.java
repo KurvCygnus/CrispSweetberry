@@ -80,12 +80,63 @@ public interface IMappedEnum<T, E extends Enum<E> & IMappedEnum<T, E>> extends M
         return Collections.unmodifiableMap(map);
     }
     
+    /**
+     * An alternative method that builds a lookup, without requiring an <u>{@link Enum}</u> that has implemented <u>{@link IMappedEnum}</u>.
+     * @implNote Since there always exists demand that <u>{@link Enum}</u> is highly acquired by matching key, but the <u>{@link Enum}</u> itself is exposed as
+     * API, or just the lookup is not universal
+     * (However, in this case, if the key is good to be in <u>{@link Enum}</u>, you should use <u>{@link #constructLookup(Enum)}</u>), and should be in the class
+     * where it get invoked, this method is designed for these cases, with strict key array check.
+     */
+    @SafeVarargs static <T, E extends Enum<E>> @Unmodifiable @NotNull Map<T, E> constructLookup(@NotNull Class<E> target, @NotNull T @NotNull ... keys)
+    {
+        Objects.requireNonNull(target, "Param \"target\" must not be null!");
+        Objects.requireNonNull(keys, "Param \"keys\" must not be null!");
+        final E[] values = target.getEnumConstants();
+        final int targetLength = values.length;
+        
+        if(targetLength != keys.length)
+            throw new IllegalArgumentException(
+                TextUtils.format(
+                    "The element count({}) of enum \"{}\" does not match values' length({})!",
+                    values.length,
+                    values.getClass().getSimpleName(),
+                    keys.length
+                )
+            );
+        
+        //! values.length % 2 makes sure that capacity will never be an odd number, which is not preferred by [[HashMap]].
+        final int capacity = targetLength + targetLength % 2;
+        
+        final var map = new HashMap<T, E>(capacity, 1F);
+        for(int index = 0, targetValuesLength = values.length; index < targetValuesLength; index++)
+        {
+            final T key = Objects.requireNonNull(keys[index], "Null element found on index " + index);
+            final E value = values[index];
+            
+            if(map.containsKey(key))
+                throw new IllegalArgumentException(
+                    TextUtils.format(
+                        "This interface doesn't work on duplicated cases! Key \"{}\" has these enums conflicted: {}, {}.",
+                        key,
+                        value,
+                        map.get(key)
+                    )
+                );
+            
+            map.put(key, value);
+        }
+        
+        return Collections.unmodifiableMap(map);
+    }
+    
     @ApiStatus.NonExtendable default @Nullable Pair<T, E> asPair()
     {
         if(getKey() == null)
             return null;//! Pair doesn't accept null values, so once the key is null, we have to return [[Pair]] as null.
         return Pair.of(getKey(), getValue());
     }
+    
+    default @NotNull Map<T, E> singletonMap() { return Collections.singletonMap(getKey(), getValue()); }
     
     @ApiStatus.NonExtendable @Override default E getValue() { return getSelf(); }
     

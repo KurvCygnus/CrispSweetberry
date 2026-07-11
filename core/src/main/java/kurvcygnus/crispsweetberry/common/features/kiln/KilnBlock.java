@@ -131,9 +131,9 @@ public final class KilnBlock extends BaseEntityBlock
     
     @Override public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
     {
-        final BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        final var state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
         
-        final ItemStack itemstack = context.getItemInHand();
+        final var itemstack = context.getItemInHand();
         
         boolean isLit = true;
         final var customData = itemstack.get(DataComponents.CUSTOM_DATA);
@@ -187,16 +187,16 @@ public final class KilnBlock extends BaseEntityBlock
         @NotNull Player player
     )
     {
-        final ItemStack stack = new ItemStack(this);
+        final var stack = new ItemStack(this);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(DefinitionUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         return stack;
     }
     
     @Override public @NotNull List<ItemStack> getDrops(@NotNull BlockState state, LootParams.@NotNull Builder params)
     {
-        final List<ItemStack> drops = super.getDrops(state, params);
+        final var drops = super.getDrops(state, params);
         
-        for(final ItemStack stack: drops)
+        for(final var stack: drops)
             if(stack.is(this.asItem()))
                 stack.set(DataComponents.CUSTOM_DATA, CustomData.of(DefinitionUtils.createTag(t -> t.putBoolean(LIT_PROPERTY, state.getValue(LIT)))));
         
@@ -205,17 +205,18 @@ public final class KilnBlock extends BaseEntityBlock
     //endregion
     
     //region Block Entity Linking
-    @Override public <T extends BlockEntity> @Nullable BlockEntityTicker<T>
-    getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> serverBlockEntityType)
+    @Override public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+        @NotNull Level level,
+        @NotNull BlockState state,
+        @NotNull BlockEntityType<T> serverBlockEntityType
+    )
     {
-        if(level.isClientSide)//! Tick is handled by server, client shouldn't touch this.
-            return null;
-        else
-            return createTickerHelper(serverBlockEntityType, KilnRegistries.KILN_BLOCK_ENTITY.get(), KilnBlockEntity::serverTick);
+        return !level.isClientSide ?
+            createTickerHelper(serverBlockEntityType, KilnRegistries.KILN_BLOCK_ENTITY.get(), KilnBlockEntity::serverTick) :
+            null;//! Tick is handled by server, client shouldn't touch this.
     }
     
-    @Override @Contract("_, _ -> new")
-    public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) { return new KilnBlockEntity(pos, state); }
+    @Override @Contract("_, _ -> new") public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) { return new KilnBlockEntity(pos, state); }
     //endregion
     
     //region Interact Basics
@@ -253,12 +254,12 @@ public final class KilnBlock extends BaseEntityBlock
         if(state.getValue(LIT))
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         
-        final Item itemInHand = stack.getItem();
+        final var itemInHand = stack.getItem();
         
         if(canLitStuff(stack, itemInHand))
         {
             final boolean isDamageable = stack.isDamageableItem();
-            final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * 0.4F + 0.8F;
+            final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * .4F + .8F;
             
             level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
                 SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
@@ -288,7 +289,7 @@ public final class KilnBlock extends BaseEntityBlock
         final double Y_POS = pos.getY();
         final double Z_POS = (double) pos.getZ() + SOUND_HORIZONTICAL_OFFSET;
         
-        if(random.nextDouble() < 0.1)
+        if(random.nextDouble() < .1)
             level.playLocalSound(
                 X_POS, Y_POS, Z_POS,
                 SoundEvents.FURNACE_FIRE_CRACKLE,
@@ -298,17 +299,24 @@ public final class KilnBlock extends BaseEntityBlock
                 false
             );
         
-        final Direction direction = state.getValue(FACING);
-        final Direction.Axis directionAxis = direction.getAxis();
+        final var direction = state.getValue(FACING);
+        final var directionAxis = direction.getAxis();
         
-        final double PARTICLE_BASE_RANDOM_OFFSET = random.nextDouble() * 0.6 - 0.3;
-        final double PARTICLE_X_OFFSET = directionAxis == Direction.Axis.X ? (double) direction.getStepX() * 0.52 : PARTICLE_BASE_RANDOM_OFFSET;
-        final double PARTICLE_Y_OFFSET = random.nextDouble() * 6.0 / 16.0;
-        final double PARTICLE_Z_OFFSET = directionAxis == Direction.Axis.Z ? (double) direction.getStepZ() * 0.52 : PARTICLE_BASE_RANDOM_OFFSET;
+        final double particleBaseRandomOffset = random.nextDouble() * .6 - .3;
+        final double particleXOffset = directionAxis == Direction.Axis.X ? (double) direction.getStepX() * .52 : particleBaseRandomOffset;
+        final double particleYOffset = random.nextDouble() * 6. / 16.;
+        final double particleZOffset = directionAxis == Direction.Axis.Z ? (double) direction.getStepZ() * .52 : particleBaseRandomOffset;
         
-        VisualUtils.addParticles(level,
-            X_POS + PARTICLE_X_OFFSET, Y_POS + PARTICLE_Y_OFFSET, Z_POS + PARTICLE_Z_OFFSET, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED,
-            ParticleTypes.SMOKE, ParticleTypes.FLAME
+        VisualUtils.addParticles(
+            level,
+            X_POS + particleXOffset,
+            Y_POS + particleYOffset,
+            Z_POS + particleZOffset,
+            X_NO_SPEED,
+            Y_NO_SPEED,
+            Z_NO_SPEED,
+            ParticleTypes.SMOKE,
+            ParticleTypes.FLAME
         );
     }
     

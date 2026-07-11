@@ -1,4 +1,4 @@
-![Mod Title.png](mod_title.png)
+![Mod Title.png](core/src/main/resources/crisp_sweetberry.png)
 
 # **Crisp Sweetberry**
 

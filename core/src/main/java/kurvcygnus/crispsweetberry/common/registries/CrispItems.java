@@ -16,13 +16,11 @@ import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
-
 public enum CrispItems implements IRegistrant<CrispItems>
 {
     INST;
     
-    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(CRISP_ITEM_REGISTER); }
+    @Override public void register(@NotNull IRegisterAction registerLogic) { registerLogic.register(CRISP_ITEM_REGISTER); }
     
     @Override public boolean isFeature() { return false; }
     

@@ -23,6 +23,5 @@ public final class GlowstickRenderer extends AbstractThrownTorchRenderer<GlowSti
 {
     public GlowstickRenderer(EntityRendererProvider.@NotNull Context context) { super(context); }
     
-    @Override
-    protected @NotNull String getTextureName() { return "glowstick"; }
+    @Override protected @NotNull String getTextureName() { return "glowstick"; }
 }

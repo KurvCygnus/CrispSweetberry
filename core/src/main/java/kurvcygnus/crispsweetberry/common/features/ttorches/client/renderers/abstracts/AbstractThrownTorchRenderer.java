@@ -16,6 +16,7 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.Thro
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.RangeMap;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
+import kurvcygnus.crispsweetberry.lib.base.extensions.IAutoNestedPrintable;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -74,20 +75,19 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
     
     public AbstractThrownTorchRenderer(@NotNull EntityRendererProvider.Context context) { super(context); }
     
-    @Override
-    public void render(@NotNull T entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight)
+    @Override public void render(@NotNull T entity, float entityYaw, float partialTick, @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight)
     {
-        final FacingTuple relativeFacing = this.getFacing(entity);
+        final var relativeFacing = this.getFacing(entity);
         
         poseStack.pushPose();
         poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());//* Makes entity always face the observer.
         poseStack.mulPose(Axis.YP.rotationDegrees(ROTATION_DEGREES));
         poseStack.scale(getTorchScale(), getTorchScale(), getTorchScale());
         
-        final VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity, relativeFacing)));
+        final var vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity, relativeFacing)));
         
-        final PoseStack.Pose lastPose = poseStack.last();
-        final Matrix4f poseMatrix = lastPose.pose();
+        final var lastPose = poseStack.last();
+        final var poseMatrix = lastPose.pose();
         
         createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 0, 0, 0, 1, relativeFacing.flipHorizontal);
         createVertex(vertexConsumer, poseMatrix, lastPose, packedLight, 1, 0, 1, 1, relativeFacing.flipHorizontal);
@@ -127,7 +127,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
             flipHorizontal = relativeYaw > 180D;
         }
         
-        final VerticalFacing verticalFacing = getVerticalFacing(relativeX, relativeY, relativeZ);
+        final var verticalFacing = getVerticalFacing(relativeX, relativeY, relativeZ);
         
         return new FacingTuple(horizontalFacing, verticalFacing, flipHorizontal);
     }
@@ -140,18 +140,27 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         return VERTICAL_DEGREE_MATCHER.getValueOrThrow(relativeVerticalDegree);
     }
     
-    private static void createVertex(@NotNull VertexConsumer consumer, @NotNull Matrix4f pose, @NotNull PoseStack.Pose lastPose,
-        int lightmapUV, int x, int y, int u, int v, boolean flip)
-            {
-                final float correctedU = flip ? (1F - (float) u) : (float) u;
-                
-                consumer.addVertex(pose, x - .5F, (float) y - .25F, 0F).
-                    setColor(255, 255, 255, 255).
-                    setUv(correctedU, (float) v).
-                    setOverlay(OverlayTexture.NO_OVERLAY).
-                    setLight(lightmapUV).
-                    setNormal(lastPose, 0F, 1F, 0F);
-            }
+    private static void createVertex(
+        @NotNull VertexConsumer consumer,
+        @NotNull Matrix4f pose,
+        @NotNull PoseStack.Pose lastPose,
+        int lightmapUV,
+        int x,
+        int y,
+        int u,
+        int v,
+        boolean flip
+    )
+    {
+        final float correctedU = flip ? (1F - (float) u) : (float) u;
+        
+        consumer.addVertex(pose, x - .5F, (float) y - .25F, 0F).
+            setColor(255, 255, 255, 255).
+            setUv(correctedU, (float) v).
+            setOverlay(OverlayTexture.NO_OVERLAY).
+            setLight(lightmapUV).
+            setNormal(lastPose, 0F, 1F, 0F);
+    }
     
     /**
      * New method for get throwable throw sprites. It replaces <u>{@link #getTextureLocation(AbstractThrownTorchEntity)}</u> from <u>{@link EntityRenderer}</u>,
@@ -159,7 +168,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
      */
     protected @NotNull ResourceLocation getTextureLocation(@NotNull T entity, @NotNull AbstractThrownTorchRenderer.FacingTuple pair)
     {
-        final StringBuilder path = new StringBuilder(BASE_TEXTURE_PATH).append(getTextureName());
+        final var path = new StringBuilder(BASE_TEXTURE_PATH).append(getTextureName());
         
         appendTextureName(path, entity, pair);
         
@@ -206,11 +215,7 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         FRONT,
         SIDE;
         
-        private final String alias;
-        
-        HorizontalFacing() { this.alias = this.name().toLowerCase(); }
-        
-        public @NotNull String getAlias() { return this.alias; }
+        public @NotNull String getAlias() { return this.name().toLowerCase(); }
     }
     
     protected enum VerticalFacing
@@ -220,12 +225,12 @@ public abstract class AbstractThrownTorchRenderer<T extends AbstractThrownTorchE
         TOP,
         BOTTOM;
         
-        private final String alias;
-        
-        VerticalFacing() { this.alias = this.name().toLowerCase(); }
-        
-        public @NotNull String getAlias() { return this.alias; }
+        public @NotNull String getAlias() { return this.name().toLowerCase(); }
     }
     
-    protected record FacingTuple(@NotNull HorizontalFacing horizontalFacing, @NotNull VerticalFacing verticalFacing, boolean flipHorizontal) { }
+    protected record FacingTuple(
+        @NotNull HorizontalFacing horizontalFacing,
+        @NotNull VerticalFacing verticalFacing,
+        boolean flipHorizontal
+    ) implements IAutoNestedPrintable.OfRecordHandle<FacingTuple> { @Override public @NotNull String toString() { return toNestedString(); } }
 }

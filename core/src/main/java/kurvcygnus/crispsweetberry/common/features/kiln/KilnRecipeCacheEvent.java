@@ -14,6 +14,8 @@ import kurvcygnus.crispsweetberry.common.config.CrispConfig;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeManager;
+import kurvcygnus.crispsweetberry.lib.base.stream.Invoker;
+import kurvcygnus.crispsweetberry.lib.base.trait.IMappedEnum;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -30,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.event.Level;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -47,6 +51,8 @@ import java.util.Objects;
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class KilnRecipeCacheEvent
 {
+    private KilnRecipeCacheEvent() { throw new IllegalAccessError("Class \"KilnRecipeCacheEvent\" is not meant to be instantized!"); }
+    
     private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
         IMarkLogger.allowWhen(Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_EVENT_DEBUG)
     );
@@ -90,16 +96,16 @@ public final class KilnRecipeCacheEvent
      */
     private static void collectRecipes(@NotNull RecipeManager manager, @NotNull RegistryAccess registryAccess)
     {
-        final StopWatch time = new StopWatch();
+        final var time = new StopWatch();
         time.start();
         
         try(final var handle = LOGGER.pushMarker("CACHE_START"))
         {
             LOGGER.info("Getting Kiln Recipes...");
             
-            final HashMap<Item, NonNullList<SmokingRecipe>> tempSmokingRecipes = new HashMap<>();
-            final HashMap<Item, NonNullList<BlastingRecipe>> tempBlastingRecipes = new HashMap<>();
-            final HashMap<Item, NonNullList<SmeltingRecipe>> tempKilnRecipes = new HashMap<>();
+            final var tempSmokingRecipes = new HashMap<Item, List<SmokingRecipe>>();
+            final var tempBlastingRecipes = new HashMap<Item, List<BlastingRecipe>>();
+            final var tempKilnRecipes = new HashMap<Item, List<SmeltingRecipe>>();
             
             handle.changeMarker("SMOKER_PHASE");
             LOGGER.info("Collecting Smoker Recipes...");
@@ -114,16 +120,16 @@ public final class KilnRecipeCacheEvent
             
             handle.changeMarker("INITIAL_FILTER");
             LOGGER.info("Starting filtering kiln recipes...");
-            manager.getAllRecipesFor(RecipeType.SMELTING).stream().map(RecipeHolder::value).forEach(
+            Invoker.unit(manager.getAllRecipesFor(RecipeType.SMELTING)).map(RecipeHolder::value).invoke(
                 recipe ->
                 {
-                    for(final Ingredient ingredient: recipe.getIngredients())
+                    for(final var ingredient: recipe.getIngredients())
                     {
-                        for(final ItemStack stack: ingredient.getItems())
+                        for(final var stack: ingredient.getItems())
                         {
-                            final Item item = stack.getItem();
+                            final var item = stack.getItem();
                             
-                            LOGGER.debug("Accepted item \"{}\" as smelting recipe", stack.getDisplayName());
+                            LOGGER.debug("Accepted item \"{}\" as smelting recipe", stack.getDisplayName().getString());
                             
                             tempKilnRecipes.computeIfAbsent(item, i -> NonNullList.create()).
                                 add(recipe);
@@ -135,7 +141,7 @@ public final class KilnRecipeCacheEvent
             handle.changeMarker("FINAL_FILTER");
             LOGGER.info("Finished filtering kiln recipes. Start conversion...");
             
-            final HashMap<Item, NonNullList<KilnRecipe>> completedKilnRecipesCacheList = new HashMap<>();
+            final var completedKilnRecipesCacheList = new HashMap<Item, List<KilnRecipe>>();
             
             filterRecipes(completedKilnRecipesCacheList, tempKilnRecipes, registryAccess);
             //* Smoker, and blaster recipes are intentionally applied after smelting recipes to override them for the same input item.
@@ -153,28 +159,27 @@ public final class KilnRecipeCacheEvent
     /**
      * An encapsulated method for <b>getting recipes for smoker and blast furnace<b>.
      */
-    private static <R extends AbstractCookingRecipe> void streamRecipes
-    (@NotNull HashMap<Item, NonNullList<R>> targetMap, @NotNull RecipeManager manager, @NotNull RecipeType<R> recipeType)
+    private static <R extends AbstractCookingRecipe> void streamRecipes(
+        @NotNull Map<Item, List<R>> targetMap,
+        @NotNull RecipeManager manager,
+        @NotNull RecipeType<R> recipeType
+    )
     {
         try(final var ignored = LOGGER.pushMarker("RECIPE_STREAM"))
         {
-            manager.getAllRecipesFor(recipeType).stream().map(RecipeHolder::value).forEach(
+            Invoker.unit(manager.getAllRecipesFor(recipeType)).map(RecipeHolder::value).invoke(
                 recipe ->
                 {
-                    for(final Ingredient ingredient: recipe.getIngredients())
-                    {
-                        for(final ItemStack stack: ingredient.getItems())
-                        {
-                            final Item item = stack.getItem();
-                            
-                            targetMap.computeIfAbsent(item, i -> NonNullList.create()).
-                                add(recipe);
-                        }
-                    }
+                    final var ingredients = recipe.getIngredients();
+                    
+                    Invoker.unit(ingredients).
+                        destructArrayMap(Ingredient::getItems).
+                        map(ItemStack::getItem).
+                        invoke(item -> targetMap.computeIfAbsent(item, i -> NonNullList.create()).add(recipe));
                     
                     LOGGER.debug(
-                        "Completed a round of recipe collection, Ingredients: {}, current stream recipe componentExecutionType: {}",
-                        recipe.getIngredients(),
+                        "Completed a round of recipe collection, Ingredients: {}, current stream recipe type: {}",
+                        ingredients,
                         recipeType
                     );
                 }
@@ -185,33 +190,31 @@ public final class KilnRecipeCacheEvent
     /**
      * An encapsulated method for <b>filtering, and converting recipes to <u>{@link KilnRecipe}</u></b>.
      */
-    private static <R extends AbstractCookingRecipe> void filterRecipes
-    (@NotNull HashMap<Item, NonNullList<KilnRecipe>> targetMap, @NotNull HashMap<Item, NonNullList<R>> convertMap, @NotNull RegistryAccess access)
+    private static <R extends AbstractCookingRecipe> void filterRecipes(
+        @NotNull Map<Item, List<KilnRecipe>> targetMap,
+        @NotNull Map<Item, List<R>> convertMap,
+        @NotNull RegistryAccess access
+    )
     {
-        convertMap.forEach((item, list) ->
+        convertMap.forEach(
+            (item, list) ->
             {
                 if(!list.isEmpty())
                 {
-                    final String type;
-                    switch(RecipeSourceType.getSourceType(list.getFirst()))
-                    {
-                        case SMOKING -> type = "Smoking";
-                        case BLASTING -> type = "Blasting";
-                        default -> type = "Skip";
-                    }
+                    final var type = RecipeSourceType.getSourceType(list.getFirst());
                     
-                    if(!type.equals("Skip") && targetMap.containsKey(item))
+                    if(!type.equals(RecipeSourceType.FURNACE) && targetMap.containsKey(item))
                     {
-                        LOGGER.debug("Item {} found in cache, clearing old Smelting recipes to override with {}.", item, type);
+                        LOGGER.debug("Item {} found in cache, clearing old Smelting recipes to override with {}.", item, type.name());
                         targetMap.get(item).clear();
                     }
                 }
                 
                 for(final R recipe: list)
                 {
-                    for(final Ingredient ingredient: recipe.getIngredients())
+                    for(final var ingredient: recipe.getIngredients())
                     {
-                        final KilnRecipe convertedRecipe = new KilnRecipe(
+                        final var convertedRecipe = new KilnRecipe(
                             ingredient,
                             recipe.getResultItem(access),
                             calculateProcessFactor(
@@ -241,47 +244,52 @@ public final class KilnRecipeCacheEvent
             case SMOKING ->
             {
                 standardTime = KilnConstants.ADVANCED_HEATING_CONTAINER_TIME;
-                penaltyRate = 1.25D;
+                penaltyRate = 1.25;
             }
             case BLASTING ->
             {
                 standardTime = KilnConstants.ADVANCED_HEATING_CONTAINER_TIME;
-                penaltyRate = 2.5D;
+                penaltyRate = 2.5;
             }
             default ->
             {
                 standardTime = KilnConstants.FURNACE_SMELTING_TIME;
-                penaltyRate = 1D;
+                penaltyRate = 1.;
             }
         }
         
         //!                               Maybe some mod will introduce short cooking time recipes into the game,
-        //!                             ↓ so we should make sure at least processFactor is always bigger than 0D.
-        final double factor = Math.max(0.05D, (double) cookingTime / standardTime) * penaltyRate;
+        //!                             ↓ so we should make sure at least processFactor is always bigger than "0." .
+        final double factor = Math.max(.05, (double) cookingTime / standardTime) * penaltyRate;
         
-        LOGGER.debug("Type: {}, Time: {}, Factor: {}",
-            recipeSourceType.name().toLowerCase(), cookingTime, factor
+        LOGGER.debug(
+            "Type: {}, Time: {}, Factor: {}",
+            recipeSourceType.name().toLowerCase(),
+            cookingTime,
+            factor
         );
         
         return factor;
     }
     
-    private enum RecipeSourceType
+    private enum RecipeSourceType implements IMappedEnum<Class<?>, RecipeSourceType>
     {
-        FURNACE,
-        SMOKING,
-        BLASTING;
+        FURNACE(SmeltingRecipe.class),
+        SMOKING(SmokingRecipe.class),
+        BLASTING(BlastingRecipe.class);
         
-        static <T> @NotNull RecipeSourceType getSourceType(@NotNull T recipeSource)
+        private static final Map<Class<?>, RecipeSourceType> LOOKUP = IMappedEnum.constructLookup(RecipeSourceType.class);
+        
+        private final Class<?> boundClass;
+        
+        RecipeSourceType(@NotNull Class<?> boundClass) { this.boundClass = boundClass; }
+        
+        static @NotNull RecipeSourceType getSourceType(@NotNull Object recipeSource)
         {
             Objects.requireNonNull(recipeSource, "Param \"recipeSource\" must not be null!");
-            
-            return switch(recipeSource)
-            {
-                case SmokingRecipe ignored -> SMOKING;
-                case BlastingRecipe ignored -> BLASTING;
-                default -> FURNACE;
-            };
+            return LOOKUP.get(recipeSource.getClass());
         }
+        
+        @Override public @NotNull Class<?> getKey() { return this.boundClass; }
     }
 }

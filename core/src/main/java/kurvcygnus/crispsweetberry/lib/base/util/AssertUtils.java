@@ -47,19 +47,27 @@ public final class AssertUtils
         );
     }
     
+    public static @NotNull String nonBlank(@Nullable String string) throws NullPointerException, IllegalArgumentException
+    {
+        requireNonNull(string, "Param \"string\" must not be null!");
+        
+        if(string.isBlank())
+            throw new IllegalArgumentException("Param \"string\" is empty.");
+        
+        return string;
+    }
+    
     @SuppressWarnings("DuplicatedCode")//! Stupid IDEA: Dealing the duplicated code have to use functional interfaces and even more complex generics,
     @CanIgnoreReturnValue              //! javac can't handle that, ending up have to specify the generic at call, or get Object as lambda param.
     public static <I extends Iterable<T>, T> @NotNull I nonNullCheckIteration(
         @Nullable I iterable,
-        @NotNull Consumer<? super T> action,
-        @NotNull String varName
+        @NotNull String varName,
+        @NotNull Consumer<? super T> action
     )
     {
         requireNonNull(iterable, "Param \"iterable\" must not be null!");
         requireNonNull(action, "Param \"action\" must not be null!");
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         int index = 0;
         
@@ -75,17 +83,15 @@ public final class AssertUtils
     
     @SuppressWarnings({"NullableProblems", "DuplicatedCode"})//! Why IDEA is so stupid...
     @CanIgnoreReturnValue
-    public static <T> @NotNull T @NotNull [] nonNullCheckIteration(
-        @NotNull String varName,
+    public static <T> @NotNull T @NotNull [] nonNullCheckArrayIteration(
         @Nullable T @Nullable [] array,
+        @NotNull String varName,
         @NotNull Consumer<? super T> action
     )
     {
         requireNonNull(array, "Param \"array\" must not be null!");
         requireNonNull(action, "Param \"action\" must not be null!");
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         for(int index = 0; index < array.length; index++)
         {
@@ -119,9 +125,7 @@ public final class AssertUtils
         if(!IS_DEVELOPMENT_ENVIRONMENT)
             return value;
         
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(value == null)
             throw new NullPointerException(TextUtils.format("Param \"{}\" must not be null!", varName));
@@ -176,9 +180,7 @@ public final class AssertUtils
 
     public static int unsignedRequired(int variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable < 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
@@ -188,9 +190,7 @@ public final class AssertUtils
 
     public static long unsignedRequired(long variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable < 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
@@ -200,9 +200,7 @@ public final class AssertUtils
     
     public static float unsignedRequired(float variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable < 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
@@ -212,9 +210,7 @@ public final class AssertUtils
     
     public static double unsignedRequired(double variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable < 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be an unsigned number!", varName));
@@ -224,9 +220,7 @@ public final class AssertUtils
     
     public static int positiveOnly(int variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable <= 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
@@ -236,9 +230,7 @@ public final class AssertUtils
     
     public static long positiveOnly(long variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable <= 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
@@ -248,9 +240,7 @@ public final class AssertUtils
     
     public static float positiveOnly(float variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable <= 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
@@ -260,9 +250,7 @@ public final class AssertUtils
     
     public static double positiveOnly(double variable, @NotNull String varName) throws IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(variable <= 0)
             throw new IllegalArgumentException(TextUtils.format("Param \"{}\" should be a positive number!", varName));
@@ -275,9 +263,7 @@ public final class AssertUtils
         @NotNull String varName
     ) throws NullPointerException, IllegalArgumentException
     {
-        requireNonNull(varName, "Param \"varName\" must not be null!");
-        if(varName.isBlank())
-            throw new IllegalArgumentException("Param \"varName\" must not be empty!");
+        nonBlank(varName);
         
         if(iterable == null)
             throw new IllegalArgumentException(TextUtils.format("Iterable \"{}\" must not be null!", varName));
@@ -300,8 +286,7 @@ public final class AssertUtils
         requireNonNull(messageGetter, "Param \"messageGetter\" must not be null!");
         requireNonNull(function, "Param \"function\" must not be null!");
         
-        return () ->
-        { if(supplier.getAsBoolean() == reverse) throw function.apply(messageGetter.get()); };
+        return () -> { if(supplier.getAsBoolean() == reverse) throw function.apply(messageGetter.get()); };
     }
     
     public static <E extends Throwable> @NotNull IChecker.OfNoArg<E> produceChecker(
@@ -334,12 +319,7 @@ public final class AssertUtils
         requireNonNull(messageGetter, "Param \"messageGetter\" must not be null!");
         requireNonNull(function, "Param \"function\" must not be null!");
         
-        return () ->
-        {
-            final @Nullable var flag = supplier.get();
-            if(flag == null || flag == reverse)
-                throw function.apply(messageGetter.get());
-        };
+        return () -> { final @Nullable var flag = supplier.get(); if(flag == null || flag == reverse) throw function.apply(messageGetter.get()); };
     }
     
     public static <E extends Throwable> @NotNull IChecker.OfNoArg<E> produceChecker(
@@ -410,10 +390,4 @@ public final class AssertUtils
         @NotNull Function<T, Pair<Boolean, String>> normalizer,
         @NotNull Function<String, E> function
     ) { return produceChecker(normalizer, function, false); }
-    
-    public interface IChecker
-    {
-        @FunctionalInterface interface OfNoArg<E extends Throwable> { void check() throws E; }
-        @FunctionalInterface interface OfOneArg<T, E extends Throwable> { void check(T value) throws E; }
-    }
 }

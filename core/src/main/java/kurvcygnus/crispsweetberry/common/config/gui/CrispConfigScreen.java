@@ -23,7 +23,7 @@ import static kurvcygnus.crispsweetberry.common.config.CrispConfig.KILN_BE_DEBUG
 
 /**
  * This makes the config editable and visually seeable in game.<br>
- * WIP.
+ * TODO.
  * @since 1.0 Release
  * @author Kurv Cygnus
  * @see CrispConfig Config
@@ -59,8 +59,8 @@ public final class CrispConfigScreen extends Screen
         final int y = 40;
         
         this.addRenderableWidget(
-            CycleButton.onOffBuilder(
-                CrispConfig.KILN_BE_DEBUG.get()).create(
+            CycleButton.onOffBuilder(CrispConfig.KILN_BE_DEBUG.get()).
+                create(
                     x,
                     y,
                     buttonWidth,
@@ -78,8 +78,7 @@ public final class CrispConfigScreen extends Screen
                     CrispConfig.INST.getSpec().save();
                     minecraft.setScreen(lastScreen);
                 }
-            ).
-                bounds(x, this.height - 28, buttonWidth, 20).
+            ).bounds(x, this.height - 28, buttonWidth, 20).
                 build()
         );
     }

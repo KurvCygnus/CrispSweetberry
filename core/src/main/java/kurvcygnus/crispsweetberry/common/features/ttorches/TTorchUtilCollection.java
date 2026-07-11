@@ -35,8 +35,7 @@ public final class TTorchUtilCollection
 {
     private TTorchUtilCollection() { throw new IllegalAccessError("Class \"TTorchUtilCollection\" is not meant to be instantized!"); }
     
-    //  region
-    //*:=== Block Constants
+    //region Block Constants
     public static final int DEFAULT_LIFECYCLE_TICK = 400;
     
     public static final double HORIZONTAL_WALL_TORCH_OFFSET_VALUE = 0.27;
@@ -67,8 +66,7 @@ public final class TTorchUtilCollection
         ignitedByLava();
     //endregion
     
-    //  region
-    //*:=== Renderer Constants & Utils
+    //region Renderer Constants & Utils
     public static final String BASE_TEXTURE_PATH = "textures/entity/";
     public static final String TEXTURE_SUFFIX = ".png";
     public static final float STANDARD_TORCH_SCALE = 0.5F;
@@ -83,15 +81,13 @@ public final class TTorchUtilCollection
         { return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(resourceLocation); }
     //endregion
     
-    //  region
-    //*:=== Entity Constants & Utils
+    //region Entity Constants & Utils
     public static final String SOUL_FIRE_PERSISTENT_TAG = DefinitionUtils.createPersistentTag("is_lit_by_soul_fire");
     
     public static boolean isLitBySoulFire(@NotNull Entity entity) { return entity.getPersistentData().contains(SOUL_FIRE_PERSISTENT_TAG); }
     //endregion
     
-    //  region
-    //*:=== Block & Entity Block Machine
+    //region Block & Entity Block Machine
     /**
      * The <b>enum property</b> that controls the <b>life cycle and brightness</b> of temporary torches.
      * @since 1.0 Release

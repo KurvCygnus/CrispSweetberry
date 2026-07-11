@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.utils;
 
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -19,12 +20,14 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -63,15 +66,7 @@ public final class DefinitionUtils
         return TextUtils.format("{}.{}", CrispSweetberry.NAMESPACE, suffix);
     }
     
-    public static @NotNull String namespacedDotId(@NotNull String... suffixes)
-    {
-        requireNonNull(suffixes, "Param \"suffixes\" must not be null!");
-        final var stringBuilder = new StringBuilder(CrispSweetberry.NAMESPACE);
-        for(final String suffix: suffixes)
-            stringBuilder.append('.').append(suffix);
-        
-        return stringBuilder.toString();
-    }
+    public static @NotNull String namespacedDotId(@NotNull String... suffixes) { return composeUp(CrispSweetberry.NAMESPACE, ".", "suffixes", suffixes); }
     
     public static @NotNull String namespacedUnderscoreId(@NotNull String suffix)
     {
@@ -79,14 +74,25 @@ public final class DefinitionUtils
         return TextUtils.format("{}_{}", CrispSweetberry.NAMESPACE, suffix);
     }
     
-    public static @NotNull String namespacedUnderscoreId(@NotNull String... suffixes)
+    public static @NotNull String namespacedUnderscoreId(@NotNull String... suffixes) { return composeUp(CrispSweetberry.NAMESPACE, "_", "suffixes", suffixes); }
+    
+    private static @NotNull String composeUp(@Nullable String start, @NotNull String delimiter, @NotNull String varName, @NotNull String @NotNull ... suffixes)
     {
-        requireNonNull(suffixes, "Param \"suffixes\" must not be null!");
-        final var stringBuilder = new StringBuilder(CrispSweetberry.NAMESPACE);
-        for(final String suffix: suffixes)
-            stringBuilder.append('_').append(suffix);
+        AssertUtils.nonBlank(delimiter);
+        AssertUtils.nonBlank(varName);
         
-        return stringBuilder.toString();
+        final var joiner = new StringJoiner(delimiter);
+        
+        if(start != null)
+            joiner.add(start);
+        
+        AssertUtils.nonNullCheckArrayIteration(
+            suffixes,
+            varName,
+            joiner::add
+        );
+        
+        return joiner.toString();
     }
     
     /**
@@ -98,6 +104,8 @@ public final class DefinitionUtils
         requireNonNull(tagName, "Param \"tagName\" must not be null!");
         return TextUtils.format("{}.{}", namespacedDotId("persistent_tags"), tagName);
     }
+    
+    public static @NotNull String createPersistentTag(@NotNull String ... suffixes) { return composeUp(null, ".", "suffixes", suffixes); }
     
     /**
      * Unwarps a <u>{@link Component}</u>, and returns its text.

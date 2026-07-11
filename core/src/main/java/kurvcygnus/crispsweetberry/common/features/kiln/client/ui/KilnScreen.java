@@ -88,7 +88,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         
         final double progress = KilnContainerData.toStandardProgress(menu.data.get(VISUAL_PROGRESS_INDEX));
-        final KilnEnumCollections.VisualTrend trend = KilnEnumCollections.VisualTrend.values()[menu.data.get(PROGRESS_TREND_INDEX)];
+        final var trend = KilnEnumCollections.VisualTrend.values()[menu.data.get(PROGRESS_TREND_INDEX)];
         final boolean isIgnited = KilnContainerData.toStandardIgnitionState(menu.data.get(IGNITION_STATE_INDEX));
         
         if(isIgnited)
@@ -97,8 +97,8 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
         //*                  ↓ We should always tip players about recipes that are banned.
         if(progress > 0D || trend == KilnEnumCollections.VisualTrend.TIP)//! Strictly, the layered arrow texture doesn't belong to background stuff.
         {
-            final ResourceLocation layeredArrowTexture = trend.getBoundArrowSprite();
-            final Tooltip widgetTipText = switch(trend)
+            final var layeredArrowTexture = trend.getBoundArrowSprite();
+            final var widgetTipText = switch(trend)
             {
                 case BALANCE, BURST -> KilnInfoWidget.COOLDOWN_TIP;
                 case TIP -> KilnInfoWidget.BLAST_TIP;

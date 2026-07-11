@@ -191,7 +191,7 @@ enum CarryOperationExecutor
         final var targetPos = context.interactPos;
         final var blockEntity = context.targets.right();
         final var level = context.level;
-        final @Nullable(DATA_CORRUPTION_CASE) var carryID = context.carryID.value();
+        final var carryIDBox = context.carryID;
         
         final var optionalAdapter = CarryRegistryManager.INST.
             getBlockEntityAdapter(blockEntity.getType()).
@@ -231,7 +231,7 @@ enum CarryOperationExecutor
                 level,
                 targetPos,
                 context.player,
-                carryID != null ? carryID.uuid : null
+                carryIDBox.isPresent() ? carryIDBox.orThrow().uuid : null
             )
         );
         //* [[IAtomicCarriable#onCarriedSequence()]] may have side effects on BE's data, we should save data after it.
@@ -463,11 +463,10 @@ enum CarryOperationExecutor
     //*:== Listener
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> listenerProcess(@NotNull CarryInteractContext context)
     {
-        final @Nullable var carryID = context.carryID.value();
-        final @Nullable var carryData = context.data.value();
+        final var carryIDBox = context.carryID;
         final TriState listener = context.listener();
         
-        if(carryID == null)
+        if(!carryIDBox.isPresent())
             return CarryInteractHandleException.listener(
                 context.pass(),
                 "Listener's mutation failed, because the CarryID doesn't exist.",
@@ -475,11 +474,15 @@ enum CarryOperationExecutor
                 listener
             );
         
+        final var carryID = carryIDBox.orThrow();
+        
         switch(listener)
         {
             case TRUE ->
             {
-                if(carryData == null)
+                final var carryDataBox = context.data;
+                
+                if(!carryDataBox.isPresent())
                     return CarryInteractHandleException.listener(
                         context.pass(),
                         "Listener's mutation failed, because the CarryData doesn't exist, which is required by insertion.",
@@ -487,7 +490,7 @@ enum CarryOperationExecutor
                         TriState.TRUE
                     );
                 
-                final Object creationData = carryData.matchUnique().getCreationData();
+                final Object creationData = carryDataBox.orThrow().matchUnique().getCreationData();
                 final var factory = CarryRegistryManager.INST.searchFactory(context.actionType, creationData);
                 
                 if(factory.isEmpty())
@@ -532,7 +535,7 @@ enum CarryOperationExecutor
             case TRUE ->
             {
                 final boolean producesCopy = component.isTrue() && crate.getCount() > 1;
-                final ItemStack crateToMutate = producesCopy ? copyCrate(crate) : crate;
+                final var crateToMutate = producesCopy ? copyCrate(crate) : crate;
                 
                 crateToMutate.set(CarryCrateRegistries.CARRY_ID.get(), carryID);
                 crateToMutate.set(CarryCrateRegistries.CARRY_CRATE_DATA.get(), carryData);
@@ -619,10 +622,9 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> blocklikeTargetRelease(@NotNull CarryInteractContext context)
     {
-        final var carryData = context.data.value();
-        final @Nullable var contextFunction = context.placeContentGetter;
+        final var dataBox = context.data;
         
-        if(carryData == null)
+        if(!dataBox.isPresent())
             return CarryInteractHandleException.target(
                 context.pass(),
                 "Carry Crate's content release failed because the CarryData does not exist, which is required by insertion.",
@@ -630,6 +632,9 @@ enum CarryOperationExecutor
                 context.actionType,
                 TriState.FALSE
             );
+        
+        final var carryData = dataBox.orThrow();
+        final @Nullable var contextFunction = context.placeContentGetter;
         
         if(contextFunction == null)
             return CarryInteractHandleException.target(
@@ -687,10 +692,10 @@ enum CarryOperationExecutor
     
     private @NotNull IResult<CarryInteractContext, CarryInteractHandleException> entityTargetRelease(@NotNull CarryInteractContext context)
     {
-        final @Nullable CarryData carryData = context.data.value();
+        final @Nullable var carryDataBox = context.data;
         final @Nullable var contextGetter = context.placeContentGetter;
         
-        if(carryData == null)
+        if(!carryDataBox.isPresent())
             return CarryInteractHandleException.target(
                 context.pass(),
                 "Carry Crate's content release failed because the CarryData's value is invalid, which is required by insert.",
@@ -709,7 +714,7 @@ enum CarryOperationExecutor
             );
         
         final var level = context.level;
-        final var entityToSpawn = EntityType.create(carryData.<CarryData.OfEntityUniqueData>matchUnique().tagData, level);
+        final var entityToSpawn = EntityType.create(carryDataBox.orThrow().<CarryData.OfEntityUniqueData>matchUnique().tagData, level);
         
         if(entityToSpawn.isEmpty())
             return CarryInteractHandleException.target(

@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.lib.base.exceptions;
 
 import kurvcygnus.crispsweetberry.lib.base.lang.IResult;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,7 +68,7 @@ public class StructuredException extends RuntimeException implements IStructured
             TextUtils.format(
                 "<{}:{}> {}",
                 checkEx(wrappedException).getClass().getSimpleName(),
-                checkType(tag),
+                AssertUtils.nonBlank(tag),
                 wrappedException.getMessage()
             ),
             wrappedException
@@ -121,22 +122,9 @@ public class StructuredException extends RuntimeException implements IStructured
         if(wrappedException instanceof IStructuredThrowable)
             throw new IllegalArgumentException("Wrapping a structured exception is not allowed!");
         
-        final var message = wrappedException.getMessage();
-        
-        if(message == null || message.isBlank())
-            throw new IllegalArgumentException("Wrapping an exception which doesn't have a message is not allowed!");
+        AssertUtils.nonBlank(wrappedException.getMessage());
         
         return wrappedException;
-    }
-    
-    private static @NotNull String checkType(@NotNull String tag) throws NullPointerException, IllegalArgumentException
-    {
-        Objects.requireNonNull(tag, "Param \"tag\" must not be null!");
-        
-        if(tag.isBlank())
-            throw new IllegalArgumentException("The type must not be empty!");
-        
-        return tag;
     }
     
     /**

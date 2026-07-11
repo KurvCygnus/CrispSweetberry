@@ -43,8 +43,7 @@ import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.PRO
  */
 public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEntity> extends Item implements ProjectileItem
 {
-    //  region
-    //*:=== Constants, Fields & Constructors
+    //region Constants, Fields & Constructors
     private static final float ALWAYS_ACCURATE = 1F;
     private static final float DEFAULT_TORCH_THROW_VELOCITY = 1.5F;
     
@@ -59,8 +58,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
         { super(Objects.requireNonNull(properties, "Param \"properties\" must not be null!")); }
     //endregion
     
-    //  region
-    //*:=== Abstract parameter getters
+    //region Abstract parameter getters
     protected float getAccuracy() { return ALWAYS_ACCURATE; }
     
     protected float getThrowVelocity() { return DEFAULT_TORCH_THROW_VELOCITY; }
@@ -74,18 +72,20 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
     protected abstract @NotNull ITriProjectileFunction<T> getDispenserUsedProjectile();
     //endregion
     
-    //  region
-    //*:=== Use interaction logics
+    //region Use interaction logics
     @Override public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand)
     {
-        final ItemStack itemstack = player.getItemInHand(hand);
+        final var itemstack = player.getItemInHand(hand);
         final float throwSoundPitch = .4F / (level.getRandom().nextFloat() * .4F + .8F);
         
         player.startUsingItem(hand);
         player.swing(hand, true);//! Flag "updateSelf" forces animation to play when the last one hasn't ended, which makes sure anim plays normally.
         
         level.playSound(
-            null, player.getX(), player.getY(), player.getZ(),
+            null,
+            player.getX(),
+            player.getY(),
+            player.getZ(),
             getThrowSound(), SoundSource.NEUTRAL, SoundConstants.QUIET_SOUND_VOLUME, throwSoundPitch
         );
         
@@ -113,8 +113,7 @@ public abstract class AbstractThrowableTorchItem<T extends AbstractThrownTorchEn
         return InteractionResultHolder.sidedSuccess(itemstack, level.isClientSide());
     }
     
-    @Override
-    public @NotNull Projectile asProjectile(@NotNull Level level, @NotNull Position pos, @NotNull ItemStack stack, @NotNull Direction direction)
+    @Override public @NotNull Projectile asProjectile(@NotNull Level level, @NotNull Position pos, @NotNull ItemStack stack, @NotNull Direction direction)
     {
         final T projectile = this.createProjectile(pos.x(), pos.y(), pos.z(), level);
         projectile.setItem(stack);

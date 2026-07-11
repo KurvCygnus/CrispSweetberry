@@ -21,9 +21,7 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Internal
 public record KilnRecipeInput(@NotNull ItemStack stack) implements RecipeInput
 {
-    @Override
-    public @NotNull ItemStack getItem(int index) { return stack; }
+    @Override public @NotNull ItemStack getItem(int index) { return stack; }
     
-    @Override
-    public int size() { return 1; }
+    @Override public int size() { return 1; }
 }

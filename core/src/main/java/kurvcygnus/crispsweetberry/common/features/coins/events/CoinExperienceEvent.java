@@ -15,13 +15,9 @@ import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinItem;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
@@ -51,16 +47,16 @@ public final class CoinExperienceEvent
     
     @SubscribeEvent @DoNotCall static void craftPreCheck(@NotNull PlayerContainerEvent event)
     {
-        final AbstractContainerMenu menu = event.getContainer();
+        final var menu = event.getContainer();
         
         if(!(menu instanceof InventoryMenu) && !(menu instanceof CraftingMenu))
             return;
         
-        final Item resultItem = event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).getItem().getItem();
+        final var resultItem = event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).getItem().getItem();
         
         if(CoinRecipeCollectEvent.getCoinCraftRecipes().containsKey(resultItem) && resultItem instanceof AbstractCoinItem<?> coinItem)
         {
-            final Player player = event.getEntity();
+            final var player = event.getEntity();
             
             if(player.totalExperience < coinItem.getCoinType().getExperience())//? TODO: Tip players about this.
                 event.getContainer().getSlot(UNIVERSAL_RESULT_SLOT_INDEX).set(ItemStack.EMPTY);//* If player has not enough exp for coin, hide result.
@@ -69,9 +65,9 @@ public final class CoinExperienceEvent
     
     @SubscribeEvent @DoNotCall static void craftCheck(@NotNull PlayerEvent.ItemCraftedEvent event)
     {
-        final Item item = event.getCrafting().getItem();
-        final Player player = event.getEntity();
-        final Level level = player.level();
+        final var item = event.getCrafting().getItem();
+        final var player = event.getEntity();
+        final var level = player.level();
         
         if(level.isClientSide)
             return;
@@ -88,21 +84,21 @@ public final class CoinExperienceEvent
     
     private static void checkSlotsAndDispenseExp(@NotNull PlayerEvent.ItemCraftedEvent event, @NotNull Ranger ranger)
     {
-        final ItemStack result = event.getInventory().getItem(UNIVERSAL_RESULT_SLOT_INDEX);
+        final var result = event.getInventory().getItem(UNIVERSAL_RESULT_SLOT_INDEX);
         int coinCount = 0;
         
-        for(int inputIndex = ranger.min(); ranger.inRange(inputIndex); inputIndex++)
+        for(int inputIndex = ranger.min; ranger.inRange(inputIndex); inputIndex++)
         {
-            final ItemStack material = event.getInventory().getItem(inputIndex);
+            final var material = event.getInventory().getItem(inputIndex);
             
             if(material.getItem() instanceof AbstractCoinItem<?> coin)
             {
                 coinCount++;
                 
-                if(inputIndex == ranger.max() && coinCount == 1 && CoinRecipeCollectEvent.getCoinDisassembleRecipes().containsKey(result.getItem()))
+                if(inputIndex == ranger.max && coinCount == 1 && CoinRecipeCollectEvent.getCoinDisassembleRecipes().containsKey(result.getItem()))
                 {
-                    final Player player = event.getEntity();
-                    final ServerLevel level = (ServerLevel) player.level();
+                    final var player = event.getEntity();
+                    final var level = (ServerLevel) player.level();
                     
                     //*                                                         No penalty, coins will be super OP. ↓
                     ExperienceOrb.award(level, player.position(), (int) (coin.getCoinType().getExperience() * coin.getCoinType().getPenaltyRate()));

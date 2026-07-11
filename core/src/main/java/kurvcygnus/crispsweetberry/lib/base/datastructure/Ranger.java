@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger.ProcessOptions.*;
+import static kurvcygnus.crispsweetberry.lib.base.datastructure.ProcessOptions.*;
 
 /**
  * A simple range class for making range checks more readable.<br>
@@ -47,7 +47,7 @@ public final class Ranger implements Iterable<Integer>
     
     public static final Ranger BACKPACK_SLOTS_RANGE = closed(BACKPACK_SLOT_START_INDEX, BACKPACK_SLOT_END_INDEX);
     public static final Ranger HOTBAR_SLOTS_RANGE = closed(HOTBAR_SLOT_START_INDEX, HOTBAR_SLOT_END_INDEX);
-    public static final Ranger INVENTORY_SLOTS_RANGE = closed(BACKPACK_SLOTS_RANGE.min(), HOTBAR_SLOTS_RANGE.max());
+    public static final Ranger INVENTORY_SLOTS_RANGE = BACKPACK_SLOTS_RANGE.union(HOTBAR_SLOTS_RANGE).orElseThrow();
     
     public static final int START_AT_LEFT = DIRECTION.shiftTrue();
     public static final int START_AT_RIGHT = DIRECTION.shiftFalse();
@@ -55,10 +55,8 @@ public final class Ranger implements Iterable<Integer>
     public static final int INCLUSIVE = OPENNESS.shiftFalse();
     public static final int ERROR = -1;
     
-    public enum ProcessOptions implements IBitmaskedEnum<ProcessOptions> { DIRECTION, OPENNESS }
-    
-    private final int min;
-    private final int max;
+    public final int min;
+    public final int max;
     //endregion
     
     //region Constructors
@@ -108,7 +106,7 @@ public final class Ranger implements Iterable<Integer>
     
     //region Public APIs
     /**
-     * Transforms a float percentage into corresponded value in this {@code CrispRanger}.
+     * Transforms a float percentage into corresponded value in this {@code Ranger}.
      */
     public @CheckReturnValue int lerp(@Range(from = 0, to = 1) float percentage)
     {
@@ -119,7 +117,7 @@ public final class Ranger implements Iterable<Integer>
     }
     
     /**
-     * Transforms a float percentage into corresponded value in this {@code CrispRanger}.
+     * Transforms a float percentage into corresponded value in this {@code Ranger}.
      */
     public @CheckReturnValue int lerp(@Range(from = 0, to = 1) double percentage)
     {
@@ -140,24 +138,20 @@ public final class Ranger implements Iterable<Integer>
      * This method is used for searching which range does {@code index} located in.<br>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.<br>
-     *
-     * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, List)}</u>, but has unboxing penalty</i></b>.
      */
-    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, @NotNull List<Ranger> rangers)
+    @CheckReturnValue public static @NotNull OptionalInt inSafeRangers(int value, @NotNull List<Ranger> rangers)
     {
-        requireNonNull(value, "Param \"value\" must not be null!");
-        
         for(int index = 0; index < rangers.size(); index++)
         {
-            final Ranger ranger = rangers.get(index);
+            final var ranger = rangers.get(index);
             
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
             if(ranger.inRange(value))
-                return Optional.of(index);
+                return OptionalInt.of(index);
         }
         
-        return Optional.empty();
+        return OptionalInt.empty();
     }
     
     /**
@@ -169,7 +163,7 @@ public final class Ranger implements Iterable<Integer>
     {
         for(int index = 0; index < rangers.size(); index++)
         {
-            final Ranger ranger = rangers.get(index);
+            final var ranger = rangers.get(index);
             
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
@@ -184,23 +178,19 @@ public final class Ranger implements Iterable<Integer>
      * This method is used for searching which range does {@code index} located in.<br>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
-     *
-     * @apiNote <b><i>It is safer than <u>{@link #inRangers(int, Ranger...)}</u>, but has unboxing penalty</i></b>.
      */
-    @CheckReturnValue public static @NotNull Optional<Integer> inRangers(@NotNull Integer value, Ranger @NotNull ... rangers)
+    @CheckReturnValue public static @NotNull OptionalInt inSafeRangers(int value, @NotNull Ranger @NotNull ... rangers)
     {
-        requireNonNull(value, "Param \"value\" must not be null!");
-        
         for(int index = 0; index < rangers.length; index++)
         {
-            final Ranger ranger = rangers[index];
+            final var ranger = rangers[index];
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
             if(ranger.inRange(value))
-                return Optional.of(index);
+                return OptionalInt.of(index);
         }
         
-        return Optional.empty();
+        return OptionalInt.empty();
     }
     
     /**
@@ -208,11 +198,11 @@ public final class Ranger implements Iterable<Integer>
      * This could be handy in complex UI methods to make them more readable and simple with {@code switch} statement,
      * like {@link AbstractContainerMenu#quickMoveStack quickMoveStack()}.
      */
-    @CheckReturnValue public static int inRangers(int value, Ranger @NotNull ... rangers)
+    @CheckReturnValue public static int inRangers(int value, @NotNull Ranger @NotNull ... rangers)
     {
         for(int index = 0; index < rangers.length; index++)
         {
-            final Ranger ranger = rangers[index];
+            final var ranger = rangers[index];
             requireNonNull(ranger, "Ranger must not be null! Null ranger at index: " + index);
             
             if(ranger.inRange(value))
@@ -223,16 +213,19 @@ public final class Ranger implements Iterable<Integer>
     }
     
     /**
-     * Iterate the ranger, and do things.
+     * Iterates over every <b>integer value</b> within this range, feeding each to the given <u>{@link IntConsumer}</u>.
+     * <br><i>Use this if you want to avoid the boxing overhead of <u>{@link #forEach(Consumer)}</u>.</i>
      *
-     * @apiNote Despite {@code forEachInt()} is more inconvenient than {@code for(int foo: Bar)},
-     * it has no unboxing penalty.
+     * @param action the action to perform on each integer value in this range
+     * @throws NullPointerException if {@code action} is null
+     * @see #forEach(Consumer)
+     * @see PrimitiveIterator
      */
     public void forEachInt(@NotNull IntConsumer action)
     {
         requireNonNull(action, "Param \"action\" must not be null!");
         
-        final RangerPrimitiveIterator it = new RangerPrimitiveIterator();
+        final var it = new PrimitiveIterator();
         
         while(it.hasNext())
             action.accept(it.nextInt());
@@ -240,21 +233,13 @@ public final class Ranger implements Iterable<Integer>
     
     /**
      * Iterate the <u>{@link AbstractContainerMenu}</u> with ranger(and boundary check), and do <u>{@link Slot slot}</u> things.
-     *
-     * @implNote Uses <u>{@link #forEachInt}</u>, no unboxing penalty.
      */
     public <C extends AbstractContainerMenu> void forEachSlot(@NotNull C menu, @NotNull Consumer<Slot> action)
     {
         requireNonNull(menu, "Param \"menu\" must not be null!");
         requireNonNull(action, "Param \"action\" must not be null!");
         
-        this.forEachInt(
-            (index) ->
-            {
-                if(index >= 0 && index < menu.slots.size())
-                    action.accept(menu.slots.get(index));
-            }
-        );
+        this.forEachInt(index -> { if(index >= 0 && index < menu.slots.size()) action.accept(menu.slots.get(index)); });
     }
     
     /**
@@ -271,7 +256,7 @@ public final class Ranger implements Iterable<Integer>
         
         for(int index = this.min; index <= this.max; index++)
         {
-            final Slot slot = menu.getSlot(index);
+            final var slot = menu.getSlot(index);
             
             if(index >= 0 && index < menu.slots.size() && rule.test(slot))
                 return Optional.of(slot);
@@ -281,7 +266,7 @@ public final class Ranger implements Iterable<Integer>
     }
     
     /**
-     * Checks whether the param {@code that}'s range is included in <b>this {@code CrispRanger}</b>.
+     * Checks whether the param {@code that}'s range is included in <b>this {@code Ranger}</b>.
      */
     public @CheckReturnValue boolean overlaps(@Nullable Ranger that)
     {
@@ -319,6 +304,15 @@ public final class Ranger implements Iterable<Integer>
         return first.union(second);
     }
     
+    /**
+     * Returns the <b>intersection</b> of this <u>{@link Ranger}</u> and the given one.
+     *
+     * @param that the other <u>{@link Ranger}</u>
+     * @return the overlapping range if the two intersect, or <u>{@link Optional#empty()}</u> if they
+     *         <span style="color: f84b4b">do not overlap</span>
+     * @see #intersect(Ranger, Ranger) Static counterpart
+     * @see #overlaps(Ranger)
+     */
     public @CheckReturnValue @NotNull Optional<Ranger> intersect(@NotNull Ranger that)
     {
         if(!this.overlaps(that))
@@ -332,6 +326,15 @@ public final class Ranger implements Iterable<Integer>
         return Optional.of(closed(newMin, newMax));
     }
     
+    /**
+     * Returns the <b>intersection</b> of two <u>{@link Ranger}</u>s.
+     *
+     * @param first  the first <u>{@link Ranger}</u>
+     * @param second the second <u>{@link Ranger}</u>
+     * @return the overlapping range if the two intersect, or <u>{@link Optional#empty()}</u> if they
+     *         <span style="color: f84b4b">do not overlap</span>
+     * @see #intersect(Ranger) Instance counterpart
+     */
     public static @CheckReturnValue @NotNull Optional<Ranger> intersect(@NotNull Ranger first, @NotNull Ranger second)
     {
         requireNonNull(first, "Param \"first\" must not be null!");
@@ -340,25 +343,34 @@ public final class Ranger implements Iterable<Integer>
     }
     
     /**
-     * Note: <span style="color: f84b4b">This is not a setter, it is a math range method.</span><br>
-     * Chop this {@code CrispRanger}'s intersection between this and another Ranger,
-     * returns this {@code CrispRanger}'s uncommon range only.
+     * Computes the <b>set difference</b> (<i>this \ that</i>): returns the portion of <b>this</b> {@link Ranger}
+     * that does <span style="color: f84b4b">not</span> overlap with {@code that}.
+     * <ul>
+     *     <li>If the two ranges <b>do not overlap</b>, returns <u>{@link Optional#of(Object) this}</u>.</li>
+     *     <li>If they are <b>identical</b>, returns <u>{@link Optional#empty()}</u>.</li>
+     *     <li>Otherwise returns the non-overlapping portion of <b>this</b> that lies
+     *         to the <b>left</b> of {@code that}.</li>
+     * </ul>
+     * @apiNote <span style="color: f84b4b">This is not a setter, it is a math range method.</span>
+     *
+     * @param that the <u>{@link Ranger}</u> to subtract from this
+     * @return the non-overlapping portion, or empty if fully consumed
      */
     public @CheckReturnValue @NotNull Optional<Ranger> setDifference(@NotNull Ranger that)
     {
         if(!this.overlaps(that))
             return Optional.of(this);
-        
+
         if(this.equals(that))
             return Optional.empty();
-        
+
         final int newMin = Math.min(this.min, that.min);
         final int newMax = Math.min(this.max, that.max);
         return Optional.of(closed(newMin, newMax));
     }
     
     /**
-     * Slice this {@code CrispRanger} by param {@code value}, and returns sliced, new {@code CrispRanger}.
+     * Slice this {@code Ranger} by param {@code value}, and returns sliced, new {@code Ranger}.
      * @apiNote You should fill param {@code flags} with these flags:
      * <b>
      *     <u>{@link Ranger#START_AT_LEFT}</u>,
@@ -404,8 +416,8 @@ public final class Ranger implements Iterable<Integer>
     }
     
     /**
-     * Obtain the remaining range from the boundary of this {@code CrispRanger} to the integer limit,
-     * and returns this "outer" part as a new {@code CrispRanger}.
+     * Obtain the remaining range from the boundary of this {@code Ranger} to the integer limit,
+     * and returns this "outer" part as a new {@code Ranger}.
      *
      * @apiNote You should fill param {@code flags} with one of these directional flags:
      * <b>
@@ -439,9 +451,17 @@ public final class Ranger implements Iterable<Integer>
     }
     
     /**
-     * Move the entire range of this ranger by param {@code offset}, and returns an independent {@code CrispRanger}.
-     * @apiNote If both {@code min} and {@code max}'s value are overflowed, this method will return <u>{@link Optional#empty()}</u>
-     * as the result, since in that case, the new ranger will be meaningless, and useless.
+     * Shifts the entire range of this <u>{@link Ranger}</u> by the given {@code offset}, returning a <b>new</b>
+     * independent <u>{@link Ranger}</u>.
+     * <ul>
+     *     <li><span style="color: 95cc6d">Safe</span> against integer overflow — values are capped to
+     *         <u>{@link Integer#MAX_VALUE}</u> or <u>{@link Integer#MIN_VALUE}</u> as needed.</li>
+     *     <li><span style="color: f84b4b">If both {@code min} and {@code max} overflow to the same value</span>
+     *         (making the result an empty/illegal range), this method returns <u>{@link Optional#empty()}</u>.</li>
+     * </ul>
+     *
+     * @param offset the amount to shift (positive moves right, negative moves left)
+     * @return the shifted <u>{@link Ranger}</u>, or empty if the shift collapses the range
      */
     @Contract("_ -> new") public @CheckReturnValue @NotNull Optional<Ranger> offset(int offset)
     {
@@ -455,17 +475,23 @@ public final class Ranger implements Iterable<Integer>
     }
     
     /**
-     * Opens a <u>{@link IntStream}</u>, with the value of {@code CrispRanger}'s {@code min} as start value, {@code max} as end value, to do further
+     * Opens a <u>{@link IntStream}</u>, with the value of {@code Ranger}'s {@code min} as start value, {@code max} as end value, to do further
      * manipulation.
      */
     public @CheckReturnValue @NotNull IntStream stream() { return IntStream.rangeClosed(this.min, this.max); }
     
+    /**
+     * @return the <b>minimum</b> (<i>inclusive</i>) value of this <u>{@link Ranger}</u>
+     */
     public @CheckReturnValue int min() { return this.min; }
-    
+
+    /**
+     * @return the <b>maximum</b> (<i>inclusive</i>) value of this <u>{@link Ranger}</u>
+     */
     public @CheckReturnValue int max() { return this.max; }
     
     /**
-      * Returns the size of this {@code CrispRanger}.
+      * Returns the size of this {@code Ranger}.
      * <br>
      * <i>You know exclusive value is also a part of Range, right?</i>
      */
@@ -475,10 +501,10 @@ public final class Ranger implements Iterable<Integer>
      * Gets the iterator of this Ranger.
      * @deprecated
      * One most important usage of iterator is removing element while iteration, which can't be done by enhanced for-loop.<br>
-     * However, {@code CrispRanger} doesn't have elements, and to be honest, using iterator to iterate is primitive and bloat.<br>
+     * However, {@code Ranger} doesn't have elements, and to be honest, using iterator to iterate is primitive and bloat.<br>
      * <span style="color: 95cc6d">So, please use enhanced for-loop, <u>{@link Ranger#forEachInt(IntConsumer)}</u>, or <u>{@link Ranger#forEach(Consumer)}</u> instead.</span>
      */
-    @Deprecated @Override @Contract(" -> new") public @CheckReturnValue @NotNull Iterator<Integer> iterator() { return new RangerIterator(); }
+    @Deprecated @Override @Contract(" -> new") public @CheckReturnValue @NotNull java.util.Iterator<Integer> iterator() { return new Iterator(); }
     
     /**
      * {@inheritDoc}
@@ -486,13 +512,13 @@ public final class Ranger implements Iterable<Integer>
     @Override @Contract(" -> new") public @CheckReturnValue @NotNull Spliterator.OfInt spliterator()
     {
         return Spliterators.spliterator(
-            new RangerPrimitiveIterator(),
+            new PrimitiveIterator(),
             size(),
             Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL
         );
     }
     
-    @Override public boolean equals(@Nullable Object obj) { return obj instanceof Ranger that && min == that.min && max == that.max; }
+    @Override public boolean equals(@Nullable Object obj) { return this == obj || obj instanceof Ranger that && min == that.min && max == that.max; }
     
     @Override public int hashCode() { return Objects.hash(min, max); }
     
@@ -500,7 +526,7 @@ public final class Ranger implements Iterable<Integer>
     //endregion
     
     //region Inner Helpers
-    @ApiStatus.Internal private final class RangerIterator implements Iterator<Integer>
+    @ApiStatus.Internal private final class Iterator implements java.util.Iterator<Integer>
     {
         private int cursor = min;
         
@@ -514,7 +540,7 @@ public final class Ranger implements Iterable<Integer>
         }
     }
     
-    @ApiStatus.Internal private final class RangerPrimitiveIterator implements PrimitiveIterator.OfInt
+    @ApiStatus.Internal private final class PrimitiveIterator implements java.util.PrimitiveIterator.OfInt
     {
         private int cursor = min;
         
@@ -541,3 +567,5 @@ public final class Ranger implements Iterable<Integer>
     }
     //endregion
 }
+
+enum ProcessOptions implements IBitmaskedEnum<ProcessOptions> { DIRECTION, OPENNESS }

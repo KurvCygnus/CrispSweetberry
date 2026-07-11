@@ -22,8 +22,6 @@ import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
-
 /**
  * @since 1.0 Release
  */
@@ -31,7 +29,7 @@ public enum CrispCreativeTabs implements IRegistrant<CrispCreativeTabs>
 {
     INST;
     
-    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(CRISP_TAB_REGISTER); }
+    @Override public void register(@NotNull IRegisterAction registerLogic) { registerLogic.register(CRISP_TAB_REGISTER); }
     
     @Override public boolean isFeature() { return false; }
     

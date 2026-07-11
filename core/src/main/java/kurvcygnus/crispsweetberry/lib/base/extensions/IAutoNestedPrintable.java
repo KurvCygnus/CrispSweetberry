@@ -100,10 +100,10 @@ public interface IAutoNestedPrintable
     {
         @Override @ApiStatus.NonExtendable default @NotNull @Unmodifiable INestedFieldMap<T> getFields()
         {
-            final var clazz = this.getClass();
+            final var self = this.getClass();
             
-            if(!clazz.isRecord())
-                throw new AssertionError(clazz.getSimpleName() + "is not record.");
+            if(!self.isRecord())
+                throw new AssertionError(self.getSimpleName() + "is not record.");
             
             //! Notes that this shouldn't be extracted as an independent constant, because it is [[CallerSensitive]].
             final var methodLookup = MethodHandles.lookup();
@@ -111,7 +111,7 @@ public interface IAutoNestedPrintable
             
             final var blacklist = getBlacklistedFields();
             
-            for(final var component: clazz.getRecordComponents())
+            for(final var component: self.getRecordComponents())
             {
                 final var fieldName = component.getName();
                 
@@ -120,18 +120,18 @@ public interface IAutoNestedPrintable
                 
                 try
                 {
-                    final var getter = methodLookup.unreflect(component.getAccessor());
+                    final var getterHandle = methodLookup.unreflect(component.getAccessor());
                     fieldMap.put(
                         fieldName,
                         inst ->
                         {
-                            try { return getter.invokeExact(inst); }
+                            try { return getterHandle.invokeExact(inst); }
                             catch(Throwable e)
                             {
                                 throw new IllegalArgumentException(
                                     TextUtils.format(
                                         "Record {}'s getter method \"#{}\" throws an internal exception \"{}\", which shouldn't happen.",
-                                        clazz.getSimpleName(),
+                                        self.getSimpleName(),
                                         fieldName,
                                         e.getClass().getSimpleName(),
                                         e
@@ -146,7 +146,7 @@ public interface IAutoNestedPrintable
                     throw new IllegalStateException(
                         TextUtils.format(
                             "Failed to access \"{}#{}\", this usually means that this class is protected by Module System.",
-                            clazz.getSimpleName(),
+                            self.getSimpleName(),
                             fieldName
                         )
                     );
@@ -163,5 +163,5 @@ sealed interface OfBlacklisted
     /**
      * Gets a <u>{@link Set}</u> that contains the name of fields which won't be added into field map.
      */
-    @NotNull default Set<String> getBlacklistedFields() { return Set.of(); }
+    default @NotNull Set<String> getBlacklistedFields() { return Set.of(); }
 }

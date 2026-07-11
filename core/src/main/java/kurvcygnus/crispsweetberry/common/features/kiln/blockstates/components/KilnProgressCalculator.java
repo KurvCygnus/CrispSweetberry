@@ -87,7 +87,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
         
         try(final var handle = LOGGER.pushMarker("FACTOR_CAL"))
         {
-            for(final KilnRecipe recipe: recipes)
+            for(final var recipe: recipes)
             {
                 LOGGER.debug(
                     "Factor of recipe({}): {}",

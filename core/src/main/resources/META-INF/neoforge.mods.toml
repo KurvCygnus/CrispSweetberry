@@ -22,7 +22,7 @@ license="GNU GPLv3"
 
 [[mods]]
 modId="crispsweetberry"
-version="1.0 Release"
+version="1.0R"
 displayName="Crisp Sweetberry"
 
 # A URL to query for updates for this mod. See the JSON update specification https://docs.neoforged.net/docs/misc/updatechecker/
@@ -30,7 +30,7 @@ displayName="Crisp Sweetberry"
 
 displayURL="https://github.com/KurvCygnus/CrispSweetberry/"
 
-logoFile="mod_title.png"
+logoFile= "crisp_sweetberry.png"
 
 #credits=""
 

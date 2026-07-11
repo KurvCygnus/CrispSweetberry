@@ -63,5 +63,5 @@ public final class KilnConstants
     public static final Ranger KILN_OUTPUT_SLOTS_RANGE = Ranger.closed(KILN_OUTPUT_START_INDEX, KILN_OUTPUT_END_INDEX);
     public static final Ranger KILN_BACKPACK_SLOTS_RANGE = Ranger.closed(KILN_BACKPACK_START_INDEX, KILN_BACKPACK_END_INDEX);
     public static final Ranger KILN_HOTBAR_SLOTS_RANGE = Ranger.closed(KILN_HOTBAR_START_INDEX, KILN_HOTBAR_END_INDEX);
-    public static final Ranger KILN_INVENTORY_SLOTS_RANGE = Ranger.closed(KILN_BACKPACK_SLOTS_RANGE.min(), KILN_HOTBAR_SLOTS_RANGE.max());
+    public static final Ranger KILN_INVENTORY_SLOTS_RANGE = KILN_BACKPACK_SLOTS_RANGE.union(KILN_HOTBAR_SLOTS_RANGE).orElseThrow();
 }

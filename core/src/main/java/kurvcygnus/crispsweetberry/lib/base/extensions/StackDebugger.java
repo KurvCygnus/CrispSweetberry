@@ -12,6 +12,8 @@ import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.lang.StackWalker.Option;
+import java.lang.StackWalker.StackFrame;
 import java.util.Objects;
 
 /**
@@ -29,10 +31,10 @@ public final class StackDebugger
 {
     private StackDebugger() { throw new IllegalAccessError("Class \"StackDebugger\" is not meant to be instantized!"); }
 
-    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(Option.RETAIN_CLASS_REFERENCE);
     
     /**
-     * Walks the stack and returns the {@link StackWalker.StackFrame} of the
+     * Walks the stack and returns the {@link StackFrame} of the
      * <b>caller's caller</b> (skips this class and its direct invoker).
      * <p>
      * Stack layout produced by this helper (from the {@code walk} entry):
@@ -44,10 +46,10 @@ public final class StackDebugger
      *     <li>the <b>target</b> — returned</li>
      * </ol>
      */
-    private static @NotNull StackWalker.StackFrame getCallerFrame() { return getCallerFrame(4); }
+    private static @NotNull StackFrame getCallerFrame() { return getCallerFrame(4); }
     
     /**
-     * Walks the stack and returns the <u>{@link java.lang.StackWalker.StackFrame}</u> of the specific layer's caller, <b>depending on param {@code layer}</b>.
+     * Walks the stack and returns the <u>{@link StackFrame}</u> of the specific layer's caller, <b>depending on param {@code layer}</b>.
      * Stack layout basic layouts:
      * <ol start="0">
      *     <li>{@code #getCallerFrame(int)} — this method</li>
@@ -55,7 +57,7 @@ public final class StackDebugger
      *     <li><i>Unknown. From here, count layers by yourself.</i></li>
      * </ol>
      */
-    public static @NotNull StackWalker.StackFrame getCallerFrame(@Range(from = 1, to = Byte.MAX_VALUE) int layer)
+    public static @NotNull StackFrame getCallerFrame(@Range(from = 1, to = Byte.MAX_VALUE) int layer)
     {
         if(layer < 1 || layer > Integer.MAX_VALUE)
             throw new IllegalArgumentException("Param \"layer\"'s value must be between 1 and `Integer.MAX_VALUE`!");
@@ -104,7 +106,7 @@ public final class StackDebugger
      */
     public static @NotNull String getFullCallerInfo() { return toFullCallerInfo(getCallerFrame()); }
     
-    public static @NotNull String toFullCallerInfo(@NotNull StackWalker.StackFrame frame)
+    public static @NotNull String toFullCallerInfo(@NotNull StackFrame frame)
     {
         Objects.requireNonNull(frame, "Param \"frame\" must not be null!");
         return TextUtils.format(
@@ -127,7 +129,7 @@ public final class StackDebugger
      * Returns the source line number at which the caller's caller is currently
      * executing.
      *
-     * @return the line number (may be {@code -1} if native or unavailable)
+     * @return the line number (maybe {@code -1} if native or unavailable)
      * @throws java.util.NoSuchElementException if the stack is too shallow
      */
     public static int getCallerLineNumber() { return getCallerFrame().getLineNumber(); }

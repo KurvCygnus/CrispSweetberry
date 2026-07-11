@@ -8,10 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnBlock;
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnRecipeCacheEvent;
-import kurvcygnus.crispsweetberry.common.features.kiln.KilnRegistries;
+import kurvcygnus.crispsweetberry.common.features.kiln.*;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
@@ -89,7 +86,7 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnInputSlot(
                 container,
-                KILN_INPUT_SLOTS_RANGE.min(),
+                KilnConstants.KILN_INPUT_SLOTS_RANGE.min,
                 INPUT_SLOT_TOP_X_POS,
                 KILN_SLOTS_TOP_Y_POS
             )
@@ -97,7 +94,7 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnInputSlot(
                 container,
-                KILN_INPUT_SLOTS_RANGE.min() + 1,
+                KilnConstants.KILN_INPUT_SLOTS_RANGE.min + 1,
                 INPUT_SLOT_START_X_POS,
                 KILN_SLOTS_LOWER_Y_POS
             )
@@ -105,7 +102,7 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnInputSlot(
                 container,
-                KILN_INPUT_SLOTS_RANGE.max(),
+                KilnConstants.KILN_INPUT_SLOTS_RANGE.max,
                 INPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP,
                 KILN_SLOTS_LOWER_Y_POS
             )
@@ -114,7 +111,7 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnOutputSlot(
                 container,
-                KILN_OUTPUT_SLOTS_RANGE.min(),
+                KilnConstants.KILN_OUTPUT_SLOTS_RANGE.min,
                 OUTPUT_SLOT_TOP_X_POS,
                 KILN_SLOTS_TOP_Y_POS
             )
@@ -122,7 +119,7 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnOutputSlot(
                 container,
-                KILN_OUTPUT_SLOTS_RANGE.min() + 1,
+                KilnConstants.KILN_OUTPUT_SLOTS_RANGE.min + 1,
                 OUTPUT_SLOT_START_X_POS,
                 KILN_SLOTS_LOWER_Y_POS
             )
@@ -130,7 +127,7 @@ public final class KilnMenu extends AbstractContainerMenu
         this.addSlot(
             new KilnOutputSlot(
                 container,
-                KILN_OUTPUT_SLOTS_RANGE.max(),
+                KilnConstants.KILN_OUTPUT_SLOTS_RANGE.max,
                 OUTPUT_SLOT_START_X_POS + KILN_SLOTS_X_GAP,
                 KILN_SLOTS_LOWER_Y_POS
             )

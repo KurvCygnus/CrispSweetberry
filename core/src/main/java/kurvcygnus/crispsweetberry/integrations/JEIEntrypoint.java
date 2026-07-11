@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.integrations;
 
 import kurvcygnus.crispsweetberry.CrispSweetberry;
+import kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnScreen;
 import kurvcygnus.crispsweetberry.common.features.kiln.integration.KilnJEICompat;
@@ -65,7 +66,7 @@ public enum JEIEntrypoint implements IModPlugin
             JEI_KILN_RECIPE_TYPE, 
             KILN_INPUT_START_INDEX,
             KILN_SLOT_COUNT_FOR_EACH_TYPE,
-            KILN_INVENTORY_SLOTS_RANGE.min(),
+            KilnConstants.KILN_INVENTORY_SLOTS_RANGE.min,
             KILN_INVENTORY_SLOTS_RANGE.size()
         );
     }

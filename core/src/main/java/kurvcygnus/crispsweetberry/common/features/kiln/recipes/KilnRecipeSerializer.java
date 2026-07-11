@@ -26,45 +26,29 @@ import org.jetbrains.annotations.NotNull;
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
+public enum KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
 {
-    /**
-     * <b><u>{@link com.mojang.serialization.MapCodec MapCodec}</u></b> is the protagonist of <b>local serialization</b>.<br>
-     * <b><i>It defines the format of recipe JSON</b></i>.
-     */
-    private final MapCodec<KilnRecipe> mapCodec;
+    INST;
     
-    /**
-     * <b><u>{@link net.minecraft.network.codec.StreamCodec StreamCodec}</b></u> is the director of <b>network sync</b>.<br>
-     * <b><i>It makes sure that data from server won't go wrong</b></i>.
-     */
-    private final StreamCodec<RegistryFriendlyByteBuf, KilnRecipe> streamCodec;
-    
-    /**
-     * The constructor method to <b>define the codecs themselves</b>.
-     */
-    public KilnRecipeSerializer()
-    {
-        this.mapCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    private static final MapCodec<KilnRecipe> CODEC = RecordCodecBuilder.mapCodec(
+        instance -> instance.group(
             Ingredient.CODEC.fieldOf("ingredient").forGetter(KilnRecipe::ingredient),
             ItemStack.CODEC.fieldOf("result").forGetter(KilnRecipe::result),
             Codec.DOUBLE.fieldOf("cookTickRateMultiFactor").orElse(1.).forGetter(KilnRecipe::processFactor),
             Codec.FLOAT.fieldOf("experience").orElse(0F).forGetter(KilnRecipe::experience),
             Codec.BOOL.fieldOf("isBanned").orElse(true).forGetter(KilnRecipe::isBanned)
-            ).apply(instance, KilnRecipe::new)
-        );
-        
-        //* "fromNetwork" and "toNetwork" correspond to I/O respectively.
-        //! WARN: You should make sure that the content of both two methods are synchronized all the time when adding new fields.
-        this.streamCodec = StreamCodec.of(this::toNetwork, this::fromNetwork);
-    }
+        ).apply(instance, KilnRecipe::new)
+    );
     
-    @Override public @NotNull MapCodec<KilnRecipe> codec() { return this.mapCodec; }
+    private static final StreamCodec<RegistryFriendlyByteBuf, KilnRecipe> STREAM_CODEC =
+        StreamCodec.of(KilnRecipeSerializer::toNetwork, KilnRecipeSerializer::fromNetwork);
     
-    @Override public @NotNull StreamCodec<RegistryFriendlyByteBuf, KilnRecipe> streamCodec() { return this.streamCodec; }
+    @Override public @NotNull MapCodec<KilnRecipe> codec() { return CODEC; }
+    
+    @Override public @NotNull StreamCodec<RegistryFriendlyByteBuf, KilnRecipe> streamCodec() { return STREAM_CODEC; }
     
     //? TODO: Group implementation for JEI/REI compatibility.
-    private void toNetwork(RegistryFriendlyByteBuf buffer, @NotNull KilnRecipe recipe)
+    private static void toNetwork(@NotNull RegistryFriendlyByteBuf buffer, @NotNull KilnRecipe recipe)
     {
         Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.ingredient());
         ItemStack.STREAM_CODEC.encode(buffer, recipe.result());
@@ -73,10 +57,10 @@ public final class KilnRecipeSerializer implements RecipeSerializer<KilnRecipe>
         buffer.writeBoolean(recipe.isBanned());
     }
     
-    private @NotNull KilnRecipe fromNetwork(RegistryFriendlyByteBuf buffer)
+    private static @NotNull KilnRecipe fromNetwork(@NotNull RegistryFriendlyByteBuf buffer)
     {
-        final Ingredient ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
-        final ItemStack stack = ItemStack.STREAM_CODEC.decode(buffer);
+        final var ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
+        final var stack = ItemStack.STREAM_CODEC.decode(buffer);
         final double processFactor = buffer.readDouble();
         final float experience = buffer.readFloat();
         final boolean isBanned = buffer.readBoolean();

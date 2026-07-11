@@ -11,6 +11,7 @@ package kurvcygnus.crispsweetberry.lib.core.log;
 import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -188,12 +189,7 @@ public sealed interface IMarkLogger extends Logger
     }
     
     default void scopedMark(@NotNull String mark, @NotNull Consumer<IMarkerHandle> handleConsumer)
-    {
-        requireNonNull(mark, "Param \"mark\" must not be null!");
-        if(mark.isBlank())
-            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
-        this.scopedMark(MarkerFactory.getMarker(mark), handleConsumer);
-    }
+        { this.scopedMark(MarkerFactory.getMarker(AssertUtils.nonBlank(mark)), handleConsumer); }
     
     /**
      * A simple interface to implement <u>{@link AutoCloseable}</u> for <u>{@link IMarkLogger}</u>, making it usable in
@@ -797,9 +793,7 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
     static @NotNull MarkLogger markedLogger(@NotNull Class<?> clazz, @NotNull String mark)
     {
         requireNonNull(clazz, "Param \"clazz\" must not be null!");
-        requireNonNull(mark, "Param \"mark\" must not be null!");
-        if(mark.isBlank())
-            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
+        AssertUtils.nonBlank(mark);
         
         final Marker marker = MarkerFactory.getMarker(mark);
         
@@ -820,9 +814,7 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
     static @NotNull MarkLogger withMarkerSuffixes(@NotNull Class<?> clazz, @NotNull String mark)
     {
         requireNonNull(clazz, "Param \"clazz\" must not be null!");
-        requireNonNull(mark, "Param \"mark\" must not be null!");
-        if(mark.isBlank())
-            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
+        AssertUtils.nonBlank(mark);
         
         return withMarkerSuffixes(clazz, MarkerFactory.getMarker(mark));
     }
@@ -855,8 +847,7 @@ final class MarkLogger extends BaseNestedPrinter<MarkLogger> implements IMarkLog
     static @NotNull MarkLogger configuredLogger(@NotNull Class<?> clazz, @NotNull String mark, @NotNull Predicate<Level> condition, boolean adaptive)
     {
         requireNonNull(mark, "Param \"mark\" must not be null!");
-        if(mark.isBlank())
-            throw new IllegalArgumentException("Param \"mark\" must not be empty!");
+        AssertUtils.nonBlank(mark);
         
         return configuredLogger(clazz, MarkerFactory.getMarker(mark), adaptive, condition);
     }

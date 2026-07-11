@@ -10,6 +10,7 @@ package kurvcygnus.crispsweetberry.lib.base.lang;
 
 import kurvcygnus.crispsweetberry.lib.base.exceptions.ITransactionalThrowable;
 import kurvcygnus.crispsweetberry.lib.base.exceptions.StructuredException;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import org.intellij.lang.annotations.Flow;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -83,9 +84,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      */
     static <T, E extends Throwable> @NotNull IResult<T, E> ofFailed(@NotNull String message, @NotNull Function<String, E> function)
     {
-        Objects.requireNonNull(message, "Param \"message\" must not be null!");
-        if(message.isBlank())
-            throw new IllegalArgumentException("Param \"message\" must not be empty!");
+        AssertUtils.nonBlank(message);
         Objects.requireNonNull(function, "Param \"function\" must not be null!");
         return ofFailed(function.apply(message));
     }
@@ -104,9 +103,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
      */
     static <T, E extends Throwable> @NotNull IResult<T, E> ofFailed(@NotNull String message, @NotNull Throwable cause, @NotNull BiFunction<String, Throwable, E> function)
     {
-        Objects.requireNonNull(message, "Param \"message\" must not be null!");
-        if(message.isBlank())
-            throw new IllegalArgumentException("Param \"message\" must not be empty!");
+        AssertUtils.nonBlank(message);
         Objects.requireNonNull(cause, "Param \"cause\" must not be null!");
         Objects.requireNonNull(function, "Param \"function\" must not be null!");
         return ofFailed(function.apply(message, cause));
@@ -132,9 +129,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     )
     {
         Objects.requireNonNull(optional, "Param \"optional\" must not be null!");
-        Objects.requireNonNull(message, "Param \"message\" must not be null!");
-        if(message.isBlank())
-            throw new IllegalArgumentException("Param \"message\" must not be empty!");
+        AssertUtils.nonBlank(message);
         Objects.requireNonNull(function, "Param \"function\" must not be null!");
         
         return optional.<IResult<T, E>>map(SuccessResult::new).orElseGet(() -> new FailureResult<>(function.apply(message)));
@@ -149,9 +144,7 @@ public sealed interface IResult<T, E extends Throwable> permits FailureResult, S
     )
     {
         Objects.requireNonNull(optional, "Param \"optional\" must not be null!");
-        Objects.requireNonNull(message, "Param \"message\" must not be null!");
-        if(message.isBlank())
-            throw new IllegalArgumentException("Param \"message\" must not be empty!");
+        AssertUtils.nonBlank(message);
         Objects.requireNonNull(cause, "Param \"cause\" must not be null!");
         Objects.requireNonNull(function, "Param \"function\" must not be null!");
         

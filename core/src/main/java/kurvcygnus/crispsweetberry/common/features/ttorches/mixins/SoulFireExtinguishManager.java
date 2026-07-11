@@ -45,7 +45,7 @@ public abstract class SoulFireExtinguishManager implements IMixinCaster<Entity>
     @Inject(method = "clearFire", at = @At("HEAD"), cancellable = true)
     private void pkFire(@NotNull CallbackInfo callbackInfo)
     {
-        final Entity entity = _$csb_lib_getSelf();
+        final var entity = _$csb_lib_getSelf();
 
         if(_$csb_willExtinguish(entity))
             callbackInfo.cancel();
@@ -74,7 +74,7 @@ public abstract class SoulFireExtinguishManager implements IMixinCaster<Entity>
     @Inject(method = "baseTick", at = @At("HEAD"))
     private void clearUpTag(@NotNull CallbackInfo callbackInfo)
     {
-        final Entity entity = _$csb_lib_getSelf();
+        final var entity = _$csb_lib_getSelf();
         
         if(entity.level().isClientSide || entity.getRemainingFireTicks() > 0)
             return;
@@ -93,7 +93,7 @@ public abstract class SoulFireExtinguishManager implements IMixinCaster<Entity>
     @Inject(method = "setRemainingFireTicks", at = @At("HEAD"), cancellable = true)
     private void refuseSetFireTicks(@NotNull CallbackInfo callbackInfo)
     {
-        final Entity entity = _$csb_lib_getSelf();
+        final var entity = _$csb_lib_getSelf();
         
         if(entity.level().isClientSide)
             return;

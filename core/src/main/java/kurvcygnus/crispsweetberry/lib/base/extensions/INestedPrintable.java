@@ -186,10 +186,10 @@ public interface INestedPrintable<T extends INestedPrintable<T>> extends ICRTPCa
         
         final var map = new LinkedHashMap<String, Function<@NotNull T, ? extends @Nullable Object>>(length + length % 2, 1F);
         
-        AssertUtils.nonNullCheckIteration(
-            "pairs",
+        AssertUtils.nonNullCheckArrayIteration(
             pairs,
-            pair -> map.put(pair.getKey(), pair.getValue())
+            "pairs",
+            pair -> pair.accept(map::put)
         );
         
         return new NestedFieldMap<>(map);

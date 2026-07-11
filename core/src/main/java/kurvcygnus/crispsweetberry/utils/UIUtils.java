@@ -30,7 +30,7 @@ import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.SL
 /**
  * A collection of some simple helpers for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu UI stuff}</u>.
  * @apiNote Being tortured by {@code AbstractMenu#moveItemStackTo()}?<br>
- * <u>{@link Ranger#inRangers CrispRanger#inRangers()}</u> may help you out.
+ * <u>{@link Ranger#inSafeRangers CrispRanger#inRangers()}</u> may help you out.
  * @since 1.0 Release
  */
 public final class UIUtils
@@ -105,7 +105,7 @@ public final class UIUtils
         requireNonNull(ranger, "Param \"ranger\" cannot be null!");
         requireNonNull(predicate, "Param \"predicate\" cannot be null!");
         
-        return predicate.test(interactStack, ranger.min(), ranger.max() + CORRECTION_INDEX, reverseDirection);
+        return predicate.test(interactStack, ranger.min, ranger.max + CORRECTION_INDEX, reverseDirection);
     }
     
     public static @NotNull MutableComponent dimmedText(@NotNull String transKey) { return dimmedText(transKey, false); }

@@ -44,14 +44,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public enum CarryCrateRegistries implements IRegistrant<CarryCrateRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerByList(REGISTRIES, registerLogic); }
+    @Override public void register(@NotNull IRegisterAction registerLogic) { registerByList(REGISTRIES, registerLogic); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 4); }
     

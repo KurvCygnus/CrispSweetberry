@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches.client.events;
 
+import com.google.errorprone.annotations.DoNotCall;
 import com.mojang.logging.LogUtils;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchRegistries;
@@ -32,8 +33,7 @@ public final class ThrowableTorchesRendererRegisterEvent
 {
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    @SubscribeEvent
-    public static void registerRenderEvents(final EntityRenderersEvent.@NotNull RegisterRenderers event)
+    @SubscribeEvent @DoNotCall static void registerRenderEvents(final EntityRenderersEvent.@NotNull RegisterRenderers event)
     {
         LOGGER.info("Registering EntityRenderers...");
         event.registerEntityRenderer(TTorchRegistries.THROWN_TORCH.get(), ThrownTorchRenderer::new);

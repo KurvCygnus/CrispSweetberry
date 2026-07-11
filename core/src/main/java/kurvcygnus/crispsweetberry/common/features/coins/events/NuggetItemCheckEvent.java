@@ -12,12 +12,8 @@ import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.ICoinType;
 import kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -26,7 +22,6 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 //? TODO: Compatibility for muti nuggets
@@ -56,11 +51,12 @@ public final class NuggetItemCheckEvent
         
         LOGGER.debug("Tags updated! Start searching copper & diamond's nugget...");
         
-        final Registry<Item> itemRegistry = event.getRegistryAccess().registryOrThrow(Registries.ITEM);
+        final var itemRegistry = event.getRegistryAccess().registryOrThrow(Registries.ITEM);
         
-        final Optional<HolderSet.Named<Item>> nuggetTag = itemRegistry.getTag(Tags.Items.NUGGETS);
+        final var nuggetTag = itemRegistry.getTag(Tags.Items.NUGGETS);
         
-        nuggetTag.ifPresent(holders ->
+        nuggetTag.ifPresent(
+            holders ->
             {
                 copperNuggetSupplier = () -> Items.AIR;
                 diamondNuggetSupplier = () -> Items.AIR;
@@ -68,8 +64,8 @@ public final class NuggetItemCheckEvent
                 for(final var holder: holders)
                     holder.unwrapKey().ifPresent(key ->
                         {
-                            final ResourceLocation id = key.location();
-                            final String path = id.getPath();
+                            final var id = key.location();
+                            final var path = id.getPath();
                             
                             if(path.contains("copper_nugget"))//! Currently, this is the best way to find correspond item with no exceptions allowed.
                                 copperNuggetSupplier = holder::value;
@@ -86,7 +82,7 @@ public final class NuggetItemCheckEvent
         {
             for(final var type: VanillaCoinType.VALUES)
             {
-                final ItemStack nuggetStack = type.nuggetItem().getDefaultInstance();
+                final var nuggetStack = type.nuggetItem().getDefaultInstance();
                 
                 if(!nuggetStack.is(Tags.Items.NUGGETS))
                     LOGGER.warn(

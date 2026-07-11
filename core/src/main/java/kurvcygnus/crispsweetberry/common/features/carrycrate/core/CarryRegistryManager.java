@@ -22,7 +22,9 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.ICarry
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.lib.base.lang.ISealableBox;
 import kurvcygnus.crispsweetberry.lib.base.lang.Pair;
+import kurvcygnus.crispsweetberry.lib.base.stream.Invoker;
 import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.IChecker;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
@@ -74,7 +76,6 @@ public enum CarryRegistryManager implements ICarryRegistryView
      * It will grantee the safety of all registry maps after the <u>{@link CarryRegistryManager#register(FMLLoadCompleteEvent) registration}</u> completed.
      */
     private static final ISealableBox<Boolean> FROZEN = ISealableBox.assignableAtomic(Boolean.FALSE);
-    
     private static final Map<BlockEntityType<?>, ICarryBlockEntityAdapterFactory<?, ?>> BLOCK_ENTITY_REGISTRY = new HashMap<>();
     
     /**
@@ -82,7 +83,6 @@ public enum CarryRegistryManager implements ICarryRegistryView
      * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
      */
     private static final Map<ResourceLocation, ICarryBlockEntityAdapterFactory<?, ?>> RECOVERY_BLOCK_ENTITY_REGISTRY = new HashMap<>();
-    
     private static final Map<Block, ICarryBlockAdapterFactory<?, ?>> BLOCK_REGISTRY = new HashMap<>();
     
     /**
@@ -90,7 +90,6 @@ public enum CarryRegistryManager implements ICarryRegistryView
      * <u>{@link CarryEngine#startEngine(ServerStartedEvent) listener rebulit}</u>.
      */
     private static final Map<ResourceLocation, ICarryBlockAdapterFactory<?, ?>> RECOVERY_BLOCK_REGISTRY = new HashMap<>();
-    
     private static final Map<EntityType<?>, ICarryEntityAdapterFactory<?, ?>> ENTITY_REGISTRY = new HashMap<>();
     
     /**
@@ -105,16 +104,15 @@ public enum CarryRegistryManager implements ICarryRegistryView
      */
     private static final Map<ResourceLocation, Component> TRANSLATION_REGISTRY = new HashMap<>();
     
-    private static final Map<CarryType, Map<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_LOOKUP =
-        DefinitionUtils.createImmutableEnumMapWithCheck(
-            CarryType.class,
-            map ->
-            {
-                map.put(CarryType.BLOCK_ENTITY, BLOCK_ENTITY_REGISTRY);
-                map.put(CarryType.ENTITY, ENTITY_REGISTRY);
-                map.put(CarryType.BLOCK, BLOCK_REGISTRY);
-            }
-        );
+    private static final Map<CarryType, Map<?, ? extends IBaseCarryAdapterFactory<?, ?>>> REGISTRY_LOOKUP = DefinitionUtils.createImmutableEnumMapWithCheck(
+        CarryType.class,
+        map ->
+        {
+            map.put(CarryType.BLOCK_ENTITY, BLOCK_ENTITY_REGISTRY);
+            map.put(CarryType.ENTITY, ENTITY_REGISTRY);
+            map.put(CarryType.BLOCK, BLOCK_REGISTRY);
+        }
+    );
     
     private static final Map<CarryType, Map<ResourceLocation, ? extends IBaseCarryAdapterFactory<?, ?>>> RECOVER_LOOKUP =
         DefinitionUtils.createImmutableEnumMapWithCheck(
@@ -128,7 +126,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
         );
     
     private static final IChecker.OfNoArg<IllegalStateException> FROZEN_CHECKER =
-        AssertUtils.produceChecker(FROZEN, "Attempting registration after registry frozen is not allowed!", IllegalStateException::new, true);
+        AssertUtils.produceChecker(FROZEN::orThrow, "Attempting registration after registry frozen is not allowed!", IllegalStateException::new, true);
     
     private static final IChecker.OfOneArg<Object, IllegalStateException> BOUND_CHECKER = AssertUtils.produceChecker(
         target ->
@@ -194,14 +192,13 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @SuppressWarnings("unchecked")//! Unsafe casting. But [[ClassCastException]] is avoided by [[Stream#filter]].
     private static void autoEntityBind()
     {
-        BuiltInRegistries.ENTITY_TYPE.stream().
+        Invoker.unit(BuiltInRegistries.ENTITY_TYPE).
             filter(entityType -> AUTO_BIND_CATEGORIES.contains(entityType.getCategory())).
+            peek(entityType -> LOGGER.debug("Captured entity \"{}\" as friendly entity.", entityType.getDescriptionId())).
             filter(
                 entityType ->
                 {
-                    LOGGER.debug("Captured entity \"{}\" as friendly entity.", entityType.getDescriptionId());
-                    
-                    final var aabb = entityType.getSpawnAABB(0D, 0D, 0D);
+                    final var aabb = entityType.getSpawnAABB(0., 0., 0.);
                     final double entityVolume = aabb.getXsize() * aabb.getYsize() * aabb.getZsize();
                     final boolean isAcceptable = entityVolume <= AdaptiveAnimalCarryAdapter.MAX_ACCEPTABLE_ENTITY_HEIGHT_VOLUME;
                     
@@ -216,27 +213,26 @@ public enum CarryRegistryManager implements ICarryRegistryView
                     return isAcceptable;
                 }
             ).
-            forEach(
-                animalType ->
-                {
-                    //! Wandering trader is [[MobCategory#CREATURE]], despite that category should not contain it,
-                    //! but this it is not a bug, as our Minecraft Devs always saying, IT IS A FEATURE, A GOD DAMMIT AND STUPID FEATURE.
-                    if(animalType.equals(EntityType.WANDERING_TRADER))
-                        return;
-                    
-                    //! Seems hacky? Actually, this is the best reality solution of such a situation.
-                    //! [[EntityType]] has a method [[EntityType#getBaseClass()]], which actually turns out to be hard-coded, returning "Entity.class" only.
-                    //! So, Animal.class#isAssignableFrom(Class<?>) will not work.
-                    //! Then, how about [[EntityTypeTest#forClass(Class<F>)]]?
-                    //! That is reliable, but all of its return values are not [[EntityType]], we can't use it.
-                    //! What about [[EntityType#create(Level)]]?
-                    //! [[Level]] is unaccessible during game initialization, doing that is even more hacky than this.
-                    //! Besides, dummy level is a hard stuff, this doesn't worth it.
-                    //! At least [[TagKey]] will definitely work, right?
-                    //! NO. NeoForge's [[Tags]] has removed Animal Tag 😭.
-                    //! Choosing any of these implementations will just get cooked.
-                    CarryRegistryManager.INST.unsafeRegisterEntity((EntityType<? extends LivingEntity>) animalType, AdaptiveAnimalCarryAdapter::new);
-                }
+            //! Wandering trader is [[MobCategory#CREATURE]], despite that category should not contain it,
+            //! but this it is not a bug, as our Minecraft Devs always saying, IT IS A FEATURE, A GOD DAMMIT AND STUPID FEATURE.
+            filter(it -> !it.equals(EntityType.WANDERING_TRADER)).
+            map(it -> (EntityType<? extends LivingEntity>) it).
+            //! Seems hacky? Actually, this is the best reality solution of such a situation.
+            //! [[EntityType]] has a method [[EntityType#getBaseClass()]], which actually turns out to be hard-coded, returning "Entity.class" only.
+            //! So, Animal.class#isAssignableFrom(Class<?>) will not work.
+            //! Then, how about [[EntityTypeTest#forClass(Class<F>)]]?
+            //! That is reliable, but all of its return values are not [[EntityType]], we can't use it.
+            //! What about [[EntityType#create(Level)]]?
+            //! [[Level]] is unaccessible during game initialization, doing that is even more hacky than this.
+            //! Besides, dummy level is a hard stuff, this doesn't worth it.
+            //! At least [[TagKey]] will definitely work, right?
+            //! NO. NeoForge's [[Tags]] has removed Animal Tag 😭.
+            //! Choosing any of these implementations will just get cooked.
+            invoke(
+                animalType -> CarryRegistryManager.INST.unsafeRegisterEntity(
+                    animalType,
+                    AdaptiveAnimalCarryAdapter::new
+                )
             );
     }
     //endregion
@@ -263,16 +259,16 @@ public enum CarryRegistryManager implements ICarryRegistryView
     {
         FROZEN_CHECKER.check();
         
-        requireNonNull(blockEntityTypes, "Param \"blockEntityTypes\" must not be null!");
         requireNonNull(carryAdapterBlockEntityFactory, "Param \"carryAdapterFactory\" must not be null!");
-        
-        for(final BlockEntityType<? extends E> blockEntityType: blockEntityTypes)
-        {
-            requireNonNull(blockEntityType, "\"blockEntityType\" must not be null!");
-            requireNonNull(BlockEntityType.getKey(blockEntityType), "Param \"blockEntityType\"'s ResourceLocation must not be null!");
-            
-            registerBlockEntity(blockEntityType, carryAdapterBlockEntityFactory);
-        }
+        AssertUtils.nonNullCheckIteration(
+            blockEntityTypes,
+            "blockEntityTypes",
+            blockEntityType ->
+            {
+                requireNonNull(BlockEntityType.getKey(blockEntityType), "Param \"blockEntityType\"'s ResourceLocation must not be null!");
+                registerBlockEntity(blockEntityType, carryAdapterBlockEntityFactory);
+            }
+        );
     }
     
     @Override public <B extends Block, A extends AbstractBlockCarryAdapter<B>>
@@ -292,16 +288,16 @@ public enum CarryRegistryManager implements ICarryRegistryView
     {
         FROZEN_CHECKER.check();
         
-        requireNonNull(blocks, "Param \"blocks\" must not be null!");
         requireNonNull(carryAdapterBlockAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");
-        
-        for(final B block: blocks)
-        {
-            requireNonNull(block, "Param \"block\" must not be null!");
-            requireNonNull(BuiltInRegistries.BLOCK.getKey(block), "Param \"block\"'s ResourceLocation must not be null!");
-            
-            registerBlock(block, carryAdapterBlockAdapterFactory);
-        }
+        AssertUtils.nonNullCheckIteration(
+            blocks,
+            "blocks",
+            block ->
+            {
+                requireNonNull(BuiltInRegistries.BLOCK.getKey(block), "Param \"block\"'s ResourceLocation must not be null!");
+                registerBlock(block, carryAdapterBlockAdapterFactory);
+            }
+        );
     }
     
     @Override public <E extends LivingEntity, A extends AbstractEntityCarryAdapter<E>>
@@ -321,16 +317,16 @@ public enum CarryRegistryManager implements ICarryRegistryView
     {
         FROZEN_CHECKER.check();
         
-        requireNonNull(entityTypes, "Param \"entityTypes\" must not be null!");
         requireNonNull(carryEntityAdapterFactory, "Param \"carryAdapterFactory\" must not be null!");
-        
-        for(final EntityType<? extends E> entityType: entityTypes)
-        {
-            requireNonNull(entityType, "Param \"entityType\" must not be null!");
-            requireNonNull(EntityType.getKey(entityType), "Param \"entityType\"'s ResourceLocation must not be null!");
-            
-            registerEntity(entityType, carryEntityAdapterFactory);
-        }
+        AssertUtils.nonNullCheckIteration(
+            entityTypes,
+            "entityTypes",
+            entityType ->
+            {
+                requireNonNull(EntityType.getKey(entityType), "Param \"entityType\"'s ResourceLocation must not be null!");
+                registerEntity(entityType, carryEntityAdapterFactory);
+            }
+        );
     }
     
     @SuppressWarnings("unchecked")//! javac is too stupid to deduce generics, so we choose runtime inspection instead.
@@ -351,9 +347,9 @@ public enum CarryRegistryManager implements ICarryRegistryView
         
         final var castedEntity = (EntityType<LivingEntity>) entityType;
         final var castedFactory = (ICarryEntityAdapterFactory<LivingEntity, AbstractEntityCarryAdapter<LivingEntity>>) carryEntityAdapterFactory;
-        final ResourceLocation resourceLocation = EntityType.getKey(entityType);
+        final var resourceLocation = EntityType.getKey(entityType);
         
-        final String translationID = entityType.getDescriptionId();
+        final var translationID = entityType.getDescriptionId();
         LOGGER.debug("Registered animal \"{}\".", translationID);
         
         ENTITY_REGISTRY.put(castedEntity, castedFactory);
@@ -385,7 +381,6 @@ public enum CarryRegistryManager implements ICarryRegistryView
         BOUND_CHECKER.check(block);
         
         final var translationID = block.getDescriptionId();
-        
         final var resourceLocation = BuiltInRegistries.BLOCK.getKey(block);
         
         BLOCK_REGISTRY.put(block, carryAdapterBlockAdapterFactory);
@@ -401,7 +396,6 @@ public enum CarryRegistryManager implements ICarryRegistryView
         BOUND_CHECKER.check(entityType);
         
         final var translationID = entityType.getDescriptionId();
-        
         final var resourceLocation = EntityType.getKey(entityType);
         
         ENTITY_REGISTRY.put(entityType, carryEntityAdapterFactory);
@@ -413,7 +407,7 @@ public enum CarryRegistryManager implements ICarryRegistryView
     @SuppressWarnings("ConstantValue")//! Defensive check.
     private void validateAdapterData(@NotNull Object obj, @NotNull IBaseCarryAdapterFactory<?, ?> baseCarryAdapterFactory)
     {
-        final AbstractCarryAdapter<?> adapter = baseCarryAdapterFactory.create(null);
+        final var adapter = baseCarryAdapterFactory.create(null);
         
         unsignedRequired(adapter.getPenaltyRate(), "penaltyRate");
         

@@ -13,7 +13,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import kurvcygnus.crispsweetberry.common.features.coins.CoinRegistries;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinStackBlock;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
@@ -41,13 +40,11 @@ public record SetCoinCountFunction(List<LootItemCondition> predicates) implement
     
     public SetCoinCountFunction() { this(List.of()); }
     
-    @Override
-    public @NotNull LootItemFunctionType<? extends LootItemFunction> getType() { return CoinRegistries.SET_COIN_COUNT_FUNCTION.value(); }
+    @Override public @NotNull LootItemFunctionType<? extends LootItemFunction> getType() { return CoinRegistries.SET_COIN_COUNT_FUNCTION.value(); }
     
-    @Override
-    public ItemStack apply(@NotNull ItemStack stack, @NotNull LootContext context)
+    @Override public ItemStack apply(@NotNull ItemStack stack, @NotNull LootContext context)
     {
-        final BlockState state = context.getParamOrNull(LootContextParams.BLOCK_STATE);
+        final var state = context.getParamOrNull(LootContextParams.BLOCK_STATE);
         if(state == null) 
             return stack;
         

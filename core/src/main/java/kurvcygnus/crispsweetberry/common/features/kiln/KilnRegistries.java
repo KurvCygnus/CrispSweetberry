@@ -46,7 +46,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.CrispSweetberry.NAMESPACE;
@@ -61,7 +60,7 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerByList(REGISTRIES, registerLogic); }
+    @Override public void register(@NotNull IRegisterAction registerLogic) { registerByList(REGISTRIES, registerLogic); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 1); }
     
@@ -152,7 +151,7 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
     );
     
     public static final DeferredHolder<RecipeSerializer<?>, KilnRecipeSerializer> KILN_SERIALIZER = KILN_SERIALIZER_REGISTER.register(
-        "kiln", KilnRecipeSerializer::new
+        "kiln", () -> KilnRecipeSerializer.INST
     );
     
     public static final Supplier<MenuType<KilnMenu>> KILN_MENU_TYPE = KILN_MENU_REGISTER.register(

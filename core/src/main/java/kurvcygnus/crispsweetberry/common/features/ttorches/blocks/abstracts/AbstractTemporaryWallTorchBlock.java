@@ -68,33 +68,30 @@ public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporar
         this.addExtraStateDefinition(builder);
     }
     
-    @Override
-    protected final @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
+    @Override protected final @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context)
         { return COLLUSION_BOX.get(state.getValue(FACING)); }
     
-    @Override
-    public final boolean canSurvive(@NotNull BlockState state, @NotNull LevelReader level, @NotNull BlockPos pos)
+    @Override public final boolean canSurvive(@NotNull BlockState state, @NotNull LevelReader level, @NotNull BlockPos pos)
     {
-        final Direction facing = state.getValue(FACING);
-        final BlockPos blockpos = pos.relative(facing.getOpposite());
-        final BlockState blockstate = level.getBlockState(blockpos);
+        final var facing = state.getValue(FACING);
+        final var blockpos = pos.relative(facing.getOpposite());
+        final var blockstate = level.getBlockState(blockpos);
         
         return blockstate.isFaceSturdy(level, blockpos, facing);
     }
     
-    @Override
-    public @Nullable BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
+    @Override public @Nullable BlockState getStateForPlacement(@NotNull BlockPlaceContext context)
     {
-        BlockState stateToPlace = this.defaultBlockState();
-        final LevelReader levelreader = context.getLevel();
-        final BlockPos blockPos = context.getClickedPos();
-        final Direction[] possibleDirections = context.getNearestLookingDirections();
+        var stateToPlace = this.defaultBlockState();
+        final var levelreader = context.getLevel();
+        final var blockPos = context.getClickedPos();
+        final var possibleDirections = context.getNearestLookingDirections();
         
-        for(final Direction direction: possibleDirections)
+        for(final var direction: possibleDirections)
         {
             if(direction.getAxis().isHorizontal())
             {
-                final Direction currentDirection = direction.getOpposite();
+                final var currentDirection = direction.getOpposite();
                 stateToPlace = stateToPlace.setValue(FACING, currentDirection);
                 
                 if(stateToPlace.canSurvive(levelreader, blockPos))
@@ -105,17 +102,19 @@ public abstract class AbstractTemporaryWallTorchBlock<T extends AbstractTemporar
         return null;
     }
     
-    @Override
-    protected final @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction facing, @NotNull BlockState facingState,
-        @NotNull LevelAccessor level, @NotNull BlockPos currentPos, @NotNull BlockPos facingPos)
-            { return facing.getOpposite() == state.getValue(FACING) && !state.canSurvive(level, currentPos) ? Blocks.AIR.defaultBlockState() : state; }
+    @Override protected final @NotNull BlockState updateShape(
+        @NotNull BlockState state,
+        @NotNull Direction facing,
+        @NotNull BlockState facingState,
+        @NotNull LevelAccessor level,
+        @NotNull BlockPos currentPos,
+        @NotNull BlockPos facingPos
+    ) { return facing.getOpposite() == state.getValue(FACING) && !state.canSurvive(level, currentPos) ? Blocks.AIR.defaultBlockState() : state; }
     
-    @Override
-    protected final @NotNull BlockState rotate(@NotNull BlockState state, @NotNull Rotation rotation)
+    @Override protected final @NotNull BlockState rotate(@NotNull BlockState state, @NotNull Rotation rotation)
         { return state.setValue(FACING, rotation.rotate(state.getValue(FACING))); }
     
-    @Override
-    protected final @NotNull BlockState mirror(@NotNull BlockState state, @NotNull Mirror mirror)
+    @Override protected final @NotNull BlockState mirror(@NotNull BlockState state, @NotNull Mirror mirror)
         { return this.rotate(state, mirror.getRotation(state.getValue(FACING))); }
     
     protected void addExtraStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {}

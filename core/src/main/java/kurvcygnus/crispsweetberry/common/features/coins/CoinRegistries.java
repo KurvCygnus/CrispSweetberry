@@ -30,7 +30,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static kurvcygnus.crispsweetberry.common.features.coins.vanilla.VanillaCoinType.*;
@@ -43,7 +42,7 @@ public enum CoinRegistries implements IRegistrant<CoinRegistries>
 {
     INST;
     
-    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerByList(REGISTRIES, registerLogic); }
+    @Override public void register(@NotNull IRegisterAction registerLogic) { registerByList(REGISTRIES, registerLogic); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 3); }
     

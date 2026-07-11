@@ -48,6 +48,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,8 +66,7 @@ import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
  */
 public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
 {
-    //  region
-    //* Constants, Fields & Data Basics
+    //region Constants, Fields & Data Basics
     /**
      * The tier for water contraction, named "GONE" as the fire is gone.
      */
@@ -109,8 +109,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected final Map<Byte, ParticleOptions> longerParticleStateList = processLongerParticleStateList(getLongerParticleStateList());
     
-    @Override
-    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder)
+    @Override protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder)
     {
         super.defineSynchedData(builder);
         builder.define(FIRE_TIER_ID, TIER_NORM);
@@ -129,8 +128,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     protected abstract @NotNull Item getDefaultItem();
     //endregion
     
-    //  region
-    //* Constructors
+    //region Constructors
     /**
      * The construct method for <b>entity registry</b>.
      */
@@ -174,13 +172,12 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     ) { super(childrenClazzValue, shooter, level); }
     //endregion
     
-    //  region
-    //* Lifecycles & Logics
+    //region Lifecycles & Logics
     @Override public void tick()
     {
         super.tick();
         
-        final Level level = this.level();
+        final var level = this.level();
         try(final var handle = LOGGER.pushMarker("TICK"))
         {
             if(!level.isClientSide)
@@ -214,7 +211,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     if(pos == null)
                         return;
                     
-                    final BlockState light = TTorchRegistries.FAKE_LIGHT_BLOCK.value().defaultBlockState().
+                    final var light = TTorchRegistries.FAKE_LIGHT_BLOCK.value().defaultBlockState().
                         setValue(LIGHT_PROPERTY, getTier() == TIER_GONE ? TTorchUtilCollection.LightState.DARK : TTorchUtilCollection.LightState.FULL_BRIGHT);
                     
                     LOGGER.debug("Current isn't in any liquid, emulate lighting.");
@@ -238,9 +235,9 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     {
         final BlockPos[] candidates = { pos, pos.above(), pos.below() };
         
-        for(final BlockPos candidate: candidates)
+        for(final var candidate: candidates)
         {
-            final BlockState state = level.getBlockState(candidate);
+            final var state = level.getBlockState(candidate);
             
             if(state.isAir())
                 return candidate;
@@ -251,7 +248,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     @Override protected void onHitEntity(@NotNull EntityHitResult result)
     {
-        final Entity entity = result.getEntity();
+        final var entity = result.getEntity();
         super.onHitEntity(result);
         
         final boolean shouldExtendBurnTicks = entity.getRemainingFireTicks() <= HIT_STD_MAX_TICKS * getTier();
@@ -294,8 +291,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                 return;
             }
             
-            final BlockPos hitPos = result.getBlockPos();
-            final Direction hitSide = result.getDirection();
+            final var hitPos = result.getBlockPos();
+            final var hitSide = result.getDirection();
             final @Nullable BlockPos placementPos;
             final @Nullable BlockState stateToPlace;
             
@@ -370,8 +367,8 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected boolean canBeActuallyPlaced(@NotNull BlockPos pos)
     {
-        final Block posBlock = this.level().getBlockState(pos).getBlock();
-        final BlockState posBlockState = this.level().getBlockState(pos);
+        final var posBlock = this.level().getBlockState(pos).getBlock();
+        final var posBlockState = this.level().getBlockState(pos);
         
         if(isReplaceable(posBlock, posBlockState))
         {
@@ -420,8 +417,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     }
     //endregion
     
-    //  region
-    //* Utils
+    //region Utils
     protected void displayDestroyParticle() { this.level().broadcastEntityEvent(this, (byte) ENTITY_DESTROY_EVENT_ID); }
     
     /**
@@ -479,8 +475,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
         { this.level().playSound(null, getOnPos(), sound, soundSource, volume, SoundConstants.NORMAL_SOUND_PITCH); }
     //endregion
     
-    //  region
-    //* Misc & Hooks
+    //region Misc & Hooks
     /**
      * Get the list of Longer Particles.
      * @apiNote Length of this array should be neither 1, or 3, 1 is only used in the case of <u>{@link #shouldCheckLiquids()}</u> always returns {@code false}.
@@ -504,7 +499,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
     
     protected boolean shouldDiscard(@NotNull HitResult result) { return !this.level().isClientSide; }
     
-    protected void addNewSynchedData(SynchedEntityData.@NotNull Builder builder) {}
+    @ApiStatus.OverrideOnly protected void addNewSynchedData(SynchedEntityData.@NotNull Builder builder) {}
     
     protected boolean shouldCheckLiquids() { return true; }
     protected boolean shouldShowNoSmokeWhenBurnedOut() { return true; }

@@ -38,17 +38,9 @@ public final class TriVariant<L, M, R> extends BaseNestedPrinter<TriVariant<L, M
     
     private TriVariant(@Nullable L left, @Nullable M middle, @Nullable R right)
     {
-        int count = 0;
-        
-        if(left == null)
-            count++;
-        if(middle == null)
-            count++;
-        if(right == null)
-            count++;
-        
-        if(count == 3)
+        if(left == null && middle == null && right == null)
             throw new IllegalStateException("All values are null, this container requires at least 1 variable to be non-null.");
+        
         this.left = left;
         this.middle = middle;
         this.right = right;

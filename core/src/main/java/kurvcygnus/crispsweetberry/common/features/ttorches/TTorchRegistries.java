@@ -48,7 +48,6 @@ import snownee.jade.api.IWailaClientRegistration;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.blocks.redstone.TRedstoneTorchExtensions.*;
 
@@ -63,7 +62,7 @@ public enum TTorchRegistries implements IRegistrant<TTorchRegistries>
     //  region Registry Basics
     INST;
     
-    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerByList(REGISTRIES, registerLogic); }
+    @Override public void register(@NotNull IRegisterAction registerLogic) { registerByList(REGISTRIES, registerLogic); }
     
     @Override public @NotNull PriorityPair getPriority() { return ofPriority(PriorityRange.FEATURE, 2); }
     

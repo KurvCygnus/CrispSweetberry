@@ -11,7 +11,6 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -102,7 +101,7 @@ public abstract class AbstractTemporaryTorchBehavior
         if(!isRelitable() || this.getTorchBlock().isStillBright(state))
             return ItemInteractionResult.FAIL;
         
-        final Item itemInHand = stack.getItem();
+        final var itemInHand = stack.getItem();
         
         if(!canLitStuff(stack, itemInHand))
             return ItemInteractionResult.FAIL;
@@ -134,8 +133,8 @@ public abstract class AbstractTemporaryTorchBehavior
     {
         final double verticalParticleSpeed = (random.nextDouble() * 2D - 1D) * .03D;
         
-        final LightState oldLightState = oldState.getValue(LIGHT_PROPERTY);
-        final BlockState newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());
+        final var oldLightState = oldState.getValue(LIGHT_PROPERTY);
+        final var newState = oldState.setValue(LIGHT_PROPERTY, oldLightState.getNextState());
         
         //! Terminates this method if the attachTag is already dark.
         if(oldLightState == LightState.DARK)
@@ -147,8 +146,14 @@ public abstract class AbstractTemporaryTorchBehavior
             level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, SoundConstants.NORMAL_SOUND_PITCH);
         }
         else
-            level.addParticle(this.getTorchBlock().getSubTorchParticle(), pos.getX(), pos.getY(), pos.getZ(),
-                X_NO_SPEED, verticalParticleSpeed, Z_NO_SPEED
+            level.addParticle(
+                this.getTorchBlock().getSubTorchParticle(),
+                pos.getX(),
+                pos.getY(),
+                pos.getZ(),
+                X_NO_SPEED,
+                verticalParticleSpeed,
+                Z_NO_SPEED
             );
         
         //* Wait for next attachTag's change.
@@ -167,7 +172,7 @@ public abstract class AbstractTemporaryTorchBehavior
         
         if(isWallTorch)//* Wall torch's particle position is different from standard one, of course.
         {
-            final Direction direction = state.getValue(FACING).getOpposite();
+            final var direction = state.getValue(FACING).getOpposite();
             
             xPos += HORIZONTAL_WALL_TORCH_OFFSET_VALUE * (double) direction.getStepX();
             yPos += VERTICAL_WALL_TORCH_OFFSET_VALUE;
@@ -182,7 +187,7 @@ public abstract class AbstractTemporaryTorchBehavior
         }
     }
     
-    protected static boolean canLitStuff(@NotNull ItemStack stack, Item itemInHand)
+    protected static boolean canLitStuff(@NotNull ItemStack stack, @NotNull Item itemInHand)
     {
         return stack.is(ItemTags.CREEPER_IGNITERS) ||
             stack.canPerformAction(ItemAbilities.FIRESTARTER_LIGHT) ||

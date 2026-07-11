@@ -16,14 +16,13 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public enum CrispEntities implements IRegistrant<CrispEntities>
 {
     INST;
     
-    @Override public void register(@NotNull Consumer<DeferredRegister<?>> registerLogic) { registerLogic.accept(CRISP_ENTITY_TYPE_REGISTER); }
+    @Override public void register(@NotNull IRegisterAction registerLogic) { registerLogic.register(CRISP_ENTITY_TYPE_REGISTER); }
     
     @Override public boolean isFeature() { return false; }
     

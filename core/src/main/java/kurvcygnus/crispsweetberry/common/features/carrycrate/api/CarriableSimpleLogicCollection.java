@@ -95,7 +95,7 @@ public final class CarriableSimpleLogicCollection
             final double itemTotalFactor = getItems(blockEntity).stream().
                 mapToDouble(i -> ((double) i.getCount() / i.getMaxStackSize())).
                 reduce(Double::sum).
-                orElse(0D);
+                orElse(0.);
             
             return (int) (DEFAULT_PENALTY_RATE / (1 + itemTotalFactor + getMiscFactor(blockEntity)));
         }

@@ -31,14 +31,4 @@ public final class TextUtils
         Objects.requireNonNull(format, "Param \"format\" must not be null!");
         return MessageFormatter.arrayFormat(format, args).getMessage();
     }
-    
-    public static @NotNull String nonBlank(@Nullable String string) throws NullPointerException, IllegalArgumentException
-    {
-        Objects.requireNonNull(string, "Param \"string\" must not be null!");
-        
-        if(string.isBlank())
-            throw new IllegalArgumentException("Param \"string\" is empty.");
-        
-        return string;
-    }
 }

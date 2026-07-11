@@ -11,7 +11,6 @@ package kurvcygnus.crispsweetberry.lib.base.lang;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
-import kurvcygnus.crispsweetberry.lib.base.trait.INullableContainer;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +55,7 @@ import static kurvcygnus.crispsweetberry.lib.base.lang.Privates.*;
  * @see IVault
  * @since 1.0 Release
  */
-public sealed interface ISealableBox<T> extends INullableContainer<T>
+public sealed interface ISealableBox<T>// extends Supplier<T>
 {
     /**
      * Creates a <u>{@link ISealableBox}</u> instance that is <b>already bound</b> to the provided value.
@@ -136,6 +135,8 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
      */
     @CanIgnoreReturnValue boolean seal();
     
+    @CheckReturnValue default boolean isPresent() { return isAssignable() || isBound(); }
+    
     @CheckReturnValue boolean isUnbound();
     
     @CheckReturnValue boolean isAssignable();
@@ -150,11 +151,12 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @NotNull String toString();
     
-    @Override @NotNull T orThrow();
+    @NotNull T orThrow();
     
-    @Override default boolean isPresent() { return !isUnbound() && !isSealed(); }
-    
-    @Override default boolean withCheck() { return false; }
+    //? I think making a [[Supplier]] possible of throwing exception at any time may make debugging hard.
+    //? If you do want to use [[ISealableBox]] as [[Supplier]], then just write `box::orThrow` and take the risk you'll bring.
+    //? It won't bring any crisis, as long as it has been initialized, and the [[Supplier]] you passed is the type of use-then-discard, instead of persistent.
+    //@Override default @NotNull T get() { return orThrow(); }
 }
 
 @NotThreadSafe final class SealableBox<T> implements ISealableBox<T>, INestedPrintable<SealableBox<T>>
@@ -215,22 +217,11 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     
     @Override public boolean isUnbound() { return state == UNBOUND; }
     
-    @Override public boolean isAssignable() { return state == ASSIGNABLE || isUnbound(); }
+    @Override public boolean isAssignable() { return state == ASSIGNABLE; }
     
     @Override public boolean isBound() { return state == BOUND; }
     
     @Override public boolean isSealed() { return state == SEALED; }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override public @Nullable T value()
-    {
-        if(state == SEALED)
-            throw new IllegalStateException("This container is sealed, value access is not allowed!");
-        
-        return value;
-    }
     
     @Override public @NotNull T orThrow()
     {
@@ -259,7 +250,7 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
         return INestedPrintable.buildFieldMap(
             map ->
             {
-                map.put("value", SealableBox::value);
+                map.put("value", box -> box.value);
                 map.put("state", box -> getStateName(box.state));
             },
             2
@@ -341,14 +332,6 @@ public sealed interface ISealableBox<T> extends INullableContainer<T>
     @Override public boolean isBound() { return current().state == BOUND; }
     
     @Override public boolean isSealed() { return current().state == SEALED; }
-    
-    @Override public @Nullable T value()
-    {
-        final AtomicPair<T> current = current();
-        if(current.state == SEALED)
-            throw new IllegalStateException("This container is sealed, value access is not allowed!");
-        return current.value;
-    }
     
     @Override public @NotNull T orThrow()
     {

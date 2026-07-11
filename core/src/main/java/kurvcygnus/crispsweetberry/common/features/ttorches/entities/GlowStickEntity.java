@@ -67,9 +67,9 @@ public final class GlowStickEntity extends AbstractThrownTorchEntity
         if(this.level().isClientSide)
             return;
         
-        final Vec3 motionVector = this.getDeltaMovement();
-        final BlockPos hitPos = result.getBlockPos();
-        final Direction hitSide = result.getDirection();
+        final var motionVector = this.getDeltaMovement();
+        final var hitPos = result.getBlockPos();
+        final var hitSide = result.getDirection();
         final @Nullable BlockPos placementPos;
         final @Nullable BlockState stateToPlace;
         
@@ -97,6 +97,7 @@ public final class GlowStickEntity extends AbstractThrownTorchEntity
                     0.5F,
                     1.2F
                 );
+                
                 return;
             }
         }

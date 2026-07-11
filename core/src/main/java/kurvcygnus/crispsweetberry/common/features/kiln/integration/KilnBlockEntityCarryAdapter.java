@@ -12,11 +12,11 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimple
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.CarriableSimpleLogicCollection.OfSimpleBlockEntityBreak;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.AbstractBlockEntityCarryAdapter;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
+import kurvcygnus.crispsweetberry.lib.base.stream.Invoker;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -29,19 +29,17 @@ implements OfSimpleBlockEntityBreak<KilnBlockEntity>, CarriableSimpleLogicCollec
     
     @Override public void onCarriedSequence(@NotNull CarriedContext context, @NotNull KilnBlockEntity blockEntity)
     {
-        final BlockState state = context.level().getBlockState(context.pos());
-        
+        final var state = context.level().getBlockState(context.pos());
         this.context = blockEntity.onCarriedSequence(context.level(), context.pos(), state, context.player());
     }
     
     @Override public @Range(from = 0, to = Integer.MAX_VALUE) int getPenaltyRate(@NotNull KilnBlockEntity blockEntity)
     {
-        final float itemTotalRate = blockEntity.getContainerItems().stream().
-            map(i -> ((float) i.getCount() / i.getMaxStackSize())).
-            reduce(Float::sum).
-            orElse(0F);
+        final double itemTotalRate = Invoker.unit(blockEntity.getContainerItems()).
+            mapToDouble(item -> ((double) item.getCount() / item.getMaxStackSize())).
+            reduce(0., Double::sum);
         
-        return (int) (DEFAULT_PENALTY_RATE / (1 + itemTotalRate));
+        return (int) (DEFAULT_PENALTY_RATE / (1. + itemTotalRate));
     }
     
     @Override public void onPlacedProcess(@NotNull ServerLevel level, long elapsedTime, @NotNull CarriedContext context, @NotNull KilnBlockEntity blockEntity)
@@ -49,7 +47,7 @@ implements OfSimpleBlockEntityBreak<KilnBlockEntity>, CarriableSimpleLogicCollec
     
     @Override public void saveCarryTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries, @NotNull KilnBlockEntity blockEntity)
     {
-        final CompoundTag data = blockEntity.saveCustomOnly(registries);
+        final var data = blockEntity.saveCustomOnly(registries);
         tag.merge(data);
     }
     

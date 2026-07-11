@@ -80,12 +80,10 @@ public abstract class AbstractCoinLootTableProvider extends BlockLootSubProvider
     
     @Override protected final void generate()
     {
-        for(final Block block: getKnownBlocks())
+        for(final var block: getKnownBlocks())
         {
-            final AbstractCoinStackBlock<?> coinStackBlock = (AbstractCoinStackBlock<?>) block;
-             
-            final ICoinType<?> coinType = coinStackBlock.getCoinType();
-            
+            final var coinStackBlock = (AbstractCoinStackBlock<?>) block;
+            final var coinType = coinStackBlock.getCoinType();
             addCoinLoot(coinStackBlock, coinType);
         }
     }

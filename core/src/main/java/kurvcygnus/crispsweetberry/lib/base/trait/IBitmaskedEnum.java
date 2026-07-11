@@ -14,9 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This is a simple <u><a href="https://doc.rust-lang.org/rust-by-example/trait.html">trait-styled</a></u> interface for
@@ -56,6 +54,10 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>> extends I
     @ApiStatus.NonExtendable default int shiftTrue()    { return TRUE       << shift(); }
     @ApiStatus.NonExtendable default int shiftFalse()   { return FALSE      << shift(); }
     @ApiStatus.NonExtendable default int shiftDefault() { return DEFAULT    << shift(); }
+    
+    /**
+     * @implNote Unused bitmask. If you want to use it, it is recommended to write a new semantical method that redirects to this.
+     */
     @ApiStatus.NonExtendable default int shiftExtra()   { return EXTRA      << shift(); }
     
     default @Range(from = 0, to = 15) int getIndex()
@@ -89,7 +91,9 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>> extends I
         return state;
     }
     
-    @ApiStatus.NonExtendable default @Nullable Boolean computeBoolean(int flags) { return InterfaceHelper.BOOLEAN_LOOKUP[computeRaw(flags)]; }
+    private @Nullable Boolean computeBoolean(int flags) { return InterfaceHelper.BOOLEAN_LOOKUP[computeRaw(flags)]; }
+    
+    @ApiStatus.NonExtendable default @NotNull Optional<Boolean> computeOptional(int flags) { return Optional.ofNullable(computeBoolean(flags)); }
     
     @ApiStatus.NonExtendable default boolean computeBooleanOrThrow(int flags)
     {
@@ -107,11 +111,15 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>> extends I
         return Objects.requireNonNullElse(value, defaultFallback);
     }
     
-    @ApiStatus.NonExtendable default @NotNull TriState compute(int flags) { return InterfaceHelper.TRISTATE_LOOKUP[computeRaw(flags)]; }
+    @ApiStatus.NonExtendable default @NotNull Optional<TriState> compute(int flags) { return Optional.ofNullable(InterfaceHelper.TRISTATE_LOOKUP[computeRaw(flags)]); }
     
     @ApiStatus.NonExtendable default boolean isTrue(int flags) { return computeRaw(flags) == TRUE; }
     @ApiStatus.NonExtendable default boolean isFalse(int flags) { return computeRaw(flags) == FALSE; }
     @ApiStatus.NonExtendable default boolean isDefault(int flags) { return computeRaw(flags) == DEFAULT; }
+    
+    /**
+     * Unused bitmask. If you want to use it, it is recommended to write a new semantical method that redirects to this.
+     */
     @ApiStatus.NonExtendable default boolean isExtra(int flags) { return computeRaw(flags) == EXTRA; }
     //endregion
 }
@@ -121,15 +129,14 @@ public interface IBitmaskedEnum<E extends Enum<E> & IBitmaskedEnum<E>> extends I
  * @since 1.0 Release
  */
 enum InterfaceHelper
-{
-    INST;
-    
-    static final Set<Class<?>> MEMO = new HashSet<>();
+{;//! All static stuff, so enum element is no mandatory.
+    //* Faster Comparing.
+    static final Set<Class<?>> MEMO = Collections.newSetFromMap(new IdentityHashMap<>());
     
     /**
      * A constant array for result querying, and to prevent CPU's branch prediction penalty.
      */
-    static final TriState[] TRISTATE_LOOKUP = { TriState.DEFAULT, TriState.TRUE, TriState.FALSE, TriState.DEFAULT };
+    static final @Nullable TriState[] TRISTATE_LOOKUP = { TriState.DEFAULT, TriState.TRUE, TriState.FALSE, null };
     
     /**
      * A constant array for result querying, and to prevent CPU's branch prediction penalty.

@@ -8,15 +8,16 @@
 
 package kurvcygnus.crispsweetberry.common.features.coins.events;
 
+import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.errorprone.annotations.DoNotCall;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.features.coins.api.AbstractCoinItem;
+import kurvcygnus.crispsweetberry.lib.base.stream.Invoker;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -26,18 +27,17 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Predicate;
 
 @EventBusSubscriber(modid = CrispSweetberry.NAMESPACE)
 public final class CoinRecipeCollectEvent
 {
     private static final IMarkLogger LOGGER = IMarkLogger.withMarkerSuffixes("COIN_RECIPE");
     
-    private static final HashBiMap<Item, Item> NUGGET_TO_COIN_RECIPES = HashBiMap.create();
-    private static final HashBiMap<Item, Item> COIN_TO_NUGGET_RECIPES = HashBiMap.create();
-    private static final HashBiMap<Item, Item> COIN_TO_STACK_RECIPES = HashBiMap.create();
+    private static final BiMap<Item, Item> NUGGET_TO_COIN_RECIPES = HashBiMap.create();
+    private static final BiMap<Item, Item> COIN_TO_NUGGET_RECIPES = HashBiMap.create();
+    private static final BiMap<Item, Item> COIN_TO_STACK_RECIPES = HashBiMap.create();
     
     @SubscribeEvent @DoNotCall static void collectCoinRecipes(final @NotNull ServerAboutToStartEvent event)
         { collectRecipes(event.getServer().getRecipeManager(), event.getServer().registryAccess()); }
@@ -67,15 +67,16 @@ public final class CoinRecipeCollectEvent
         COIN_TO_NUGGET_RECIPES.clear();
         COIN_TO_STACK_RECIPES.clear();
         
-        manager.getAllRecipesFor(RecipeType.CRAFTING).stream().map(RecipeHolder::value).forEach(recipe ->
+        Invoker.unit(manager.getAllRecipesFor(RecipeType.CRAFTING)).map(RecipeHolder::value).invoke(
+            recipe ->
             {
-                final @Nullable List<Ingredient> ingredients = recipe.getIngredients().stream().filter(i -> !i.isEmpty()).toList();
+                final var ingredients = Invoker.unit(recipe.getIngredients()).filter(Predicate.not(Ingredient::isEmpty)).toList();
                 
                 if(ingredients.isEmpty() || ingredients.getFirst().getItems().length == 0)
                     return;
                 
-                final ItemStack materialSample = ingredients.getFirst().getItems()[0].copy();
-                final ItemStack resultItem = recipe.getResultItem(registryAccess);
+                final var materialSample = ingredients.getFirst().getItems()[0].copy();
+                final var resultItem = recipe.getResultItem(registryAccess);
                 
                 if(ingredients.size() == 1)
                 {
@@ -92,13 +93,12 @@ public final class CoinRecipeCollectEvent
                         COIN_TO_STACK_RECIPES.put(materialSample.getItem(), resultItem.getItem());
                 }
             }
-        )
-        ;
+        );
     }
     
-    public static @NotNull HashBiMap<Item, Item> getCoinCraftRecipes() { return NUGGET_TO_COIN_RECIPES; }
+    public static @NotNull BiMap<Item, Item> getCoinCraftRecipes() { return NUGGET_TO_COIN_RECIPES; }
      
-    public static @NotNull HashBiMap<Item, Item> getCoinDisassembleRecipes() { return COIN_TO_NUGGET_RECIPES; }
+    public static @NotNull BiMap<Item, Item> getCoinDisassembleRecipes() { return COIN_TO_NUGGET_RECIPES; }
     
-    public static @NotNull HashBiMap<Item, Item> getStackCraftRecipes() { return COIN_TO_STACK_RECIPES; }
+    public static @NotNull BiMap<Item, Item> getStackCraftRecipes() { return COIN_TO_STACK_RECIPES; }
 }
