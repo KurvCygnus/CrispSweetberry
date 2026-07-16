@@ -9,7 +9,7 @@
 package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
 import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
-import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -34,9 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.*;
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
-import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_PITCH;
-import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_VOLUME;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfSoundValues.NORMAL_SOUND_PITCH;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfSoundValues.NORMAL_SOUND_VOLUME;
 import static net.minecraft.world.level.block.WallTorchBlock.FACING;
 
 /**
@@ -143,7 +142,7 @@ public abstract class AbstractTemporaryTorchBehavior
         if(!level.isClientSide)
         {
             level.setBlockAndUpdate(pos, newState);
-            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, SoundConstants.NORMAL_SOUND_PITCH);
+            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, TORCH_BURNING_OUT_VOL, MinecraftConstants.OfSoundValues.NORMAL_SOUND_PITCH);
         }
         else
             level.addParticle(
@@ -151,9 +150,9 @@ public abstract class AbstractTemporaryTorchBehavior
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
-                X_NO_SPEED,
+                MinecraftConstants.OfProjectileValues.X_NO_SPEED,
                 verticalParticleSpeed,
-                Z_NO_SPEED
+                MinecraftConstants.OfProjectileValues.Z_NO_SPEED
             );
         
         //* Wait for next attachTag's change.
@@ -182,8 +181,8 @@ public abstract class AbstractTemporaryTorchBehavior
         if(level.isClientSide)
         {
             if(this.getTorchBlock().isStillBright(state))
-                level.addParticle(this.getTorchBlock().getTorchParticle(), xPos, yPos, zPos, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
-            level.addParticle(this.getTorchBlock().getSubTorchParticle(), xPos, yPos, zPos, X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED);
+                level.addParticle(this.getTorchBlock().getTorchParticle(), xPos, yPos, zPos, MinecraftConstants.OfProjectileValues.X_NO_SPEED, MinecraftConstants.OfProjectileValues.Y_NO_SPEED, MinecraftConstants.OfProjectileValues.Z_NO_SPEED);
+            level.addParticle(this.getTorchBlock().getSubTorchParticle(), xPos, yPos, zPos, MinecraftConstants.OfProjectileValues.X_NO_SPEED, MinecraftConstants.OfProjectileValues.Y_NO_SPEED, MinecraftConstants.OfProjectileValues.Z_NO_SPEED);
         }
     }
     

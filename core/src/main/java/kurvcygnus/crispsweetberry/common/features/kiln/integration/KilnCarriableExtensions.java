@@ -17,7 +17,7 @@ import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections.*;
-import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.ERROR;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfVanillaSlotIndexes.ERROR;
 
 public final class KilnCarriableExtensions
 {

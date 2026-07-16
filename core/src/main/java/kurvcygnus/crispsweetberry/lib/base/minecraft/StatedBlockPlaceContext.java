@@ -6,8 +6,9 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.lib.base.extensions;
+package kurvcygnus.crispsweetberry.lib.base.minecraft;
 
+import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;

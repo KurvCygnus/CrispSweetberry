@@ -480,6 +480,16 @@ public final class Ranger implements Iterable<Integer>
      */
     public @CheckReturnValue @NotNull IntStream stream() { return IntStream.rangeClosed(this.min, this.max); }
     
+    public @CheckReturnValue int @NotNull [] toArray()
+    {
+        final int[] array = new int[size()];
+        
+        for(int index = 0; index < array.length; index++)
+            array[index] = index;
+        
+        return array;
+    }
+    
     /**
      * @return the <b>minimum</b> (<i>inclusive</i>) value of this <u>{@link Ranger}</u>
      */

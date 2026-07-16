@@ -485,6 +485,7 @@ public final class CarryData
             
             buffer.writeLong(value.startTime);
             buffer.writeBoolean(value.causesOverweight);
+            buffer.writeInt(value.penaltyRate);
         }
     }
     //endregion

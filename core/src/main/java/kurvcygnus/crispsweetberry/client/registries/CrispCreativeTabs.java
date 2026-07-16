@@ -23,6 +23,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * The creative tab registry, which defines the <u>{@link ResourceKey resourceKey}</u>, <u>{@link CreativeModeTab}</u> of this mod only.<br>
+ * <span style="color: f84b4b"><i>None of any creative mode tab content is included at here.</i></span>
+ * @implNote All tab content is registered at runtime, with the help of <u>{@link kurvcygnus.crispsweetberry.utils.core.RegisterToTab @RegisterToTab}</u>,
+ * <u>{@link kurvcygnus.crispsweetberry.lib.core.registry.CrispRegistrationManager CrispRegistrationManager}</u>, and the {@code package-private} event at
+ * <u>{@link CrispSweetberry entry class}</u>.
  * @since 1.0 Release
  */
 public enum CrispCreativeTabs implements IRegistrant<CrispCreativeTabs>
@@ -51,7 +56,7 @@ public enum CrispCreativeTabs implements IRegistrant<CrispCreativeTabs>
         },
         key = "tabtitle"
     )
-    public static final Holder<CreativeModeTab> CSB_TAB = CRISP_TAB_REGISTER.register(
+    public static final Holder<CreativeModeTab> CRISP_SWEETBERRY_TAB = CRISP_TAB_REGISTER.register(
         "crisp_tab",
         CreativeModeTab.builder().
             title(Component.translatable("crispsweetberry.creativetab.tabtitle")).

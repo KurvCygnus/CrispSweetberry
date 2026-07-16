@@ -30,13 +30,11 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  */
 public final class TemporaryTorchBlock extends AbstractTemporaryTorchBlock<TemporaryTorchBehavior>
 {
-    public TemporaryTorchBlock() { super(STANDARD_TEMPORARY_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_TORCH))); }
+    public TemporaryTorchBlock() { super(STANDARD_PROPERTY_INST.get(), new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_TORCH))); }
     
-    @Override
-    public @NotNull ParticleOptions getTorchParticle() { return DEFAULT_TEMP_TORCH_PARTICLE; }
+    @Override public @NotNull ParticleOptions getTorchParticle() { return DEFAULT_TEMP_TORCH_PARTICLE; }
     
-    @Override
-    public @NotNull ParticleOptions getSubTorchParticle() { return DEFAULT_TEMP_TORCH_SUB_PARTICLE; }
+    @Override public @NotNull ParticleOptions getSubTorchParticle() { return DEFAULT_TEMP_TORCH_SUB_PARTICLE; }
     
     @Override protected @NotNull Supplier<? extends AbstractGenericTorchBlock<TemporaryTorchBehavior>> getCodecConstruct() { return TemporaryTorchBlock::new; }
 }

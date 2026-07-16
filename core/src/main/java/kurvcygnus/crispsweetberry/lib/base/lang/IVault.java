@@ -9,6 +9,7 @@
 package kurvcygnus.crispsweetberry.lib.base.lang;
 
 import kurvcygnus.crispsweetberry.lib.base.extensions.StackDebugger;
+import kurvcygnus.crispsweetberry.lib.base.util.FunctionalDummies;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,14 +117,14 @@ public sealed interface IVault<TValue, TToken> extends Function<TToken, Optional
      * @apiNote The access check currently only supports standard class and anonymous class, <span style="color: f84b4b">lambda and proxy is not supported.</span>
      * @see #ofMutableAccessLimited(Object, Class[]) Mutable Version
      */
-    static <TValue, TToken> @NotNull IVault<TValue, TToken> ofAccessLimited(
+    static <TValue> @NotNull IVault<TValue, Void> ofAccessLimited(
         @NotNull TValue value,
         @NotNull Class<?> @NotNull ... friends
     )
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         Objects.requireNonNull(friends, "Param \"friends\" must not be null!");
-        return ofAccessLimited(ImmutableVault::new, value, null, null, friends);
+        return ofAccessLimited(ImmutableVault::new, value, null, FunctionalDummies::alwaysTrue, friends);
     }
     
     /**
@@ -227,14 +228,14 @@ public sealed interface IVault<TValue, TToken> extends Function<TToken, Optional
      * @apiNote The access check currently only supports standard class and anonymous class, <span style="color: f84b4b">lambda and proxy is not supported.</span>
      * @see #ofAccessLimited(Object, Class[]) Immutable Version
      */
-    static <TValue, TToken> @NotNull IVault<TValue, TToken> ofMutableAccessLimited(
+    static <TValue> @NotNull IVault<TValue, Void> ofMutableAccessLimited(
         @NotNull TValue value,
         @NotNull Class<?> @NotNull ... friends
     )
     {
         Objects.requireNonNull(value, "Param \"value\" must not be null!");
         Objects.requireNonNull(friends, "Param \"friends\" must not be null!");
-        return ofAccessLimited(MutableVault::new, value, null, null, friends);
+        return ofAccessLimited(MutableVault::new, value, null, FunctionalDummies::alwaysTrue, friends);
     }
     
     /**

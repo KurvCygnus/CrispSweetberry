@@ -15,7 +15,7 @@ import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.lib.core.registry.CrispRegistrationManager;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
@@ -49,7 +49,7 @@ public final class CrispSweetberry
     public static final ISealableBox<IEventBus> CRISP_BUS = ISealableBox.of(
         Objects.requireNonNull(
             ModLoadingContext.get().getActiveContainer().getEventBus(),
-            TextUtils.format("Fatal: ModBus seems to be null! \n{}", MetainfoConstants.FEEDBACK_MESSAGE)
+            TextUtils.format("Fatal: ModBus seems to be null! \n{}", MinecraftConstants.OfMetainfo.FEEDBACK_MESSAGE)
         )
     );
     
@@ -126,7 +126,12 @@ final class CrispCreativeTabsRegistryEvent
             if(tabKey == event.getTabKey())
             {
                 event.accept(item);
-                LOGGER.debug("Registered item \"{}\" to tab \"{}\".", item.getDefaultInstance().getDisplayName().getString(), tabKey);
+                LOGGER.debug(
+                    "Registered item \"{}\" to tab \"{}\".",
+                    item.getDefaultInstance().getDisplayName().getString().
+                        replace("[", "").replace("]", ""),
+                    tabKey
+                );
             }
         }
     }

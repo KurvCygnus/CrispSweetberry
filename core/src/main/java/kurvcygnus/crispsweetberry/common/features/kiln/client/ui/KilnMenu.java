@@ -11,8 +11,8 @@ package kurvcygnus.crispsweetberry.common.features.kiln.client.ui;
 import kurvcygnus.crispsweetberry.common.features.kiln.*;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
-import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants.*;
-import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.*;
 
 /**
  * The <b>user interface part</b> of the Kiln Block.<br>
@@ -135,21 +134,21 @@ public final class KilnMenu extends AbstractContainerMenu
         
         UIUtils.addGridSlots(
             inventory,
-            INVENTORY_SLOTS_GRID_START_INDEX,
-            INVENTORY_SLOTS_START_X_POS,
-            INVENTORY_SLOTS_START_Y_POS,
-            INVENTORY_SLOTS_TOTAL_ROWS,
-            INVENTORY_SLOTS_TOTAL_COLS,
+            MinecraftConstants.OfVanillaSlotIndexes.INVENTORY_SLOTS_GRID_START_INDEX,
+            MinecraftConstants.OfVanillaSlotIndexes.INVENTORY_SLOTS_START_X_POS,
+            MinecraftConstants.OfVanillaSlotIndexes.INVENTORY_SLOTS_START_Y_POS,
+            MinecraftConstants.OfVanillaSlotIndexes.INVENTORY_SLOTS_TOTAL_ROWS,
+            MinecraftConstants.OfVanillaSlotIndexes.INVENTORY_SLOTS_TOTAL_COLS,
             Slot::new,
             this::addSlot
         );
         UIUtils.addGridSlots(
             inventory,
-            HOTBAR_SLOTS_GRID_START_INDEX,
-            HOTBAR_SLOTS_START_X_POS,
-            HOTBAR_SLOTS_START_Y_POS,
-            HOTBAR_SLOTS_TOTAL_ROWS,
-            HOTBAR_SLOTS_TOTAL_COLS,
+            MinecraftConstants.OfVanillaSlotIndexes.HOTBAR_SLOTS_GRID_START_INDEX,
+            MinecraftConstants.OfVanillaSlotIndexes.HOTBAR_SLOTS_START_X_POS,
+            MinecraftConstants.OfVanillaSlotIndexes.HOTBAR_SLOTS_START_Y_POS,
+            MinecraftConstants.OfVanillaSlotIndexes.HOTBAR_SLOTS_TOTAL_ROWS,
+            MinecraftConstants.OfVanillaSlotIndexes.HOTBAR_SLOTS_TOTAL_COLS,
             Slot::new,
             this::addSlot
         );
@@ -205,22 +204,22 @@ public final class KilnMenu extends AbstractContainerMenu
         switch(rangeIndex)
         {
             case Ranger.ERROR -> throw new IllegalStateException("Unexpected range index: " + rangeIndex);
-            case INPUT_RANGE, OUTPUT_RANGE ->
+            case MinecraftConstants.OfVanillaSlotIndexes.INPUT_RANGE, MinecraftConstants.OfVanillaSlotIndexes.OUTPUT_RANGE ->
             {
-                final boolean isInputRange = (rangeIndex == INPUT_RANGE);
+                final boolean isInputRange = (rangeIndex == MinecraftConstants.OfVanillaSlotIndexes.INPUT_RANGE);
                 hasMoved = moveToSlotRange(interactStack, KILN_INVENTORY_SLOTS_RANGE, isInputRange);
                 
                 if(!hasMoved)
                     return ItemStack.EMPTY;
                 //* No [[Slot#onQuickCraft]] here. We have already processed it in [[KilnOutputSlot]].
             }
-            case BACKPACK_RANGE ->
+            case MinecraftConstants.OfVanillaSlotIndexes.BACKPACK_RANGE ->
             {
                 hasMoved = moveToSlotRange(interactStack, KILN_INPUT_SLOTS_RANGE) || moveToSlotRange(interactStack, KILN_HOTBAR_SLOTS_RANGE);
                 if(!hasMoved)
                     return ItemStack.EMPTY;
             }
-            case HOTBAR_RANGE ->
+            case MinecraftConstants.OfVanillaSlotIndexes.HOTBAR_RANGE ->
             {
                 hasMoved = moveToSlotRange(interactStack, KILN_INPUT_SLOTS_RANGE) || moveToSlotRange(interactStack, KILN_BACKPACK_SLOTS_RANGE);
                 
@@ -250,7 +249,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * making the logic clear and easy to modify.
      *
      * @apiNote The problem of vanilla closedOpen range has been fixed here.
-     * @see ExampleSlotConstants More details about these constants
+     * @see MinecraftConstants.OfVanillaSlotIndexes More details about these constants
      */
     private boolean moveToSlotRange(@NotNull ItemStack interactStack, @NotNull Ranger ranger, boolean reverseDirection)
         { return UIUtils.moveStackByRanger(interactStack, ranger, reverseDirection, this::moveItemStackTo); }
@@ -261,7 +260,7 @@ public final class KilnMenu extends AbstractContainerMenu
      * making the logic clear and easy to modify.
      *
      * @apiNote Don't forget flag {@code reverseDirection} is false in this overloaded method.
-     * @see ExampleSlotConstants More details about these constants
+     * @see MinecraftConstants.OfVanillaSlotIndexes More details about these constants
      */
     private boolean moveToSlotRange(@NotNull ItemStack interactStack, @NotNull Ranger ranger) { return moveToSlotRange(interactStack, ranger, false); }
     //endregion

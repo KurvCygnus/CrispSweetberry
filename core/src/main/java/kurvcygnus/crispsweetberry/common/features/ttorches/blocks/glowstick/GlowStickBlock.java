@@ -44,9 +44,11 @@ public final class GlowStickBlock extends AbstractTemporaryTorchBlock<GlowStickB
     public GlowStickBlock()
     {
         super(
-            TTorchUtilCollection.BASIC_TEMP_TORCH_PROPERTIES.sound(SoundType.SLIME_BLOCK).lightLevel(GLOW_STICK_BRIGHTNESS_FORMULA),
+            TTorchUtilCollection.BASIC_PROPERTY_INST.
+                getAndAppend(properties -> properties.sound(SoundType.SLIME_BLOCK).lightLevel(GLOW_STICK_BRIGHTNESS_FORMULA)),
             new GlowStickBehavior(Lazy.of(TTorchRegistries.GLOW_STICK_BLOCK))
         );
+        
         this.registerDefaultState(this.stateDefinition.any().setValue(BlockStateProperties.WATERLOGGED, false));
     }
     

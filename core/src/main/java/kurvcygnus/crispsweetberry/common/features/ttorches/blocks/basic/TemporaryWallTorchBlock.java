@@ -31,7 +31,7 @@ import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilColl
  */
 public final class TemporaryWallTorchBlock extends AbstractTemporaryWallTorchBlock<TemporaryTorchBehavior>
 {
-    public TemporaryWallTorchBlock() { super(STANDARD_TEMPORARY_TORCH_PROPERTIES, new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_WALL_TORCH))); }
+    public TemporaryWallTorchBlock() { super(STANDARD_PROPERTY_INST.get(), new TemporaryTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_WALL_TORCH))); }
     
     @Override public @NotNull ParticleOptions getTorchParticle() { return DEFAULT_TEMP_TORCH_PARTICLE; }
     

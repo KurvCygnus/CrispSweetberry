@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Kurv Cygnus
  */
 @ApiStatus.Internal
-public abstract class AbstractCarryAdapter<T extends CarryData.OfUniqueDataBase> implements CarriableExtensions.OfAll<T>
+public abstract class AbstractCarryAdapter<TData extends CarryData.OfUniqueDataBase> implements CarriableExtensions.OfAll<TData>
 {
     public abstract @NotNull String toString();
 }

@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Range;
 
 import java.util.function.Supplier;
 
-import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.BASIC_TEMP_TORCH_PROPERTIES;
+import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.BASIC_PROPERTY_INST;
 
 /**
  * This is the redstone variant of ttorch series, features signal passing.
@@ -54,7 +54,7 @@ extends AbstractTemporaryWallTorchBlock<TemporaryRedstoneTorchBehavior> implemen
     (@NotNull TRedstoneTorchExtensions.OxidizeState oxidizeState, boolean waxed, @NotNull Lazy<? extends AbstractThrowableTorchItem<?>> throwableTorch)
     {
         super(
-            BASIC_TEMP_TORCH_PROPERTIES.lightLevel(REDSTONE_BRIGHTNESS_FORMULA),
+            BASIC_PROPERTY_INST.getAndAppend(properties -> properties.lightLevel(REDSTONE_BRIGHTNESS_FORMULA)),
             new TemporaryRedstoneTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_REDSTONE_WALL_TORCH))
         );
         this.registerDefaultState(this.stateDefinition.any().

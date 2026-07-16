@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components;
 
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,8 +67,8 @@ public final class KilnProgressModel
                         Kiln Model encountered a abnormal situation. Detail: visualProgress does not match realProgress when procession is \
                         already done. visualProgress: {}{}
                         """,
-                    this.visualProgress,
-                    MetainfoConstants.FEEDBACK_MESSAGE
+                            this.visualProgress,
+                            MinecraftConstants.OfMetainfo.FEEDBACK_MESSAGE
                 );
             
             this.realProgress = isStateless ? this.realProgress % 1 : 0D;

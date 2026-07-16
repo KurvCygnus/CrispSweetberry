@@ -12,8 +12,8 @@ import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import kurvcygnus.crispsweetberry.utils.VisualUtils;
-import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -60,9 +60,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
-import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.*;
 
 /**
  * The <b>physically interactable, seen</b> part of the Kiln Block.<br>
@@ -114,7 +111,7 @@ public final class KilnBlock extends BaseEntityBlock
      */
     @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.MODEL; }
     
-    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(SerializationTemplates.noArgCodec(KilnBlock::new)); }
+    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return MinecraftConstants.OfSerializationBasics.noArgCodec(KilnBlock::new); }
     //endregion
     
     //region World Logic & Life Cycles
@@ -124,7 +121,7 @@ public final class KilnBlock extends BaseEntityBlock
             return;
         
         if(!state.getValue(LIT))
-            level.playSound(null, pos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, QUIET_SOUND_VOLUME, 2.6F);
+            level.playSound(null, pos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.QUIET_SOUND_VOLUME, 2.6F);
         
         super.onPlace(state, level, pos, oldState, isMoving);
     }
@@ -157,7 +154,7 @@ public final class KilnBlock extends BaseEntityBlock
     {
         if(state.getValue(LIT) && level.getFluidState(currentPos).is(FluidTags.WATER))
         {
-            level.playSound(null, currentPos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, QUIET_SOUND_VOLUME, 2.6F);
+            level.playSound(null, currentPos, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.QUIET_SOUND_VOLUME, 2.6F);
             return state.setValue(LIT, false);
         }
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
@@ -262,7 +259,7 @@ public final class KilnBlock extends BaseEntityBlock
             final float DAMAGEABLE_ITEM_PITCH = level.getRandom().nextFloat() * .4F + .8F;
             
             level.playSound(null, pos, isDamageable ? SoundEvents.FLINTANDSTEEL_USE : SoundEvents.FIRECHARGE_USE,
-                SoundSource.BLOCKS, NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : NORMAL_SOUND_PITCH
+                            SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.NORMAL_SOUND_VOLUME, isDamageable ? DAMAGEABLE_ITEM_PITCH : MinecraftConstants.OfSoundValues.NORMAL_SOUND_PITCH
             );
             
             if(!level.isClientSide)
@@ -285,17 +282,19 @@ public final class KilnBlock extends BaseEntityBlock
     //? TODO: Particle Pos Adjust
     @Override public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random)
     {
-        final double X_POS = (double) pos.getX() + SOUND_HORIZONTICAL_OFFSET;
-        final double Y_POS = pos.getY();
-        final double Z_POS = (double) pos.getZ() + SOUND_HORIZONTICAL_OFFSET;
+        final double xPos = (double) pos.getX() + SOUND_HORIZONTICAL_OFFSET;
+        final double yPos = pos.getY();
+        final double zPos = (double) pos.getZ() + SOUND_HORIZONTICAL_OFFSET;
         
         if(random.nextDouble() < .1)
             level.playLocalSound(
-                X_POS, Y_POS, Z_POS,
+                xPos,
+                yPos,
+                zPos,
                 SoundEvents.FURNACE_FIRE_CRACKLE,
                 SoundSource.BLOCKS,
-                NORMAL_SOUND_VOLUME,
-                NORMAL_SOUND_PITCH,
+                MinecraftConstants.OfSoundValues.NORMAL_SOUND_VOLUME,
+                MinecraftConstants.OfSoundValues.NORMAL_SOUND_PITCH,
                 false
             );
         
@@ -309,12 +308,12 @@ public final class KilnBlock extends BaseEntityBlock
         
         VisualUtils.addParticles(
             level,
-            X_POS + particleXOffset,
-            Y_POS + particleYOffset,
-            Z_POS + particleZOffset,
-            X_NO_SPEED,
-            Y_NO_SPEED,
-            Z_NO_SPEED,
+            xPos + particleXOffset,
+            yPos + particleYOffset,
+            zPos + particleZOffset,
+            MinecraftConstants.OfProjectileValues.X_NO_SPEED,
+            MinecraftConstants.OfProjectileValues.Y_NO_SPEED,
+            MinecraftConstants.OfProjectileValues.Z_NO_SPEED,
             ParticleTypes.SMOKE,
             ParticleTypes.FLAME
         );

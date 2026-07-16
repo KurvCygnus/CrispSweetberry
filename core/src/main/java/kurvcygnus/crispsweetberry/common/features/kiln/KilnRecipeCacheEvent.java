@@ -122,20 +122,11 @@ public final class KilnRecipeCacheEvent
             LOGGER.info("Starting filtering kiln recipes...");
             Invoker.unit(manager.getAllRecipesFor(RecipeType.SMELTING)).map(RecipeHolder::value).invoke(
                 recipe ->
-                {
-                    for(final var ingredient: recipe.getIngredients())
-                    {
-                        for(final var stack: ingredient.getItems())
-                        {
-                            final var item = stack.getItem();
-                            
-                            LOGGER.debug("Accepted item \"{}\" as smelting recipe", stack.getDisplayName().getString());
-                            
-                            tempKilnRecipes.computeIfAbsent(item, i -> NonNullList.create()).
-                                add(recipe);
-                        }
-                    }
-                }
+                    Invoker.unit(recipe.getIngredients()).
+                        destructArrayMap(Ingredient::getItems).
+                        peek(stack -> tempKilnRecipes.computeIfAbsent(stack.getItem(), item -> NonNullList.create()).add(recipe)).
+                        map(it -> it.getDisplayName().getString()).
+                        invoke(name -> LOGGER.debug("Accepted item \"{}\" as smelting recipe", name))
             );
             
             handle.changeMarker("FINAL_FILTER");
@@ -217,10 +208,7 @@ public final class KilnRecipeCacheEvent
                         final var convertedRecipe = new KilnRecipe(
                             ingredient,
                             recipe.getResultItem(access),
-                            calculateProcessFactor(
-                                recipe.getCookingTime(),
-                                RecipeSourceType.getSourceType(recipe)
-                            ),
+                            calculateProcessFactor(recipe.getCookingTime(), RecipeSourceType.getSourceType(recipe)),
                             recipe.getExperience(),
                             recipe instanceof BlastingRecipe
                         );

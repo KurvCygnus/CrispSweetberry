@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.lib.base.extensions;
+package kurvcygnus.crispsweetberry.lib.base.minecraft;
 
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;

@@ -26,15 +26,15 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.core.data.CarryInte
 import kurvcygnus.crispsweetberry.common.features.carrycrate.events.CarryCrateCopyProcessor;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
-import kurvcygnus.crispsweetberry.lib.base.extensions.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.functions.ITriConsumer;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
+import kurvcygnus.crispsweetberry.lib.base.minecraft.StatedBlockPlaceContext;
 import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
+import kurvcygnus.crispsweetberry.lib.base.util.FunctionalDummies;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.constants.FunctionalDummies;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -116,7 +116,7 @@ public enum CarryEngine
             }
         );
     
-    @ApiStatus.Internal public final IVault<ITriConsumer<CarryType, CarryID, CarryID>, Optional<?>> insertAccess = IVault.ofAccessLimited(
+    @ApiStatus.Internal public final IVault<ITriConsumer<CarryType, CarryID, CarryID>, Void> insertAccess = IVault.ofAccessLimited(
         (type, original, newID) ->
         {
             @SuppressWarnings("unchecked")//! Safe Casting. Internal Map Mutation is always legal, no [[ClassCastException]], granted by [[CarryType]].
@@ -243,7 +243,6 @@ public enum CarryEngine
         final var lookup = CarryEngine.INST.listenerLookup;
         lookup.values().forEach(Map::clear);
         
-        //! DO NOT MOVE THIS INTO LAMBDA. See [[IVault#ofAccessLimited]], it is related to [[StackWalker]].
         final var internalRestore = CarryID.__$1NT3RNAL_R3ST0R3$__.tryGet(Optional.of(event));
         
         final @Nullable var listTag = CarryListenerSaveData.get(event.getServer()).entries;
@@ -452,7 +451,7 @@ public enum CarryEngine
                                             {}
                                             """,
                                             type.toString(),
-                                            MetainfoConstants.FEEDBACK_MESSAGE
+                                            MinecraftConstants.OfMetainfo.FEEDBACK_MESSAGE
                                         )
                                     );
                                     

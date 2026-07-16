@@ -8,18 +8,22 @@
 
 package kurvcygnus.crispsweetberry.lib.base.stream;
 
+import it.unimi.dsi.fastutil.longs.LongLongImmutablePair;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.*;
 import java.util.function.*;
 import java.util.stream.Collector;
 
 /**
- * A lightweight, <b>single-pass push-based, pure functional data stream</b>, semantically equivalent to {@code Consumer<Consumer<T>>}.
+ * A lightweight, <b>single-pass push-based, pure functional data stream</b>, semantically equivalent to <u>{@link Consumer Consumer&lt;Consumer&lt;T&gt;&gt;}</u>.
  * <p>
  * Unlike <u>{@link java.util.stream.Stream Stream&lt;T&gt;}</u>, which is designed for complex, potentially parallel pipelines over
  * large datasets with rich terminal operations, {@code Invoker} deliberately focuses on:
@@ -53,7 +57,11 @@ import java.util.stream.Collector;
  * multi-stage collection, use <u>{@link java.util.stream.Stream Stream}</u> instead. {@code Invoker} owns
  * the "fire-and-forget fan-out" niche — <u>{@link java.util.stream.Stream Stream}</u> owns everything else.</i>
  * </p>
- *
+ * @implNote No inheritance of <u>{@link Consumer Consumer&lt;Consumer&lt;T&gt;&gt;}</u>(<i>or, <u>{@link Consumer Consumer&lt;Consumer&lt;? super T&gt;&gt;}</u> LMAO</i>):
+ * since down-casting {@code Invoker} and passing it to
+ * others is confusing at most cases, and <u>{@link Consumer}</u>'s main usage is completely different from {@code Invoker}.<br>
+ * <i>Also, inheriting means the redirecting <u>{@link Consumer#accept(Object)}</u> to <u>{@link #invoke(Consumer)}</u>, which is also stupid,
+ * no to mention that the meaning of <u>{@link Consumer#andThen(Consumer)}</u> will be a pure disaster(also, PECS will make you pain on overriding it).</i>
  * @param <T> the type of elements in this invoker
  * @author Kurv Cygnus
  * @since 1.0 Release
@@ -303,6 +311,24 @@ import java.util.stream.Collector;
         return nextAction -> this.invoke(value -> { for(final var element: mapper.apply(value)) nextAction.accept(element); });
     }
     
+    default @NotNull Invoker.OfInt destructIntArrayMap(@NotNull Function<? super T, int[]> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        return nextAction -> this.invoke(value -> { for(final var element: mapper.apply(value)) nextAction.accept(element); });
+    }
+    
+    default @NotNull Invoker.OfLong destructLongArrayMap(@NotNull Function<? super T, long[]> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        return nextAction -> this.invoke(value -> { for(final var element: mapper.apply(value)) nextAction.accept(element); });
+    }
+    
+    default @NotNull Invoker.OfDouble destructDoubleArrayMap(@NotNull Function<? super T, double[]> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        return nextAction -> this.invoke(value -> { for(final var element: mapper.apply(value)) nextAction.accept(element); });
+    }
+    
     /**
      * A specialized intermediate function of <u>{@link #map(Function)}</u>.<br>
      * It accepts any function that produces <u>{@link Iterable Iterable&lt;T&gt;}</u> as result, then destructs it into flat <u>{@link Invoker}</u> automatically, with a loop, of course.
@@ -319,6 +345,57 @@ import java.util.stream.Collector;
     {
         Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
         return nextAction -> this.invoke(value -> { for(final var element: mapper.apply(value)) nextAction.accept(element); });
+    }
+    
+    default @NotNull Invoker.OfInt destructIntIterableMap(@NotNull Function<? super T, ? extends Iterable<Integer>> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        return nextAction -> this.invoke(
+            value ->
+            {
+                final var iterable = mapper.apply(value);
+                
+                if(iterable.iterator() instanceof PrimitiveIterator.OfInt intIt)
+                    while(intIt.hasNext())
+                        nextAction.accept(intIt.nextInt());
+                else for(final var element: iterable)
+                    nextAction.accept(element);
+            }
+        );
+    }
+    
+    default @NotNull Invoker.OfLong destructLongIterableMap(@NotNull Function<? super T, ? extends Iterable<Long>> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        return nextAction -> this.invoke(
+            value ->
+            {
+                final var iterable = mapper.apply(value);
+                
+                if(iterable.iterator() instanceof PrimitiveIterator.OfLong longIt)
+                    while(longIt.hasNext())
+                        nextAction.accept(longIt.nextLong());
+                else for(final var element: iterable)
+                    nextAction.accept(element);
+            }
+        );
+    }
+    
+    default @NotNull Invoker.OfDouble destructDoubleIterableMap(@NotNull Function<? super T, ? extends Iterable<Double>> mapper)
+    {
+        Objects.requireNonNull(mapper, "Param \"mapper\" must not be null!");
+        return nextAction -> this.invoke(
+            value ->
+            {
+                final var iterable = mapper.apply(value);
+                
+                if(iterable.iterator() instanceof PrimitiveIterator.OfDouble doubleIt)
+                    while(doubleIt.hasNext())
+                        nextAction.accept(doubleIt.nextDouble());
+                else for(final var element: iterable)
+                    nextAction.accept(element);
+            }
+        );
     }
     
     /**
@@ -343,13 +420,6 @@ import java.util.stream.Collector;
         
         return nextAction -> this.invoke(value -> { if(predicate.test(value, mapper.apply(value))) nextAction.accept(value); });
     }
-    //endregion
-    
-    //region Terminal Functions
-    /**
-     * {@inheritDoc}
-     */
-    @Override void invoke(@NotNull Consumer<? super T> action);
     //endregion
     
     //region Primitives
@@ -378,6 +448,23 @@ import java.util.stream.Collector;
                 Invok3r.LOGGER.debug("Downgrading {} as boxed Integer handle in #invoke.", this.getClass().getSimpleName());
                 invokeAsInt(action::accept);
             }
+        }
+        
+        @Override default @NotNull OfInt filter(@NotNull Predicate<? super Integer> predicate)
+        {
+            if(predicate instanceof IntPredicate intPredicate)
+                return filterInt(intPredicate);
+            
+            Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
+            return nextAction -> this.invokeAsInt(
+                value ->
+                {
+                    Invok3r.LOGGER.debug("Downgrading {} as boxed Integer handle in #filter.", this.getClass().getSimpleName());
+                    
+                    if(predicate.test(value))
+                        nextAction.accept(value);
+                }
+            );
         }
         //endregion
 
@@ -444,21 +531,7 @@ import java.util.stream.Collector;
             );
         }
 
-        @Override default @NotNull OfInt filter(@NotNull Predicate<? super Integer> predicate)
-        {
-            Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
-            return nextAction -> this.invokeAsInt(
-                value ->
-                {
-                    if(predicate instanceof IntPredicate intPred && intPred.test(value))
-                        nextAction.accept(value);
-                    else if(predicate.test(value))
-                        nextAction.accept(value);
-                }
-            );
-        }
-
-        default @NotNull OfInt filter(@NotNull IntPredicate predicate)
+        default @NotNull OfInt filterInt(@NotNull IntPredicate predicate)
         {
             Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
             return nextAction -> this.invokeAsInt(value -> { if(predicate.test(value)) nextAction.accept(value); });
@@ -513,6 +586,79 @@ import java.util.stream.Collector;
 
         //region Terminal / Abstract
         void invokeAsInt(@NotNull IntConsumer action);
+        
+        default int sum(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return sum();
+            
+            final var adder = new LongAdder();
+            invokeAsInt(adder::add);
+            return adder.intValue();
+        }
+        
+        default int sum()
+        {
+            final int[] ref = {0};
+            invokeAsInt(value -> ref[0] += value);
+            return ref[0];
+        }
+        
+        default int multiplied(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return multiplied();
+            
+            final var ref = new AtomicInteger(1);
+            invokeAsInt(
+                value ->
+                {
+                    while(true)
+                    {
+                        final var current = ref.get();
+                        final var next = current * value;
+                        
+                        if(ref.compareAndSet(current, next))
+                            return;
+                    }
+                }
+            );
+            
+            return ref.get();
+        }
+        
+        default int multiplied()
+        {
+            final int[] ref = {1};
+            invokeAsInt(value -> ref[0] *= value);
+            return ref[0];
+        }
+        
+        default int averaged(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return averaged();
+            
+            final var sum = new LongAdder();
+            final var counter = new LongAdder();
+            
+            invokeAsInt(
+                value ->
+                {
+                    counter.increment();
+                    sum.add(value);
+                }
+            );
+            
+            return sum.intValue() / counter.intValue();
+        }
+        
+        default int averaged()
+        {
+            final int[] ref = {0, 0};
+            invokeAsInt(value -> { ref[0] += value; ref[1]++; });
+            return ref[0] / ref[1];
+        }
         //endregion
     }
 
@@ -542,10 +688,25 @@ import java.util.stream.Collector;
                 invokeAsLong(action::accept);
             }
         }
+        
+        @Override default @NotNull OfLong filter(@NotNull Predicate<? super Long> predicate)
+        {
+            if(predicate instanceof LongPredicate longPredicate)
+                return filterLong(longPredicate);
+            
+            Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
+            return nextAction -> this.invokeAsLong(
+                value ->
+                {
+                    Invok3r.LOGGER.debug("Downgrading {} as boxed Long handle in #filter.", this.getClass().getSimpleName());
+                    if(predicate.test(value))
+                        nextAction.accept(value);
+                }
+            );
+        }
         //endregion
 
         //region Intermediate Functions
-        
         /**
          * {@inheritDoc}
          */
@@ -620,21 +781,7 @@ import java.util.stream.Collector;
             );
         }
 
-        @Override default @NotNull OfLong filter(@NotNull Predicate<? super Long> predicate)
-        {
-            Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
-            return nextAction -> this.invokeAsLong(
-                value ->
-                {
-                    if(predicate instanceof LongPredicate longPred && longPred.test(value))
-                        nextAction.accept(value);
-                    else if(predicate.test(value))
-                        nextAction.accept(value);
-                }
-            );
-        }
-
-        default @NotNull OfLong filter(@NotNull LongPredicate predicate)
+        default @NotNull OfLong filterLong(@NotNull LongPredicate predicate)
         {
             Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
             return nextAction -> this.invokeAsLong(value -> { if(predicate.test(value)) nextAction.accept(value); });
@@ -689,6 +836,81 @@ import java.util.stream.Collector;
 
         //region Terminal / Abstract
         void invokeAsLong(@NotNull LongConsumer action);
+        
+        default long sum(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return sum();
+            
+            final var adder = new LongAdder();
+            invokeAsLong(adder::add);
+            return adder.sum();
+        }
+        
+        default long sum()
+        {
+            final long[] ref = {0};
+            invokeAsLong(value -> ref[0] += value);
+            return ref[0];
+        }
+        
+        default long multiplied(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return multiplied();
+            
+            final var ref = new AtomicLong(1);
+            invokeAsLong(
+                value ->
+                {
+                    while(true)
+                    {
+                        final var current = ref.get();
+                        final var next = current * value;
+                        
+                        if(ref.compareAndSet(current, next))
+                            return;
+                    }
+                }
+            );
+            
+            return ref.get();
+        }
+        
+        default long multiplied()
+        {
+            final long[] ref = {1};
+            invokeAsLong(value -> ref[0] *= value);
+            return ref[0];
+        }
+        
+        default long averaged(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return averaged();
+            
+            final var ref = new AtomicReference<>(new LongLongImmutablePair(0, 0));
+            
+            final var sum = new LongAdder();
+            final var counter = new LongAdder();
+            
+            invokeAsLong(
+                value ->
+                {
+                    counter.increment();
+                    sum.add(value);
+                }
+            );
+            
+            return sum.sum() / counter.sum();
+        }
+        
+        default long averaged()
+        {
+            final long[] ref = {0, 0};
+            invokeAsLong(value -> { ref[0] += value; ref[1]++; });
+            return ref[0] / ref[1];
+        }
         //endregion
     }
     
@@ -717,6 +939,22 @@ import java.util.stream.Collector;
                 Invok3r.LOGGER.debug("Downgrading {} as boxed Double handle in #invoke.", this.getClass().getSimpleName());
                 invokeAsDouble(action::accept);
             }
+        }
+        
+        @Override default @NotNull OfDouble filter(@NotNull Predicate<? super Double> predicate)
+        {
+            if(predicate instanceof DoublePredicate doublePredicate)
+                return filterDouble(doublePredicate);
+            
+            Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
+            return nextAction -> this.invokeAsDouble(
+                value ->
+                {
+                    Invok3r.LOGGER.debug("Downgrading {} as boxed Double handle in #filter.", this.getClass().getSimpleName());
+                    if(predicate.test(value))
+                        nextAction.accept(value);
+                }
+            );
         }
         //endregion
 
@@ -795,21 +1033,7 @@ import java.util.stream.Collector;
             );
         }
 
-        @Override default @NotNull OfDouble filter(@NotNull Predicate<? super Double> predicate)
-        {
-            Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
-            return nextAction -> this.invokeAsDouble(
-                value ->
-                {
-                    if(predicate instanceof DoublePredicate doublePred && doublePred.test(value))
-                        nextAction.accept(value);
-                    else if(predicate.test(value))
-                        nextAction.accept(value);
-                }
-            );
-        }
-
-        default @NotNull OfDouble filter(@NotNull DoublePredicate predicate)
+        default @NotNull OfDouble filterDouble(@NotNull DoublePredicate predicate)
         {
             Objects.requireNonNull(predicate, "Param \"predicate\" must not be null!");
             return nextAction -> this.invokeAsDouble(value -> { if(predicate.test(value)) nextAction.accept(value); });
@@ -877,36 +1101,109 @@ import java.util.stream.Collector;
 
         //region Terminal / Abstract
         void invokeAsDouble(@NotNull DoubleConsumer action);
+        
+        default double sum(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return sum();
+            
+            final var adder = new DoubleAdder();
+            invokeAsDouble(adder::add);
+            return adder.sum();
+        }
+        
+        default double sum()
+        {
+            final double[] ref = {0.};
+            invokeAsDouble(value -> ref[0] += value);
+            return ref[0];
+        }
+        
+        default double multiplied(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return multiplied();
+            
+            final var ref = new AtomicLong(1);
+            invokeAsDouble(
+                value ->
+                {
+                    while(true)
+                    {
+                        final var current = ref.get();
+                        final var next = current * Double.doubleToLongBits(value);
+                        
+                        if(ref.compareAndSet(current, next))
+                            return;
+                    }
+                }
+            );
+            
+            return Double.longBitsToDouble(ref.get());
+        }
+        
+        default double multiplied()
+        {
+            final double[] ref = {1.};
+            invokeAsDouble(value -> ref[0] *= value);
+            return ref[0];
+        }
+        
+        default double averaged(boolean isMultiThread)
+        {
+            if(!isMultiThread)
+                return averaged();
+            
+            final var sum = new DoubleAdder();
+            final var counter = new LongAdder();
+            
+            invokeAsDouble(
+                value ->
+                {
+                    counter.increment();
+                    sum.add(value);
+                }
+            );
+            
+            return sum.sum() / counter.sum();
+        }
+        
+        default double averaged()
+        {
+            final double[] ref = {0., 0.};
+            invokeAsDouble(value -> { ref[0] += value; ref[1]++; });
+            return ref[0] / ref[1];
+        }
         //endregion
     }
     //endregion
 }
 
 /**
- * The common base interface for the <u>{@link Invoker}</u> family, parameterized by a self-type {@code I}
+ * The common base interface for the <u>{@link Invoker}</u> family, parameterized by a self-type {@code TInvoker}
  * to enable return-type preservation in subtypes.
  * <p>
  * This interface mirrors the role of <u>{@link java.util.Spliterator.OfPrimitive}</u>
- * and <u>{@link java.util.stream.BaseStream}</u> in the JDK — it captures the single
+ * and <u>{@link java.util.stream.BaseStream BaseStream}</u> in the JDK — it captures the single
  * fundamental operation shared by all invokers without committing to element boxing or
  * intermediate-operations.
  * </p>
  *
- * @param <T> the element type
- * @param <I> the self type of the implementing invoker (e.g. <u>{@link Invoker Invoker&lt;T&gt;}</u>,
+ * @param <TType> the element type
+ * @param <TInvoker> the self type of the implementing invoker (e.g. <u>{@link Invoker Invoker&lt;TType&gt;}</u>,
  *            <u>{@link Invoker.OfInt OfInt}</u>, <u>{@link Invoker.OfLong OfLong}</u>,
  *            <u>{@link Invoker.OfDouble OfDouble}</u>)
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
-sealed interface IBaseInvoker<T, I extends IBaseInvoker<T, I>>
+sealed interface IBaseInvoker<TType, TInvoker extends IBaseInvoker<TType, TInvoker>>
 {
     //region Intermediate Functions
     /**
      * Makes the operations after this function's invoke asynchronous by submit the following operations to the <u>{@link ExecutorService}</u>
      * you specified.
      */
-    @NotNull I async(@NotNull ExecutorService executor);
+    @NotNull TInvoker async(@NotNull ExecutorService executor);
     
     /**
      * Do some operations as intermediately, but with another temporary variable which is produced from {@code mapper},
@@ -923,15 +1220,15 @@ sealed interface IBaseInvoker<T, I extends IBaseInvoker<T, I>>
      *      reduce(...);
      * }</pre>
      */
-    <R> @NotNull I peekMap(@NotNull Function<? super T, ? extends R> mapper, @NotNull BiConsumer<? super T, ? super R> action);
+    <R> @NotNull TInvoker peekMap(@NotNull Function<? super TType, ? extends R> mapper, @NotNull BiConsumer<? super TType, ? super R> action);
     
-    <R> @NotNull I peekArrayMap(@NotNull Function<? super T, ? extends R[]> mapper, @NotNull BiConsumer<? super T, ? super R> action);
+    <R> @NotNull TInvoker peekArrayMap(@NotNull Function<? super TType, ? extends R[]> mapper, @NotNull BiConsumer<? super TType, ? super R> action);
     
-    <R> @NotNull I peekIterableMap(@NotNull Function<? super T, ? extends Iterable<R>> mapper, @NotNull BiConsumer<? super T, ? super R> action);
+    <R> @NotNull TInvoker peekIterableMap(@NotNull Function<? super TType, ? extends Iterable<R>> mapper, @NotNull BiConsumer<? super TType, ? super R> action);
     
-    @NotNull I filter(@NotNull Predicate<? super T> predicate);
+    @NotNull TInvoker filter(@NotNull Predicate<? super TType> predicate);
     
-    <R> @NotNull I peekFilter(@NotNull Function<? super T, ? extends R> mapper, @NotNull BiPredicate<? super T, ? super R> predicate);
+    <R> @NotNull TInvoker peekFilter(@NotNull Function<? super TType, ? extends R> mapper, @NotNull BiPredicate<? super TType, ? super R> predicate);
     //endregion
     
     //region Terminal Operations
@@ -941,24 +1238,33 @@ sealed interface IBaseInvoker<T, I extends IBaseInvoker<T, I>>
      * <p>
      * This is the single sink of the pipeline; after this method returns, the invoker is consumed and
      * should not be reused (unless it was created from a repeatable source such as
-     * <u>{@link Invoker#unit(Object) unit(T)}</u>).
+     * <u>{@link Invoker#unit(Object) unit(TType)}</u>).
      * </p>
      *
      * @param action the element consumer — will be invoked once per element
      */
-    void invoke(@NotNull Consumer<? super T> action);
+    void invoke(@NotNull Consumer<? super TType> action);
     
-    default List<T> toList(boolean isMutiThread)
+    default @NotNull @Unmodifiable List<TType> toList(boolean isMultiThread)
     {
-        final List<T> result = isMutiThread ? new CopyOnWriteArrayList<>() : new ArrayList<>();
+        final List<TType> result = isMultiThread ? new CopyOnWriteArrayList<>() : new ArrayList<>();
         this.invoke(result::add);
         return Collections.unmodifiableList(result);
     }
     
-    default List<T> toList() { return toList(false); }
+    default @NotNull @Unmodifiable List<TType> toList() { return toList(false); }
+    
+    default @NotNull @Unmodifiable Set<TType> toSet(boolean isMultiThread)
+    {
+        final Set<TType> result = isMultiThread ? ConcurrentHashMap.newKeySet() : new HashSet<>();
+        this.invoke(result::add);
+        return Collections.unmodifiableSet(result);
+    }
+    
+    default @NotNull @Unmodifiable Set<TType> toSet() { return toSet(false); }
     
     //? Currently not thread safe.
-    default <A, R> @NotNull R collect(@NotNull Collector<? super T, A, R> collector)
+    default <A, R> @NotNull R collect(@NotNull Collector<? super TType, A, R> collector)
     {
         Objects.requireNonNull(collector, "Param \"collector\" must not be null!");
         final A container = collector.supplier().get();
@@ -966,19 +1272,19 @@ sealed interface IBaseInvoker<T, I extends IBaseInvoker<T, I>>
         return collector.finisher().apply(container);
     }
     
-    default T reduce(@NotNull T identity, @NotNull BinaryOperator<T> reducer)
+    default TType reduce(@NotNull TType identity, @NotNull BinaryOperator<TType> reducer)
     {
         Objects.requireNonNull(identity, "Param \"identity\" must not be null!");
         Objects.requireNonNull(reducer, "Param \"reducer\" must not be null!");
-        final var ref = new AtomicReference<>(identity);
-        invoke(value -> ref.set(reducer.apply(ref.get(), value)));
+        final var ref = new Ref<>(identity);
+        invoke(value -> ref.reduceMutate(value, reducer));
         
-        return ref.get();
+        return ref.unwrap();
     }
     
-    default T reduce(@NotNull T identity, @NotNull BinaryOperator<T> reducer, boolean isMutiThread)
+    default TType reduce(@NotNull TType identity, @NotNull BinaryOperator<TType> reducer, boolean isMultiThread)
     {
-        if(!isMutiThread)
+        if(!isMultiThread)
             return reduce(identity, reducer);
         
         Objects.requireNonNull(identity, "Param \"identity\" must not be null!");
@@ -1002,34 +1308,34 @@ sealed interface IBaseInvoker<T, I extends IBaseInvoker<T, I>>
         return ref.get();
     }
     
-    default @NotNull Optional<T> reduce(@NotNull BinaryOperator<T> reducer)
+    default @NotNull Optional<TType> reduce(@NotNull BinaryOperator<TType> reducer)
     {
         Objects.requireNonNull(reducer, "Param \"reducer\" must not be null!");
         
-        final var ref = new AtomicReference<T>(null);
+        final var ref = new Ref<TType>(null);
         invoke(
             value ->
             {
-                if(ref.get() == null)
+                if(ref.unwrap() == null)
                 {
-                    ref.set(value);
+                    ref.mutate(value);
                     return;
                 }
                 
-                ref.set(reducer.apply(ref.get(), value));
+                ref.reduceMutate(value, reducer);
             }
         );
         
-        return Optional.ofNullable(ref.get());
+        return Optional.ofNullable(ref.unwrap());
     }
     
-    default @NotNull Optional<T> reduce(@NotNull BinaryOperator<T> reducer, boolean isMutiThread)
+    default @NotNull Optional<TType> reduce(@NotNull BinaryOperator<TType> reducer, boolean isMultiThread)
     {
-        if(!isMutiThread)
+        if(!isMultiThread)
             return reduce(reducer);
         
         Objects.requireNonNull(reducer, "Param \"reducer\" must not be null!");
-        final var ref = new AtomicReference<T>(null);
+        final var ref = new AtomicReference<TType>(null);
         invoke(
             value ->
             {
@@ -1059,4 +1365,22 @@ final class Invok3r
     private Invok3r() { throw new IllegalAccessError("Class \"Invok3r\" is not meant to be instantized!"); }
     static final Invoker<Object> EMPTY = __ -> {};
     static final IMarkLogger LOGGER = IMarkLogger.marklessLogger();
+}
+
+/**
+ * For <u>{@link IBaseInvoker#reduce}</u> methods on single-threading case.<br>
+ * No <u>{@link AtomicReference}</u>'s Muti-Thread check, no {@code T[]}'s varargs static method creation trick, {@code length} field and access boundary check.
+ * @since 1.0 Release
+ */
+final class Ref<T>
+{
+    private @Nullable T val;
+    
+    Ref(@Nullable T val) { this.val = val; }
+    
+    @Nullable T unwrap() { return val; }
+    
+    void mutate(@NotNull T val) { this.val = val; }
+    
+    void reduceMutate(@NotNull T val, @NotNull BinaryOperator<T> reducer) { this.val = reducer.apply(this.val, val); }
 }

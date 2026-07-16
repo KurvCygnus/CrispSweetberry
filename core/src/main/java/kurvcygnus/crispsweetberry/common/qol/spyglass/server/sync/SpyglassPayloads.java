@@ -13,7 +13,7 @@ import io.netty.buffer.ByteBuf;
 import kurvcygnus.crispsweetberry.CrispSweetberry;
 import kurvcygnus.crispsweetberry.common.qol.spyglass.mixins.SpyglassPlayerStateInjection;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -85,7 +85,7 @@ public final class SpyglassPayloads
                     {
                         final int slot = inventory.findSlotMatchingItem(Items.SPYGLASS.getDefaultInstance());
                         
-                        if(slot != ExampleSlotConstants.ERROR && slot != Inventory.SLOT_OFFHAND)
+                        if(slot != MinecraftConstants.OfVanillaSlotIndexes.ERROR && slot != Inventory.SLOT_OFFHAND)
                         {
                             player.getPersistentData().putInt(ORIGINAL_SLOT_TAG, slot);
                             

@@ -19,6 +19,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeSeriali
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipeType;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Holder;
@@ -30,7 +31,6 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
@@ -92,13 +92,14 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
      */
     @SubscribeEvent @DoNotCall static void kilnItemDynamicSpriteEvent(@NotNull FMLClientSetupEvent event)
     {
-        event.enqueueWork(() ->
+        event.enqueueWork(
+            () ->
             ItemProperties.register(
                 KilnRegistries.KILN_BLOCK_ITEM.value(),
                 DefinitionUtils.getModNamespacedLocation("lit"),
                 (stack, level, entity, seed) ->
                 {
-                    final CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+                    final var data = stack.get(DataComponents.CUSTOM_DATA);
                     
                     if(data != null && data.contains(LIT_PROPERTY))
                         return data.copyTag().getBoolean(LIT_PROPERTY) ? 1F : 0F;
@@ -132,22 +133,19 @@ public enum KilnRegistries implements IRegistrant<KilnRegistries>
     public static final Holder<Block> KILN_BLOCK = KILN_BLOCK_REGISTER.register("kiln", KilnBlock::new);
     
     @RegisterToTab @AutoI18n(key = "kiln", overrides = "kiln") public static final Holder<Item> KILN_BLOCK_ITEM = KILN_ITEM_REGISTER.register(
-        "kiln",
-        resourceLocation -> new BlockItem(KILN_BLOCK.value(), new Item.Properties())
+        "kiln", () -> new BlockItem(KILN_BLOCK.value(), MinecraftConstants.OfUniversalProperties.NO_PROPERTY)
     );
     
     @SuppressWarnings("ConstantConditions")//! `build(Type<?>)`'s param is used for game save upgrade. Thus, this is unnecessary when your mod doesn't need to support it.
     public static final Supplier<BlockEntityType<KilnBlockEntity>> KILN_BLOCK_ENTITY = KILN_BE_REGISTER.register("kiln_block_entity",
-        () ->
-            BlockEntityType.Builder.of(
-                KilnBlockEntity::new,
-                KilnRegistries.KILN_BLOCK.value()
-            ).build(null)//* https://docs.neoforged.net/docs/1.21.1/blockentities/ Reference
+        () -> BlockEntityType.Builder.of(
+            KilnBlockEntity::new,
+            KilnRegistries.KILN_BLOCK.value()
+        ).build(null)//* https://docs.neoforged.net/docs/1.21.1/blockentities/ Reference
     );
     
     public static final DeferredHolder<RecipeType<?>, KilnRecipeType> KILN_RECIPE_TYPE = KILN_RECIPE_REGISTER.register(
-        "kiln",
-        () -> KilnRecipeType.INST
+        "kiln", () -> KilnRecipeType.INST
     );
     
     public static final DeferredHolder<RecipeSerializer<?>, KilnRecipeSerializer> KILN_SERIALIZER = KILN_SERIALIZER_REGISTER.register(

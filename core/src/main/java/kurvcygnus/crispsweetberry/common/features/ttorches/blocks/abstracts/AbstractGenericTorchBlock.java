@@ -10,7 +10,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts;
 
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection;
-import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ScalableParticleOptionsBase;
@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.function.Supplier;
@@ -75,9 +76,9 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     protected final T behavior;
     
     @SuppressWarnings("DataFlowIssue")//! We don't use "flameParticle" for display, and its componentExecutionType is [[SimpleParticleType]], which is not universal, and SUCKS.
-    public AbstractGenericTorchBlock(@NotNull Properties properties, @NotNull T behavior, boolean isWallTorch)
+    public AbstractGenericTorchBlock(@Nullable Properties properties, @NotNull T behavior, boolean isWallTorch)
     {
-        super(null, requireNonNull(properties, "Param \"properties\" must not be null!"));
+        super(null, TTorchUtilCollection.BASIC_PROPERTY_INST.map(properties));
         requireNonNull(behavior, "Param \"behavior\" must not be null!");
         
         this.behavior = behavior;
@@ -123,7 +124,7 @@ public abstract class AbstractGenericTorchBlock<T extends AbstractTemporaryTorch
     public boolean isWallTorch() { return isWallTorch; }
     
     @Override public final @NotNull MapCodec<? extends AbstractGenericTorchBlock<T>> codec()
-        { return simpleCodec(SerializationTemplates.noArgCodec(getCodecConstruct())); }
+        { return MinecraftConstants.OfSerializationBasics.noArgCodec(getCodecConstruct()); }
     
     protected abstract @NotNull Supplier<? extends AbstractGenericTorchBlock<T>> getCodecConstruct();
 }

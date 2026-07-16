@@ -10,8 +10,8 @@ package kurvcygnus.crispsweetberry.client;
 
 import kurvcygnus.crispsweetberry.annotations.AutoI18n;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import kurvcygnus.crispsweetberry.utils.UIUtils;
-import kurvcygnus.crispsweetberry.utils.constants.ComponentConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -23,10 +23,11 @@ public final class CrispClientLiterals
     
     public static final String CRISP_CONTROL_MENU_CATEGORY_KEY = "crispsweetberry.menu.control.title";
     
-    @AutoI18n(value = {
-        "en_us = Crisp Sweetberry-In Game Keymappings",
-        "lol_us = TAZTY FRUT IN GAYM BUTTONZ",
-        "zh_cn = 澄莓物语-游戏按键"
+    @AutoI18n(
+        value = {
+            "en_us = Crisp Sweetberry-In Game Keymappings",
+            "lol_us = TAZTY FRUT IN GAYM BUTTONZ",
+            "zh_cn = 澄莓物语-游戏按键"
         },
         key = CRISP_CONTROL_MENU_CATEGORY_KEY
     )
@@ -38,5 +39,5 @@ public final class CrispClientLiterals
         "zh_cn = 按住Shift以获取详细信息..."
     })
     public static final Supplier<MutableComponent> UI__SHIFT_FOR_MORE_INFO = () ->
-        UIUtils.dimmedItalicText(DefinitionUtils.namespacedDotId(ComponentConstants.UI, "shift_for_more_info"));
+        UIUtils.dimmedItalicText(DefinitionUtils.namespacedDotId(MinecraftConstants.OfResourceLocationLiterals.UI, "shift_for_more_info"));
 }

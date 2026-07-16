@@ -19,7 +19,7 @@ import kurvcygnus.crispsweetberry.common.features.ttorches.client.renderers.abst
 import kurvcygnus.crispsweetberry.common.features.ttorches.items.abstracts.AbstractThrowableTorchItem;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -56,7 +56,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static kurvcygnus.crispsweetberry.common.features.ttorches.TTorchUtilCollection.LIGHT_PROPERTY;
-import static kurvcygnus.crispsweetberry.utils.constants.ProjectileConstants.*;
 
 /**
  * The basic of all thrown torch entities.
@@ -280,7 +279,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
             if(getTier() == TIER_WILD || this.isInLiquid())
             {
                 handle.changeMarker("HIT_FAILURE");
-                playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, SoundConstants.NORMAL_SOUND_VOLUME);
+                playSound(SoundEvents.SCAFFOLDING_BREAK, SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.NORMAL_SOUND_VOLUME);
                 displayDestroyParticle();
                 displayParticle(NO_FREQUENCY, DEFAULT_SHORTER_PARTICLE);
                 LOGGER.debug("{}", getTier() == TIER_WILD ?
@@ -330,10 +329,10 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
             }
             
             if(stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
-                playSound(getPlaceSound(), SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+                playSound(getPlaceSound(), SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.LOUD_SOUND_VOLUME);
             else
             {
-                playSound(getDestroySound(), SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+                playSound(getDestroySound(), SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.LOUD_SOUND_VOLUME);
                 displayDestroyParticle();
             }
         }
@@ -408,7 +407,7 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
                     this.getX() + offsetX,
                     this.getY() + offsetY,
                     this.getZ() + offsetZ,
-                    X_NO_SPEED, Y_NO_SPEED, Z_NO_SPEED
+                                         MinecraftConstants.OfProjectileValues.X_NO_SPEED, MinecraftConstants.OfProjectileValues.Y_NO_SPEED, MinecraftConstants.OfProjectileValues.Z_NO_SPEED
                 );
             }
         }
@@ -468,11 +467,11 @@ public abstract class AbstractThrownTorchEntity extends ThrowableItemProjectile
             return;
         
         this.getEntityData().set(FIRE_TIER_ID, goalTier);
-        playSound(sound, SoundSource.AMBIENT, SoundConstants.LOUD_SOUND_VOLUME);
+        playSound(sound, SoundSource.AMBIENT, MinecraftConstants.OfSoundValues.LOUD_SOUND_VOLUME);
     }
     
     protected final void playSound(@NotNull SoundEvent sound, @NotNull SoundSource soundSource, float volume)
-        { this.level().playSound(null, getOnPos(), sound, soundSource, volume, SoundConstants.NORMAL_SOUND_PITCH); }
+        { this.level().playSound(null, getOnPos(), sound, soundSource, volume, MinecraftConstants.OfSoundValues.NORMAL_SOUND_PITCH); }
     //endregion
     
     //region Misc & Hooks

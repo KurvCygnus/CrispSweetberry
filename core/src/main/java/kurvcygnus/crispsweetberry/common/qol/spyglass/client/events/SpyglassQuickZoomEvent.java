@@ -30,9 +30,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.qol.spyglass.SpyglassClientRegistries.SPYGLASS_ZOOM;
-import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.ERROR;
-import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_PITCH;
-import static kurvcygnus.crispsweetberry.utils.constants.SoundConstants.NORMAL_SOUND_VOLUME;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfSoundValues.NORMAL_SOUND_PITCH;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfSoundValues.NORMAL_SOUND_VOLUME;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfVanillaSlotIndexes.ERROR;
 
 /**
  * This handles clientside zoom stuff.

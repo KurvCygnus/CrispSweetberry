@@ -14,6 +14,8 @@ import kurvcygnus.crispsweetberry.common.features.kiln.api.IKilnRecipeView;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEntity;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnProgressCalculator;
 import kurvcygnus.crispsweetberry.common.features.kiln.client.ui.KilnMenu;
+import kurvcygnus.crispsweetberry.lib.base.extensions.IAutoNestedPrintable;
+import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.item.ItemStack;
@@ -67,7 +69,7 @@ public record KilnRecipe(
     @Range(from = 0, to = (long) Double.MAX_VALUE) double processFactor,
     @Range(from = 0, to = (long) Float.MAX_VALUE) float experience,
     boolean isBanned
-) implements Recipe<KilnRecipeInput>, IKilnRecipeView
+) implements Recipe<KilnRecipeInput>, IKilnRecipeView, IAutoNestedPrintable.OfRecordHandle<KilnRecipe>
 {
     public static final String GROUP_BUILDING_MATERIALS = "building_materials";
     public static final String GROUP_FOODS = "foods";
@@ -77,7 +79,11 @@ public record KilnRecipe(
     /**
      * The contractor method for <b>creating a recipe</b>, and <b>serialization</b>.
      */
-    public KilnRecipe {}
+    public KilnRecipe
+    {
+        AssertUtils.unsignedRequired(processFactor, "processFactor");
+        AssertUtils.unsignedRequired(experience, "experience");
+    }
     
     @Override public @NotNull KilnRecipe withBanned()
     {
@@ -116,4 +122,6 @@ public record KilnRecipe(
     @Override public @NotNull Ingredient ingredient() { return this.ingredient; }
     
     @Override public @NotNull ItemStack result() { return this.result.copy(); }
+    
+    @Override public @NotNull String toString() { return toNestedString(); }
 }

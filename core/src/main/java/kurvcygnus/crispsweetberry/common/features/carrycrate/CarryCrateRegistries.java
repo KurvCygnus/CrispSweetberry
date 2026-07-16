@@ -24,7 +24,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrate
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.CarryCrateItem;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.products.OverweightEffect;
 import kurvcygnus.crispsweetberry.lib.core.registry.IRegistrant;
-import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import kurvcygnus.crispsweetberry.utils.core.RegisterToTab;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
@@ -156,13 +156,13 @@ public enum CarryCrateRegistries implements IRegistrant<CarryCrateRegistries>
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CARRY_TICK_COUNTER = CARRY_CRATE_DATA_COMPONENT_REGISTER.register(
-        "carry_crate.tick_counter", SerializationTemplates.INT_TEMPLATE
+        "carry_crate.tick_counter", MinecraftConstants.OfSerializationBasics.INT_TEMPLATE
     );
     
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CARRY_CRATE_DURABILITY =
         CARRY_CRATE_DATA_COMPONENT_REGISTER.register("carry_crate.durability", CarryCrateItem.SERIALIZATION_TEMPLATE);
     
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> CARRY_FACTOR = CARRY_FACTOR_REGISTER.register(
-        "carry_crate.carry_factor", SerializationTemplates.FLOAT_DATA_SYNCER.apply(() -> 0F)
+        "carry_crate.carry_factor", MinecraftConstants.OfSerializationBasics.FLOAT_DATA_SYNCER.apply(() -> 0F)
     );
 }

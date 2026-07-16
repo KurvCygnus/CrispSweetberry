@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.carrycrate.products;
 import com.mojang.serialization.MapCodec;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateConstants;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.CarryCrateRegistries;
-import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -42,15 +42,16 @@ public final class CarryCrateBlock extends HorizontalDirectionalBlock
     public CarryCrateBlock()
     {
         super(BlockBehaviour.Properties.of().
-            destroyTime(0.1F).
-            explosionResistance(0.1F).
+            destroyTime(.1F).
+            explosionResistance(.1F).
             ignitedByLava().
             sound(SoundType.SCAFFOLDING)
         );
         
-        this.registerDefaultState(this.stateDefinition.any().
-            setValue(FACING, Direction.NORTH).
-            setValue(DURABILITY, CarryCrateConstants.CARRY_CRATE_MAX_DURABILITY)
+        this.registerDefaultState(
+            this.stateDefinition.any().
+                setValue(FACING, Direction.NORTH).
+                setValue(DURABILITY, CarryCrateConstants.CARRY_CRATE_MAX_DURABILITY)
         );
     }
     
@@ -81,5 +82,5 @@ public final class CarryCrateBlock extends HorizontalDirectionalBlock
         return stacks;
     }
     
-    @Override protected @NotNull MapCodec<CarryCrateBlock> codec() { return simpleCodec(SerializationTemplates.noArgCodec(CarryCrateBlock::new)); }
+    @Override protected @NotNull MapCodec<CarryCrateBlock> codec() { return MinecraftConstants.OfSerializationBasics.noArgCodec(CarryCrateBlock::new); }
 }

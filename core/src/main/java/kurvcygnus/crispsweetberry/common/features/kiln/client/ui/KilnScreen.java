@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.KilnConstants;
 import kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData;
 import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.components.KilnEnumCollections;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.constants.UIConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static kurvcygnus.crispsweetberry.common.features.kiln.KilnContainerData.*;
 import static kurvcygnus.crispsweetberry.lib.base.util.AssertUtils.unsignedRequired;
-import static kurvcygnus.crispsweetberry.utils.constants.UIConstants.NO_OFFSET;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfUI.NO_OFFSET;
 
 /**
  * This the actual user interface for kiln.
@@ -186,7 +186,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
                 this.getMessage(),
                 centerX,
                 centerY,
-                UIConstants.GRAY_COLOR
+                MinecraftConstants.OfUI.GRAY_COLOR
             );
             
             if(this.isHovered)
@@ -196,7 +196,7 @@ public final class KilnScreen extends AbstractContainerScreen<KilnMenu>
                     this.getMessage(),
                     centerX,
                     centerY,
-                    UIConstants.GOLD_COLOR
+                    MinecraftConstants.OfUI.GOLD_COLOR
                 );
                 
                 guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, HIGHLIGHT_COLOR);

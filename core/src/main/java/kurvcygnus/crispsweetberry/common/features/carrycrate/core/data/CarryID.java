@@ -16,7 +16,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.events.CarryCrateCo
 import kurvcygnus.crispsweetberry.lib.base.extensions.BaseNestedPrinter;
 import kurvcygnus.crispsweetberry.lib.base.extensions.INestedPrintable;
 import kurvcygnus.crispsweetberry.lib.base.lang.IVault;
-import kurvcygnus.crispsweetberry.utils.constants.SerializationTemplates;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,7 +37,6 @@ import java.util.function.Supplier;
 
 /**
  * A data object that represents the identity of boxed Carry Crate.
- *
  * @author Kurv Cygnus
  * @since 1.0 Release
  */
@@ -59,7 +58,7 @@ public final class CarryID extends BaseNestedPrinter<CarryID>
         CarryID::new
     );
     
-    public static final Supplier<DataComponentType<CarryID>> SERIALIZATION_DEF = SerializationTemplates.buildSerializeTemplate(CODEC, STREAM_CODEC);
+    public static final Supplier<DataComponentType<CarryID>> SERIALIZATION_DEF = MinecraftConstants.OfSerializationBasics.buildSerializeTemplate(CODEC, STREAM_CODEC);
     
     @ApiStatus.Internal public static final
     IVault<

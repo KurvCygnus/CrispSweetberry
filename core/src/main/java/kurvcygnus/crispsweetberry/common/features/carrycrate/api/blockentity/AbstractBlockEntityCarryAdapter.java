@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.Abstra
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -48,7 +48,7 @@ implements CarriableBlockEntityExtensions.OfAll<E>
         
         {}
         """,
-        MetainfoConstants.FEEDBACK_MESSAGE
+        MinecraftConstants.OfMetainfo.FEEDBACK_MESSAGE
     ).getMessage();
     
     //region Core Logics

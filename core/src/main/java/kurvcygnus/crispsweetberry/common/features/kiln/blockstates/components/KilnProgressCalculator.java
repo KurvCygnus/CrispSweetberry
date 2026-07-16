@@ -13,7 +13,7 @@ import kurvcygnus.crispsweetberry.common.features.kiln.blockstates.KilnBlockEnti
 import kurvcygnus.crispsweetberry.common.features.kiln.recipes.KilnRecipe;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.NonNullList;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.*;
@@ -218,7 +218,7 @@ public final class KilnProgressCalculator implements ICalculatorBridge
                         
                         {}
                         """,
-                        MetainfoConstants.FEEDBACK_MESSAGE
+                        MinecraftConstants.OfMetainfo.FEEDBACK_MESSAGE
                     );
                     hasWarnedAbnormalFactor = true;
                 }

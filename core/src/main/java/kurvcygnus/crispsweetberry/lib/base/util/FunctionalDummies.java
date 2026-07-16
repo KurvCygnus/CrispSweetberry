@@ -6,9 +6,10 @@
 // the Free Software Foundation, either version 3 of the License.              =
 //==============================================================================
 
-package kurvcygnus.crispsweetberry.utils.constants;
+package kurvcygnus.crispsweetberry.lib.base.util;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -25,8 +26,13 @@ public final class FunctionalDummies
     private static final BiConsumer<Object, Object> BI_CONSUME_NOTHING = (ignored1, ignored2) -> {};
     
     public static Runnable runNothing() { return RUN_NOTHING; }
-    @SuppressWarnings("unchecked") public static <T> @NotNull Consumer<T> silentConsume() { return (Consumer<T>) CONSUME_NOTHING; }
-    @SuppressWarnings("unchecked") public static <T, U> @NotNull BiConsumer<T, U> silentConsumeBi() { return (BiConsumer<T, U>) BI_CONSUME_NOTHING; }
+    @SuppressWarnings("unchecked") public static <T> @NotNull Consumer<T> refConsume() { return (Consumer<T>) CONSUME_NOTHING; }
+    @SuppressWarnings("unchecked") public static <T, U> @NotNull BiConsumer<T, U> refConsumeBi() { return (BiConsumer<T, U>) BI_CONSUME_NOTHING; }
+    public static <T> void consume(@Nullable T ignoredValue) {}
+    public static <T, U> void consumeBi(@Nullable T ignored1, @Nullable U ignored2) { }
+    
     public static boolean alwaysTrue() { return true; }
+    public static <T> boolean alwaysTrue(@Nullable T ignoredValue) { return alwaysTrue(); }
     public static boolean alwaysFalse() { return false; }
+    public static <T> boolean alwaysFalse(@Nullable T ignoredValue) { return alwaysFalse(); }
 }

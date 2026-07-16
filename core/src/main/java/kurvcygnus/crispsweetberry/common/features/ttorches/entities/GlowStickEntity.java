@@ -11,7 +11,7 @@ package kurvcygnus.crispsweetberry.common.features.ttorches.entities;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.blocks.abstracts.AbstractTemporaryWallTorchBlock;
 import kurvcygnus.crispsweetberry.common.features.ttorches.entities.abstracts.AbstractThrownTorchEntity;
-import kurvcygnus.crispsweetberry.utils.constants.SoundConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
@@ -104,11 +104,11 @@ public final class GlowStickEntity extends AbstractThrownTorchEntity
         
         if(getBounceCounter() >= MAX_BOUNCE_TIME)
         {
-            playSound(getDestroySound(), SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+            playSound(getDestroySound(), SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.LOUD_SOUND_VOLUME);
             displayDestroyParticle();
         }
         else if(stateToPlace != null && tryPlaceTorch(stateToPlace, placementPos))
-            playSound(getPlaceSound(), SoundSource.BLOCKS, SoundConstants.LOUD_SOUND_VOLUME);
+            playSound(getPlaceSound(), SoundSource.BLOCKS, MinecraftConstants.OfSoundValues.LOUD_SOUND_VOLUME);
     }
     
     @Override protected boolean shouldDiscard(@NotNull HitResult result) 

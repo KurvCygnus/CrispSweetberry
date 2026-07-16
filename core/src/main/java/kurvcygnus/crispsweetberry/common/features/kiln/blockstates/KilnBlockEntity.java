@@ -42,7 +42,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
 
 import java.util.List;
 import java.util.Optional;
@@ -77,23 +76,8 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
      */
     public static final KilnBlockEntity CLIENT_DUMMY_INSTANCE = new KilnBlockEntity(BlockPos.ZERO, KilnRegistries.KILN_BLOCK.value().defaultBlockState());
     
-    private static final int[] INPUT_SLOTS;
-    
-    private static final int[] OUTPUT_SLOTS;
-    
-    static
-    {
-        INPUT_SLOTS = new int[]{
-            KilnConstants.KILN_INPUT_SLOTS_RANGE.min,
-            KilnConstants.KILN_INPUT_SLOTS_RANGE.min + 1,
-            KilnConstants.KILN_INPUT_SLOTS_RANGE.max
-        };
-        OUTPUT_SLOTS = new int[]{
-            KilnConstants.KILN_OUTPUT_SLOTS_RANGE.min,
-            KilnConstants.KILN_OUTPUT_SLOTS_RANGE.min + 1,
-            KilnConstants.KILN_OUTPUT_SLOTS_RANGE.max
-        };
-    }
+    private static final int[] INPUT_SLOTS = KilnConstants.KILN_INPUT_SLOTS_RANGE.toArray();
+    private static final int[] OUTPUT_SLOTS = KilnConstants.KILN_OUTPUT_SLOTS_RANGE.toArray();
     
     private static final String NBT_TAG_VISUAL_PROGRESS = "visualProgress";
     private static final String NBT_TAG_REAL_PROGRESS = "realProgress";
@@ -131,14 +115,6 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     private static final IMarkLogger LOGGER = IMarkLogger.configuredLogger(
         IMarkLogger.allowWhen(org.slf4j.event.Level.DEBUG, IMarkLogger.ConditionSituation.EQUAL, CrispConfig.KILN_BE_DEBUG)
     );
-    
-    private record EmulateResult(boolean canProcess, float exp)
-    {
-        static final @NotNull EmulateResult FAILED = new EmulateResult(false, 0F);
-        
-        static @NotNull EmulateResult success(@Range(from = 0, to = (long) Float.MAX_VALUE) float exp)
-            { return new EmulateResult(true, exp); }
-    }
     //endregion
     
     //region Constructor & Basic Info Declaration
@@ -381,13 +357,14 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         
         for(int round = 0; round < processRound && isFinishedProcession; round++)
         {
-            final EmulateResult processResult = processInputItems(blockEntity, level);
+            final float processExp = processInputItems(blockEntity, level);
+            final boolean nan = Double.isNaN(processExp);
             
-            worldDirty |= processResult.canProcess;
+            worldDirty |= !nan;
             worldDirty |= checkAndShrinkInputItems(blockEntity, level, pos);
             
-            if(processResult.canProcess)
-                blockEntity.experience += processResult.exp;
+            if(!nan)
+                blockEntity.experience += processExp;
             
             if(worldDirty)
                 continue;
@@ -415,7 +392,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         return ProcessionState.WORKING;
     }
     
-    private static @NotNull EmulateResult processInputItems(@NotNull KilnBlockEntity blockEntity, @NotNull Level level)
+    private static float processInputItems(@NotNull KilnBlockEntity blockEntity, @NotNull Level level)
     {
         final var resultStacks = new ItemStack[KILN_OUTPUT_SLOTS_RANGE.size()];
         
@@ -425,10 +402,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         //* Since the procession is complex, using emulation-then-apply strategy can sufficiently decrease the quantity of boundary cases.
         final var emulatedOutputSlots = copyOutputSlots(blockEntity.containerItems);
         
-        final var insertResult = insertItemsToSlots(blockEntity, resultStacks, emulatedOutputSlots);
-        
-        if(!insertResult.canProcess)
-            return EmulateResult.FAILED;
+        final float insertResultExp = insertItemsToSlots(blockEntity, resultStacks, emulatedOutputSlots);
         
         //* Emulation succeed, then apply emulated results.
         for(int index = 0; index < KILN_SLOT_COUNT_FOR_EACH_TYPE; index++)
@@ -437,7 +411,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
             blockEntity.containerItems.set(outputIndex, emulatedOutputSlots.get(index).copy());
         }
         
-        return EmulateResult.success(insertResult.exp);
+        return insertResultExp;
     }
     
     /**
@@ -445,10 +419,10 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
      * only when both of three result item insertions are succeed, then the method will return {@code true} to tell
      * <u>{@link #processInputItems processInputItems()}</u> to apply emulated results.
      */
-    private static @NotNull EmulateResult insertItemsToSlots(
+    private static float insertItemsToSlots(
         @NotNull KilnBlockEntity blockEntity,
         @NotNull ItemStack[] resultStacks,
-        @NotNull NonNullList<ItemStack> emulatedOutputSlots
+        @NotNull List<ItemStack> emulatedOutputSlots
     )
     {
         float exp = 0F;
@@ -463,7 +437,10 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
             {
                 final var emulatedOutputStack = emulatedOutputSlots.get(attemptSlotIndex);
                 
-                if(!canMerge(resultStack, emulatedOutputStack))
+                if(
+                    !ItemStack.isSameItemSameComponents(resultStack, emulatedOutputStack) &&
+                    emulatedOutputStack.getCount() < emulatedOutputStack.getMaxStackSize()
+                )
                 {
                     invalidAttempts++;
                     
@@ -479,7 +456,7 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
                             break;
                         }
                         else
-                            return EmulateResult.FAILED;
+                            return Float.NaN;
                     }
                     continue;
                 }
@@ -489,10 +466,10 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
             }
         }
         
-        return EmulateResult.success(exp);
+        return exp;
     }
     
-    private static @NotNull NonNullList<ItemStack> copyOutputSlots(NonNullList<ItemStack> outputStacks)
+    private static @NotNull NonNullList<ItemStack> copyOutputSlots(@NotNull List<ItemStack> outputStacks)
     {
         final var copy = NonNullList.withSize(KILN_SLOT_COUNT_FOR_EACH_TYPE, ItemStack.EMPTY);
         
@@ -505,12 +482,6 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         }
         
         return copy;
-    }
-    
-    private static boolean canMerge(@NotNull ItemStack resultStack, @NotNull ItemStack emulatedOutputStack)
-    {
-        return ItemStack.isSameItemSameComponents(resultStack, emulatedOutputStack) &&
-            emulatedOutputStack.getCount() < emulatedOutputStack.getMaxStackSize();
     }
     
     private static boolean checkAndShrinkInputItems(@NotNull KilnBlockEntity blockEntity, @Nullable Level level, @NotNull BlockPos pos)
@@ -536,7 +507,8 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
             if(stack.getCount() == 1)
                 blockEntity.containerItems.set(index, remainingStack);
             else
-            {   //* Pop out the remaining item near the container.
+            {
+                //* Pop out the remaining item near the container.
                 Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), remainingStack);
                 stack.shrink(1);
             }
@@ -557,12 +529,12 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
         this.containerItems = NonNullList.withSize(KILN_DEFAULT_SIZE, ItemStack.EMPTY);
         ContainerHelper.loadAllItems(tag, this.containerItems, registries);
         
-        final double loadedVisualProgress = tag.contains(NBT_TAG_VISUAL_PROGRESS, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_VISUAL_PROGRESS) : 0D;
-        final double loadedRealProgress = tag.contains(NBT_TAG_REAL_PROGRESS, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_REAL_PROGRESS) : 0D;
+        final double loadedVisualProgress = tag.contains(NBT_TAG_VISUAL_PROGRESS, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_VISUAL_PROGRESS) : 0.;
+        final double loadedRealProgress = tag.contains(NBT_TAG_REAL_PROGRESS, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_REAL_PROGRESS) : 0.;
         final float loadedExp = tag.contains(NBT_TAG_EXPERIENCE, Tag.TAG_FLOAT) ? tag.getFloat(NBT_TAG_EXPERIENCE) : 0F;
         final byte loadedLitProperty = tag.contains(NBT_TAG_LIT, Tag.TAG_BYTE) ? tag.getByte(NBT_TAG_LIT) : TRUE;
         final byte loadedBalanceTick = tag.contains(NBT_TAG_BALANCE_TICK, Tag.TAG_BYTE) ? tag.getByte(NBT_TAG_BALANCE_TICK) : 0;
-        final double loadedBalanceRate = tag.contains(NBT_TAG_BALANCE_RATE, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_BALANCE_RATE) : 0D;
+        final double loadedBalanceRate = tag.contains(NBT_TAG_BALANCE_RATE, Tag.TAG_DOUBLE) ? tag.getDouble(NBT_TAG_BALANCE_RATE) : 0.;
         
         this.model.synchronize(loadedRealProgress, loadedVisualProgress, VisualTrend.NONE, loadedLitProperty == TRUE);
         this.calculator.synchronize(loadedBalanceTick, loadedBalanceRate);
@@ -587,8 +559,12 @@ public final class KilnBlockEntity extends BaseContainerBlockEntity implements M
     //endregion
     
     //region Carry Crate Compat
-    @Override @CheckReturnValue public @NotNull KilnBlockEntityContext 
-    onCarriedSequence(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ServerPlayer player)
+    @Override @CheckReturnValue public @NotNull KilnBlockEntityContext onCarriedSequence(
+        @NotNull ServerLevel level,
+        @NotNull BlockPos pos,
+        @NotNull BlockState state,
+        @NotNull ServerPlayer player
+    )
     {
         final boolean isLit = state.getValue(KilnBlock.LIT);
         final double realRate = this.calculator.onCarriedSequence();

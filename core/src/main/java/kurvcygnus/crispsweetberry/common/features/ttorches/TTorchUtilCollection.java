@@ -8,6 +8,7 @@
 
 package kurvcygnus.crispsweetberry.common.features.ttorches;
 
+import kurvcygnus.crispsweetberry.lib.base.minecraft.BuilderSpecMonoid;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -38,12 +39,12 @@ public final class TTorchUtilCollection
     //region Block Constants
     public static final int DEFAULT_LIFECYCLE_TICK = 400;
     
-    public static final double HORIZONTAL_WALL_TORCH_OFFSET_VALUE = 0.27;
-    public static final double VERTICAL_WALL_TORCH_OFFSET_VALUE = 0.22;
-    public static final double HORIZONTAL_TORCH_OFFSET_VALUE = 0.5;
-    public static final double VERTICAL_TORCH_OFFSET_VALUE = 0.7;
+    public static final double HORIZONTAL_WALL_TORCH_OFFSET_VALUE = .27;
+    public static final double VERTICAL_WALL_TORCH_OFFSET_VALUE = .22;
+    public static final double HORIZONTAL_TORCH_OFFSET_VALUE = .5;
+    public static final double VERTICAL_TORCH_OFFSET_VALUE = .7;
     
-    public static final float TORCH_BURNING_OUT_VOL = 0.2F;
+    public static final float TORCH_BURNING_OUT_VOL = .2F;
     
     public static final SimpleParticleType DEFAULT_TEMP_TORCH_PARTICLE = ParticleTypes.FLAME;
     public static final SimpleParticleType DEFAULT_TEMP_TORCH_SUB_PARTICLE = ParticleTypes.SMOKE;
@@ -52,25 +53,18 @@ public final class TTorchUtilCollection
     
     public static final ToIntFunction<BlockState> DEFAULT_BRIGHTNESS_FORMULA = bs -> bs.getValue(LIGHT_PROPERTY).toBrightness();
     
-    public static final BlockBehaviour.Properties STANDARD_TEMPORARY_TORCH_PROPERTIES = BlockBehaviour.Properties.of().
-        noLootTable().
-        sound(SoundType.WOOD).
-        ignitedByLava().
-        noCollission().
-        instabreak().
-        lightLevel(DEFAULT_BRIGHTNESS_FORMULA);
+    public static final BuilderSpecMonoid.Instance<BlockBehaviour.Properties> BASIC_PROPERTY_INST = BuilderSpecMonoid.OF_BLOCK_PROPERTY.
+        instantize(properties -> properties.noCollission().instabreak().ignitedByLava());
     
-    public static final BlockBehaviour.Properties BASIC_TEMP_TORCH_PROPERTIES = BlockBehaviour.Properties.of().
-        noCollission().
-        instabreak().
-        ignitedByLava();
+    public static final BuilderSpecMonoid.Instance<BlockBehaviour.Properties> STANDARD_PROPERTY_INST = BASIC_PROPERTY_INST.
+        compose(properties -> properties.noLootTable().lightLevel(DEFAULT_BRIGHTNESS_FORMULA).sound(SoundType.WOOD));
     //endregion
     
     //region Renderer Constants & Utils
     public static final String BASE_TEXTURE_PATH = "textures/entity/";
     public static final String TEXTURE_SUFFIX = ".png";
-    public static final float STANDARD_TORCH_SCALE = 0.5F;
-    public static final float ROTATION_DEGREES = 180.0F;
+    public static final float STANDARD_TORCH_SCALE = .5F;
+    public static final float ROTATION_DEGREES = 180F;
     public static final int TEXTURE_INDEX_CORRECTION_STD = 1;
     public static final int DEFAULT_ANIMATION_DURATION_TICKS = 1;
     public static final int DEFAULT_ANIMATION_FRAMES_IN_TOTAL = 8;

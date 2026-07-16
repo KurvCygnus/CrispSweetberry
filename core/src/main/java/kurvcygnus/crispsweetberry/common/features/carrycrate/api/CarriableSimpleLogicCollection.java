@@ -12,7 +12,7 @@ import kurvcygnus.crispsweetberry.common.features.carrycrate.api.blockentity.Bas
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.CarryData;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableBlockEntityExtensions.IBlockEntityCarryLifecycle;
 import kurvcygnus.crispsweetberry.common.features.carrycrate.api.internal.extensions.CarriableExtensions;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -251,7 +251,7 @@ public final class CarriableSimpleLogicCollection
                     MessageFormatter.format(
                         "Cannot instantiate entity with its data \"{}\". This is a serious serialization issue. {}",
                         dataTag,
-                        MetainfoConstants.FEEDBACK_MESSAGE
+                        MinecraftConstants.OfMetainfo.FEEDBACK_MESSAGE
                     ).getMessage()
                 );
         }

@@ -10,7 +10,6 @@ package kurvcygnus.crispsweetberry.utils;
 
 import kurvcygnus.crispsweetberry.lib.base.datastructure.Ranger;
 import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
-import kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants;
 import kurvcygnus.crispsweetberry.utils.functions.IQuadMoveStackPredicate;
 import kurvcygnus.crispsweetberry.utils.functions.IQuadSlotSupplier;
 import net.minecraft.ChatFormatting;
@@ -24,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
-import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.CORRECTION_INDEX;
-import static kurvcygnus.crispsweetberry.utils.constants.ExampleSlotConstants.SLOT_GAP;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfVanillaSlotIndexes.CORRECTION_INDEX;
+import static kurvcygnus.crispsweetberry.utils.MinecraftConstants.OfVanillaSlotIndexes.SLOT_GAP;
 
 /**
  * A collection of some simple helpers for <u>{@link net.minecraft.world.inventory.AbstractContainerMenu UI stuff}</u>.
@@ -52,7 +51,7 @@ public final class UIUtils
      *      this::addSlot
      *  );
      * }</pre>
-     * All constants can be found at <u>{@link ExampleSlotConstants}</u>.
+     * All constants can be found at <u>{@link MinecraftConstants.OfVanillaSlotIndexes}</u>.
      * @throws IllegalArgumentException When {@code rows} and {@code cols} are non-positive integers.
      */
     public static <C extends Container> void addGridSlots(
@@ -91,7 +90,7 @@ public final class UIUtils
      * @implSpec Example:<pre>{@code 
      *  moveStackByRanger(stack, ranger, flag, this::moveItemStackTo);
      * }</pre>
-     * @see ExampleSlotConstants Furnace Layout Index Reference
+     * @see MinecraftConstants.OfVanillaSlotIndexes Furnace Layout Index Reference
      * @see Ranger Ranger
      */
     public static boolean moveStackByRanger(

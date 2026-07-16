@@ -25,7 +25,7 @@ import kurvcygnus.crispsweetberry.lib.base.util.AssertUtils;
 import kurvcygnus.crispsweetberry.lib.base.util.TextUtils;
 import kurvcygnus.crispsweetberry.lib.core.log.IMarkLogger;
 import kurvcygnus.crispsweetberry.utils.DefinitionUtils;
-import kurvcygnus.crispsweetberry.utils.constants.MetainfoConstants;
+import kurvcygnus.crispsweetberry.utils.MinecraftConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -139,7 +139,7 @@ enum CarryOperationExecutor
                         ex.tag(),
                         ex.getMessage(),
                         ex.causeData(),
-                        MetainfoConstants.FEEDBACK_MESSAGE,
+                        MinecraftConstants.OfMetainfo.FEEDBACK_MESSAGE,
                         ex.cause()
                     );
                     
@@ -163,7 +163,7 @@ enum CarryOperationExecutor
         //* If item has [[CarryData]], but no [[CarryID]], that's counted as a persistent issue.
         //* However, we can't take that as an error, because data still exists, which is still processable, having no [[CarryID]] mainly affects the handle of
         //* [[CarryOperationExecutor#blockEntityUnbox]]'s partial logic.
-        if(carryIDBox.isAssignable() && !context.carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
+        if(!carryIDBox.isPresent() && !context.carryCrate.has(CarryCrateRegistries.CARRY_CRATE_DATA.get()))
         {
             @Nullable("`null` happens when interact target's ResourceLocation is invalid.")
             final var carryID = generateCarryID(context.actionType, context.targets);
@@ -324,7 +324,7 @@ enum CarryOperationExecutor
         
         final var adapter = optionalAdapter.get();
         
-        if(!adapter.isSupported(targetEntity.getType()))
+        if(!adapter.isSupported(targetEntity))
             return CarryInteractHandleException.boxInFailed(
                 context.fail(),
                 TextUtils.format(

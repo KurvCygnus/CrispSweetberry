@@ -37,7 +37,7 @@ implements OfSimpleBlockEntityBreak<KilnBlockEntity>, CarriableSimpleLogicCollec
     {
         final double itemTotalRate = Invoker.unit(blockEntity.getContainerItems()).
             mapToDouble(item -> ((double) item.getCount() / item.getMaxStackSize())).
-            reduce(0., Double::sum);
+            sum();
         
         return (int) (DEFAULT_PENALTY_RATE / (1. + itemTotalRate));
     }

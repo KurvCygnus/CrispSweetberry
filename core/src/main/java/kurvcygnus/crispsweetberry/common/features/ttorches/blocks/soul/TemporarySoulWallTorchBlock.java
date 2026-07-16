@@ -34,7 +34,7 @@ public final class TemporarySoulWallTorchBlock extends AbstractTemporaryWallTorc
     public TemporarySoulWallTorchBlock() 
     {
         super(
-            TTorchUtilCollection.STANDARD_TEMPORARY_TORCH_PROPERTIES,
+            TTorchUtilCollection.STANDARD_PROPERTY_INST.get(),
             new TemporarySoulTorchBehavior(Lazy.of(TTorchRegistries.TEMPORARY_SOUL_WALL_TORCH))
         );
     }
